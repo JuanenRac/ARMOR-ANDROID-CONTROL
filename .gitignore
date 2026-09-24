@@ -1,0 +1,7 @@
+.gradle/
+build/
+**/build/
+local.properties
+*.jks
+*.keystore
+armor-android-build.log

@@ -1,0 +1,17 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- ARMOR-SERVER normally runs inside a trusted LAN without TLS. The
+         endpoint parser still rejects arbitrary public HTTP origins. -->
+    <application
+        android:allowBackup="false"
+        android:label="A.R.M.O.R. Control"
+        android:theme="@style/Theme.Armor"
+        android:usesCleartextTraffic="true">
+        <activity android:name=".ArmorActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
