@@ -3,10 +3,13 @@ package es.electrohobby3d.armor
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.content.Context
+import es.electrohobby3d.armor.model.ArmorEvent
 import es.electrohobby3d.armor.model.ArmorSnapshot
 import es.electrohobby3d.armor.model.CameraView
 import es.electrohobby3d.armor.model.MediaCatalogue
 import es.electrohobby3d.armor.network.ArmorApiClient
+import es.electrohobby3d.armor.network.ArmorApiException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +22,9 @@ data class MonitorUiState(
     val snapshot: ArmorSnapshot = ArmorSnapshot(),
     val cameras: List<CameraView> = emptyList(),
     val media: MediaCatalogue = MediaCatalogue(),
+    val events: List<ArmorEvent> = emptyList(),
+    /** Camera id to "online" / "offline" / "unknown", from the server's watchdog. */
+    val cameraHealth: Map<String, String> = emptyMap(),
     val authenticated: Boolean = false,
     val message: String? = null,
 )
@@ -78,6 +84,31 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient()) : Vi
         require(_state.value.authenticated) { "Sign in first" }
         client.deleteMedia(origin, item)
         _state.value = _state.value.copy(media = client.media(origin))
+    }
+
+    /**
+     * One refresh of everything the screens show, plus the alarm check. Called every ten seconds while
+     * the app is on screen; a transient failure is ignored and an expired session sends the user back to sign-in.
+     */
+    suspend fun pollOnce(origin: String, app: Context) = withContext(Dispatchers.IO) {
+        try {
+            val status = client.status(origin)
+            val cameras = client.cameraViews(origin)
+            val events = client.history(origin, limit = 50)
+            val health = client.cameraStatus(origin).associate { it.id to it.status }
+            AlarmNotifier.tracker(app).claim(events, status.mode == "armed").forEach { AlarmNotifier.post(app, it) }
+            _state.value = _state.value.copy(snapshot = status, cameras = cameras, events = events, cameraHealth = health)
+        } catch (error: ArmorApiException) {
+            if (error.code == 401) _state.value = MonitorUiState(message = "La sesión ha caducado: inicia sesión de nuevo")
+        } catch (_: Exception) {
+            // The server may be restarting or the network changing; the next pass tries again.
+        }
+    }
+
+    fun loadOlderEvents(origin: String) = action(origin, "Historial ampliado") {
+        val oldest = _state.value.events.lastOrNull()?.id ?: return@action
+        val older = client.history(origin, limit = 50, before = oldest)
+        _state.value = _state.value.copy(events = _state.value.events + older)
     }
 
     fun mjpegUrl(origin: String, camera: CameraView) = client.mjpegUrl(origin, camera.id)
