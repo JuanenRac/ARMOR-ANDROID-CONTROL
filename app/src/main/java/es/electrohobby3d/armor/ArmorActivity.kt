@@ -8,7 +8,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.Dp
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -178,16 +185,60 @@ private fun LoginPanel(
 @Composable private fun GridPicker(grid: Int, choose: (Int) -> Unit) { var open by remember { mutableStateOf(false) }; Box { AssistChip(onClick = { open = true }, label = { Text("$grid vistas") }); DropdownMenu(expanded = open, onDismissRequest = { open = false }) { listOf(1, 2, 4, 6, 8, 9, 12, 16).forEach { amount -> DropdownMenuItem(text = { Text("$amount vistas") }, onClick = { choose(amount); open = false }) } } } }
 
 @Composable private fun CameraTile(camera: CameraView, origin: String, viewModel: ArmorViewModel, operatorReady: Boolean, recording: Boolean, health: String?, expand: (CameraView) -> Unit) {
+    var ptzOpen by remember { mutableStateOf(false) }
     Card(Modifier.fillMaxWidth().height(236.dp).clickable(enabled = camera.configured) { expand(camera) }) { Column(Modifier.fillMaxSize()) {
-        Box(Modifier.weight(1f).fillMaxWidth()) { if (health == "offline") Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Cámara sin respuesta", color = MaterialTheme.colorScheme.error) } else if (camera.configured && camera.liveVideoAvailable) MjpegFeed(viewModel.mjpegUrl(origin, camera), Modifier.fillMaxSize()) else Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text(if (camera.configured) "Vídeo no disponible" else "Cámara sin configurar") } }
-        Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text(camera.name, maxLines = 1, overflow = TextOverflow.Ellipsis); Text(camera.host, style = MaterialTheme.typography.labelSmall) }; TextButton(onClick = { expand(camera) }, enabled = camera.configured) { Text("⛶") }; TextButton(onClick = { viewModel.snapshot(origin, camera) }, enabled = operatorReady && camera.configured) { Text("◉") }; TextButton(onClick = { viewModel.toggleRecording(origin, camera) }, enabled = operatorReady && camera.configured) { Text(if (recording) "■" else "●") } }
+        Box(Modifier.weight(1f).fillMaxWidth()) { if (health == "offline") Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Cámara sin respuesta", color = MaterialTheme.colorScheme.error) } else if (camera.configured && camera.liveVideoAvailable) MjpegFeed(viewModel.mjpegUrl(origin, camera), Modifier.fillMaxSize()) else Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text(if (camera.configured) "Vídeo no disponible" else "Cámara sin configurar") }
+            if (ptzOpen) Box(Modifier.align(Alignment.BottomEnd).padding(6.dp)) { PtzPad(enabled = operatorReady && camera.configured, action = { viewModel.ptz(origin, camera, it) }, key = 36.dp) }
+        }
+        Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text(camera.name, maxLines = 1, overflow = TextOverflow.Ellipsis); Text(camera.host, style = MaterialTheme.typography.labelSmall) }; TextButton(onClick = { ptzOpen = !ptzOpen }, enabled = operatorReady && camera.configured) { Text(if (ptzOpen) "PTZ ✕" else "PTZ") }; TextButton(onClick = { expand(camera) }, enabled = camera.configured) { Text("⛶") }; TextButton(onClick = { viewModel.snapshot(origin, camera) }, enabled = operatorReady && camera.configured) { Text("◉") }; TextButton(onClick = { viewModel.toggleRecording(origin, camera) }, enabled = operatorReady && camera.configured) { Text(if (recording) "■" else "●") } }
     } }
 }
 
 @Composable private fun FullscreenCamera(camera: CameraView, origin: String, viewModel: ArmorViewModel, unlocked: Boolean, recording: Boolean, onDismiss: () -> Unit) {
     AlertDialog(onDismissRequest = onDismiss, title = { Text(camera.name) }, text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { Box(Modifier.fillMaxWidth().height(300.dp)) { if (camera.liveVideoAvailable) MjpegFeed(viewModel.mjpegUrl(origin, camera), Modifier.fillMaxSize()) else Text("Vídeo no disponible") }; PtzPad(enabled = unlocked, action = { viewModel.ptz(origin, camera, it) }); Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { Button(onClick = { viewModel.snapshot(origin, camera) }, enabled = unlocked) { Text("Foto") }; Button(onClick = { viewModel.toggleRecording(origin, camera) }, enabled = unlocked) { Text(if (recording) "Detener" else "Grabar") } } } }, confirmButton = { TextButton(onClick = onDismiss) { Text("Cerrar") } })
 }
-@Composable private fun PtzPad(enabled: Boolean, action: (String) -> Unit) { Column(verticalArrangement = Arrangement.spacedBy(2.dp)) { Text("PTZ", style = MaterialTheme.typography.labelLarge); Row { Spacer(Modifier.width(48.dp)); TextButton(onClick = { action("up") }, enabled = enabled) { Text("▲") }; Spacer(Modifier.width(48.dp)) }; Row { TextButton(onClick = { action("left") }, enabled = enabled) { Text("◀") }; TextButton(onClick = { action("stop") }, enabled = enabled) { Text("■") }; TextButton(onClick = { action("right") }, enabled = enabled) { Text("▶") } }; Row { Spacer(Modifier.width(48.dp)); TextButton(onClick = { action("down") }, enabled = enabled) { Text("▼") }; Spacer(Modifier.width(48.dp)) }; Row { TextButton(onClick = { action("zoomOut") }, enabled = enabled) { Text("−") }; TextButton(onClick = { action("zoomIn") }, enabled = enabled) { Text("+") } } } }
+/**
+ * A key that moves the camera while it is held: pressing sends the move and repeats it every second (the server
+ * stops a move by itself after a couple of seconds), releasing sends a stop after at least 300 ms, so a tap
+ * still moves the camera visibly.
+ */
+@Composable private fun HoldKey(label: String, command: String, enabled: Boolean, size: Dp, action: (String) -> Unit) {
+    val scope = rememberCoroutineScope()
+    val current by rememberUpdatedState(action)
+    Box(
+        Modifier.size(size).clip(RoundedCornerShape(8.dp))
+            .background(if (enabled) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface)
+            .pointerInput(enabled, command) {
+                if (!enabled) return@pointerInput
+                detectTapGestures(onPress = {
+                    val started = System.currentTimeMillis()
+                    val repeat = scope.launch { while (true) { current(command); kotlinx.coroutines.delay(1_000) } }
+                    try { tryAwaitRelease() } finally {
+                        repeat.cancel()
+                        scope.launch {
+                            val wait = 300 - (System.currentTimeMillis() - started)
+                            if (wait > 0) kotlinx.coroutines.delay(wait)
+                            current("stop")
+                        }
+                    }
+                })
+            },
+        contentAlignment = Alignment.Center,
+    ) { Text(label, color = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.outline) }
+}
+
+@Composable private fun PtzPad(enabled: Boolean, action: (String) -> Unit, key: Dp = 48.dp) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        HoldKey("▲", "up", enabled, key, action)
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            HoldKey("◀", "left", enabled, key, action)
+            Box(Modifier.size(key).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant).clickable(enabled = enabled) { action("stop") }, contentAlignment = Alignment.Center) { Text("■") }
+            HoldKey("▶", "right", enabled, key, action)
+        }
+        HoldKey("▼", "down", enabled, key, action)
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) { HoldKey("−", "zoomOut", enabled, key, action); HoldKey("+", "zoomIn", enabled, key, action) }
+    }
+}
 
 @Composable private fun EvidencePanel(items: List<MediaItem>, cameras: List<CameraView>, origin: String, viewModel: ArmorViewModel, unlocked: Boolean) {
     Column(Modifier.fillMaxSize()) { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text("Evidencias", style = MaterialTheme.typography.headlineSmall); Button(onClick = { viewModel.loadMedia(origin) }, enabled = unlocked) { Text("Actualizar") } }; if (!unlocked) Text("Desbloquea los controles de operador en Conexión para acceder a fotos y grabaciones.", Modifier.padding(top = 12.dp)) else if (items.isEmpty()) Text("No hay fotos ni grabaciones guardadas.", Modifier.padding(top = 12.dp)) else LazyVerticalGrid(columns = GridCells.Fixed(1), modifier = Modifier.fillMaxSize().padding(top = 8.dp)) { items(items, key = { it.id }) { item -> val name = cameras.firstOrNull { it.id == item.cameraId }?.name ?: item.cameraId; Card(Modifier.fillMaxWidth().padding(vertical = 4.dp)) { Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text(if (item.kind == "snapshot") "FOTO · $name" else "VÍDEO · $name"); Text(item.createdAt, style = MaterialTheme.typography.labelSmall) }; TextButton(onClick = { viewModel.deleteMedia(origin, item) }) { Text("Borrar") } } } } } }
