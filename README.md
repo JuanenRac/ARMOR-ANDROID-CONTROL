@@ -17,7 +17,7 @@
 
 ---
 
-**Honesty check - what runs today:** The endpoint-safety and alarm-decision rules have unit tests and the app builds. It has **not been run on a phone against the server**, so the notification permission flow and the background service are unverified, and it deliberately cannot arm or disarm the system.
+**Honesty check - what runs today:** The endpoint-safety and alarm-decision rules have unit tests and the app builds. It has **not been run on a phone against the server**, so the notification permission flow and the background service are unverified. Arming, alarms and devices follow the server's routes but have not been tried on a real phone.
 
 ---
 
@@ -25,8 +25,9 @@
 
 * **Sign in with the server's own login:** IP, port, user and password; the password creates an HttpOnly session and is never stored on the phone.
 * **Camera monitor:** 1 to 16 tiles, a maximized view, live MJPEG that keeps the picture ratio, a bounded PTZ pad, snapshots and recordings.
-* **Evidence library**, the perimeter and node state, and a **history** of every alert, node, camera and mode change.
-* **Alarm notifications** for a node reaching HIGH, a camera that stops answering and, while armed, a node that goes offline; an optional background watch uses the current session and says so when it ends.
+* **Arm and disarm**, after a confirmation; **alarms** to acknowledge, with a badge for those waiting; **devices** (smoke, gas, flood, door, window, motion, climate, plugs, lights, sirens, locks) with their state and On / Off / Toggle.
+* **Evidence library**, the perimeter and node state, and a **history** of every alert, node, camera, device, alarm and mode change.
+* **Alarm notifications** for a node reaching HIGH, a camera that stops answering, a device alarm (smoke, gas, flood, panic at any time; a door, window or motion sensor while armed) and, while armed, a node that goes offline; an optional background watch uses the current session and says so when it ends.
 * **Careful with the password:** plain HTTP is allowed only to a private-LAN or loopback IPv4 *literal*. A host name that merely starts like a private address (`10.attacker.example`) or an address with a leading zero (some resolvers read `010.0.0.1` as the public `8.0.0.1`) is refused.
 * The Hydra look: near-black surfaces, a cyan accent, amber for attention.
 

@@ -4,7 +4,9 @@ package es.electrohobby3d.armor
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.content.Context
+import es.electrohobby3d.armor.model.Alarm
 import es.electrohobby3d.armor.model.ArmorEvent
+import es.electrohobby3d.armor.model.SiteDevice
 import es.electrohobby3d.armor.model.ArmorSnapshot
 import es.electrohobby3d.armor.model.CameraView
 import es.electrohobby3d.armor.model.MediaCatalogue
@@ -27,6 +29,10 @@ data class MonitorUiState(
     val events: List<ArmorEvent> = emptyList(),
     /** Camera id to "online" / "offline" / "unknown", from the server's watchdog. */
     val cameraHealth: Map<String, String> = emptyMap(),
+    /** Alarms waiting for a person or not yet cleared, and the closed record; empty against a server that predates alarms. */
+    val alarms: List<Alarm> = emptyList(),
+    val closedAlarms: List<Alarm> = emptyList(),
+    val devices: List<SiteDevice> = emptyList(),
     val authenticated: Boolean = false,
     val message: String? = null,
 )
@@ -108,12 +114,40 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient()) : Vi
             val events = client.history(origin, limit = 50)
             val health = client.cameraStatus(origin).associate { it.id to it.status }
             AlarmNotifier.tracker(app).claim(events, status.mode == "armed").forEach { AlarmNotifier.post(app, it) }
-            _state.value = _state.value.copy(snapshot = status, cameras = cameras, events = events, cameraHealth = health)
+            // An older server has neither: keep what was there rather than failing the whole pass.
+            val alarms = runCatching { client.alarms(origin) }.getOrNull()
+            val devices = runCatching { client.devices(origin) }.getOrNull()
+            _state.value = _state.value.copy(
+                snapshot = status, cameras = cameras, events = events, cameraHealth = health,
+                alarms = alarms?.first ?: _state.value.alarms, closedAlarms = alarms?.second ?: _state.value.closedAlarms, devices = devices ?: _state.value.devices,
+            )
         } catch (error: ArmorApiException) {
             if (error.code == 401) _state.value = MonitorUiState(message = "La sesión ha caducado: inicia sesión de nuevo")
         } catch (_: Exception) {
             // The server may be restarting or the network changing; the next pass tries again.
         }
+    }
+
+    /** Arm or disarm. The screen asks the person first; a failure shows as a message and changes nothing. */
+    fun setMode(origin: String, mode: String) = action(origin, if (mode == "armed") "Sistema ARMADO" else "Sistema DESARMADO") {
+        require(_state.value.authenticated) { "Sign in first" }
+        _state.value = _state.value.copy(snapshot = client.setMode(origin, mode))
+    }
+
+    fun acknowledge(origin: String, alarm: Alarm) = action(origin, "Alarma confirmada") {
+        client.acknowledgeAlarm(origin, alarm.id)
+        client.alarms(origin).let { _state.value = _state.value.copy(alarms = it.first, closedAlarms = it.second) }
+    }
+
+    fun acknowledgeAll(origin: String) = action(origin, "Alarmas confirmadas") {
+        client.acknowledgeAllAlarms(origin)
+        client.alarms(origin).let { _state.value = _state.value.copy(alarms = it.first, closedAlarms = it.second) }
+    }
+
+    /** "on", "off" or "toggle" to a plug, light, switch, siren, lock or valve. */
+    fun command(origin: String, device: SiteDevice, command: String) = action(origin, "${device.name}: orden enviada") {
+        client.commandDevice(origin, device.id, command)
+        _state.value = _state.value.copy(devices = client.devices(origin))
     }
 
     fun loadOlderEvents(origin: String) = action(origin, "Historial ampliado") {
@@ -138,6 +172,8 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient()) : Vi
     private fun refreshInternal(origin: String, loadMedia: Boolean) {
         val status = client.status(origin)
         val cameras = client.cameraViews(origin)
-        _state.value = _state.value.copy(snapshot = status, cameras = cameras, media = if (loadMedia) client.media(origin) else _state.value.media)
+        val alarms = runCatching { client.alarms(origin) }.getOrNull()
+        val devices = runCatching { client.devices(origin) }.getOrNull()
+        _state.value = _state.value.copy(snapshot = status, cameras = cameras, alarms = alarms?.first ?: emptyList(), closedAlarms = alarms?.second ?: emptyList(), devices = devices ?: emptyList(), media = if (loadMedia) client.media(origin) else _state.value.media)
     }
 }

@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## [0.2.5] - Arm and disarm, alarms, devices and device alarms on the phone
+
+- **Arm and disarm** from the phone, after a confirmation that says what changes; the server records it with the signed-in user's name.
+- **Alarms menu:** what needs a person right now with the source (the device's own name), how serious and since when; acknowledge one or all; the closed record. The bottom bar shows how many are waiting.
+- **Devices menu:** every sensor and actuator the server holds (smoke, gas, flood, door, window, motion, climate, plugs, lights, sirens, locks, valves) with its state, filters (all, sensors, actuators, needing attention) and On / Off / Toggle for what can be commanded. Devices are added and placed from Studio.
+- **A smoke, CO, gas, flood or panic alarm wakes the phone** even while the system is disarmed, and a door, window, motion, glass-break or vibration alarm does while armed; the event is announced once. Node and camera alarms are not announced a second time.
+- The overview shows the alarms waiting and the devices needing attention; the history reads device and alarm events. Recordings, history and connection are now under *Más* to keep the bottom bar at five places.
+- An older server without alarms or devices keeps working: those screens stay empty instead of failing the refresh.
+- 25 unit tests (was 7).
+
 ## [0.2.4] - PTZ that stops
 
 - PTZ keys work by holding (press moves, release stops after at least 300 ms, repeated every second), commands go out in order, only failures are shown, and each camera tile has a PTZ toggle that shows the pad over the picture. Not run on a phone.

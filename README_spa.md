@@ -17,7 +17,7 @@
 
 ---
 
-**Comprobación de honestidad - qué funciona hoy:** Las reglas de seguridad de la dirección y de decisión de alarmas tienen tests unitarios y la app compila. **No se ha ejecutado en un teléfono contra el servidor**, así que el permiso de notificaciones y el servicio en segundo plano no están verificados, y a propósito no puede armar ni desarmar el sistema.
+**Comprobación de honestidad - qué funciona hoy:** Las reglas de seguridad de la dirección y de decisión de alarmas tienen tests unitarios y la app compila. **No se ha ejecutado en un teléfono contra el servidor**, así que el permiso de notificaciones y el servicio en segundo plano no están verificados; armar, alarmas y dispositivos siguen las rutas del servidor pero no se han probado en un teléfono real.
 
 ---
 
@@ -25,8 +25,9 @@
 
 * **Acceso con el login del propio servidor:** IP, puerto, usuario y contraseña; la contraseña crea una sesión HttpOnly y nunca se guarda en el teléfono.
 * **Monitor de cámaras:** de 1 a 16 mosaicos, vista ampliada, MJPEG en directo que respeta la proporción, mando PTZ acotado, capturas y grabaciones.
-* **Biblioteca de evidencias**, estado del perímetro y de los nodos, y un **historial** de cada cambio de alerta, nodo, cámara y modo.
-* **Notificaciones de alarma** cuando un nodo llega a ALTA, una cámara deja de responder o, con el sistema armado, un nodo se cae; una vigilancia opcional en segundo plano usa la sesión actual y avisa cuando termina.
+* **Armar y desarmar**, con confirmación; **alarmas** para confirmar, con un aviso de las pendientes; **dispositivos** (humo, gas, inundación, puerta, ventana, movimiento, clima, enchufes, luces, sirenas, cerraduras) con su estado y Encender / Apagar / Alternar.
+* **Biblioteca de evidencias**, estado del perímetro y de los nodos, y un **historial** de cada cambio de alerta, nodo, cámara, dispositivo, alarma y modo.
+* **Notificaciones de alarma** cuando un nodo llega a ALTA, una cámara deja de responder, un dispositivo da alarma (humo, gas, inundación o pánico siempre; puerta, ventana o movimiento con el sistema armado) o, con el sistema armado, un nodo se cae; una vigilancia opcional en segundo plano usa la sesión actual y avisa cuando termina.
 * **Cuidado con la contraseña:** el HTTP plano solo se permite hacia un *literal* IPv4 de LAN privada o loopback. Se rechaza un nombre de host que solo empieza como una dirección privada (`10.atacante.ejemplo`) o una dirección con cero a la izquierda (algunos resolvedores leen `010.0.0.1` como la pública `8.0.0.1`).
 * El aspecto Hydra: superficies casi negras, acento cian, ámbar para lo que requiere atención.
 
