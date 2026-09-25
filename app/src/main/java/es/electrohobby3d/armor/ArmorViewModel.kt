@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 data class MonitorUiState(
@@ -75,9 +77,18 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient()) : Vi
         _state.value = _state.value.copy(media = client.media(origin))
     }
 
-    fun ptz(origin: String, camera: CameraView, command: String) = action(origin, "PTZ command sent: $command") {
-        require(_state.value.authenticated) { "Sign in first" }
-        client.ptz(origin, camera.id, command)
+    // PTZ commands go out strictly in the order they were given (a "stop" must never overtake its move), and
+    // they do not flash the loading state or a success message: only a failure is worth showing.
+    private val ptzLock = Mutex()
+
+    fun ptz(origin: String, camera: CameraView, command: String) {
+        if (ServerEndpoint.parse(origin) == null || !_state.value.authenticated) return
+        viewModelScope.launch {
+            ptzLock.withLock {
+                runCatching { withContext(Dispatchers.IO) { client.ptz(origin, camera.id, command) } }
+                    .onFailure { _state.value = _state.value.copy(message = it.message ?: "PTZ command failed") }
+            }
+        }
     }
 
     fun deleteMedia(origin: String, item: es.electrohobby3d.armor.model.MediaItem) = action(origin, "Evidence removed") {
