@@ -11,6 +11,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement.spacedBy
+import androidx.compose.ui.Alignment
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -27,6 +31,8 @@ fun SessionSettingsPanel(
     onConnect: () -> Unit,
     onMedia: () -> Unit,
     onLogout: () -> Unit,
+    watching: Boolean,
+    onWatching: (Boolean) -> Unit,
 ) {
     Column(Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Conexión", style = MaterialTheme.typography.headlineSmall)
@@ -39,6 +45,17 @@ fun SessionSettingsPanel(
             singleLine = true,
         )
         Button(onClick = onConnect, enabled = valid, modifier = Modifier.fillMaxWidth()) { Text("Conectar y actualizar") }
+        HorizontalDivider()
+        Text("Avisos", style = MaterialTheme.typography.titleMedium)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = spacedBy(12.dp)) {
+            Switch(checked = watching, onCheckedChange = onWatching, enabled = authenticated)
+            Text("Vigilar alarmas en segundo plano")
+        }
+        Text(
+            "Muestra una notificación permanente y avisa de alertas altas, cámaras sin respuesta y nodos caídos mientras el sistema está armado. " +
+                "Usa la sesión actual: si caduca, la vigilancia se detiene y lo avisa. Con la app abierta los avisos funcionan siempre.",
+            style = MaterialTheme.typography.bodySmall,
+        )
         HorizontalDivider()
         Text("Sesión", style = MaterialTheme.typography.titleMedium)
         Text(if (authenticated) "Sesión de cámaras activa." else "No hay una sesión activa.")

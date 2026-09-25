@@ -12,7 +12,8 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
 
-class ArmorApiException(message: String) : IllegalStateException(message)
+/** [code] is the HTTP status when the server answered, so a caller can tell an expired session (401) from an outage. */
+class ArmorApiException(message: String, val code: Int? = null) : IllegalStateException(message)
 
 class ArmorApiClient {
     init {
@@ -32,6 +33,16 @@ class ArmorApiClient {
         }.toList()
         ArmorSnapshot(root.optString("mode", "disarmed"), root.optLong("revision"), root.optString("updated_at"), nodes)
     }
+
+    /** The newest events first; [before] is an event id (only older events are returned). */
+    fun history(origin: String, limit: Int = 50, before: Long? = null): List<ArmorEvent> {
+        val query = "?limit=$limit" + (before?.let { "&before=$it" } ?: "")
+        return getJson(origin, "/api/v1/history$query").optJSONArray("events").asObjects().mapNotNull(EventParser::parse)
+    }
+
+    /** Reachability of every configured camera, by id. */
+    fun cameraStatus(origin: String): List<CameraHealth> = getJson(origin, "/api/v1/camera-status").optJSONArray("cameras").asObjects()
+        .map { CameraHealth(it.optString("id"), it.optString("status", "unknown")) }.filter { it.id.isNotBlank() }
 
     fun cameraViews(origin: String): List<CameraView> = getJson(origin, "/api/v1/camera-views").optJSONArray("cameras").asObjects().map { camera ->
         CameraView(camera.getString("id"), camera.optString("name", camera.getString("id")), camera.optString("host"), camera.optString("snapshotUrl"), camera.optString("rtspPath"), camera.optInt("onvifPort", 80), camera.optInt("rtspPort", 554), camera.optBoolean("hasCredentials"), camera.optBoolean("liveVideoAvailable"))
@@ -94,7 +105,7 @@ class ArmorApiClient {
             val stream = connection.errorStream
             val detail = stream?.bufferedReader()?.use { it.readText() }?.take(180).orEmpty()
             connection.disconnect()
-            throw ArmorApiException("Server operation failed (HTTP ${connection.responseCode})${if (detail.isBlank()) "" else ": $detail"}")
+            throw ArmorApiException("Server operation failed (HTTP ${connection.responseCode})${if (detail.isBlank()) "" else ": $detail"}", connection.responseCode)
         }
         return connection
     }

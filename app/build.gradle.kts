@@ -1,7 +1,7 @@
 plugins { id("com.android.application"); id("org.jetbrains.kotlin.plugin.compose") }
 
 android { namespace = "es.electrohobby3d.armor"; compileSdk = 37
-    defaultConfig { applicationId = "es.electrohobby3d.armor"; minSdk = 26; targetSdk = 37; versionCode = 4; versionName = "0.3.0" }
+    defaultConfig { applicationId = "es.electrohobby3d.armor"; minSdk = 26; targetSdk = 37; versionCode = 5; versionName = "0.4.0" }
     buildFeatures { compose = true; buildConfig = true }
 }
 dependencies {
@@ -16,4 +16,6 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
     testImplementation("junit:junit:4.13.2")
+    // The Android stubs of org.json do nothing in local tests; the real library lets the event parser be tested.
+    testImplementation("org.json:json:20250517")
 }

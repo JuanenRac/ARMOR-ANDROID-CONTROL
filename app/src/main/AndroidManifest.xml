@@ -1,5 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <!-- ARMOR-SERVER normally runs inside a trusted LAN without TLS. The
          endpoint parser still rejects arbitrary public HTTP origins. -->
     <application
@@ -13,5 +16,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service android:name=".AlarmWatcherService" android:exported="false" android:foregroundServiceType="dataSync" />
     </application>
 </manifest>
