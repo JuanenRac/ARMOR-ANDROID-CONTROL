@@ -48,6 +48,26 @@ class ArmorApiClient {
         CameraView(camera.getString("id"), camera.optString("name", camera.getString("id")), camera.optString("host"), camera.optString("snapshotUrl"), camera.optString("rtspPath"), camera.optInt("onvifPort", 80), camera.optInt("rtspPort", 554), camera.optBoolean("hasCredentials"), camera.optBoolean("liveVideoAvailable"))
     }
 
+    /** Arm or disarm the system; the server audits it with the signed-in user's name. */
+    fun setMode(origin: String, mode: String): ArmorSnapshot {
+        require(mode == "armed" || mode == "disarmed") { "El modo es armed o disarmed" }
+        request(origin, "/api/v1/mode", "POST", mapOf("Content-Type" to "application/json"), JSONObject(mapOf("mode" to mode)).toString(), setOf(200)).disconnect()
+        return status(origin)
+    }
+
+    /** Active alarms first (raised and not yet cleared, or cleared but waiting for a person), then the closed record. */
+    fun alarms(origin: String): Pair<List<Alarm>, List<Alarm>> = getJson(origin, "/api/v1/alarms").let { root ->
+        root.optJSONArray("active").asObjects().mapNotNull(DeviceParser::alarm) to root.optJSONArray("recent").asObjects().mapNotNull(DeviceParser::alarm)
+    }
+    fun acknowledgeAlarm(origin: String, id: String) { request(origin, "/api/v1/alarms/${part(id)}/acknowledge", "POST", emptyMap(), null, setOf(200)).disconnect() }
+    fun acknowledgeAllAlarms(origin: String) { request(origin, "/api/v1/alarms/acknowledge", "POST", emptyMap(), null, setOf(200)).disconnect() }
+
+    fun devices(origin: String): List<SiteDevice> = getJson(origin, "/api/v1/devices").optJSONArray("devices").asObjects().mapNotNull(DeviceParser::device)
+    /** [command] is "on", "off" or "toggle"; the server refuses it for a sensor. */
+    fun commandDevice(origin: String, id: String, command: String) {
+        request(origin, "/api/v1/devices/${part(id)}/command", "POST", mapOf("Content-Type" to "application/json"), JSONObject(mapOf("command" to command)).toString(), setOf(200)).disconnect()
+    }
+
     fun openOperatorSession(origin: String, token: String) {
         request(origin, "/api/v1/operator/session", "POST", mapOf("Authorization" to "Bearer $token"), null, setOf(201)).disconnect()
     }

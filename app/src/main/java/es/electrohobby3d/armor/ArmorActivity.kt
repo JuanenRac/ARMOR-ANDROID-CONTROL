@@ -52,8 +52,11 @@ class ArmorActivity : ComponentActivity() {
 }
 
 private enum class MobileSection(val label: String, val glyph: String) {
-    Overview("Estado", "◈"), Cameras("Cámaras", "◉"), Evidence("Grabaciones", "▣"), History("Historial", "≡"), Settings("Conexión", "⚙")
+    Overview("Estado", "◈"), Alarms("Alarmas", "!"), Devices("Dispositivos", "▤"), Cameras("Cámaras", "◉"), More("Más", "≡")
 }
+
+/** What "Más" holds, so the bottom bar keeps five places. */
+private enum class MoreTab(val label: String) { Evidence("Grabaciones"), History("Historial"), Settings("Conexión") }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,6 +70,8 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel()) {
     var username by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var section by rememberSaveable { mutableStateOf(MobileSection.Overview) }
+    var moreTab by rememberSaveable { mutableStateOf(MoreTab.Evidence) }
+    var confirmMode by remember { mutableStateOf<String?>(null) }
     var grid by rememberSaveable { mutableIntStateOf(4) }
     var expanded by remember { mutableStateOf<CameraView?>(null) }
     var about by remember { mutableStateOf(false) }
@@ -107,31 +112,53 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel()) {
         } else {
         Scaffold(
             topBar = { TopAppBar(title = { Column { Text("A.R.M.O.R."); Text("MOBILE CONTROL", style = MaterialTheme.typography.labelSmall) } }, actions = { Text("REV ${state.snapshot.revision}", style = MaterialTheme.typography.labelMedium); IconButton(onClick = { about = true }) { Text("i") } }) },
-            bottomBar = { NavigationBar { MobileSection.entries.forEach { item -> NavigationBarItem(selected = section == item, onClick = { section = item }, icon = { Text(item.glyph) }, label = { Text(item.label) }) } } },
+            bottomBar = { NavigationBar { MobileSection.entries.forEach { item ->
+                val waiting = if (item == MobileSection.Alarms) state.alarms.count { !it.acknowledged } else 0
+                NavigationBarItem(selected = section == item, onClick = { section = item }, icon = { if (waiting > 0) BadgedBox(badge = { Badge { Text(waiting.toString()) } }) { Text(item.glyph) } else Text(item.glyph) }, label = { Text(item.label, maxLines = 1) })
+            } } },
         ) { padding ->
             Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 12.dp)) {
                 state.message?.let { message -> AssistChip(onClick = {}, label = { Text(message, maxLines = 2, overflow = TextOverflow.Ellipsis) }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) }
                 when (section) {
-                    MobileSection.Overview -> OverviewPanel(state.snapshot.mode, state.snapshot.revision, state.snapshot.updatedAt, state.snapshot.nodes, state.cameras.size, state.cameraHealth.count { it.value == "offline" }, onRefresh = { viewModel.refresh(currentOrigin) }, enabled = validOrigin && !state.loading)
+                    MobileSection.Overview -> OverviewPanel(
+                        state.snapshot.mode, state.snapshot.revision, state.snapshot.updatedAt, state.snapshot.nodes, state.cameras.size, state.cameraHealth.count { it.value == "offline" },
+                        pendingAlarms = state.alarms.count { !it.acknowledged }, devices = state.devices, onMode = { confirmMode = it }, onAlarms = { section = MobileSection.Alarms }, onDevices = { section = MobileSection.Devices },
+                        onRefresh = { viewModel.refresh(currentOrigin) }, enabled = validOrigin && !state.loading,
+                    )
+                    MobileSection.Alarms -> AlarmsPanel(state.alarms, state.closedAlarms, state.devices, state.cameras.associate { it.id to it.name }, onAcknowledge = { viewModel.acknowledge(currentOrigin, it) }, onAcknowledgeAll = { viewModel.acknowledgeAll(currentOrigin) }, enabled = validOrigin && !state.loading)
+                    MobileSection.Devices -> DevicesPanel(state.devices, onCommand = { device, command -> viewModel.command(currentOrigin, device, command) }, enabled = validOrigin && !state.loading)
                     MobileSection.Cameras -> CamerasPanel(state.cameras, grid, onGrid = { grid = it }, origin = currentOrigin, viewModel = viewModel, authenticated = state.authenticated, recordingIds = state.media.activeCameraIds, health = state.cameraHealth, onExpand = { expanded = it })
-                    MobileSection.Evidence -> EvidencePanel(state.media.items, state.cameras, origin = currentOrigin, viewModel = viewModel, unlocked = state.authenticated)
-                    MobileSection.History -> HistoryPanel(state.events, onMore = { viewModel.loadOlderEvents(currentOrigin) })
-                    MobileSection.Settings -> SessionSettingsPanel(origin, { origin = it }, validOrigin, state.authenticated, onConnect = { preferences.edit().putString("origin", currentOrigin).apply(); viewModel.refresh(currentOrigin) }, onMedia = { viewModel.loadMedia(currentOrigin) }, onLogout = { AlarmWatcherService.stop(context); viewModel.logout(currentOrigin) },
-                        watching = watching,
-                        onWatching = { on ->
-                            watching = on
-                            preferences.edit().putBoolean("watch", on).apply()
-                            if (on) {
-                                if (android.os.Build.VERSION.SDK_INT >= 33 && !AlarmNotifier.canNotify(context)) notificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-                                AlarmWatcherService.start(context)
-                            } else AlarmWatcherService.stop(context)
-                        })
+                    MobileSection.More -> Column(Modifier.fillMaxSize()) {
+                        PrimaryTabRow(selectedTabIndex = moreTab.ordinal) { MoreTab.entries.forEach { tab -> Tab(selected = moreTab == tab, onClick = { moreTab = tab }, text = { Text(tab.label) }) } }
+                        Spacer(Modifier.height(8.dp))
+                        when (moreTab) {
+                            MoreTab.Evidence -> EvidencePanel(state.media.items, state.cameras, origin = currentOrigin, viewModel = viewModel, unlocked = state.authenticated)
+                            MoreTab.History -> HistoryPanel(state.events, onMore = { viewModel.loadOlderEvents(currentOrigin) })
+                            MoreTab.Settings -> SessionSettingsPanel(origin, { origin = it }, validOrigin, state.authenticated, onConnect = { preferences.edit().putString("origin", currentOrigin).apply(); viewModel.refresh(currentOrigin) }, onMedia = { viewModel.loadMedia(currentOrigin) }, onLogout = { AlarmWatcherService.stop(context); viewModel.logout(currentOrigin) },
+                                watching = watching,
+                                onWatching = { on ->
+                                    watching = on
+                                    preferences.edit().putBoolean("watch", on).apply()
+                                    if (on) {
+                                        if (android.os.Build.VERSION.SDK_INT >= 33 && !AlarmNotifier.canNotify(context)) notificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                                        AlarmWatcherService.start(context)
+                                    } else AlarmWatcherService.stop(context)
+                                })
+                        }
+                    }
                 }
             }
         }
+        confirmMode?.let { mode -> AlertDialog(
+            onDismissRequest = { confirmMode = null },
+            title = { Text(if (mode == "armed") "¿Armar el sistema?" else "¿Desarmar el sistema?") },
+            text = { Text(if (mode == "armed") "Con el sistema armado, puertas, ventanas y movimiento dispararán alarma." else "Con el sistema desarmado, los contactos y el movimiento dejan de disparar alarma; el humo, el gas, la inundación y el pánico siguen avisando.") },
+            confirmButton = { TextButton(onClick = { viewModel.setMode(currentOrigin, mode); confirmMode = null }) { Text(if (mode == "armed") "Armar" else "Desarmar") } },
+            dismissButton = { TextButton(onClick = { confirmMode = null }) { Text("Cancelar") } },
+        ) }
         expanded?.let { camera -> FullscreenCamera(camera, currentOrigin, viewModel, state.authenticated, state.media.activeCameraIds.contains(camera.id), onDismiss = { expanded = null }) }
         }
-        if (about) AlertDialog(onDismissRequest = { about = false }, confirmButton = { TextButton(onClick = { about = false }) { Text("Cerrar") } }, title = { Text("A.R.M.O.R. Mobile Control") }, text = { Text("v${BuildConfig.VERSION_NAME}\nCliente móvil para el estado, historial de eventos, alarmas, cámaras, PTZ y biblioteca de evidencias de ARMOR-SERVER. Las contraseñas de cámaras nunca salen del servidor.") })
+        if (about) AlertDialog(onDismissRequest = { about = false }, confirmButton = { TextButton(onClick = { about = false }) { Text("Cerrar") } }, title = { Text("A.R.M.O.R. Mobile Control") }, text = { Text("v${BuildConfig.VERSION_NAME}\nCliente móvil para el estado, armar y desarmar, alarmas, dispositivos, historial de eventos, cámaras, PTZ y biblioteca de evidencias de ARMOR-SERVER. Las contraseñas de cámaras nunca salen del servidor.") })
     }
 }
 
@@ -161,14 +188,36 @@ private fun LoginPanel(
     }
 }
 
-@Composable private fun OverviewPanel(mode: String, revision: Long, updated: String, nodes: List<FieldNode>, cameras: Int, camerasDown: Int, onRefresh: () -> Unit, enabled: Boolean) {
+@Composable private fun OverviewPanel(
+    mode: String, revision: Long, updated: String, nodes: List<FieldNode>, cameras: Int, camerasDown: Int,
+    pendingAlarms: Int, devices: List<es.electrohobby3d.armor.model.SiteDevice>, onMode: (String) -> Unit, onAlarms: () -> Unit, onDevices: () -> Unit,
+    onRefresh: () -> Unit, enabled: Boolean,
+) {
+    val armed = mode == "armed"
+    val attention = devices.count { es.electrohobby3d.armor.model.DeviceText.problem(it) != null }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Operación del perímetro", style = MaterialTheme.typography.headlineSmall)
-        Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) { Text(if (mode == "armed") "SISTEMA ARMADO" else "SISTEMA DESARMADO", style = MaterialTheme.typography.titleLarge); Text("Revisión $revision · ${if (updated.isBlank()) "sin telemetría" else updated}") } }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) { Metric("Nodos", nodes.size.toString(), Modifier.weight(1f)); Metric("Cámaras", if (camerasDown > 0) "$cameras ($camerasDown sin respuesta)" else cameras.toString(), Modifier.weight(1f)) }
+        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = if (armed) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer)) {
+            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(if (armed) "SISTEMA ARMADO" else "SISTEMA DESARMADO", style = MaterialTheme.typography.titleLarge)
+                Text("Revisión $revision · ${if (updated.isBlank()) "sin telemetría" else updated}")
+                Button(onClick = { onMode(if (armed) "disarmed" else "armed") }, enabled = enabled, modifier = Modifier.fillMaxWidth()) { Text(if (armed) "Desarmar el sistema" else "Armar el sistema") }
+            }
+        }
+        Card(Modifier.fillMaxWidth().clickable(onClick = onAlarms), colors = CardDefaults.cardColors(containerColor = if (pendingAlarms > 0) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surfaceVariant)) {
+            Column(Modifier.padding(14.dp)) { Text(if (pendingAlarms == 0) "Sin alarmas pendientes" else "$pendingAlarms alarmas necesitan atención", style = MaterialTheme.typography.titleMedium); Text("Toca para verlas y confirmarlas", style = MaterialTheme.typography.labelSmall) }
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Metric("Nodos", nodes.size.toString(), Modifier.weight(1f))
+            Metric("Cámaras", if (camerasDown > 0) "$cameras ($camerasDown sin respuesta)" else cameras.toString(), Modifier.weight(1f))
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Metric("Dispositivos", devices.size.toString(), Modifier.weight(1f).clickable(onClick = onDevices))
+            Metric("Requieren atención", attention.toString(), Modifier.weight(1f).clickable(onClick = onDevices))
+        }
         RadarPanel(nodes)
         Button(onClick = onRefresh, enabled = enabled, modifier = Modifier.fillMaxWidth()) { Text("Actualizar estado y cámaras") }
-        Text("El armado queda deliberadamente fuera del móvil hasta validar físicamente el flujo de seguridad.", style = MaterialTheme.typography.bodySmall)
+        Text("Armar y desarmar quedan registrados en el servidor con tu nombre de usuario.", style = MaterialTheme.typography.bodySmall)
     }
 }
 @Composable private fun Metric(label: String, value: String, modifier: Modifier = Modifier) = Card(modifier) { Column(Modifier.padding(14.dp)) { Text(value, style = MaterialTheme.typography.headlineMedium); Text(label) } }
@@ -264,11 +313,11 @@ private fun LoginPanel(
 @Composable private fun HistoryPanel(events: List<ArmorEvent>, onMore: () -> Unit) {
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Historial", style = MaterialTheme.typography.headlineSmall)
-        Text("Cada cambio de nivel de alerta, de estado de nodo y cámara y de modo, del más reciente al más antiguo.", style = MaterialTheme.typography.bodySmall)
+        Text("Cada cambio de nivel de alerta, de estado de nodo, cámara, dispositivo y alarma, y de modo, del más reciente al más antiguo.", style = MaterialTheme.typography.bodySmall)
         if (events.isEmpty()) Text("Todavía no hay eventos registrados.")
         else LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(6.dp), contentPadding = PaddingValues(bottom = 12.dp)) {
             listItems(events, key = { it.id }) { event ->
-                val high = event.type == "alert" && event.to == "high"
+                val high = (event.type == "alert" && event.to == "high") || (event.type == "alarm" && event.to == "raised" && event.severity == "critical")
                 Card(Modifier.fillMaxWidth(), colors = if (high) CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer) else CardDefaults.cardColors()) {
                     Column(Modifier.padding(12.dp)) { Text(event.at.replace('T', ' ').removeSuffix("Z").take(19), style = MaterialTheme.typography.labelSmall); Text(AlarmPolicy.describe(event)) }
                 }

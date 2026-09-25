@@ -18,8 +18,9 @@ configuración de cámara.
 
 ## Límites deliberados
 
-- El cliente no arma ni desarma el sistema: esto exige una revisión de la
-  cadena de seguridad física y autorización explícita.
+- Armar y desarmar exige una confirmación en pantalla y una sesión iniciada; el
+  servidor lo registra con el nombre del usuario. Confirmar una alarma no la cierra:
+  se cierra sola cuando su causa termina.
 - HTTP está permitido sólo para una instalación doméstica/LAN actual. Una
   exposición fuera de esa red debe terminar TLS antes de distribuir el APK.
 - El APK `debug` no es un canal de actualización. La publicación requiere una
