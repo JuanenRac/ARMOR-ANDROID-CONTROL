@@ -33,6 +33,7 @@ fun SessionSettingsPanel(
     onLogout: () -> Unit,
     watching: Boolean,
     onWatching: (Boolean) -> Unit,
+    onNodeSetup: () -> Unit = {},
 ) {
     Column(Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Conexión", style = MaterialTheme.typography.headlineSmall)
@@ -61,6 +62,10 @@ fun SessionSettingsPanel(
         Text(if (authenticated) "Sesión de cámaras activa." else "No hay una sesión activa.")
         if (authenticated) TextButton(onClick = onMedia) { Text("Actualizar biblioteca de evidencias") }
         OutlinedButton(onClick = onLogout, enabled = authenticated, modifier = Modifier.fillMaxWidth()) { Text("Cerrar sesión") }
+        HorizontalDivider()
+        Text("Nodos de campo", style = MaterialTheme.typography.titleMedium)
+        Text("Para un nodo sin cable Ethernet, o sin dirección todavía: se configura desde aquí por Bluetooth (nombre, Wi-Fi de un router, dirección, broker).", style = MaterialTheme.typography.bodySmall)
+        OutlinedButton(onClick = onNodeSetup, modifier = Modifier.fillMaxWidth()) { Text("Configurar un nodo por Bluetooth") }
         Text(
             "La app conserva sólo la dirección del servidor. La contraseña no se guarda; ARMOR-SERVER emite una cookie HttpOnly temporal y mantiene las credenciales de cámaras cifradas en su propio almacenamiento.",
             style = MaterialTheme.typography.bodySmall,

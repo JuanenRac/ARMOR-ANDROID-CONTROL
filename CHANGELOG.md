@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [0.2.6] - Configure a field node over Bluetooth
+
+- **Configurar un nodo por Bluetooth**, from the login screen and from *Más > Conexión*, so the same app does everything: it finds the nodes that advertise `ARMOR-xxxxxx`, connects (Android pairs when asked), creates the administrator of a new node with its set-up code (or with the fleet secret, from which it computes the code of the node's MAC) or signs in to one that has users, searches for Wi-Fi networks, and sets the node's name, the router's Wi-Fi or a fixed address, the broker and the Bluetooth mode, then restarts it. It is for nodes with no Ethernet cable or no address yet.
+- New permissions: Bluetooth scan and connect (never used for location), and location only up to Android 11, where scanning needs it. The Bluetooth link is compiled and its framing, requests, set-up code and settings are unit-tested (35 tests, 10 new); it has **never run against a node or a phone**.
+
 ## [0.2.5] - Arm and disarm, alarms, devices and device alarms on the phone
 
 - **Arm and disarm** from the phone, after a confirmation that says what changes; the server records it with the signed-in user's name.

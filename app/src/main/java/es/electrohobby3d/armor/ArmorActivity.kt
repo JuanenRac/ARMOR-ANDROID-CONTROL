@@ -75,6 +75,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel()) {
     var grid by rememberSaveable { mutableIntStateOf(4) }
     var expanded by remember { mutableStateOf<CameraView?>(null) }
     var about by remember { mutableStateOf(false) }
+    var nodeSetup by rememberSaveable { mutableStateOf(false) }   // configuring a field node over Bluetooth, with or without a server
     val state by viewModel.state.collectAsStateWithLifecycle()
     var watching by rememberSaveable { mutableStateOf(preferences.getBoolean("watch", false)) }
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -94,7 +95,9 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel()) {
     }
 
     ArmorTheme {
-        if (!state.authenticated) {
+        if (nodeSetup) {
+            Surface(Modifier.fillMaxSize()) { NodeSetupScreen(onClose = { nodeSetup = false }) }
+        } else if (!state.authenticated) {
             val loginEndpoint = ServerEndpoint.fromHostAndPort(serverHost, serverPort)
             LoginPanel(
                 host = serverHost, port = serverPort, username = username, password = password,
@@ -108,6 +111,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel()) {
                     password = ""
                 } },
                 enabled = loginEndpoint != null && username.isNotBlank() && password.isNotBlank(),
+                onNodeSetup = { nodeSetup = true },
             )
         } else {
         Scaffold(
@@ -134,7 +138,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel()) {
                         when (moreTab) {
                             MoreTab.Evidence -> EvidencePanel(state.media.items, state.cameras, origin = currentOrigin, viewModel = viewModel, unlocked = state.authenticated)
                             MoreTab.History -> HistoryPanel(state.events, onMore = { viewModel.loadOlderEvents(currentOrigin) })
-                            MoreTab.Settings -> SessionSettingsPanel(origin, { origin = it }, validOrigin, state.authenticated, onConnect = { preferences.edit().putString("origin", currentOrigin).apply(); viewModel.refresh(currentOrigin) }, onMedia = { viewModel.loadMedia(currentOrigin) }, onLogout = { AlarmWatcherService.stop(context); viewModel.logout(currentOrigin) },
+                            MoreTab.Settings -> SessionSettingsPanel(origin, { origin = it }, validOrigin, state.authenticated, onConnect = { preferences.edit().putString("origin", currentOrigin).apply(); viewModel.refresh(currentOrigin) }, onMedia = { viewModel.loadMedia(currentOrigin) }, onLogout = { AlarmWatcherService.stop(context); viewModel.logout(currentOrigin) }, onNodeSetup = { nodeSetup = true },
                                 watching = watching,
                                 onWatching = { on ->
                                     watching = on
@@ -166,7 +170,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel()) {
 private fun LoginPanel(
     host: String, port: String, username: String, password: String, busy: Boolean, message: String?,
     onHost: (String) -> Unit, onPort: (String) -> Unit, onUsername: (String) -> Unit,
-    onPassword: (String) -> Unit, onLogin: () -> Unit, enabled: Boolean,
+    onPassword: (String) -> Unit, onLogin: () -> Unit, enabled: Boolean, onNodeSetup: () -> Unit = {},
 ) {
     Surface(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center) {
@@ -184,6 +188,7 @@ private fun LoginPanel(
             Button(onClick = onLogin, enabled = enabled && !busy, modifier = Modifier.fillMaxWidth()) { Text(if (busy) "Verificando..." else "Entrar") }
             message?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 12.dp)) }
             Text("La contraseña se envía sólo para crear una sesión HttpOnly del servidor; no se guarda en el teléfono.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 18.dp))
+            OutlinedButton(onClick = onNodeSetup, modifier = Modifier.fillMaxWidth().padding(top = 18.dp)) { Text("Configurar un nodo por Bluetooth") }
         }
     }
 }
