@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [0.3.2] - Configuring the three kinds of node over Bluetooth
+
+- **One screen for the radar, the solar and the electrical node.** They answer the same Bluetooth protocol (the same service and characteristics), so *Configure a node* finds any of them by its `ARMOR-XXXXXX` name and sets its name, Wi-Fi, address, broker and Bluetooth mode. After connecting, the screen says **which kind of node** it is (the node declares it in its `hello`; a node that predates that is told by its identifier when it says so).
+- **Plain words for what a node refuses:** asking a Wi-Fi-only board for the Ethernet cable, or leaving it with neither Wi-Fi nor its own access point, now says why instead of showing the field code.
+- **Tests:** the kinds of node and the refusals are checked on the JVM with the rest of the protocol.
+- **Not done:** the radio side has never talked to a node of any kind (no phone and no board have met yet).
+
 ## [0.3.1] - The names of the new inverter and battery models
 
 - The solar screens name the models of the server's new catalogue (Axpert, PIP, Revo, InfiniSolar, LV5048, SunGoldPower, the Pylontech and Pytes families) and read an ANT-BMS combination (`ant-bms-24s-200a` shows as ANT-BMS 24S · 200 A); a model it does not know is shown by its identifier.

@@ -47,11 +47,13 @@
 ```text
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/
-│   ├── ArmorActivity.kt (the shell), EntryScreens.kt (splash, sign-in, account, About), HomeScreens.kt, CameraScreens.kt, MoreScreens.kt, SolarScreens.kt
+│   ├── ArmorActivity.kt (the shell), EntryScreens.kt (splash, sign-in, account, About), HomeScreens.kt, CameraScreens.kt, RadarScreens.kt, DevicePanels.kt, MoreScreens.kt, SolarScreens.kt
+│   ├── NodeBleClient.kt, NodeSetupScreen.kt   configure a radar, solar or electrical node over Bluetooth (the protocol is in model/NodeBle.kt)
 │   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmNotifier.kt, AlarmWatcherService.kt
 │   ├── ArmorTheme.kt, ServerEndpoint.kt, MjpegFeed.kt
 │   ├── network/   model/
-└── app/src/test/   endpoint-safety and plain-words tests
+├── docs/CLIENT_BOUNDARY.md
+└── app/src/test/   endpoint-safety, plain-words, node-protocol and solar-model tests
 ```
 
 ## 🛠️ Ambiente di sviluppo
