@@ -170,6 +170,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel()) {
                             Section.Alarms -> AlarmsScreen(
                                 state.alarms, state.closedAlarms, state.devices, state.cameras.associate { it.id to it.name },
                                 onAcknowledge = { viewModel.acknowledge(currentOrigin, it) }, onAcknowledgeAll = { viewModel.acknowledgeAll(currentOrigin) }, enabled = validOrigin && !state.loading,
+                                solarNames = state.solar?.let { s -> s.devices.associate { "${it.nodeId}/${it.device}" to it.name } + s.waiting.associate { "${it.nodeId}/${it.device}" to it.name } }.orEmpty(),
                             )
                             Section.Devices -> DevicesScreen(state.devices, onCommand = { device, command -> viewModel.command(currentOrigin, device, command) }, enabled = validOrigin && !state.loading)
                             Section.Cameras -> CamerasScreen(

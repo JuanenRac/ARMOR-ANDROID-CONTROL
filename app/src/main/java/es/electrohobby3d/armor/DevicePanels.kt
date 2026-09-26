@@ -11,8 +11,9 @@ internal fun commandLabels(kind: String): Pair<String, String> = when (kind) {
 }
 
 /** Where an alarm came from, in words: the device's own name when it is one. */
-internal fun alarmSourceName(alarm: Alarm, devices: List<SiteDevice>, cameraNames: Map<String, String>): String = when (alarm.sourceType) {
+internal fun alarmSourceName(alarm: Alarm, devices: List<SiteDevice>, cameraNames: Map<String, String>, solarNames: Map<String, String> = emptyMap()): String = when (alarm.sourceType) {
     "device" -> devices.firstOrNull { it.id == alarm.sourceId }?.name ?: alarm.sourceId
     "camera" -> cameraNames[alarm.sourceId] ?: alarm.sourceId
+    "solar" -> solarNames[alarm.sourceId] ?: alarm.sourceId.substringAfter('/')   // the source of a solar alarm is "node/device"
     else -> alarm.sourceId
 }
