@@ -132,9 +132,25 @@ object SolarText {
 
     fun batteryState(state: String?) = when (state) { "charging" -> "Cargando"; "discharging" -> "Descargando"; "idle" -> "En reposo"; else -> "Sin dato" }
 
-    fun model(model: String) = when (model) {
-        "pylontech-us2000" -> "Pylontech US2000"; "pylontech-us3000" -> "Pylontech US3000"; "pylontech-us5000" -> "Pylontech US5000"; "ant-bms" -> "ANT-BMS"
-        "voltronic" -> "Voltronic"; "mpp-solar" -> "MPP Solar"; "other", "" -> ""; else -> model
+    /** The names of the models the server's catalogue lists (brands are the same in every language). An unknown model is its own identifier. */
+    private val models = mapOf(
+        "voltronic" to "Voltronic", "mpp-solar" to "MPP Solar", "axpert-vm-ii" to "Voltronic Axpert VM II", "axpert-vm-iii" to "Voltronic Axpert VM III",
+        "axpert-mks" to "Voltronic Axpert MKS / MKS II", "axpert-mks-iv" to "Voltronic Axpert MKS IV / MKS V", "axpert-king" to "Voltronic Axpert King",
+        "pip-ms" to "MPP Solar PIP MS / MSD / MSE / MSX", "pip-hs" to "MPP Solar PIP HS / HSE / LV", "pip-gk" to "MPP Solar PIP-GK / MK",
+        "easun-isolar" to "EASun iSolar SMG II / SMH II", "must-ph18" to "Must PV18 / PH18", "revo-vm-iii" to "Revo VM III / Revo II",
+        "infinisolar-v" to "MPP Solar InfiniSolar V", "lv5048-hybrid" to "MPP Solar LV5048 Hybrid / LV6048", "sungoldpower" to "SunGoldPower SPH / SPF",
+        "pylontech-us2000" to "Pylontech US2000", "pylontech-us2000c" to "Pylontech US2000C", "pylontech-us2000b-plus" to "Pylontech US2000B Plus",
+        "pylontech-us2kbpl" to "Pylontech US2KBPL", "pylontech-us3000" to "Pylontech US3000", "pylontech-us3000c" to "Pylontech US3000C",
+        "pylontech-us5000" to "Pylontech US5000", "pylontech-up2500" to "Pylontech UP2500", "pylontech-up5000" to "Pylontech UP5000",
+        "pylontech-force-l1" to "Pylontech Force L1", "pylontech-force-l2" to "Pylontech Force L2", "pytes-e-box" to "Pytes E-Box 48100R", "ant-bms" to "ANT-BMS",
+    )
+    private val antVariant = Regex("""^ant-bms-(\d{1,2})s-(\d{2,3})a${'$'}""")
+
+    fun model(model: String): String {
+        if (model == "other" || model.isEmpty()) return ""
+        models[model]?.let { return it }
+        antVariant.find(model)?.let { return "ANT-BMS ${it.groupValues[1].toInt()}S · ${it.groupValues[2].toInt()} A" }
+        return model
     }
 
     /** A warning name of the inverter ("line_fail") as words. */

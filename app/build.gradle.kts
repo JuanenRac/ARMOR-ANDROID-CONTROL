@@ -1,7 +1,7 @@
 plugins { id("com.android.application"); id("org.jetbrains.kotlin.plugin.compose") }
 
 android { namespace = "es.electrohobby3d.armor"; compileSdk = 37
-    defaultConfig { applicationId = "es.electrohobby3d.armor"; minSdk = 26; targetSdk = 37; versionCode = 12; versionName = "0.3.0" }
+    defaultConfig { applicationId = "es.electrohobby3d.armor"; minSdk = 26; targetSdk = 37; versionCode = 13; versionName = "0.3.1" }
     buildFeatures { compose = true; buildConfig = true }
 }
 dependencies {
