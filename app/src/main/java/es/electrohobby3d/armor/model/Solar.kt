@@ -28,7 +28,12 @@ data class SolarInverterReading(
     val gridV: Double?, val gridHz: Double?, val outV: Double?, val outHz: Double?, val outVa: Double?, val outW: Double?, val loadPercent: Double?,
     val batteryV: Double?, val batteryA: Double?, val batteryPercent: Double?, val pvV: Double?, val pvA: Double?, val pvW: Double?, val heatsinkC: Double?,
     val acCharging: Boolean, val pvCharging: Boolean, val loadOn: Boolean, val warnings: List<String>,
+    /** A second PV input (pvW is already the sum of both) and, for a parallel system, the units the node reads and the total power of the system. */
+    val pv2V: Double? = null, val pv2A: Double? = null, val pv2W: Double? = null, val units: List<SolarUnit> = emptyList(), val totalOutW: Double? = null,
 )
+
+/** One inverter of a parallel system, as the one on the node's port reports it. */
+data class SolarUnit(val unit: Int, val mode: String, val serial: String, val faultCode: String, val outW: Double?, val loadPercent: Double?, val batteryV: Double?)
 
 /** One battery module of a stack; a BMS is one module. */
 data class SolarModule(
@@ -107,6 +112,8 @@ object SolarParser {
         loadPercent = r.number("load_percent"), batteryV = r.number("battery_v"), batteryA = r.number("battery_a"), batteryPercent = r.number("battery_percent"),
         pvV = r.number("pv_v"), pvA = r.number("pv_a"), pvW = r.number("pv_w"), heatsinkC = r.number("heatsink_c"),
         acCharging = r.optBoolean("ac_charging"), pvCharging = r.optBoolean("pv_charging"), loadOn = r.optBoolean("load_on"), warnings = r.optJSONArray("warnings").strings(),
+        pv2V = r.number("pv2_v"), pv2A = r.number("pv2_a"), pv2W = r.number("pv2_w"), totalOutW = r.number("total_out_w"),
+        units = r.optJSONArray("units").objects().map { SolarUnit(it.optInt("unit"), it.optString("mode", "unknown"), it.optString("serial"), it.optString("fault_code"), it.number("out_w"), it.number("load_percent"), it.number("battery_v")) },
     )
 
     private fun module(m: JSONObject) = SolarModule(

@@ -92,6 +92,12 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel()) {
             lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { while (true) { viewModel.pollRadar(currentOrigin); delay(1_500) } }
         }
     }
+    // The Electrical screen (in the More menu): the meters every five seconds while it is open and the app is on screen.
+    LaunchedEffect(section, moreTab, state.authenticated, currentOrigin) {
+        if (state.authenticated && currentOrigin.isNotBlank() && section == Section.More && moreTab == MoreTab.Electrical) {
+            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { while (true) { viewModel.pollElectrical(currentOrigin); delay(5_000) } }
+        }
+    }
     // The Solar screen (in the More menu): its equipment every five seconds while it is open and the app is on screen.
     LaunchedEffect(section, moreTab, state.authenticated, currentOrigin) {
         if (state.authenticated && currentOrigin.isNotBlank() && section == Section.More && moreTab == MoreTab.Solar) {
@@ -165,6 +171,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel()) {
                                 onDevices = { section = Section.Devices }, onCameras = { section = Section.Cameras }, onRadar = { section = Section.Radar },
                                 onRefresh = { viewModel.refresh(currentOrigin) }, enabled = validOrigin && !state.loading,
                                 solar = state.solar, onSolar = { section = Section.More; moreTab = MoreTab.Solar },
+                                electrical = state.electrical, onElectrical = { section = Section.More; moreTab = MoreTab.Electrical },
                             )
                             Section.Radar -> RadarScreen(state.site, state.siteLoaded, state.snapshot.nodes, onReload = { reloadSite++ })
                             Section.Alarms -> AlarmsScreen(
@@ -185,6 +192,9 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel()) {
                                 MoreTab.Solar -> SubScreen(Icons.Filled.WbSunny, "Solar", onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.reloadSolar(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
                                 }) { SolarScreen(state.solar) }
+                                MoreTab.Electrical -> SubScreen(Icons.Filled.ElectricBolt, "Eléctrica", onBack = { moreTab = null }, actions = {
+                                    IconButton(onClick = { viewModel.reloadElectrical(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
+                                }) { ElectricalScreen(state.electrical) }
                                 MoreTab.Evidence -> SubScreen(Icons.Filled.VideoLibrary, "Grabaciones", onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.loadMedia(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
                                 }) { EvidenceScreen(state.media.items, state.cameras, currentOrigin, viewModel, state.authenticated) }

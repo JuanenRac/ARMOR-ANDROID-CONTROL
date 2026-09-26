@@ -13,7 +13,7 @@ object AlarmPolicy {
      * answering, and (only while the system is armed) a node that goes offline or silent, because
      * a dead sensor is how a perimeter is defeated. An alarm raised by a device (smoke, gas, flood, panic; a door, window or
      * motion sensor while armed) always wakes the operator, and so does one raised by solar equipment (an inverter fault, a battery that is low or
-     * protecting itself, equipment that went silent: the server raises each once until it clears). Alarms of nodes and cameras are not announced a second
+     * protecting itself, equipment that went silent: the server raises each once until it clears) or by an electrical node (a meter's alarm, the mains out of range, the grid lost, a node that went silent). Alarms of nodes and cameras are not announced a second
      * time: their own events above already were. Everything else stays in the history.
      */
     fun notices(events: List<ArmorEvent>, armed: Boolean): List<AlarmNotice> = events.sortedBy { it.id }.mapNotNull { event ->
@@ -22,7 +22,7 @@ object AlarmPolicy {
             event.type == "camera" && event.to == "offline" -> AlarmNotice(event.id, "Cámara sin respuesta", event.subject)
             event.type == "node" && armed && event.to == "offline" -> AlarmNotice(event.id, "Nodo fuera de línea", event.subject)
             event.type == "node" && armed && event.to == "stale" -> AlarmNotice(event.id, "Nodo en silencio", event.subject)
-            event.type == "alarm" && event.to == "raised" && (event.sourceType == "device" || event.sourceType == "solar") ->
+            event.type == "alarm" && event.to == "raised" && (event.sourceType == "device" || event.sourceType == "solar" || event.sourceType == "electrical") ->
                 AlarmNotice(event.id, "ALARMA ${DeviceText.severityLabel(event.severity ?: "warning")}", "${DeviceText.alarmText(event.code.orEmpty())} · ${event.subject}")
             else -> null
         }

@@ -40,6 +40,7 @@
 * **Evidence library**, the perimeter and node state, and a **history** of every alert, node, camera, device, alarm and mode change.
 * **Alarm notifications** for a node reaching HIGH, a camera that stops answering, a device alarm (smoke, gas, flood, panic at any time; a door, window or motion sensor while armed) and, while armed, a node that goes offline; an optional background watch uses the current session and says so when it ends.
 * **Careful with the password:** plain HTTP is allowed only to a private-LAN or loopback IPv4 *literal*. A host name that merely starts like a private address (`10.attacker.example`) or an address with a leading zero (some resolvers read `010.0.0.1` as the public `8.0.0.1`) is refused.
+* **Electrical network:** an entry in *More* (and a tile on the Status screen) shows the power of the grid input (drawing or feeding the network), every channel the electrical nodes measure (voltage, current, power, energy, frequency, power factor, the state of a switch) and the meters' alarms; the alarms of the electrical nodes (a meter's alarm, the mains out of range, the grid lost, a node that stopped answering) wake the operator like the solar ones. An inverter's card also shows its second PV input and the units of a parallel system.
 * **A look made of icons:** near-black surfaces, a cyan accent, amber for attention, big icons with few words, a bottom bar, an About page and a sign-out button.
 
 ## 📂 Repository Structure

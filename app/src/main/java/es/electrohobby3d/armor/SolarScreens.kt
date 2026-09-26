@@ -166,8 +166,15 @@ private fun InverterCard(device: SolarDevice, r: SolarInverterReading) {
             Line("Red", "${SolarText.volts(r.gridV)} · ${SolarText.hertz(r.gridHz)}")
             Line("Consumo", "${SolarText.watts(r.outW)} · ${SolarText.percent(r.loadPercent)}")
             Line("Paneles", "${SolarText.watts(r.pvW)} · ${SolarText.volts(r.pvV, 0)}")
+            if (r.pv2W != null) Line("Segunda entrada", "${SolarText.watts(r.pv2W)} · ${SolarText.volts(r.pv2V, 0)}")
             Line("Batería", "${SolarText.percent(r.batteryPercent)} · ${SolarText.volts(r.batteryV, 2)} · ${SolarText.amps(r.batteryA)}", socColor(r.batteryPercent?.toInt()))
             Line("Temperatura", SolarText.celsius(r.heatsinkC))
+            if (r.units.isNotEmpty()) {
+                Line("Sistema en paralelo", "${r.units.size} unidades${r.totalOutW?.let { " · ${SolarText.watts(it)}" } ?: ""}")
+                r.units.forEach { unit ->
+                    Line("Unidad ${unit.unit + 1}", "${SolarText.mode(unit.mode)}${if (unit.faultCode.isNotEmpty() && unit.faultCode != "00") " · fallo ${unit.faultCode}" else ""} · ${SolarText.watts(unit.outW)}", if (unit.mode == "fault") ArmorColors.Alert else ArmorColors.Text)
+                }
+            }
             if (fault && r.warnings.isNotEmpty()) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Icon(Icons.Filled.Warning, null, tint = ArmorColors.Amber, modifier = Modifier.size(16.dp))
                 Text(r.warnings.joinToString(", ") { SolarText.warning(it) }, style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
