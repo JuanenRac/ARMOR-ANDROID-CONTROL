@@ -33,6 +33,9 @@ data class MonitorUiState(
     val alarms: List<Alarm> = emptyList(),
     val closedAlarms: List<Alarm> = emptyList(),
     val devices: List<SiteDevice> = emptyList(),
+    /** The site as Studio designed it, for the radar screen; [siteLoaded] tells "not asked yet" from "no design saved". */
+    val site: es.electrohobby3d.armor.model.SiteDesign? = null,
+    val siteLoaded: Boolean = false,
     val authenticated: Boolean = false,
     val message: String? = null,
 )
@@ -40,6 +43,19 @@ data class MonitorUiState(
 class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient()) : ViewModel() {
     private val _state = MutableStateFlow(MonitorUiState())
     val state: StateFlow<MonitorUiState> = _state.asStateFlow()
+
+    /** The site design for the radar screen (once, and again when asked). A server that predates it, or has no design, leaves it empty. */
+    suspend fun loadSite(origin: String) = withContext(Dispatchers.IO) {
+        runCatching { client.site(origin) }.onSuccess { _state.value = _state.value.copy(site = it, siteLoaded = true) }.onFailure { _state.value = _state.value.copy(siteLoaded = true) }
+    }
+
+    /** Only the nodes' state, quickly, for the live radar: the targets move every second. A failure is ignored; the next pass tries again. */
+    suspend fun pollRadar(origin: String) = withContext(Dispatchers.IO) {
+        runCatching { client.status(origin) }.onSuccess { _state.value = _state.value.copy(snapshot = it) }
+    }
+
+    /** The message on screen has been read. */
+    fun dismissMessage() { _state.value = _state.value.copy(message = null) }
 
     fun refresh(origin: String) = action(origin, "Connection refreshed") {
         val status = client.status(origin)

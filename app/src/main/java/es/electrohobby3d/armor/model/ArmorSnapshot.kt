@@ -2,7 +2,7 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor.model
 
-data class FieldNode(val id: String, val online: Boolean, val lux: Double?, val tracks: Int, val alert: String)
+data class FieldNode(val id: String, val online: Boolean, val lux: Double?, val tracks: Int, val alert: String, val stale: Boolean = false, val targets: List<LiveTarget> = emptyList())
 data class ArmorSnapshot(
     val mode: String = "disarmed",
     val revision: Long = 0,

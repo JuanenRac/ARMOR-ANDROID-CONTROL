@@ -24,11 +24,14 @@ class ArmorApiClient {
         }
     }
 
+    /** The site as Studio designed it (terrain, buildings, radars, cameras); null when no design has been saved yet. */
+    fun site(origin: String): SiteDesign? = SiteParser.parse(getJson(origin, "/api/v1/site"))
+
     fun status(origin: String): ArmorSnapshot = getJson(origin, "/api/v1/status").let { root ->
         val nodeObject = root.optJSONObject("nodes") ?: JSONObject()
         val nodes = nodeObject.keys().asSequence().map { id ->
             nodeObject.getJSONObject(id).let { node ->
-                FieldNode(id, node.optBoolean("online"), if (node.isNull("lux")) null else node.optDouble("lux"), node.optInt("target_count"), node.optString("alert_level", "normal"))
+                FieldNode(id, node.optBoolean("online"), if (node.isNull("lux")) null else node.optDouble("lux"), node.optInt("target_count"), node.optString("alert_level", "normal"), node.optBoolean("stale"), SiteParser.targets(node))
             }
         }.toList()
         ArmorSnapshot(root.optString("mode", "disarmed"), root.optLong("revision"), root.optString("updated_at"), nodes)
