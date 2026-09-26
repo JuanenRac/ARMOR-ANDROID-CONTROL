@@ -5,6 +5,7 @@ All notable changes to this project are documented here.
 ## [0.3.1] - The names of the new inverter and battery models
 
 - The solar screens name the models of the server's new catalogue (Axpert, PIP, Revo, InfiniSolar, LV5048, SunGoldPower, the Pylontech and Pytes families) and read an ANT-BMS combination (`ant-bms-24s-200a` shows as ANT-BMS 24S · 200 A); a model it does not know is shown by its identifier.
+- A battery's screen shows its **health** (its capacity against new).
 
 ## [0.3.0] - Solar alarms wake the phone
 
