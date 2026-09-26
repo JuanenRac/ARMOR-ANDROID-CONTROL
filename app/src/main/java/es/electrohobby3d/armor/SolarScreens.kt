@@ -209,6 +209,7 @@ private fun BatteryCard(device: SolarDevice, r: SolarBatteryReading) {
                 }
                 if (r.capacityAh != null) Line("Capacidad", "${SolarText.ah(r.capacityAh)}${r.fullCapacityAh?.let { " de ${SolarText.ah(it)}" } ?: ""}")
                 if (r.cycles != null) Line("Ciclos", r.cycles.toString())
+                if (r.healthPercent != null) Line("Salud (capacidad frente a nueva)", "${r.healthPercent} %")
                 if (r.modules > 1) Line("Módulos", r.modules.toString())
             }
             if (r.alarm) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {

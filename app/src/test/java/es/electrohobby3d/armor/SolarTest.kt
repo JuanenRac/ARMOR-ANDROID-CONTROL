@@ -61,6 +61,14 @@ class SolarTest {
         assertEquals(52.84 * 6.5, reading.powerW!!, 0.001)
     }
 
+    @Test fun theHealthOfABatteryAndOfItsModulesIsRead() {
+        val device = SolarParser.device(JSONObject("""{"node_id":"a","device":"b","kind":"battery","reading":{"kind":"battery","modules":2,"health_percent":78,"stack":[{"n":1,"present":true,"health_percent":100},{"n":2,"present":true,"health_percent":56},{"n":3,"present":true}]}}"""))
+        val reading = device!!.battery!!
+        assertEquals(78, reading.healthPercent)
+        assertEquals(listOf<Int?>(100, 56, null), reading.stack.map { it.healthPercent })
+        assertNull(SolarParser.device(JSONObject("""{"node_id":"a","device":"b","kind":"battery","reading":{"kind":"battery","modules":1,"stack":[]}}"""))!!.battery!!.healthPercent)
+    }
+
     @Test fun theTotalsAndTheWaitingListAreRead() {
         val overview = SolarParser.overview(JSONObject(answer))
         assertEquals(1960.0, overview.totals.pvW, 0.001)

@@ -33,13 +33,13 @@ data class SolarInverterReading(
 /** One battery module of a stack; a BMS is one module. */
 data class SolarModule(
     val number: Int, val present: Boolean, val voltageV: Double?, val currentA: Double?, val temperatureC: Double?, val socPercent: Int?, val state: String,
-    val cellsV: List<Double>, val temperaturesC: List<Double>, val capacityAh: Double?, val fullCapacityAh: Double?, val cycles: Int?,
+    val cellsV: List<Double>, val temperaturesC: List<Double>, val capacityAh: Double?, val fullCapacityAh: Double?, val cycles: Int?, val healthPercent: Int? = null,
 )
 
 data class SolarBatteryReading(
     val modules: Int, val model: String, val state: String, val voltageV: Double?, val currentA: Double?, val temperatureMinC: Double?, val temperatureMaxC: Double?,
     val cellMinV: Double?, val cellMaxV: Double?, val socPercent: Int?, val alarm: Boolean, val capacityAh: Double?, val fullCapacityAh: Double?, val energyKwh: Double?,
-    val cycles: Int?, val stack: List<SolarModule>,
+    val cycles: Int?, val stack: List<SolarModule>, val healthPercent: Int? = null,
 ) {
     /** Watts at the battery: positive while charging. */
     val powerW: Double? get() = if (voltageV != null && currentA != null) voltageV * currentA else null
@@ -112,14 +112,14 @@ object SolarParser {
     private fun module(m: JSONObject) = SolarModule(
         number = m.optInt("n"), present = m.optBoolean("present"), voltageV = m.number("voltage_v"), currentA = m.number("current_a"), temperatureC = m.number("temperature_c"),
         socPercent = m.whole("soc_percent"), state = m.optString("state"), cellsV = m.optJSONArray("cells_v").numbers(), temperaturesC = m.optJSONArray("temperatures_c").numbers(),
-        capacityAh = m.number("capacity_ah"), fullCapacityAh = m.number("full_capacity_ah"), cycles = m.whole("cycles"),
+        capacityAh = m.number("capacity_ah"), fullCapacityAh = m.number("full_capacity_ah"), cycles = m.whole("cycles"), healthPercent = m.whole("health_percent"),
     )
 
     private fun battery(r: JSONObject) = SolarBatteryReading(
         modules = r.optInt("modules"), model = r.optString("model"), state = r.optString("state"), voltageV = r.number("voltage_v"), currentA = r.number("current_a"),
         temperatureMinC = r.number("temperature_min_c"), temperatureMaxC = r.number("temperature_max_c"), cellMinV = r.number("cell_min_v"), cellMaxV = r.number("cell_max_v"),
         socPercent = r.whole("soc_percent"), alarm = r.optBoolean("alarm"), capacityAh = r.number("capacity_ah"), fullCapacityAh = r.number("full_capacity_ah"),
-        energyKwh = r.number("energy_kwh"), cycles = r.whole("cycles"), stack = r.optJSONArray("stack").objects().map(::module).filter { it.present },
+        energyKwh = r.number("energy_kwh"), cycles = r.whole("cycles"), stack = r.optJSONArray("stack").objects().map(::module).filter { it.present }, healthPercent = r.whole("health_percent"),
     )
 }
 
