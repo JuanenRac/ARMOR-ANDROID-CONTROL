@@ -15,5 +15,6 @@ internal fun alarmSourceName(alarm: Alarm, devices: List<SiteDevice>, cameraName
     "device" -> devices.firstOrNull { it.id == alarm.sourceId }?.name ?: alarm.sourceId
     "camera" -> cameraNames[alarm.sourceId] ?: alarm.sourceId
     "solar" -> solarNames[alarm.sourceId] ?: alarm.sourceId.substringAfter('/')   // the source of a solar alarm is "node/device"
+    "electrical" -> alarm.sourceId.replace("/", " · ")   // the source of an electrical alarm is "node/channel", or the node
     else -> alarm.sourceId
 }

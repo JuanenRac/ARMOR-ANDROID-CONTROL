@@ -54,6 +54,7 @@ fun StatusScreen(
     armed: Boolean, updated: String, nodes: List<FieldNode>, cameras: Int, camerasDown: Int, pendingAlarms: Int, devices: List<SiteDevice>,
     onMode: () -> Unit, onAlarms: () -> Unit, onDevices: () -> Unit, onCameras: () -> Unit, onRadar: () -> Unit, onRefresh: () -> Unit, enabled: Boolean,
     solar: es.electrohobby3d.armor.model.SolarOverview? = null, onSolar: () -> Unit = {},
+    electrical: es.electrohobby3d.armor.model.ElectricalOverview? = null, onElectrical: () -> Unit = {},
 ) {
     val attention = devices.count { DeviceText.problem(it) != null }
     val nodesOnline = nodes.count { it.online }
@@ -90,6 +91,15 @@ fun StatusScreen(
                     Text(if (solar.devices.isEmpty()) "Esperando datos" else solarSummary(solar.totals), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 solar.totals.socPercent?.let { Text("$it %", fontSize = 22.sp, fontWeight = FontWeight.Bold) }
+            }
+        }
+        if (electrical != null && !electrical.isEmpty) Panel(Modifier.fillMaxWidth(), tint = if (electrical.totals.alarms > 0) ArmorColors.Alert else if (electrical.totals.stale > 0) ArmorColors.Amber else null, onClick = onElectrical) {
+            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                IconBadge(Icons.Filled.ElectricBolt, if (electrical.totals.alarms > 0) ArmorColors.Alert else if (electrical.totals.stale > 0) ArmorColors.Amber else ArmorColors.Cyan, size = 40.dp)
+                Column(Modifier.weight(1f)) {
+                    Text("Eléctrica", fontWeight = FontWeight.SemiBold)
+                    Text(electricalSummary(electrical.totals), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
             }
         }
         if (nodes.isNotEmpty()) {

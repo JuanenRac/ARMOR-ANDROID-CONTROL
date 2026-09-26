@@ -55,7 +55,7 @@ class DevicesAndAlarmsTest {
 
     @Test fun everyCodeTheServerRaisesHasItsOwnWording() {
         val codes = listOf("intrusion", "node_down", "camera_down", "smoke", "co", "gas", "water_leak", "panic", "door_open", "window_open", "motion", "glass_break", "vibration", "triggered", "tamper", "low_battery", "device_offline",
-            "solar_fault", "solar_battery_low", "solar_battery_alarm", "solar_offline")
+            "solar_fault", "solar_battery_low", "solar_battery_alarm", "solar_offline", "electrical_alarm", "electrical_voltage", "electrical_grid_lost", "electrical_offline")
         for (code in codes) assertNotEquals(code, DeviceText.alarmText(code))
     }
 

@@ -129,6 +129,8 @@ object DeviceText {
         "low_battery" -> "Batería baja"; "device_offline" -> "Un dispositivo ha dejado de responder"; "triggered" -> "Un dispositivo se ha activado"
         "solar_fault" -> "Avería en un inversor solar"; "solar_battery_low" -> "Batería solar baja"; "solar_battery_alarm" -> "Una batería solar avisa de un problema"
         "solar_offline" -> "Un equipo solar ha dejado de responder"
+        "electrical_alarm" -> "Un contador de la red eléctrica avisa de una alarma"; "electrical_voltage" -> "La tensión de red está fuera de rango"
+        "electrical_grid_lost" -> "Se ha perdido el suministro de la red"; "electrical_offline" -> "Un nodo eléctrico ha dejado de responder"
         else -> code
     }
 
