@@ -92,6 +92,12 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel()) {
             lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { while (true) { viewModel.pollRadar(currentOrigin); delay(1_500) } }
         }
     }
+    // The Solar screen (in the More menu): its equipment every five seconds while it is open and the app is on screen.
+    LaunchedEffect(section, moreTab, state.authenticated, currentOrigin) {
+        if (state.authenticated && currentOrigin.isNotBlank() && section == Section.More && moreTab == MoreTab.Solar) {
+            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { while (true) { viewModel.pollSolar(currentOrigin); delay(5_000) } }
+        }
+    }
     var reloadSite by remember { mutableIntStateOf(0) }
     LaunchedEffect(reloadSite) { if (reloadSite > 0 && currentOrigin.isNotBlank()) viewModel.loadSite(currentOrigin) }
     // Messages of the app appear briefly at the bottom, in plain words, once signed in (the sign-in screen shows its own).
@@ -158,6 +164,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel()) {
                                 onMode = { confirmMode = if (state.snapshot.mode == "armed") "disarmed" else "armed" }, onAlarms = { section = Section.Alarms },
                                 onDevices = { section = Section.Devices }, onCameras = { section = Section.Cameras }, onRadar = { section = Section.Radar },
                                 onRefresh = { viewModel.refresh(currentOrigin) }, enabled = validOrigin && !state.loading,
+                                solar = state.solar, onSolar = { section = Section.More; moreTab = MoreTab.Solar },
                             )
                             Section.Radar -> RadarScreen(state.site, state.siteLoaded, state.snapshot.nodes, onReload = { reloadSite++ })
                             Section.Alarms -> AlarmsScreen(
@@ -174,6 +181,9 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel()) {
                                     onOpen = { tab -> moreTab = tab; if (tab == MoreTab.Evidence) viewModel.loadMedia(currentOrigin) },
                                     onNodeSetup = { nodeSetup = true }, onAbout = { about = true }, onLogout = { confirmLogout = true },
                                 )
+                                MoreTab.Solar -> SubScreen(Icons.Filled.WbSunny, "Solar", onBack = { moreTab = null }, actions = {
+                                    IconButton(onClick = { viewModel.reloadSolar(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
+                                }) { SolarScreen(state.solar) }
                                 MoreTab.Evidence -> SubScreen(Icons.Filled.VideoLibrary, "Grabaciones", onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.loadMedia(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
                                 }) { EvidenceScreen(state.media.items, state.cameras, currentOrigin, viewModel, state.authenticated) }

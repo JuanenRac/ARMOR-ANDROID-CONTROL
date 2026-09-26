@@ -25,7 +25,7 @@
 
 ---
 
-**Ehrlichkeitsprüfung - was heute läuft:** Die Regeln für Adresssicherheit und Alarmentscheidung haben Unit-Tests (48) und die App baut. Sie wurde **nicht auf einem Telefon gegen den Server ausgeführt**, daher sind der Berechtigungsablauf der Benachrichtigungen und der Hintergrunddienst ungeprüft. Scharfschalten, Alarme und Geräte folgen den Routen des Servers, wurden aber auf keinem echten Telefon ausprobiert.
+**Ehrlichkeitsprüfung - was heute läuft:** Die Regeln für Adresssicherheit und Alarmentscheidung haben Unit-Tests (53) und die App baut. Sie wurde **nicht auf einem Telefon gegen den Server ausgeführt**, daher sind der Berechtigungsablauf der Benachrichtigungen und der Hintergrunddienst ungeprüft. Scharfschalten, Alarme und Geräte folgen den Routen des Servers, wurden aber auf keinem echten Telefon ausprobiert.
 
 ---
 
@@ -35,6 +35,7 @@
 * **Kameramonitor:** 1 bis 16 Kacheln, eine maximierte Ansicht, MJPEG live mit erhaltenem Bildverhältnis, ein begrenztes PTZ-Pad, Schnappschüsse und Aufnahmen.
 * **Scharf- und Unscharfschalten** nach einer Bestätigung; **Alarme** zum Quittieren, mit einem Badge für wartende; **Geräte** (Rauch, Gas, Wasser, Tür, Fenster, Bewegung, Klima, Steckdosen, Lichter, Sirenen, Schlösser) mit ihrem Zustand und Ein / Aus / Umschalten.
 * **Live-Radar in 2D und 3D:** der Radar-Tab zeichnet den Standort, wie er in Studio entworfen wurde (Gelände, Gebäude, Bäume, Pfosten, die Felder der Radare und Kameras) und die Personen, die die Radare sich bewegen sehen, alle anderthalb Sekunden aktualisiert; die 3D-Ansicht lässt sich ziehen, zoomen und drehen. Die Platzierung folgt den Regeln von Studio, hat aber nie ein echtes Radar gezeigt.
+* **Solar:** ein Eintrag in *Más* (und eine Kachel im Status) zeigt die Summen (Sonne, Verbrauch, Batterien mit Ladung und Fluss, ob das Netz da ist) und jeden Wechselrichter und jede Batterie, die der Server meldet: ihre Werte, auf Wunsch die Zellen einer Batterie mit markierter höchster und niedrigster, die Geräte, die noch auf Daten warten, und eine Markierung bei Beispielwerten oder einem stummen Gerät. Alle fünf Sekunden aktualisiert, solange sie offen ist; gegen die Antwortformen des Servers getestet und in einem Emulator gegen einen lokalen Server mit Beispielwerten ausprobiert, nie mit echten Geräten.
 * **Einen Feldknoten per Bluetooth einrichten** (vom Anmeldebildschirm oder *Más > Configurar un nodo*): findet Knoten, die `ARMOR-xxxxxx` senden, legt den Administrator eines neuen an oder meldet sich an, sucht WLAN-Netze und setzt den Namen des Knotens, das WLAN eines Routers oder eine feste Adresse und den Broker, für Knoten ohne Ethernet-Kabel. Gebaut und per Unit-Test geprüft, nie gegen einen Knoten oder ein Telefon ausgeführt.
 * **Beweisbibliothek,** Zustand von Perimeter und Knoten und ein **Verlauf** jeder Warnung, jedes Knotens, jeder Kamera, jedes Geräts, jedes Alarms und jedes Moduswechsels.
 * **Alarmbenachrichtigungen** für einen Knoten, der HIGH erreicht, eine Kamera, die nicht mehr antwortet, einen Geräte-Alarm (Rauch, Gas, Wasser, Panik jederzeit; ein Tür-, Fenster- oder Bewegungssensor bei Scharfschaltung) und, scharf, einen Knoten, der offline geht; eine optionale Hintergrundüberwachung nutzt die aktuelle Sitzung und meldet, wenn sie endet.
@@ -46,7 +47,7 @@
 ```text
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/
-│   ├── ArmorActivity.kt (the shell), EntryScreens.kt (splash, sign-in, account, About), HomeScreens.kt, CameraScreens.kt, MoreScreens.kt
+│   ├── ArmorActivity.kt (the shell), EntryScreens.kt (splash, sign-in, account, About), HomeScreens.kt, CameraScreens.kt, MoreScreens.kt, SolarScreens.kt
 │   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmNotifier.kt, AlarmWatcherService.kt
 │   ├── ArmorTheme.kt, ServerEndpoint.kt, MjpegFeed.kt
 │   ├── network/   model/
