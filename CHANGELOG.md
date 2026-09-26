@@ -2,6 +2,23 @@
 
 All notable changes to this project are documented here.
 
+## [0.2.8] - Live radar, in 2D and in 3D
+
+- **A Radar tab** in the bottom bar (second place): the site as Studio designed it, with the people the radars see moving on it, refreshed every second and a half while the tab is open. The design is read from the server (`GET /api/v1/site`): the ground, the buildings (walls, floors, gable and hip roofs), the objects on the ground, the cameras' and radars' fields, in the colours chosen in Studio.
+- **2D**: north up, drag and pinch, double tap to centre, a 5 m grid and a scale bar; each person is a dot with their track number, a pulse when they count for the alarm and grey when an ignore zone hides them.
+- **3D**: a real projection with depth: drag to turn, pinch to zoom, double tap to reset; the buildings with their roofs, trees, posts, masts and fences, the radars' fields on the ground and a standing figure for each person.
+- The people are placed with the same rules as Studio's live radar map (which radar of the design produces which node's radar number, which side is positive x, the rated sector of each model), tested with the same numbers. A radar of the design that is not wired to a node in Studio shows nothing; a node that reports people no radar is wired to is said so on the screen. Not drawn on the phone yet: the ignore-zone rectangles, the trails, the doors and windows of the buildings and the devices' places.
+- Tests: 48 (was 39), for the geometry and the reading of the site document. Exercised in an Android 14 emulator against a private server with a designed site and two simulated people walking (both views). Not run on a phone, and never with a real radar.
+
+## [0.2.7] - A new look: icons first, plain words
+
+- **A redesigned app** in the look of A.R.M.O.R. (the same dark surfaces and cyan as Studio) and with the structure of the other apps of the family: a splash with the mark, a top bar with the name, the state of the system and the connection, and a bottom bar of five icons (Status, Alarms, Devices, Cameras, More) that shows a word only under the one that is open.
+- **Icons instead of text everywhere**: arming is one big power button on the status card; alarms, devices and cameras have an icon per kind (smoke, door, motion, plug, light, siren, lock...); the camera pad, photo, record and full-screen are icon buttons; devices are tiles with a switch.
+- **Sign out** is an icon in the top bar, in *More* and in the account box, always asking first. New **account box** (user, server, connection, alerts with the app closed), a proper **About** with the mark, what the app does and who made it, and a launcher icon.
+- **Fewer technical words**: no revision numbers, ports or ids on the screens; messages of the server and the network are turned into sentences ("Usuario o contraseña incorrectos", "No se puede conectar con el servidor. Comprueba que el móvil está en la misma wifi") and times are shown in the phone's time zone.
+- The back button goes up one level. The sign-in screen has a show/hide password eye and keeps the last user.
+- Tests: 39 (was 35), for the plain-words rules and the time zone. Nothing of the server's API changed. Checked in an Android 14 emulator against a local server (sign-in, status, alarms, More, settings, About); the cameras and devices screens were not exercised with real cameras or devices, and it was not run on a phone.
+
 ## [0.2.6] - Configure a field node over Bluetooth
 
 - **Configurar un nodo por Bluetooth**, from the login screen and from *Más > Conexión*, so the same app does everything: it finds the nodes that advertise `ARMOR-xxxxxx`, connects (Android pairs when asked), creates the administrator of a new node with its set-up code (or with the fleet secret, from which it computes the code of the node's MAC) or signs in to one that has users, searches for Wi-Fi networks, and sets the node's name, the router's Wi-Fi or a fixed address, the broker and the Bluetooth mode, then restarts it. It is for nodes with no Ethernet cable or no address yet.

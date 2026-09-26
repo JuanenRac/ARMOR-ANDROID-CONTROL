@@ -26,7 +26,8 @@
 * **Acceso con el login del propio servidor:** IP, puerto, usuario y contraseña; la contraseña crea una sesión HttpOnly y nunca se guarda en el teléfono.
 * **Monitor de cámaras:** de 1 a 16 mosaicos, vista ampliada, MJPEG en directo que respeta la proporción, mando PTZ acotado, capturas y grabaciones.
 * **Armar y desarmar**, con confirmación; **alarmas** para confirmar, con un aviso de las pendientes; **dispositivos** (humo, gas, inundación, puerta, ventana, movimiento, clima, enchufes, luces, sirenas, cerraduras) con su estado y Encender / Apagar / Alternar.
-* **Configurar un nodo de campo por Bluetooth** (desde la pantalla de acceso o *Más > Conexión*): encuentra los nodos que anuncian `ARMOR-xxxxxx`, crea el administrador de uno nuevo o inicia sesión, busca redes Wi-Fi y fija el nombre del nodo, el Wi-Fi de un router o una dirección fija y el broker, para nodos sin cable Ethernet. Compilado y con tests unitarios, nunca ejecutado contra un nodo ni un teléfono.
+* **Radar en directo, en 2D y 3D:** la pestaña Radar dibuja el emplazamiento diseñado en Studio (terreno, edificios, árboles, postes, los campos de los radares y de las cámaras) y las personas que ven los radares moviéndose sobre él, cada segundo y medio; arrastra, pellizca y gira la vista 3D. La colocación sigue las reglas de Studio, pero nunca ha mostrado un radar real.
+* **Configurar un nodo de campo por Bluetooth** (desde la pantalla de acceso o *Más > Configurar un nodo*): encuentra los nodos que anuncian `ARMOR-xxxxxx`, crea el administrador de uno nuevo o inicia sesión, busca redes Wi-Fi y fija el nombre del nodo, el Wi-Fi de un router o una dirección fija y el broker, para nodos sin cable Ethernet. Compilado y con tests unitarios, nunca ejecutado contra un nodo ni un teléfono.
 * **Biblioteca de evidencias**, estado del perímetro y de los nodos, y un **historial** de cada cambio de alerta, nodo, cámara, dispositivo, alarma y modo.
 * **Notificaciones de alarma** cuando un nodo llega a ALTA, una cámara deja de responder, un dispositivo da alarma (humo, gas, inundación o pánico siempre; puerta, ventana o movimiento con el sistema armado) o, con el sistema armado, un nodo se cae; una vigilancia opcional en segundo plano usa la sesión actual y avisa cuando termina.
 * **Cuidado con la contraseña:** el HTTP plano solo se permite hacia un *literal* IPv4 de LAN privada o loopback. Se rechaza un nombre de host que solo empieza como una dirección privada (`10.atacante.ejemplo`) o una dirección con cero a la izquierda (algunos resolvedores leen `010.0.0.1` como la pública `8.0.0.1`).
@@ -50,10 +51,11 @@ El APK de depuración no está firmado para distribución. Véase el [límite de
 ```text
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/
-│   ├── ArmorActivity.kt, ArmorViewModel.kt, AlarmPolicy.kt, AlarmNotifier.kt, AlarmWatcherService.kt
+│   ├── ArmorActivity.kt (el armazón), EntryScreens.kt (presentación, acceso, cuenta, Acerca de), HomeScreens.kt, CameraScreens.kt, MoreScreens.kt
+│   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmNotifier.kt, AlarmWatcherService.kt
 │   ├── ArmorTheme.kt, ServerEndpoint.kt, MjpegFeed.kt
 │   ├── network/   model/
-└── app/src/test/   tests de seguridad de la dirección
+└── app/src/test/   tests de seguridad de la dirección y de palabras sencillas
 ```
 
 ---

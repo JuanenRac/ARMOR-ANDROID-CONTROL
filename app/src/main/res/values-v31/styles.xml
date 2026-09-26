@@ -1,0 +1,11 @@
+<resources>
+    <style name="Theme.Armor" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#00E5FF</item>
+        <item name="android:windowBackground">#07090C</item>
+        <item name="android:statusBarColor">#07090C</item>
+        <item name="android:navigationBarColor">#07090C</item>
+        <item name="android:windowSplashScreenBackground">#07090C</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+    </style>
+</resources>
