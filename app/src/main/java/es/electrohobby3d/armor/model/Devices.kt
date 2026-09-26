@@ -131,6 +131,7 @@ object DeviceText {
         "solar_offline" -> "Un equipo solar ha dejado de responder"
         "electrical_alarm" -> "Un contador de la red eléctrica avisa de una alarma"; "electrical_voltage" -> "La tensión de red está fuera de rango"
         "electrical_grid_lost" -> "Se ha perdido el suministro de la red"; "electrical_offline" -> "Un nodo eléctrico ha dejado de responder"
+        "electrical_switch_fault" -> "Un conmutador de fuentes de la red eléctrica tiene una avería y queda abierto"
         else -> code
     }
 
