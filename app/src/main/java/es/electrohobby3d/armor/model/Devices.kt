@@ -127,6 +127,8 @@ object DeviceText {
         "door_open" -> "Puerta abierta con el sistema armado"; "window_open" -> "Ventana abierta con el sistema armado"; "motion" -> "Movimiento con el sistema armado"
         "glass_break" -> "Rotura de cristal con el sistema armado"; "vibration" -> "Vibración con el sistema armado"; "tamper" -> "Un dispositivo ha sido manipulado"
         "low_battery" -> "Batería baja"; "device_offline" -> "Un dispositivo ha dejado de responder"; "triggered" -> "Un dispositivo se ha activado"
+        "solar_fault" -> "Avería en un inversor solar"; "solar_battery_low" -> "Batería solar baja"; "solar_battery_alarm" -> "Una batería solar avisa de un problema"
+        "solar_offline" -> "Un equipo solar ha dejado de responder"
         else -> code
     }
 

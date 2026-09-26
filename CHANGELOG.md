@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## [0.3.0] - Solar alarms wake the phone
+
+- **A solar alarm is announced** like a device alarm, once when it is raised and whether or not the system is armed: an inverter fault (high), a battery that is low or that reports a protection acting (warning or high), and equipment that stopped answering (warning). The notice reads like the others (*ALARMA ALTA · Avería en un inversor solar · casa/axpert-1*), in the app and in the background watch. Acknowledging or clearing it announces nothing.
+- **The Alarms screen names solar alarms** by the equipment's own name (the one declared in Studio) instead of its `node/device` path, and the four solar codes have their wording (*Avería en un inversor solar*, *Batería solar baja*, *Una batería solar avisa de un problema*, *Un equipo solar ha dejado de responder*).
+- Tests: 55 (was 53). Not tried on a phone.
+
 ## [0.2.9] - Solar inverters and batteries in the app
 
 - **A Solar screen** (*Más > Solar*, and a tile on the Status screen that shows the sun, the consumption and the batteries' charge): the sums the server makes (sun, consumption, batteries with their charge and whether they charge or discharge, whether the grid is present and the inverter's mode) and, below them, every inverter and every battery stack that has reported, with its numbers. It is refreshed every five seconds while it is open.

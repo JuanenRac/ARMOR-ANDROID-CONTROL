@@ -34,8 +34,28 @@ class DevicesAndAlarmsTest {
         assertTrue(AlarmPolicy.notices(events, armed = true).isEmpty())
     }
 
+    @Test fun solarAlarmsWakeTheOperatorOnceWhenRaisedAndNotWhenAcknowledgedOrCleared() {
+        val fault = alarmEvent(20, "raised", "solar", "solar_fault", "high", "casa/axpert-1")
+        val low = alarmEvent(21, "raised", "solar", "solar_battery_low", "warning", "casa/ant-1")
+        val notices = AlarmPolicy.notices(listOf(fault, low), armed = false)   // a solar fault matters whether or not the perimeter is armed
+        assertEquals(2, notices.size)
+        assertEquals("ALARMA ALTA", notices[0].title)
+        assertEquals("Avería en un inversor solar · casa/axpert-1", notices[0].text)
+        assertEquals("ALARMA AVISO", notices[1].title)
+        assertEquals("Batería solar baja · casa/ant-1", notices[1].text)
+        val later = listOf(alarmEvent(22, "acknowledged", "solar", "solar_fault", "high", "casa/axpert-1"), alarmEvent(23, "cleared", "solar", "solar_fault", "high", "casa/axpert-1"))
+        assertTrue(AlarmPolicy.notices(later, armed = true).isEmpty())
+    }
+
+    @Test fun aSolarAlarmIsNamedByItsEquipmentNotByItsPath() {
+        val alarm = es.electrohobby3d.armor.model.Alarm("alm-1", "solar", "casa/axpert-1", "high", "solar_fault", "2026-01-01T10:00:00Z", null, false)
+        assertEquals("Inversor del garaje", alarmSourceName(alarm, emptyList(), emptyMap(), mapOf("casa/axpert-1" to "Inversor del garaje")))
+        assertEquals("axpert-1", alarmSourceName(alarm, emptyList(), emptyMap()))   // not known (yet): the device part of the path
+    }
+
     @Test fun everyCodeTheServerRaisesHasItsOwnWording() {
-        val codes = listOf("intrusion", "node_down", "camera_down", "smoke", "co", "gas", "water_leak", "panic", "door_open", "window_open", "motion", "glass_break", "vibration", "triggered", "tamper", "low_battery", "device_offline")
+        val codes = listOf("intrusion", "node_down", "camera_down", "smoke", "co", "gas", "water_leak", "panic", "door_open", "window_open", "motion", "glass_break", "vibration", "triggered", "tamper", "low_battery", "device_offline",
+            "solar_fault", "solar_battery_low", "solar_battery_alarm", "solar_offline")
         for (code in codes) assertNotEquals(code, DeviceText.alarmText(code))
     }
 

@@ -139,7 +139,7 @@ private fun NodeRow(node: FieldNode) {
 private fun severityColor(severity: String) = when (severity) { "critical" -> ArmorColors.Alert; "high" -> ArmorColors.Amber; else -> ArmorColors.Cyan }
 
 @Composable
-fun AlarmsScreen(active: List<Alarm>, closed: List<Alarm>, devices: List<SiteDevice>, cameraNames: Map<String, String>, onAcknowledge: (Alarm) -> Unit, onAcknowledgeAll: () -> Unit, enabled: Boolean) {
+fun AlarmsScreen(active: List<Alarm>, closed: List<Alarm>, devices: List<SiteDevice>, cameraNames: Map<String, String>, onAcknowledge: (Alarm) -> Unit, onAcknowledgeAll: () -> Unit, enabled: Boolean, solarNames: Map<String, String> = emptyMap()) {
     val pending = active.count { !it.acknowledged }
     var showClosed by rememberSaveable { mutableStateOf(false) }
     LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
@@ -164,7 +164,7 @@ fun AlarmsScreen(active: List<Alarm>, closed: List<Alarm>, devices: List<SiteDev
                     IconBadge(if (alarm.cleared) Icons.Filled.CheckCircle else Icons.Filled.Warning, tint, size = 44.dp)
                     Column(Modifier.weight(1f)) {
                         Text(DeviceText.alarmText(alarm.code), fontWeight = FontWeight.SemiBold)
-                        Text("${alarmSourceName(alarm, devices, cameraNames)} · ${Friendly.dayAndClock(alarm.raisedAt)}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                        Text("${alarmSourceName(alarm, devices, cameraNames, solarNames)} · ${Friendly.dayAndClock(alarm.raisedAt)}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                         Text(
                             if (alarm.acknowledged) "Vista por ${alarm.acknowledgedBy}${if (alarm.cleared) "" else " · sigue activa"}" else if (alarm.cleared) "Ya terminó · falta confirmarla" else "Activa ahora",
                             style = MaterialTheme.typography.labelSmall, color = if (alarm.acknowledged) ArmorColors.Muted else tint,
@@ -184,7 +184,7 @@ fun AlarmsScreen(active: List<Alarm>, closed: List<Alarm>, devices: List<SiteDev
         if (showClosed) items(closed.take(30), key = { "c-" + it.id }) { alarm ->
             Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Icon(Icons.Filled.CheckCircle, null, tint = ArmorColors.Muted, modifier = Modifier.size(18.dp))
-                Text("${DeviceText.alarmText(alarm.code)} · ${alarmSourceName(alarm, devices, cameraNames)} · ${Friendly.dayAndClock(alarm.raisedAt)}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                Text("${DeviceText.alarmText(alarm.code)} · ${alarmSourceName(alarm, devices, cameraNames, solarNames)} · ${Friendly.dayAndClock(alarm.raisedAt)}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
             }
         }
     }
