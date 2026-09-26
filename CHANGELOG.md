@@ -5,7 +5,7 @@ All notable changes to this project are documented here.
 ## [0.3.3] - The electrical network
 
 - **An *Eléctrica* screen** (in *Más*, and a tile on the Status screen): the power of the grid input, whether the house draws from the network or feeds it, every channel the electrical nodes measure (voltage, current, power, energy, frequency, power factor, the state of a switch) and the alarms of the meters, refreshed every five seconds while it is open. Reading only.
-- **The alarms of the electrical nodes** (a meter's alarm, the mains out of range, the grid lost, a node that stopped answering) have their own wording and wake the operator, like the solar ones.
+- **The alarms of the electrical nodes** (a meter's alarm, the mains out of range, the grid lost, a node that stopped answering, a fault of a source switch) have their own wording and wake the operator, like the solar ones.
 - **An inverter's card** shows its second PV input and, for a parallel system, its units and the total power.
 - **Tests:** 62 on the JVM (the electrical answers, the wording, the second input and the units, the new alarm codes); the debug APK builds. Not run on a phone.
 
