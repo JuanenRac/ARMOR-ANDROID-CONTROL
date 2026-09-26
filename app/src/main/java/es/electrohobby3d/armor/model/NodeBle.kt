@@ -58,10 +58,16 @@ class BleAssembler {
 
 /** An answer of the node: [ok] with its [data], or an [error] code (see the protocol's list) and perhaps [data]. */
 data class NodeReply(val id: Long, val ok: Boolean, val error: String, val data: JSONObject) {
+    private fun problemText(path: String, code: String): String = when {
+        path == "uplink" && code == "not_available" -> "uplink: este nodo no tiene puerto Ethernet, usa el Wi-Fi"
+        path == "sta.enabled" && code == "required" -> "sta.enabled: sin Wi-Fi ni punto de acceso el nodo quedaría inalcanzable"
+        else -> "$path: $code"
+    }
+
     /** The fields the node found wrong in a settings document, as "path: code". */
     fun problems(): List<String> {
         val list: JSONArray = data.optJSONArray("problems") ?: return emptyList()
-        return (0 until list.length()).map { val item = list.getJSONObject(it); "${item.optString("path")}: ${item.optString("code")}" }
+        return (0 until list.length()).map { val item = list.getJSONObject(it); problemText(item.optString("path"), item.optString("code")) }
     }
 }
 
@@ -108,11 +114,29 @@ data class WifiNetwork(val ssid: String, val rssi: Int, val channel: Int, val se
     }
 }
 
+/** The kinds of field node that answer on the configuration channel; they all speak the same protocol, so the app configures each of them the same way. */
+enum class NodeKind(val label: String) {
+    Radar("Nodo radar"), Solar("Nodo solar"), Electrical("Nodo eléctrico"), Unknown("Nodo ARMOR");
+
+    companion object {
+        /** From the `kind` a node declares in its `hello`; a node that predates it is told by its identifier when that says so, and is otherwise just an ARMOR node. */
+        fun of(declared: String, nodeId: String = ""): NodeKind = when {
+            declared.equals("radar", true) -> Radar
+            declared.equals("solar", true) -> Solar
+            declared.equals("electrical", true) -> Electrical
+            declared.isBlank() && nodeId.startsWith("solar-", true) -> Solar
+            declared.isBlank() && nodeId.startsWith("electrical-", true) -> Electrical
+            else -> Unknown
+        }
+    }
+}
+
 /** What the node says about itself before anyone signs in. */
-data class NodeHello(val nodeId: String, val name: String, val mac: String, val firmware: String, val setup: Boolean, val hasIp: Boolean, val ip: String, val staConnected: Boolean, val staSsid: String) {
+data class NodeHello(val nodeId: String, val name: String, val mac: String, val firmware: String, val setup: Boolean, val hasIp: Boolean, val ip: String, val staConnected: Boolean, val staSsid: String,
+                     val kind: NodeKind = NodeKind.Unknown) {
     companion object {
         fun from(data: JSONObject) = NodeHello(data.optString("node_id"), data.optString("name"), data.optString("mac"), data.optString("firmware"), data.optBoolean("setup"),
-            data.optBoolean("has_ip"), data.optString("ip"), data.optBoolean("sta_connected"), data.optString("sta_ssid"))
+            data.optBoolean("has_ip"), data.optString("ip"), data.optBoolean("sta_connected"), data.optString("sta_ssid"), NodeKind.of(data.optString("kind"), data.optString("node_id")))
     }
 }
 

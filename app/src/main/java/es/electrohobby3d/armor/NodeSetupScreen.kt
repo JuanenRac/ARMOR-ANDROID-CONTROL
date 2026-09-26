@@ -203,6 +203,7 @@ private fun SignInStep(state: NodeSetupState, onSignIn: (String, String, String,
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(hello.name.ifBlank { hello.nodeId }, style = MaterialTheme.typography.titleMedium)
+            Text(hello.kind.label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
             Text("MAC ${hello.mac} · firmware ${hello.firmware}", style = MaterialTheme.typography.bodySmall)
             Text(if (hello.hasIp) "Red: ${hello.ip}" else "Sin dirección de red todavía", style = MaterialTheme.typography.bodySmall)
             if (hello.staConnected) Text("Wi-Fi: ${hello.staSsid}", style = MaterialTheme.typography.bodySmall)
@@ -238,6 +239,7 @@ private fun ConfigureStep(state: NodeSetupState, onScanWifi: () -> Unit, onApply
     var bluetooth by remember { mutableStateOf("") }
     if (!state.admin) { Text("Este usuario sólo puede mirar: para cambiar la configuración hace falta un administrador."); return }
 
+    state.hello?.let { Text(it.kind.label + " · " + it.nodeId, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary) }
     Text("Nombre y conexión", style = MaterialTheme.typography.titleMedium)
     OutlinedTextField(name, { name = it }, label = { Text("Nombre del nodo") }, singleLine = true, modifier = Modifier.fillMaxWidth())
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) { Switch(useWifi, { useWifi = it }); Text("Conectarse al Wi-Fi de un router o punto de acceso") }

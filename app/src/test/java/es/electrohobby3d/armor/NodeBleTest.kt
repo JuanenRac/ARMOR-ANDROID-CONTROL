@@ -4,6 +4,7 @@ import es.electrohobby3d.armor.model.BleAssembler
 import es.electrohobby3d.armor.model.BleFrame
 import es.electrohobby3d.armor.model.NodeGatt
 import es.electrohobby3d.armor.model.NodeHello
+import es.electrohobby3d.armor.model.NodeKind
 import es.electrohobby3d.armor.model.NodeProtocol
 import es.electrohobby3d.armor.model.NodeSettingsPatch
 import es.electrohobby3d.armor.model.SetupCode
@@ -74,6 +75,25 @@ class NodeBleTest {
         val list = WifiNetwork.list(JSONObject("""{"networks":[{"ssid":"Casa","rssi":-48,"channel":6,"security":"wpa2"},{"ssid":"Abierta","rssi":-80,"channel":1,"security":"open"}]}"""))
         assertEquals(listOf("Casa", "Abierta"), list.map { it.ssid }); assertEquals(-48, list[0].rssi); assertEquals("open", list[1].security)
         assertEquals(emptyList<WifiNetwork>(), WifiNetwork.list(JSONObject("{}")))
+    }
+
+    @Test fun `the three kinds of node are told apart by what they declare`() {
+        fun hello(json: String) = NodeHello.from(JSONObject(json))
+        assertEquals(NodeKind.Radar, hello("""{"kind":"radar","node_id":"armor-a1b2c3"}""").kind)
+        assertEquals(NodeKind.Solar, hello("""{"kind":"solar","node_id":"casa-solar"}""").kind)
+        assertEquals(NodeKind.Electrical, hello("""{"kind":"electrical","node_id":"cuadro"}""").kind)
+        // a node that predates the field: told by its identifier when it says so, otherwise an ARMOR node
+        assertEquals(NodeKind.Solar, hello("""{"node_id":"solar-a1b2c3"}""").kind)
+        assertEquals(NodeKind.Electrical, hello("""{"node_id":"electrical-a1b2c3"}""").kind)
+        assertEquals(NodeKind.Unknown, hello("""{"node_id":"armor-a1b2c3"}""").kind)
+        assertEquals(NodeKind.Unknown, hello("""{"kind":"other","node_id":"solar-x"}""").kind)
+        assertEquals("Nodo eléctrico", NodeKind.Electrical.label)
+    }
+
+    @Test fun `the fields a node refuses are told in plain words`() {
+        val reply = NodeProtocol.reply("""{"id":3,"ok":false,"error":"invalid","data":{"problems":[{"path":"uplink","code":"not_available"},{"path":"sta.enabled","code":"required"},{"path":"mqtt.uri","code":"invalid"}]}}""")!!
+        val problems = reply.problems()
+        assertTrue(problems[0].contains("Ethernet") && problems[1].contains("inalcanzable") && problems[2] == "mqtt.uri: invalid")
     }
 
     @Test fun `the set-up code of a board is the one the firmware and adopt_node make`() {
