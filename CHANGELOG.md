@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [0.2.9] - Solar inverters and batteries in the app
+
+- **A Solar screen** (*Más > Solar*, and a tile on the Status screen that shows the sun, the consumption and the batteries' charge): the sums the server makes (sun, consumption, batteries with their charge and whether they charge or discharge, whether the grid is present and the inverter's mode) and, below them, every inverter and every battery stack that has reported, with its numbers. It is refreshed every five seconds while it is open.
+- **An inverter** shows the grid, the load, the panels, the battery side, the temperature and its warnings by name; **a battery** shows its charge, voltage, current, power, temperatures, the range of its cells with the spread in millivolts, capacities and cycles, an alarm line when a protection is acting, and, on demand, **every cell** with the highest and the lowest marked and the temperature sensors (an ANT-BMS lists them all).
+- **Honest about the state of the data:** equipment declared in Studio that has not reported yet is listed as *waiting for data*; a device that has gone quiet says *sin señal*; a reading the server made up to try the menus says *ejemplo*. A field the server did not send shows a dash, never a zero.
+- Tests: 53 (was 48), for the reading of the server's answer (inverter, battery with cells and sensors, totals, the waiting list, a null total, an odd or empty answer) and the wording. Exercised in an Android emulator against a local server with declared equipment and example readings; never against a real inverter or battery.
+
 ## [0.2.8] - Live radar, in 2D and in 3D
 
 - **A Radar tab** in the bottom bar (second place): the site as Studio designed it, with the people the radars see moving on it, refreshed every second and a half while the tab is open. The design is read from the server (`GET /api/v1/site`): the ground, the buildings (walls, floors, gable and hip roofs), the objects on the ground, the cameras' and radars' fields, in the colours chosen in Studio.

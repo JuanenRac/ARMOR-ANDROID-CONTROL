@@ -65,6 +65,9 @@ class ArmorApiClient {
     fun acknowledgeAlarm(origin: String, id: String) { request(origin, "/api/v1/alarms/${part(id)}/acknowledge", "POST", emptyMap(), null, setOf(200)).disconnect() }
     fun acknowledgeAllAlarms(origin: String) { request(origin, "/api/v1/alarms/acknowledge", "POST", emptyMap(), null, setOf(200)).disconnect() }
 
+    /** Every inverter and battery that has reported, the declared ones still waiting, and the sums; an operator session is needed. */
+    fun solar(origin: String): SolarOverview = SolarParser.overview(getJson(origin, "/api/v1/solar"))
+
     fun devices(origin: String): List<SiteDevice> = getJson(origin, "/api/v1/devices").optJSONArray("devices").asObjects().mapNotNull(DeviceParser::device)
     /** [command] is "on", "off" or "toggle"; the server refuses it for a sensor. */
     fun commandDevice(origin: String, id: String, command: String) {

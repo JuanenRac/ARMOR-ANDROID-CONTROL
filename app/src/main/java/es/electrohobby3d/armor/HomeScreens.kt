@@ -53,6 +53,7 @@ fun ScreenTitle(icon: ImageVector, title: String, subtitle: String? = null, acti
 fun StatusScreen(
     armed: Boolean, updated: String, nodes: List<FieldNode>, cameras: Int, camerasDown: Int, pendingAlarms: Int, devices: List<SiteDevice>,
     onMode: () -> Unit, onAlarms: () -> Unit, onDevices: () -> Unit, onCameras: () -> Unit, onRadar: () -> Unit, onRefresh: () -> Unit, enabled: Boolean,
+    solar: es.electrohobby3d.armor.model.SolarOverview? = null, onSolar: () -> Unit = {},
 ) {
     val attention = devices.count { DeviceText.problem(it) != null }
     val nodesOnline = nodes.count { it.online }
@@ -80,6 +81,16 @@ fun StatusScreen(
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             StatTile(Icons.Filled.Sensors, devices.size.toString(), if (attention > 0) "$attention con aviso" else "Dispositivos", if (attention > 0) ArmorColors.Amber else ArmorColors.Cyan, Modifier.weight(1f), onDevices)
             StatTile(Icons.Filled.Radar, "$nodesOnline/${nodes.size}", "Nodos en línea", if (nodes.isNotEmpty() && nodesOnline < nodes.size) ArmorColors.Amber else ArmorColors.Cyan, Modifier.weight(1f), onRadar)
+        }
+        if (solar != null && !solar.isEmpty) Panel(Modifier.fillMaxWidth(), tint = if (solar.totals.stale > 0) ArmorColors.Amber else null, onClick = onSolar) {
+            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                IconBadge(Icons.Filled.WbSunny, if (solar.totals.stale > 0) ArmorColors.Amber else ArmorColors.Cyan, size = 40.dp)
+                Column(Modifier.weight(1f)) {
+                    Text("Solar", fontWeight = FontWeight.SemiBold)
+                    Text(if (solar.devices.isEmpty()) "Esperando datos" else solarSummary(solar.totals), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                solar.totals.socPercent?.let { Text("$it %", fontSize = 22.sp, fontWeight = FontWeight.Bold) }
+            }
         }
         if (nodes.isNotEmpty()) {
             Text("Radares", style = MaterialTheme.typography.titleMedium, color = ArmorColors.Muted)

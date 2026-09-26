@@ -35,6 +35,7 @@
 * **Camera monitor:** 1 to 16 tiles, a maximized view, live MJPEG that keeps the picture ratio, a bounded PTZ pad, snapshots and recordings.
 * **Arm and disarm**, after a confirmation; **alarms** to acknowledge, with a badge for those waiting; **devices** (smoke, gas, flood, door, window, motion, climate, plugs, lights, sirens, locks) with their state and On / Off / Toggle.
 * **Live radar, in 2D and 3D:** the Radar tab draws the site as designed in Studio (ground, buildings, trees, posts, the fields of the radars and cameras) and the people the radars see moving on it, refreshed every second and a half; drag, pinch and turn the 3D view. The placement follows Studio's rules, but it has never shown a real radar.
+* **Solar:** an entry in *More* (and a tile on the Status screen) shows the sums (sun, consumption, batteries with their charge and flow, whether the grid is present) and every inverter and battery the server reports: their numbers, the cells of a battery on demand with the highest and the lowest marked, the equipment still waiting for data, and a mark on an example reading or a silent device. Refreshed every five seconds while it is open; tested against the shapes the server answers and tried in an emulator against a local server with example readings, never with real equipment.
 * **Set up a field node over Bluetooth** (from the login screen or *Más > Configurar un nodo*): finds the nodes that advertise `ARMOR-xxxxxx`, creates the administrator of a new one or signs in, searches for Wi-Fi networks and sets the node's name, a router's Wi-Fi or a fixed address and the broker, for nodes with no Ethernet cable. Compiled and unit-tested, never run against a node or a phone.
 * **Evidence library**, the perimeter and node state, and a **history** of every alert, node, camera, device, alarm and mode change.
 * **Alarm notifications** for a node reaching HIGH, a camera that stops answering, a device alarm (smoke, gas, flood, panic at any time; a door, window or motion sensor while armed) and, while armed, a node that goes offline; an optional background watch uses the current session and says so when it ends.
@@ -46,7 +47,7 @@
 ```text
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/
-│   ├── ArmorActivity.kt (the shell), EntryScreens.kt (splash, sign-in, account, About), HomeScreens.kt, CameraScreens.kt, MoreScreens.kt
+│   ├── ArmorActivity.kt (the shell), EntryScreens.kt (splash, sign-in, account, About), HomeScreens.kt, CameraScreens.kt, MoreScreens.kt, SolarScreens.kt
 │   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmNotifier.kt, AlarmWatcherService.kt
 │   ├── ArmorTheme.kt, ServerEndpoint.kt, MjpegFeed.kt
 │   ├── network/   model/
