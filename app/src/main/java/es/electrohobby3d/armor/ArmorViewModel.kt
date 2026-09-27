@@ -37,6 +37,8 @@ data class MonitorUiState(
     val solar: es.electrohobby3d.armor.model.SolarOverview? = null,
     /** The electrical nodes' meters; null until the server has answered (an older server never does). */
     val electrical: es.electrohobby3d.armor.model.ElectricalOverview? = null,
+    /** The local network as the ARMOR-NETWORK nodes see it; null until the server has answered (an older server never does). */
+    val network: es.electrohobby3d.armor.model.NetworkOverview? = null,
     /** The site as Studio designed it, for the radar screen; [siteLoaded] tells "not asked yet" from "no design saved". */
     val site: es.electrohobby3d.armor.model.SiteDesign? = null,
     val siteLoaded: Boolean = false,
@@ -71,6 +73,13 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient()) : Vi
     }
 
     fun reloadElectrical(origin: String) { viewModelScope.launch { pollElectrical(origin) } }
+
+    /** The local network, quickly, while the Network screen is open. A failure is ignored; the next pass tries again. */
+    suspend fun pollNetwork(origin: String) = withContext(Dispatchers.IO) {
+        runCatching { client.network(origin) }.onSuccess { _state.value = _state.value.copy(network = it) }
+    }
+
+    fun reloadNetwork(origin: String) { viewModelScope.launch { pollNetwork(origin) } }
 
     /** The message on screen has been read. */
     fun dismissMessage() { _state.value = _state.value.copy(message = null) }
@@ -153,8 +162,9 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient()) : Vi
             val devices = runCatching { client.devices(origin) }.getOrNull()
             val solar = runCatching { client.solar(origin) }.getOrNull()
             val electrical = runCatching { client.electrical(origin) }.getOrNull()
+            val network = runCatching { client.network(origin) }.getOrNull()
             _state.value = _state.value.copy(
-                solar = solar ?: _state.value.solar, electrical = electrical ?: _state.value.electrical,
+                solar = solar ?: _state.value.solar, electrical = electrical ?: _state.value.electrical, network = network ?: _state.value.network,
                 snapshot = status, cameras = cameras, events = events, cameraHealth = health,
                 alarms = alarms?.first ?: _state.value.alarms, closedAlarms = alarms?.second ?: _state.value.closedAlarms, devices = devices ?: _state.value.devices,
             )
@@ -213,6 +223,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient()) : Vi
         val devices = runCatching { client.devices(origin) }.getOrNull()
         val solar = runCatching { client.solar(origin) }.getOrNull()
         val electrical = runCatching { client.electrical(origin) }.getOrNull()
-        _state.value = _state.value.copy(solar = solar, electrical = electrical, snapshot = status, cameras = cameras, alarms = alarms?.first ?: emptyList(), closedAlarms = alarms?.second ?: emptyList(), devices = devices ?: emptyList(), media = if (loadMedia) client.media(origin) else _state.value.media)
+        val network = runCatching { client.network(origin) }.getOrNull()
+        _state.value = _state.value.copy(solar = solar, electrical = electrical, network = network, snapshot = status, cameras = cameras, alarms = alarms?.first ?: emptyList(), closedAlarms = alarms?.second ?: emptyList(), devices = devices ?: emptyList(), media = if (loadMedia) client.media(origin) else _state.value.media)
     }
 }

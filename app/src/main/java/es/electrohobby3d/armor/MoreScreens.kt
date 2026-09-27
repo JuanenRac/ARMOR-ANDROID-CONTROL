@@ -26,7 +26,7 @@ import es.electrohobby3d.armor.model.CameraView
 import es.electrohobby3d.armor.model.MediaItem
 
 /** What the "More" tab can show; null is the menu itself. */
-enum class MoreTab { Solar, Electrical, Evidence, History, Settings }
+enum class MoreTab { Solar, Electrical, Network, Evidence, History, Settings }
 
 @Composable
 fun MoreMenu(onOpen: (MoreTab) -> Unit, onNodeSetup: () -> Unit, onAbout: () -> Unit, onLogout: () -> Unit) {
@@ -34,6 +34,7 @@ fun MoreMenu(onOpen: (MoreTab) -> Unit, onNodeSetup: () -> Unit, onAbout: () -> 
         ScreenTitle(Icons.Filled.GridView, "Más")
         MenuRow(Icons.Filled.WbSunny, "Solar", "Inversores y baterías") { onOpen(MoreTab.Solar) }
         MenuRow(Icons.Filled.ElectricBolt, "Eléctrica", "Red, circuitos y buses de continua") { onOpen(MoreTab.Electrical) }
+        MenuRow(Icons.Filled.Router, "Red", "Internet, dispositivos y cambios de la red local") { onOpen(MoreTab.Network) }
         MenuRow(Icons.Filled.VideoLibrary, "Grabaciones", "Fotos y vídeos guardados") { onOpen(MoreTab.Evidence) }
         MenuRow(Icons.Filled.History, "Historial", "Todo lo que ha pasado") { onOpen(MoreTab.History) }
         MenuRow(Icons.Filled.Bluetooth, "Configurar un nodo", "Prepara un nodo nuevo por Bluetooth", onClick = onNodeSetup)

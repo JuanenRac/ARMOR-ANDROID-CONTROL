@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [0.3.4] - The local network
+
+- **A *Red* screen** (in *Más*, and a tile on the Status screen): whether the internet is there and, when it is not, whose fault it is (the provider's or this side's), its latency and loss, the outages of the day, the devices of the network with their address, kind and maker (the ones nobody marked as known, and the ones with a port a house rarely wants open, stand out) and what changed. Reading only; it reads what ARMOR-NETWORK nodes report to the server.
+- The alarms of the network (the internet or the local network down, a device that was never seen, two machines for one address, a port that opened, a node that went silent) have their own wording and wake the operator, like the solar and electrical ones.
+
 ## [0.3.3] - The electrical network
 
 - **An *Eléctrica* screen** (in *Más*, and a tile on the Status screen): the power of the grid input, whether the house draws from the network or feeds it, every channel the electrical nodes measure (voltage, current, power, energy, frequency, power factor, the state of a switch) and the alarms of the meters, refreshed every five seconds while it is open. Reading only.

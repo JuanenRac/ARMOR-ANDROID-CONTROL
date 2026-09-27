@@ -55,6 +55,7 @@ fun StatusScreen(
     onMode: () -> Unit, onAlarms: () -> Unit, onDevices: () -> Unit, onCameras: () -> Unit, onRadar: () -> Unit, onRefresh: () -> Unit, enabled: Boolean,
     solar: es.electrohobby3d.armor.model.SolarOverview? = null, onSolar: () -> Unit = {},
     electrical: es.electrohobby3d.armor.model.ElectricalOverview? = null, onElectrical: () -> Unit = {},
+    network: es.electrohobby3d.armor.model.NetworkOverview? = null, onNetwork: () -> Unit = {},
 ) {
     val attention = devices.count { DeviceText.problem(it) != null }
     val nodesOnline = nodes.count { it.online }
@@ -99,6 +100,19 @@ fun StatusScreen(
                 Column(Modifier.weight(1f)) {
                     Text("Eléctrica", fontWeight = FontWeight.SemiBold)
                     Text(electricalSummary(electrical.totals), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            }
+        }
+        if (network != null && !network.isEmpty) {
+            val internetState = network.nodes.first().internet.state
+            val networkTint = if (internetState == "down" || internetState == "lan_down") ArmorColors.Alert else if (internetState == "degraded" || network.totals.stale > 0) ArmorColors.Amber else null
+            Panel(Modifier.fillMaxWidth(), tint = networkTint, onClick = onNetwork) {
+                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    IconBadge(Icons.Filled.Router, networkTint ?: ArmorColors.Cyan, size = 40.dp)
+                    Column(Modifier.weight(1f)) {
+                        Text("Red", fontWeight = FontWeight.SemiBold)
+                        Text(es.electrohobby3d.armor.model.NetworkText.summary(network), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    }
                 }
             }
         }

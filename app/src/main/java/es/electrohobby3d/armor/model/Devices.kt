@@ -132,6 +132,10 @@ object DeviceText {
         "electrical_alarm" -> "Un contador de la red eléctrica avisa de una alarma"; "electrical_voltage" -> "La tensión de red está fuera de rango"
         "electrical_grid_lost" -> "Se ha perdido el suministro de la red"; "electrical_offline" -> "Un nodo eléctrico ha dejado de responder"
         "electrical_switch_fault" -> "Un conmutador de fuentes de la red eléctrica tiene una avería y queda abierto"
+        "network_internet_down" -> "No hay internet y el router sigue respondiendo: es cosa del operador"; "network_lan_down" -> "La red local está caída: el router no responde"
+        "network_degraded" -> "Internet va lento o pierde paquetes"; "network_new_device" -> "Un dispositivo que nunca se había visto se ha unido a la red"
+        "network_arp_conflict" -> "Dos máquinas responden por una misma dirección de la red"; "network_port_opened" -> "Un dispositivo de la red ha abierto un puerto"
+        "network_offline" -> "Un nodo de red ha dejado de informar"
         else -> code
     }
 
