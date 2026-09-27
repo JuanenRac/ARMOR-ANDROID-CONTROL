@@ -48,7 +48,13 @@ class GitHubReleaseUpdater(private val context: Context) {
             }
             try {
                 if (connection.responseCode !in 200..299) {
-                    return@withContext UpdateCheckResult.Failed("GitHub devolvió el código HTTP ${connection.responseCode}.")
+                    return@withContext UpdateCheckResult.Failed(
+                        describeHttpFailure(
+                            code = connection.responseCode,
+                            rateLimitRemaining = connection.getHeaderField("X-RateLimit-Remaining"),
+                            rateLimitReset = connection.getHeaderField("X-RateLimit-Reset"),
+                        ),
+                    )
                 }
                 val payload = connection.inputStream.bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
                 ReleaseMetadataParser.parseLatestStable(payload, BuildConfig.VERSION_NAME)
@@ -240,4 +246,34 @@ class GitHubReleaseUpdater(private val context: Context) {
         const val DEFAULT_BUFFER_SIZE = 8192
         const val MAX_REDIRECTS = 5
     }
+}
+
+/** GitHub's unauthenticated REST API answers a 403 (not 429) once the calling
+ * IP's own 60-requests-an-hour ceiling is spent - `X-RateLimit-Remaining: 0`
+ * on that same response is how it says so, real and documented, not a
+ * guess. Every device on the same home network shares that ceiling (it is
+ * keyed by public IP, not by app or device), so a developer machine making
+ * many API calls can spend it for a phone on the same Wi-Fi too. Found for
+ * real: a plain "GitHub devolvió el código HTTP 403" told the operator
+ * nothing about why, or that it needed no fix at all, just a short wait.
+ *
+ * A top-level, pure function (no HttpURLConnection, no Context) so it is
+ * directly unit-testable - see GitHubReleaseUpdaterHttpFailureTest.kt. */
+internal fun describeHttpFailure(
+    code: Int,
+    rateLimitRemaining: String?,
+    rateLimitReset: String?,
+    nowEpochSeconds: Long = System.currentTimeMillis() / 1000L,
+): String {
+    if (code == HttpURLConnection.HTTP_FORBIDDEN && rateLimitRemaining == "0") {
+        val minutes = rateLimitReset?.toLongOrNull()?.let { reset ->
+            val secondsLeft = reset - nowEpochSeconds
+            if (secondsLeft > 0) (secondsLeft / 60L) + 1 else null
+        }
+        val whenText = if (minutes != null) "en unos $minutes minuto(s)" else "dentro de un rato"
+        return "GitHub ha limitado temporalmente las consultas sin iniciar sesión desde esta red " +
+            "(comparte el límite con cualquier otro dispositivo de la misma casa/Wi-Fi). " +
+            "Inténtalo de nuevo $whenText; no hace falta hacer nada más."
+    }
+    return "GitHub devolvió el código HTTP $code."
 }

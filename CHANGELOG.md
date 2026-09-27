@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [0.3.7] - A GitHub rate limit looked like a broken update check
+
+- **Real bug, reported by the user:** checking for updates failed with "GitHub devolvió el código HTTP 403." - technically accurate, but it gave the operator no way to tell a genuine problem from GitHub's own unauthenticated rate limit (60 requests/hour, shared by every device on the same home network's public IP, not per-app or per-phone) simply being spent for the hour. `describeHttpFailure()` now reads the same `X-RateLimit-Remaining`/`X-RateLimit-Reset` headers GitHub's own response already carries and, only when they say the ceiling is genuinely spent, explains that in plain Spanish with a real estimate of when to try again - any other HTTP failure still reports its real status code plainly, nothing is hidden.
+- **Tests:** 6 new JVM tests for the message itself (spent limit with/without a usable reset header, a reset timestamp already in the past, a genuine unrelated 403, budget still remaining, an unrelated HTTP status) - a pure function, no mocked `HttpURLConnection` needed.
+
 ## [0.3.6] - Checking GitHub for a new version
 
 - **A real update channel, same design as HYDRA-UMC-ANDROID-CONTROL's own:** on every cold start the app asks GitHub's own release feed (`GET /repos/JuanenRac/ARMOR-ANDROID-CONTROL/releases/latest`) whether a newer *stable* semver tag exists, and offers it through a dialog and through a new *Más > Actualizaciones* screen. Nothing downloads or installs on its own: the operator has to tap Descargar e instalar, and Android's own package installer still makes the final signature check before replacing the app. A draft or prerelease tag is never offered.
