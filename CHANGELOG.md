@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here.
 
+## [0.3.5]
+
+- A GitHub Actions CI baseline (`.github/workflows/ci.yml`): validates the manifest, the version, CHANGELOG.md's heading, the seven README translations' structure and its own local Markdown links, then runs this project's real build/test through `tools/armor_project_tool.py build-test .` (vendored from ARMOR-COMMON, alongside `tools/armor_ci_validate.py` and `tools/_armor_readme_parity.py`, which do the manifest/docs checking).
+
 ## [0.3.4] - The local network
 
 - **A *Red* screen** (in *Más*, and a tile on the Status screen): whether the internet is there and, when it is not, whose fault it is (the provider's or this side's), its latency and loss, the outages of the day, the devices of the network with their address, kind and maker (the ones nobody marked as known, and the ones with a port a house rarely wants open, stand out) and what changed. Reading only; it reads what ARMOR-NETWORK nodes report to the server.
