@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## [0.3.6] - Checking GitHub for a new version
+
+- **A real update channel, same design as HYDRA-UMC-ANDROID-CONTROL's own:** on every cold start the app asks GitHub's own release feed (`GET /repos/JuanenRac/ARMOR-ANDROID-CONTROL/releases/latest`) whether a newer *stable* semver tag exists, and offers it through a dialog and through a new *Más > Actualizaciones* screen. Nothing downloads or installs on its own: the operator has to tap Descargar e instalar, and Android's own package installer still makes the final signature check before replacing the app. A draft or prerelease tag is never offered.
+- The APK is downloaded straight from that release's own asset (must be named exactly `ARMOR-ANDROID-CONTROL-release.apk`), verified to be a real Android package for this exact `applicationId` and genuinely newer than what is installed before the installer is ever opened; a real, bounded manual-redirect follow keeps GitHub's own required headers on the hop from `api.github.com`/`github.com` to its asset host. Uses `java.net.HttpURLConnection`, the same stdlib-only HTTP the rest of this app already talks to ARMOR-SERVER with - no new networking dependency.
+- **Tests:** 7 on the JVM (stable-tag parsing and ordering, the release-metadata trust gate: rejects a non-stable tag, a missing asset, a non-HTTPS URL, a draft/prerelease, or a release that is not actually newer). The debug APK builds. The update flow itself has never run on a phone.
+
 ## [0.3.5]
 
 - A GitHub Actions CI baseline (`.github/workflows/ci.yml`): validates the manifest, the version, CHANGELOG.md's heading, the seven README translations' structure and its own local Markdown links, then runs this project's real build/test through `tools/armor_project_tool.py build-test .` (vendored from ARMOR-COMMON, alongside `tools/armor_ci_validate.py` and `tools/_armor_readme_parity.py`, which do the manifest/docs checking).

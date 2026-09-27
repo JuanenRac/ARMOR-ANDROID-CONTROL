@@ -25,11 +25,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import es.electrohobby3d.armor.model.CameraView
+import es.electrohobby3d.armor.update.AppUpdateState
+import es.electrohobby3d.armor.update.AppUpdateViewModel
 import kotlinx.coroutines.delay
 import java.net.URI
 
@@ -48,7 +51,7 @@ private enum class Section(val label: String, val icon: ImageVector) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ArmorScreen(viewModel: ArmorViewModel = viewModel()) {
+private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel: AppUpdateViewModel = viewModel()) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val preferences = remember { context.getSharedPreferences("armor-control", Context.MODE_PRIVATE) }
     var origin by rememberSaveable { mutableStateOf(preferences.getString("origin", "") ?: "") }
@@ -74,6 +77,25 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel()) {
     val validOrigin = ServerEndpoint.parse(origin) != null
     val currentOrigin = ServerEndpoint.parse(origin)?.origin.orEmpty()
     val snackbar = remember { SnackbarHostState() }
+    val updateState by updateViewModel.state.collectAsStateWithLifecycle()
+
+    // One check per cold start against GitHub's own release feed - never
+    // automatic beyond that: download and install both need an explicit tap
+    // from the operator (see MoreScreens.kt's UpdateScreen and the dialog
+    // below).
+    LaunchedEffect(Unit) { updateViewModel.checkForUpdate() }
+
+    // Resumes a pending install after the operator grants the one-time
+    // "install unknown apps" permission and returns to A.R.M.O.R. Control -
+    // no second network download, no re-trusting a stale cache file (see
+    // AppUpdateViewModel.resumeInstallAfterPermissionApproval's own doc).
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) updateViewModel.resumeInstallAfterPermissionApproval()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     // While the app is on screen everything refreshes every ten seconds and alarms are announced.
     LaunchedEffect(state.authenticated, currentOrigin) {
@@ -195,6 +217,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel()) {
                                 null -> MoreMenu(
                                     onOpen = { tab -> moreTab = tab; if (tab == MoreTab.Evidence) viewModel.loadMedia(currentOrigin) },
                                     onNodeSetup = { nodeSetup = true }, onAbout = { about = true }, onLogout = { confirmLogout = true },
+                                    updateAvailable = updateState is AppUpdateState.Available,
                                 )
                                 MoreTab.Solar -> SubScreen(Icons.Filled.WbSunny, "Solar", onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.reloadSolar(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
@@ -214,6 +237,14 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel()) {
                                         origin, { origin = it }, validOrigin, state.authenticated,
                                         onConnect = { preferences.edit().putString("origin", currentOrigin).apply(); viewModel.refresh(currentOrigin) },
                                         watching = watching, onWatching = { on -> watching = on; setWatching(context, preferences, on) { notificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS) } },
+                                    )
+                                }
+                                MoreTab.Updates -> SubScreen(Icons.Filled.SystemUpdate, "Actualizaciones", onBack = { moreTab = null }) {
+                                    UpdateScreen(
+                                        updateState,
+                                        onCheck = { updateViewModel.checkForUpdate() },
+                                        onDownload = { update -> updateViewModel.downloadAndInstall(update) },
+                                        onOpenInstallSettings = { updateViewModel.openInstallPermissionSettings() },
                                     )
                                 }
                             }
@@ -245,6 +276,22 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel()) {
                     onLogout = { profile = false; confirmLogout = true }, onDismiss = { profile = false },
                 )
                 expanded?.let { camera -> FullscreenCamera(camera, currentOrigin, viewModel, state.authenticated, state.media.activeCameraIds.contains(camera.id), onDismiss = { expanded = null }) }
+                // Startup checks only fetch release metadata from GitHub. The
+                // actual APK transfer and Android's own installer are both
+                // started explicitly by the operator, from this prompt or
+                // from Más > Actualizaciones. Suppressed while that same
+                // screen is already open, to avoid a dialog over itself.
+                val availableUpdate = (updateState as? AppUpdateState.Available)?.update
+                if (availableUpdate != null && moreTab != MoreTab.Updates) {
+                    AlertDialog(
+                        onDismissRequest = { updateViewModel.dismiss() }, containerColor = ArmorColors.SurfaceRaised,
+                        icon = { IconBadge(Icons.Filled.SystemUpdate, ArmorColors.Cyan, size = 56.dp) },
+                        title = { Text("Nueva versión disponible") },
+                        text = { UpdateAvailableContent(availableUpdate, onDownload = { updateViewModel.downloadAndInstall(availableUpdate); section = Section.More; moreTab = MoreTab.Updates }) },
+                        confirmButton = {},
+                        dismissButton = { TextButton(onClick = { updateViewModel.dismiss() }) { Text("Más tarde") } },
+                    )
+                }
             }
             if (about) AboutDialog(onDismiss = { about = false })
         }

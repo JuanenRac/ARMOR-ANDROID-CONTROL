@@ -24,12 +24,13 @@ import androidx.compose.ui.unit.dp
 import es.electrohobby3d.armor.model.ArmorEvent
 import es.electrohobby3d.armor.model.CameraView
 import es.electrohobby3d.armor.model.MediaItem
+import es.electrohobby3d.armor.update.AppUpdateState
 
 /** What the "More" tab can show; null is the menu itself. */
-enum class MoreTab { Solar, Electrical, Network, Evidence, History, Settings }
+enum class MoreTab { Solar, Electrical, Network, Evidence, History, Updates, Settings }
 
 @Composable
-fun MoreMenu(onOpen: (MoreTab) -> Unit, onNodeSetup: () -> Unit, onAbout: () -> Unit, onLogout: () -> Unit) {
+fun MoreMenu(onOpen: (MoreTab) -> Unit, onNodeSetup: () -> Unit, onAbout: () -> Unit, onLogout: () -> Unit, updateAvailable: Boolean = false) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         ScreenTitle(Icons.Filled.GridView, "Más")
         MenuRow(Icons.Filled.WbSunny, "Solar", "Inversores y baterías") { onOpen(MoreTab.Solar) }
@@ -38,6 +39,7 @@ fun MoreMenu(onOpen: (MoreTab) -> Unit, onNodeSetup: () -> Unit, onAbout: () -> 
         MenuRow(Icons.Filled.VideoLibrary, "Grabaciones", "Fotos y vídeos guardados") { onOpen(MoreTab.Evidence) }
         MenuRow(Icons.Filled.History, "Historial", "Todo lo que ha pasado") { onOpen(MoreTab.History) }
         MenuRow(Icons.Filled.Bluetooth, "Configurar un nodo", "Prepara un nodo nuevo por Bluetooth", onClick = onNodeSetup)
+        MenuRow(Icons.Filled.SystemUpdate, "Actualizaciones", if (updateAvailable) "Hay una versión nueva" else "Buscar una versión nueva en GitHub", tint = if (updateAvailable) ArmorColors.Cyan else ArmorColors.Cyan) { onOpen(MoreTab.Updates) }
         MenuRow(Icons.Filled.Settings, "Ajustes", "Servidor y avisos") { onOpen(MoreTab.Settings) }
         MenuRow(Icons.Filled.Info, "Acerca de", "Versión y créditos", onClick = onAbout)
         MenuRow(Icons.AutoMirrored.Filled.Logout, "Cerrar sesión", null, tint = ArmorColors.Alert, onClick = onLogout)
@@ -123,6 +125,66 @@ private fun EmptyNote(icon: ImageVector, title: String, text: String) {
             Text(text, style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, textAlign = TextAlign.Center)
         }
     }
+}
+
+/** The signed, operator-approved GitHub Release update path: check, review notes, download and hand off to Android's installer. */
+@Composable
+fun UpdateScreen(state: AppUpdateState, onCheck: () -> Unit, onDownload: (es.electrohobby3d.armor.update.AvailableUpdate) -> Unit, onOpenInstallSettings: () -> Unit) {
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        Panel(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Versión instalada: ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium, color = ArmorColors.Muted)
+                when (state) {
+                    is AppUpdateState.Idle, is AppUpdateState.UpToDate -> {
+                        if (state is AppUpdateState.UpToDate) Text("Ya tienes la última versión.", color = ArmorColors.Ok, fontWeight = FontWeight.SemiBold)
+                        Button(onClick = onCheck, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Filled.Refresh, null); Spacer(Modifier.width(8.dp)); Text("Buscar actualizaciones") }
+                    }
+                    is AppUpdateState.Checking -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp); Text("Buscando en GitHub…")
+                    }
+                    is AppUpdateState.Available -> UpdateAvailableContent(state.update, onDownload = { onDownload(state.update) })
+                    is AppUpdateState.Downloading -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Descargando… ${state.progress ?: 0}%")
+                        if (state.progress != null) LinearProgressIndicator(progress = { state.progress / 100f }, modifier = Modifier.fillMaxWidth()) else LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+                    is AppUpdateState.InstallPermissionRequired -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("Para instalar la actualización, Android necesita tu permiso para instalar aplicaciones desde esta app.")
+                        Button(onClick = onOpenInstallSettings, modifier = Modifier.fillMaxWidth()) { Text("Conceder permiso") }
+                    }
+                    is AppUpdateState.Installing -> Text("Abriendo el instalador de Android…")
+                    is AppUpdateState.Failed -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(state.message, color = ArmorColors.Alert)
+                        Button(onClick = onCheck, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Filled.Refresh, null); Spacer(Modifier.width(8.dp)); Text("Buscar actualizaciones") }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun UpdateAvailableContent(update: es.electrohobby3d.armor.update.AvailableUpdate, onDownload: () -> Unit) {
+    var showReleaseNotes by remember { mutableStateOf(false) }
+    if (showReleaseNotes) ReleaseNotesDialog(update = update, onDismiss = { showReleaseNotes = false })
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            IconBadge(Icons.Filled.SystemUpdate, ArmorColors.Cyan, size = 40.dp)
+            Text("Nueva versión disponible: ${update.version}", fontWeight = FontWeight.SemiBold, color = ArmorColors.Cyan)
+        }
+        if (update.notes.isNotBlank()) OutlinedButton(onClick = { showReleaseNotes = true }, modifier = Modifier.fillMaxWidth()) { Text("Ver novedades") }
+        Button(onClick = onDownload, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Filled.Download, null); Spacer(Modifier.width(8.dp)); Text("Descargar e instalar") }
+    }
+}
+
+@Composable
+private fun ReleaseNotesDialog(update: es.electrohobby3d.armor.update.AvailableUpdate, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = ArmorColors.SurfaceRaised,
+        title = { Text(update.releaseName.ifBlank { update.version.toString() }) },
+        text = { Text(update.notes, modifier = Modifier.verticalScroll(rememberScrollState())) },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Cerrar") } },
+    )
 }
 
 @Composable

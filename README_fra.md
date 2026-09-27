@@ -42,6 +42,7 @@
 * **Prudence avec le mot de passe :** le HTTP simple n'est permis que vers un *littéral* IPv4 de réseau local privé ou de bouclage. Un nom d'hôte qui commence seulement comme une adresse privée (`10.attacker.example`) ou une adresse avec un zéro initial (certains résolveurs lisent `010.0.0.1` comme la publique `8.0.0.1`) est refusé.
 * **Réseau électrique :** une entrée dans *Plus* (et une tuile sur l'écran d'état) montre la puissance de l'entrée du réseau (en soutirage ou en injection), chaque canal que mesurent les nœuds électriques (tension, courant, puissance, énergie, fréquence, facteur de puissance, l'état d'un interrupteur) et les alarmes des compteurs ; les alarmes des nœuds électriques (celle d'un compteur, la tension du secteur hors plage, le réseau perdu, un nœud qui ne répond plus) réveillent l'opérateur comme les alarmes solaires. La carte d'un onduleur montre aussi sa seconde entrée photovoltaïque et les unités d'un système en parallèle.
 * **Un aspect fait d'icônes :** surfaces presque noires, accent cyan, ambre pour l'attention, grandes icônes avec peu de mots, barre inférieure, page À propos et bouton de déconnexion.
+* **Vérifie sur GitHub s'il existe une nouvelle version** à chaque démarrage (`Más > Actualizaciones`), et vous laisse la télécharger et l'installer après la vérification de signature d'Android - jamais automatique, toujours avec votre confirmation.
 
 ## 📂 Structure du dépôt
 
