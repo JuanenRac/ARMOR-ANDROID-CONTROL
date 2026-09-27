@@ -1,6 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Required only to hand a verified update APK (downloaded from this
+         project's own GitHub Releases) to Android's system package
+         installer. The app never installs a package silently. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <!-- Configuring a field node over Bluetooth Low Energy (the node advertises "ARMOR-xxxxxx"). Location is only asked for on Android 11 and older,
@@ -27,5 +31,17 @@
             </intent-filter>
         </activity>
         <service android:name=".AlarmWatcherService" android:exported="false" android:foregroundServiceType="dataSync" />
+        <!-- Shares an APK held in the app cache with Android's package
+             installer through a temporary content:// URI; no file:// URI or
+             broad external-storage permission is needed. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.updateprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/update_file_paths" />
+        </provider>
     </application>
 </manifest>
