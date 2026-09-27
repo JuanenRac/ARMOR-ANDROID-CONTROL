@@ -69,6 +69,9 @@ class ArmorApiClient {
     fun solar(origin: String): SolarOverview = SolarParser.overview(getJson(origin, "/api/v1/solar"))
     fun electrical(origin: String): es.electrohobby3d.armor.model.ElectricalOverview = es.electrohobby3d.armor.model.ElectricalParser.overview(getJson(origin, "/api/v1/electrical/readings"))
 
+    /** The local network as the ARMOR-NETWORK nodes see it: the internet, the devices with the names an administrator gave them, the events and the outages. */
+    fun network(origin: String): es.electrohobby3d.armor.model.NetworkOverview = es.electrohobby3d.armor.model.NetworkParser.overview(getJson(origin, "/api/v1/network"))
+
     fun devices(origin: String): List<SiteDevice> = getJson(origin, "/api/v1/devices").optJSONArray("devices").asObjects().mapNotNull(DeviceParser::device)
     /** [command] is "on", "off" or "toggle"; the server refuses it for a sensor. */
     fun commandDevice(origin: String, id: String, command: String) {

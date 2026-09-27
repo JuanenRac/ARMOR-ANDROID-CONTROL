@@ -74,6 +74,7 @@ The debug APK is not signed for distribution. See the [client boundary](docs/CLI
 * **[ARMOR-RADAR](../ARMOR-RADAR)** - Field-node firmware for ESP32-S3 with three radars and its own web panel
 * **[ARMOR-SOLAR](../ARMOR-SOLAR)** - Solar inverter and battery protocols and the messages of a gateway node
 * **[ARMOR-ELECTRICAL](../ARMOR-ELECTRICAL)** - Electrical node: meters, the message of the network's readings and the rules for switching
+* **[ARMOR-NETWORK](../ARMOR-NETWORK)** - The local network: its devices, the internet and what changes
 * **[ARMOR-SERVER](../ARMOR-SERVER)** - Central coordinator: telemetry, alarms, devices, solar readings and cameras
 * **[ARMOR-STUDIO](../ARMOR-STUDIO)** - Web console: cameras, radar, alarms, solar energy and the 2D/3D site designer
 * **ARMOR-ANDROID-CONTROL** (this repository) - Android operator client with a live 2D/3D radar
