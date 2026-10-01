@@ -7,7 +7,7 @@ All notable changes to this project are documented here.
 - **Real bug, reported by the user:** after giving a node the Wi-Fi of the house over Bluetooth, the node restarted and neither joined the Wi-Fi nor could be found again, and the app only said "open it by its address". The app now looks for the node again by Bluetooth after it restarts and reads, from its `hello`, whether it joined (its address and network) or why it did not (network not found, wrong password, or only "it did not connect"), with buttons to check again or to change the configuration.
 - **Fixed address or DHCP on the Wi-Fi too:** the address block (DHCP or fixed address, mask, gateway, DNS) is offered whichever connection is chosen; before it was only shown for the cable.
 - **The form is checked before it is sent:** a Wi-Fi name is needed, a Wi-Fi password has 8 to 63 characters, and a fixed address, mask and gateway must be valid and in the same network.
-- Needs the node firmware 0.3.2 of ARMOR-RADAR (or of ARMOR-SOLAR/ARMOR-ELECTRICAL when they get it) to tell why it did not join; with an older firmware the app says only that it could not tell.
+- Needs the node firmware that reports why it did not join (ARMOR-RADAR 0.3.2, ARMOR-SOLAR 0.1.1, ARMOR-ELECTRICAL 0.0.7); with an older firmware the app says only that it could not tell.
 - **Tests:** the patch with a fixed address on Wi-Fi, the form checks and the reading of the outcome from the `hello`.
 
 ## [0.3.7] - A GitHub rate limit looked like a broken update check
