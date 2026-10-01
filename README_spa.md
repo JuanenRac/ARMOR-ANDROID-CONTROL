@@ -42,7 +42,6 @@
 * **Cuidado con la contraseña:** el HTTP plano solo se permite hacia un *literal* IPv4 de LAN privada o loopback. Se rechaza un nombre de host que solo empieza como una dirección privada (`10.atacante.ejemplo`) o una dirección con cero a la izquierda (algunos resolvedores leen `010.0.0.1` como la pública `8.0.0.1`).
 * **Red eléctrica:** una entrada en *Más* (y una tarjeta en la pantalla de Estado) muestra la potencia de la entrada de red (consumiendo o cediendo a la red), cada canal que miden los nodos eléctricos (tensión, corriente, potencia, energía, frecuencia, factor de potencia, el estado de un interruptor) y las alarmas de los contadores; las alarmas de los nodos eléctricos (la de un contador, la red fuera de rango, la red perdida, un nodo que dejó de responder) avisan al operador como las solares. La tarjeta de un inversor muestra también su segunda entrada fotovoltaica y las unidades de un sistema en paralelo.
 * **Un aspecto hecho de iconos:** superficies casi negras, acento cian, ámbar para lo que requiere atención, iconos grandes con pocas palabras, barra inferior, una página Acerca de y un botón para cerrar sesión.
-* **Comprueba en GitHub si hay una versión nueva** al arrancar (`Más > Actualizaciones`), y te deja descargarla e instalarla tras la comprobación de firma de Android - nunca automático, siempre con tu confirmación.
 
 ## 📂 Estructura del repositorio
 
@@ -75,6 +74,7 @@ El APK de depuración no está firmado para distribución. Véase el [límite de
 * **[ARMOR-RADAR](https://github.com/JuanenRac/ARMOR-RADAR)** - Firmware del nodo de campo para ESP32-S3 con tres radares y su propio panel web
 * **[ARMOR-SOLAR](https://github.com/JuanenRac/ARMOR-SOLAR)** - Protocolos de inversores y baterías solares y los mensajes de un nodo pasarela
 * **[ARMOR-ELECTRICAL](https://github.com/JuanenRac/ARMOR-ELECTRICAL)** - Nodo eléctrico: contadores, el mensaje de las lecturas de la red y las reglas para maniobrar
+* **[ARMOR-HMI](https://github.com/JuanenRac/ARMOR-HMI)** - Panel táctil: el estado del sistema en una pantalla de pared, armar y reconocer alarmas, y el hogar del asistente de voz
 * **[ARMOR-NETWORK](https://github.com/JuanenRac/ARMOR-NETWORK)** - La red local: sus dispositivos, internet y lo que cambia
 * **[ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER)** - Coordinador central: telemetría, alarmas, dispositivos, lecturas solares y cámaras
 * **[ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO)** - Consola web: cámaras, radar, alarmas, energía solar y el diseñador de sitio 2D/3D

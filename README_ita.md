@@ -42,7 +42,6 @@
 * **Attenzione con la password:** l'HTTP semplice è ammesso solo verso un *letterale* IPv4 di rete privata o loopback. Un nome host che inizia soltanto come un indirizzo privato (`10.attacker.example`) o un indirizzo con uno zero iniziale (alcuni resolver leggono `010.0.0.1` come il pubblico `8.0.0.1`) viene rifiutato.
 * **Rete elettrica:** una voce in *Altro* (e una tessera nella schermata di stato) mostra la potenza dell'ingresso di rete (in prelievo o in immissione), ogni canale che i nodi elettrici misurano (tensione, corrente, potenza, energia, frequenza, fattore di potenza, lo stato di un interruttore) e gli allarmi dei contatori; gli allarmi dei nodi elettrici (quello di un contatore, la tensione di rete fuori intervallo, la rete mancante, un nodo che non risponde più) svegliano l'operatore come quelli solari. La scheda di un inverter mostra anche il secondo ingresso fotovoltaico e le unità di un sistema in parallelo.
 * **Un aspetto fatto di icone:** superfici quasi nere, accento ciano, ambra per l'attenzione, icone grandi con poche parole, barra inferiore, una pagina Informazioni e un pulsante di uscita.
-* **Controlla su GitHub se c'è una nuova versione** a ogni avvio (`Más > Actualizaciones`), e ti permette di scaricarla e installarla dopo il controllo della firma di Android - mai automatico, sempre con la tua conferma.
 
 ## 📂 Struttura del repository
 
@@ -75,6 +74,7 @@ L'APK di debug non è firmato per la distribuzione. Vedi il [confine del client]
 * **[ARMOR-RADAR](https://github.com/JuanenRac/ARMOR-RADAR)** - Firmware del nodo di campo per ESP32-S3 con tre radar e un proprio pannello web
 * **[ARMOR-SOLAR](https://github.com/JuanenRac/ARMOR-SOLAR)** - Protocolli di inverter e batterie solari e messaggi di un nodo gateway
 * **[ARMOR-ELECTRICAL](https://github.com/JuanenRac/ARMOR-ELECTRICAL)** - Nodo elettrico: contatori, il messaggio delle letture della rete e le regole di manovra
+* **[ARMOR-HMI](https://github.com/JuanenRac/ARMOR-HMI)** - Pannello touch: lo stato del sistema su uno schermo a parete, attivare e riconoscere gli allarmi, e la casa dell'assistente vocale
 * **[ARMOR-NETWORK](https://github.com/JuanenRac/ARMOR-NETWORK)** - La rete locale: i suoi dispositivi, internet e ciò che cambia
 * **[ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER)** - Coordinatore centrale: telemetria, allarmi, dispositivi, letture solari e telecamere
 * **[ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO)** - Console web: telecamere, radar, allarmi, energia solare e progettista del sito 2D/3D
