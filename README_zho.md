@@ -42,7 +42,6 @@
 * **谨慎处理密码：** 仅允许对私有局域网或回环 IPv4 *字面量* 使用明文 HTTP。只是开头像私有地址的主机名（`10.attacker.example`）或带前导零的地址（某些解析器会把 `010.0.0.1` 读成公网的 `8.0.0.1`）会被拒绝。
 * **电网：** “更多”中的一项（以及状态屏幕上的一块卡片）显示电网入口的功率（取电或向电网送电）、电气节点测量的每个通道（电压、电流、功率、电能、频率、功率因数、开关状态）和电表的告警；电气节点的告警（电表告警、市电电压超出范围、电网中断、节点不再应答）与太阳能告警一样会通知操作员。逆变器的卡片还会显示其第二路光伏输入和并联系统的单元。
 * **由图标构成的外观：** 近乎黑色的界面、青色强调、琥珀色表示需要注意、少字的大图标、底部栏、关于页面和退出按钮。
-* **每次启动时向 GitHub 检查是否有新版本**（`Más > Actualizaciones`），并在 Android 自身的签名校验通过后，让你自行下载并安装——绝不自动进行，始终需要你的确认。
 
 ## 📂 仓库结构
 
@@ -75,6 +74,7 @@ adb install -r app\build\outputs\apk\debug\app-debug.apk
 * **[ARMOR-RADAR](https://github.com/JuanenRac/ARMOR-RADAR)** - 适用于 ESP32-S3 的现场节点固件，带三个雷达和自带网页面板
 * **[ARMOR-SOLAR](https://github.com/JuanenRac/ARMOR-SOLAR)** - 太阳能逆变器与电池的协议，以及网关节点的消息
 * **[ARMOR-ELECTRICAL](https://github.com/JuanenRac/ARMOR-ELECTRICAL)** - 电气节点：电表、电网读数消息和开关规则
+* **[ARMOR-HMI](https://github.com/JuanenRac/ARMOR-HMI)** - 触摸面板：墙面屏幕上的系统状态、布防与确认，以及语音助手的所在
 * **[ARMOR-NETWORK](https://github.com/JuanenRac/ARMOR-NETWORK)** - 本地网络：其设备、互联网以及变化
 * **[ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER)** - 中央协调器：遥测、报警、设备、太阳能读数和摄像头
 * **[ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO)** - 网页控制台：摄像头、雷达、报警、太阳能和 2D/3D 场地设计器

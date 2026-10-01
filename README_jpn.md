@@ -42,7 +42,6 @@
 * **パスワードへの配慮：** 平文の HTTP は、プライベート LAN またはループバックの IPv4 *リテラル* にのみ許可されます。プライベートアドレスのように始まるだけのホスト名（`10.attacker.example`）や、先頭にゼロが付いたアドレス（リゾルバーによっては `010.0.0.1` を公開アドレスの `8.0.0.1` と読む）は拒否されます。
 * **電力網：** 「その他」の項目（と状態画面のタイルの）が、系統入力の電力（受電か逆潮流か）、電気ノードが測定するすべてのチャンネル（電圧、電流、電力、電力量、周波数、力率、スイッチの状態）、電力量計の警報を表示します。電気ノードの警報（電力量計の警報、商用電圧の範囲外、系統の喪失、応答しなくなったノード）は、ソーラーの警報と同様にオペレーターに通知されます。インバーターのカードには、2 つ目の PV 入力と並列システムのユニットも表示されます。
 * **アイコンで作られた見た目：** ほぼ黒の面、シアンのアクセント、注意を促すアンバー、言葉の少ない大きなアイコン、下部バー、情報ページ、サインアウトボタン。
-* **起動のたびに GitHub で新しいバージョンを確認**（`Más > Actualizaciones`）し、Android 自身の署名確認の後にダウンロードとインストールを行えます - 自動では行われず、常にあなたの確認が必要です。
 
 ## 📂 リポジトリの構成
 
@@ -75,6 +74,7 @@ adb install -r app\build\outputs\apk\debug\app-debug.apk
 * **[ARMOR-RADAR](https://github.com/JuanenRac/ARMOR-RADAR)** - ESP32-S3 用フィールドノードのファームウェア。レーダー 3 基と独自の Web パネル付き
 * **[ARMOR-SOLAR](https://github.com/JuanenRac/ARMOR-SOLAR)** - 太陽光インバーターとバッテリーのプロトコル、およびゲートウェイノードのメッセージ
 * **[ARMOR-ELECTRICAL](https://github.com/JuanenRac/ARMOR-ELECTRICAL)** - 電気ノード：電力量計、電力網の計測メッセージ、開閉のルール
+* **[ARMOR-HMI](https://github.com/JuanenRac/ARMOR-HMI)** - タッチパネル：壁面ディスプレイでのシステム状態表示、警戒・確認操作、音声アシスタントの拠点
 * **[ARMOR-NETWORK](https://github.com/JuanenRac/ARMOR-NETWORK)** - ローカルネットワーク：機器、インターネット、そして変化
 * **[ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER)** - 中央コーディネーター：テレメトリ、アラーム、デバイス、太陽光の測定値、カメラ
 * **[ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO)** - Web コンソール：カメラ、レーダー、アラーム、太陽光発電、2D/3D サイト設計

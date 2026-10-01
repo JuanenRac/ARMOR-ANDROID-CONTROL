@@ -42,7 +42,6 @@
 * **Prudence avec le mot de passe :** le HTTP simple n'est permis que vers un *littéral* IPv4 de réseau local privé ou de bouclage. Un nom d'hôte qui commence seulement comme une adresse privée (`10.attacker.example`) ou une adresse avec un zéro initial (certains résolveurs lisent `010.0.0.1` comme la publique `8.0.0.1`) est refusé.
 * **Réseau électrique :** une entrée dans *Plus* (et une tuile sur l'écran d'état) montre la puissance de l'entrée du réseau (en soutirage ou en injection), chaque canal que mesurent les nœuds électriques (tension, courant, puissance, énergie, fréquence, facteur de puissance, l'état d'un interrupteur) et les alarmes des compteurs ; les alarmes des nœuds électriques (celle d'un compteur, la tension du secteur hors plage, le réseau perdu, un nœud qui ne répond plus) réveillent l'opérateur comme les alarmes solaires. La carte d'un onduleur montre aussi sa seconde entrée photovoltaïque et les unités d'un système en parallèle.
 * **Un aspect fait d'icônes :** surfaces presque noires, accent cyan, ambre pour l'attention, grandes icônes avec peu de mots, barre inférieure, page À propos et bouton de déconnexion.
-* **Vérifie sur GitHub s'il existe une nouvelle version** à chaque démarrage (`Más > Actualizaciones`), et vous laisse la télécharger et l'installer après la vérification de signature d'Android - jamais automatique, toujours avec votre confirmation.
 
 ## 📂 Structure du dépôt
 
@@ -75,6 +74,7 @@ L'APK de débogage n'est pas signé pour la distribution. Voir la [frontière du
 * **[ARMOR-RADAR](https://github.com/JuanenRac/ARMOR-RADAR)** - Firmware du nœud de terrain pour ESP32-S3 avec trois radars et son propre panneau web
 * **[ARMOR-SOLAR](https://github.com/JuanenRac/ARMOR-SOLAR)** - Protocoles des onduleurs et batteries solaires et messages d'un nœud passerelle
 * **[ARMOR-ELECTRICAL](https://github.com/JuanenRac/ARMOR-ELECTRICAL)** - Nœud électrique : compteurs, le message des mesures du réseau et les règles de commutation
+* **[ARMOR-HMI](https://github.com/JuanenRac/ARMOR-HMI)** - Panneau tactile : l'état du système sur un écran mural, armer et acquitter, et la maison de l'assistant vocal
 * **[ARMOR-NETWORK](https://github.com/JuanenRac/ARMOR-NETWORK)** - Le réseau local : ses appareils, internet et ce qui change
 * **[ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER)** - Coordinateur central : télémétrie, alarmes, appareils, relevés solaires et caméras
 * **[ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO)** - Console web : caméras, radar, alarmes, énergie solaire et concepteur de site 2D/3D
