@@ -4,6 +4,7 @@ import es.electrohobby3d.armor.model.BleAssembler
 import es.electrohobby3d.armor.model.BleFrame
 import es.electrohobby3d.armor.model.NodeGatt
 import es.electrohobby3d.armor.model.NodeHello
+import es.electrohobby3d.armor.model.NodeOutcome
 import es.electrohobby3d.armor.model.NodeKind
 import es.electrohobby3d.armor.model.NodeProtocol
 import es.electrohobby3d.armor.model.NodeSettingsPatch
@@ -116,7 +117,7 @@ class NodeBleTest {
         assertFalse(ip.getBoolean("dhcp")); assertEquals("192.168.0.60", ip.getString("address")); assertEquals("255.255.255.0", ip.getString("netmask")); assertEquals("192.168.0.1", ip.getString("dns1"))
 
         val wifi = NodeSettingsPatch.build(NodeSettingsPatch.Form(useWifi = true, wifiSsid = "Casa", wifiPassword = "clave del router", fixedAddress = true, address = "1.2.3.4"))
-        assertEquals("wifi", wifi.getString("uplink")); assertFalse(wifi.has("ip"))   // a node on Wi-Fi always asks for its address
+        assertEquals("wifi", wifi.getString("uplink")); assertEquals("1.2.3.4", wifi.getJSONObject("ip").getString("address")); assertFalse(wifi.getJSONObject("ip").getBoolean("dhcp"))   // a fixed address works on the Wi-Fi too
         val sta = wifi.getJSONObject("sta")
         assertTrue(sta.getBoolean("enabled")); assertEquals("Casa", sta.getString("ssid")); assertEquals("clave del router", sta.getString("password"))
         assertFalse(NodeSettingsPatch.build(NodeSettingsPatch.Form(useWifi = true, wifiSsid = "Abierta")).getJSONObject("sta").has("password"))   // an empty password keeps the stored one
@@ -125,6 +126,29 @@ class NodeBleTest {
         assertEquals("mqtt://192.168.0.180:18883", broker.getJSONObject("mqtt").getString("uri")); assertEquals("field-node-x", broker.getJSONObject("mqtt").getString("username"))
         assertEquals("always", broker.getJSONObject("ble").getString("mode"))
         assertFalse(NodeSettingsPatch.build(NodeSettingsPatch.Form(bluetoothMode = "loud")).has("ble"))
+    }
+
+    @Test fun `a form is checked before it is sent`() {
+        assertEquals(emptyList<String>(), NodeSettingsPatch.problems(NodeSettingsPatch.Form(useWifi = true, wifiSsid = "Casa", wifiPassword = "clave del router")))
+        assertEquals(listOf("Falta el nombre de la red Wi-Fi."), NodeSettingsPatch.problems(NodeSettingsPatch.Form(useWifi = true)))
+        assertTrue(NodeSettingsPatch.problems(NodeSettingsPatch.Form(useWifi = true, wifiSsid = "Casa", wifiPassword = "corta")).single().contains("8 a 63"))
+        assertEquals(emptyList<String>(), NodeSettingsPatch.problems(NodeSettingsPatch.Form(fixedAddress = true, address = "192.168.0.60", gateway = "192.168.0.1")))
+        assertEquals(2, NodeSettingsPatch.problems(NodeSettingsPatch.Form(fixedAddress = true)).size)   // the address and the gateway (the mask has a valid default)
+        assertTrue(NodeSettingsPatch.problems(NodeSettingsPatch.Form(fixedAddress = true, address = "192.168.0.60", gateway = "10.0.0.1")).single().contains("misma red"))
+        assertTrue(NodeSettingsPatch.problems(NodeSettingsPatch.Form(fixedAddress = true, address = "192.168.0.300", gateway = "192.168.0.1")).single().contains("dirección IP"))
+        assertTrue(NodeSettingsPatch.problems(NodeSettingsPatch.Form(fixedAddress = true, address = "192.168.0.1", gateway = "192.168.0.1")).single().contains("no pueden ser la misma"))
+    }
+
+    @Test fun `what the node did with its connection is told from its hello`() {
+        fun hello(json: String) = NodeHello.from(JSONObject(json))
+        val online = NodeOutcome.of(hello("""{"has_ip":true,"ip":"192.168.0.77","sta_connected":true,"sta_ssid":"Casa"}"""))
+        assertEquals(NodeOutcome.Online("192.168.0.77", "Casa"), online)
+        assertEquals(NodeOutcome.Online("192.168.0.60", ""), NodeOutcome.of(hello("""{"has_ip":true,"ip":"192.168.0.60","sta_connected":false}""")))   // on the cable
+        val wrong = NodeOutcome.of(hello("""{"has_ip":false,"sta_connected":false,"sta_ssid":"","sta_error":"wrong_password"}""")) as NodeOutcome.Failed
+        assertTrue(wrong.reason.contains("contraseña"))
+        assertTrue((NodeOutcome.of(hello("""{"sta_error":"network_not_found"}""")) as NodeOutcome.Failed).reason.contains("2,4 GHz"))
+        assertEquals(NodeOutcome.Waiting, NodeOutcome.of(hello("""{"has_ip":false}""")))   // an older firmware says nothing about why
+        assertEquals("wrong_password", hello("""{"sta_error":"wrong_password"}""").staError)
     }
 
     @Test fun `the identifiers match the firmware`() {
