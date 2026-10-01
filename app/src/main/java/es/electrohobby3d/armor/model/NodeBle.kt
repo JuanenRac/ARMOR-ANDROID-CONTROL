@@ -83,6 +83,13 @@ object NodeProtocol {
         NodeReply(json.getLong("id"), json.getBoolean("ok"), json.optString("error"), json.optJSONObject("data") ?: JSONObject())
     }.getOrNull()
 
+    /** Why a node could not join the Wi-Fi network it was given, in Spanish. */
+    fun staErrorText(code: String): String = when (code) {
+        "network_not_found" -> "El nodo no encuentra esa red Wi-Fi: revisa el nombre, que esté al alcance y que sea de 2,4 GHz (el nodo no usa 5 GHz)."
+        "wrong_password" -> "La contraseña del Wi-Fi no es correcta (o el router no acepta la conexión)."
+        else -> "El nodo no consiguió conectarse al Wi-Fi."
+    }
+
     /** The Spanish words for an error code of the node. */
     fun errorText(code: String): String = when (code) {
         "wrong_code" -> "El código de configuración no es correcto."
@@ -99,8 +106,27 @@ object NodeProtocol {
         "scan_failed" -> "La búsqueda de redes ha fallado."
         "wifi_unavailable" -> "No se pudo arrancar el Wi-Fi del nodo."
         "timeout" -> "El nodo no respondió a tiempo."
+        "network_not_found" -> staErrorText(code)
         "disconnected" -> "Se perdió la conexión con el nodo."
         else -> "El nodo respondió con un error ($code)."
+    }
+}
+
+/** What a node has done with the connection it was given, read from its `hello` after it restarted. */
+sealed interface NodeOutcome {
+    /** It has an address: [ssid] is the Wi-Fi network it joined (empty on a cable). */
+    data class Online(val ip: String, val ssid: String) : NodeOutcome
+    /** It tried and could not: [reason] is in plain words. */
+    data class Failed(val reason: String) : NodeOutcome
+    /** It is on, but has neither an address nor a reason yet. */
+    object Waiting : NodeOutcome
+
+    companion object {
+        fun of(hello: NodeHello): NodeOutcome = when {
+            hello.hasIp -> Online(hello.ip, if (hello.staConnected) hello.staSsid else "")
+            hello.staError.isNotBlank() -> Failed(NodeProtocol.staErrorText(hello.staError))
+            else -> Waiting
+        }
     }
 }
 
@@ -133,10 +159,11 @@ enum class NodeKind(val label: String) {
 
 /** What the node says about itself before anyone signs in. */
 data class NodeHello(val nodeId: String, val name: String, val mac: String, val firmware: String, val setup: Boolean, val hasIp: Boolean, val ip: String, val staConnected: Boolean, val staSsid: String,
-                     val kind: NodeKind = NodeKind.Unknown) {
+                     val kind: NodeKind = NodeKind.Unknown, val staError: String = "", val apActive: Boolean = false) {
     companion object {
         fun from(data: JSONObject) = NodeHello(data.optString("node_id"), data.optString("name"), data.optString("mac"), data.optString("firmware"), data.optBoolean("setup"),
-            data.optBoolean("has_ip"), data.optString("ip"), data.optBoolean("sta_connected"), data.optString("sta_ssid"), NodeKind.of(data.optString("kind"), data.optString("node_id")))
+            data.optBoolean("has_ip"), data.optString("ip"), data.optBoolean("sta_connected"), data.optString("sta_ssid"), NodeKind.of(data.optString("kind"), data.optString("node_id")),
+            data.optString("sta_error"), data.optBoolean("ap_active"))
     }
 }
 
@@ -171,6 +198,36 @@ object NodeSettingsPatch {
         val bluetoothMode: String = "",   // "", "setup", "always" or "off"
     )
 
+    private fun octets(text: String): List<Int>? {
+        val parts = text.trim().split(".")
+        if (parts.size != 4 || parts.any { it.length !in 1..3 }) return null
+        val values = parts.map { it.toIntOrNull() ?: return null }
+        return if (values.all { it in 0..255 }) values else null
+    }
+    private fun asInt(o: List<Int>): Long = o.fold(0L) { acc, v -> (acc shl 8) or v.toLong() }
+
+    /** What is wrong with the form before it is sent, in Spanish; empty when it can be sent. The node checks it again and says which field it refuses. */
+    fun problems(form: Form): List<String> {
+        val found = mutableListOf<String>()
+        if (form.useWifi) {
+            if (form.wifiSsid.isBlank()) found += "Falta el nombre de la red Wi-Fi."
+            if (form.wifiPassword.isNotEmpty() && form.wifiPassword.length !in 8..63) found += "La contraseña del Wi-Fi tiene de 8 a 63 caracteres."
+        }
+        if (form.fixedAddress) {
+            val address = octets(form.address); val mask = octets(form.netmask); val gateway = octets(form.gateway)
+            if (address == null) found += "La dirección IP no es válida (por ejemplo 192.168.0.60)."
+            if (mask == null) found += "La máscara no es válida (por ejemplo 255.255.255.0)."
+            if (gateway == null) found += "La puerta de enlace no es válida (por ejemplo 192.168.0.1)."
+            if (form.dns.isNotBlank() && octets(form.dns) == null) found += "El DNS no es válido."
+            if (address != null && mask != null && gateway != null) {
+                val m = asInt(mask)
+                if ((asInt(address) and m) != (asInt(gateway) and m)) found += "La puerta de enlace tiene que estar en la misma red que la dirección."
+                if (asInt(address) == asInt(gateway)) found += "La dirección del nodo y la puerta de enlace no pueden ser la misma."
+            }
+        }
+        return found
+    }
+
     fun build(form: Form): JSONObject {
         val patch = JSONObject()
         if (form.name.isNotBlank()) patch.put("node", JSONObject().put("name", form.name.trim()))
@@ -178,11 +235,10 @@ object NodeSettingsPatch {
         if (form.useWifi) {
             patch.put("sta", JSONObject().put("enabled", true).put("ssid", form.wifiSsid).apply { if (form.wifiPassword.isNotEmpty()) put("password", form.wifiPassword) })
         }
-        if (!form.useWifi) {   // a fixed address is for the wired connection: a node on Wi-Fi always asks for one
-            val ip = JSONObject().put("dhcp", !form.fixedAddress)
-            if (form.fixedAddress) ip.put("address", form.address.trim()).put("netmask", form.netmask.trim()).put("gateway", form.gateway.trim()).put("dns1", form.dns.trim().ifEmpty { form.gateway.trim() })
-            patch.put("ip", ip)
-        }
+        // DHCP or a fixed address, on whichever connection the node uses: the cable or the Wi-Fi station
+        val ip = JSONObject().put("dhcp", !form.fixedAddress)
+        if (form.fixedAddress) ip.put("address", form.address.trim()).put("netmask", form.netmask.trim()).put("gateway", form.gateway.trim()).put("dns1", form.dns.trim().ifEmpty { form.gateway.trim() })
+        patch.put("ip", ip)
         if (form.brokerUri.isNotBlank()) {
             patch.put("mqtt", JSONObject().put("enabled", true).put("uri", form.brokerUri.trim()).apply {
                 if (form.brokerUser.isNotBlank()) put("username", form.brokerUser.trim())

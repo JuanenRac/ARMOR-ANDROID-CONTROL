@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [0.3.8] - Configuring a node over Bluetooth no longer ends with the node vanishing
+
+- **Real bug, reported by the user:** after giving a node the Wi-Fi of the house over Bluetooth, the node restarted and neither joined the Wi-Fi nor could be found again, and the app only said "open it by its address". The app now looks for the node again by Bluetooth after it restarts and reads, from its `hello`, whether it joined (its address and network) or why it did not (network not found, wrong password, or only "it did not connect"), with buttons to check again or to change the configuration.
+- **Fixed address or DHCP on the Wi-Fi too:** the address block (DHCP or fixed address, mask, gateway, DNS) is offered whichever connection is chosen; before it was only shown for the cable.
+- **The form is checked before it is sent:** a Wi-Fi name is needed, a Wi-Fi password has 8 to 63 characters, and a fixed address, mask and gateway must be valid and in the same network.
+- Needs the node firmware 0.3.2 of ARMOR-RADAR (or of ARMOR-SOLAR/ARMOR-ELECTRICAL when they get it) to tell why it did not join; with an older firmware the app says only that it could not tell.
+- **Tests:** the patch with a fixed address on Wi-Fi, the form checks and the reading of the outcome from the `hello`.
+
 ## [0.3.7] - A GitHub rate limit looked like a broken update check
 
 - **Real bug, reported by the user:** checking for updates failed with "GitHub devolvió el código HTTP 403." - technically accurate, but it gave the operator no way to tell a genuine problem from GitHub's own unauthenticated rate limit (60 requests/hour, shared by every device on the same home network's public IP, not per-app or per-phone) simply being spent for the hour. `describeHttpFailure()` now reads the same `X-RateLimit-Remaining`/`X-RateLimit-Reset` headers GitHub's own response already carries and, only when they say the ceiling is genuinely spent, explains that in plain Spanish with a real estimate of when to try again - any other HTTP failure still reports its real status code plainly, nothing is hidden.

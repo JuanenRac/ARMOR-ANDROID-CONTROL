@@ -24,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -46,17 +47,19 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import es.electrohobby3d.armor.model.NodeHello
+import es.electrohobby3d.armor.model.NodeOutcome
 import es.electrohobby3d.armor.model.NodeProtocol
 import es.electrohobby3d.armor.model.NodeSettingsPatch
 import es.electrohobby3d.armor.model.SetupCode
 import es.electrohobby3d.armor.model.WifiNetwork
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
-enum class NodeStep { Search, Connecting, SignIn, Configure }
+enum class NodeStep { Search, Connecting, SignIn, Configure, Verify }
 
 data class NodeSetupState(
     val step: NodeStep = NodeStep.Search,
@@ -70,6 +73,9 @@ data class NodeSetupState(
     val problems: List<String> = emptyList(),
     val saved: Boolean = false,
     val name: String = "",
+    val target: FoundNode? = null,       // the node being configured: it is looked for again after it restarts
+    val checking: Boolean = false,       // the app is reading what the node did with its connection
+    val outcome: NodeOutcome? = null,
 )
 
 class NodeSetupViewModel(application: Application) : AndroidViewModel(application) {
@@ -96,7 +102,7 @@ class NodeSetupViewModel(application: Application) : AndroidViewModel(applicatio
             val reply = client.request("hello")
             if (!reply.ok) { client.disconnect(); mutable.update { it.copy(step = NodeStep.Search, message = NodeProtocol.errorText(reply.error)) }; return@launch }
             val hello = NodeHello.from(reply.data)
-            mutable.update { it.copy(step = NodeStep.SignIn, hello = hello, message = "", name = hello.name) }
+            mutable.update { it.copy(step = NodeStep.SignIn, hello = hello, message = "", name = hello.name, target = node) }
         }
     }
 
@@ -129,6 +135,8 @@ class NodeSetupViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun apply(form: NodeSettingsPatch.Form) {
+        val wrong = NodeSettingsPatch.problems(form)
+        if (wrong.isNotEmpty()) { mutable.update { it.copy(message = "", problems = wrong, saved = false) }; return }
         mutable.update { it.copy(busy = true, message = "", problems = emptyList(), saved = false) }
         viewModelScope.launch {
             val reply = client.request("config.put", JSONObject().put("config", NodeSettingsPatch.build(form)))
@@ -144,8 +152,51 @@ class NodeSetupViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             val reply = client.request("reboot")
             client.disconnect()
-            mutable.update { NodeSetupState(message = if (reply.ok) "El nodo se reinicia. Cuando vuelva, ábrelo por su dirección o por Studio." else NodeProtocol.errorText(reply.error)) }
+            if (!reply.ok) { mutable.update { it.copy(busy = false, message = NodeProtocol.errorText(reply.error)) }; return@launch }
+            check(firstWaitMs = 15_000)
         }
+    }
+
+    /** Looks for the node again over Bluetooth (it keeps advertising while it has no address) and reads what it did with its connection. */
+    fun check(firstWaitMs: Long = 0) {
+        val target = mutable.value.target ?: return
+        mutable.update { it.copy(step = NodeStep.Verify, busy = true, checking = true, outcome = null, saved = false, message = "El nodo se reinicia. Comprobando su conexión…") }
+        viewModelScope.launch {
+            if (firstWaitMs > 0) delay(firstWaitMs)
+            var last: NodeOutcome = NodeOutcome.Waiting
+            var seen = false
+            var failures = 0
+            for (attempt in 1..12) {
+                val node = findAgain(target)
+                if (node != null && client.connect(node)) {
+                    val reply = client.request("hello", timeoutMs = 10_000)
+                    client.disconnect()
+                    if (reply.ok) {
+                        seen = true
+                        val hello = NodeHello.from(reply.data)
+                        last = NodeOutcome.of(hello)
+                        mutable.update { it.copy(hello = hello) }
+                        if (last is NodeOutcome.Online) break
+                        if (last is NodeOutcome.Failed && ++failures >= 2) break   // the second time the same reason is not a coincidence
+                    }
+                }
+                mutable.update { it.copy(message = "Comprobando la conexión… (intento $attempt de 12)") }
+                delay(6_000)
+            }
+            mutable.update {
+                it.copy(busy = false, checking = false, outcome = last,
+                    message = if (seen) "" else "No se volvió a ver el nodo por Bluetooth. Con cable Ethernet, búscalo en tu red o en Studio. Sin cable y sin Wi-Fi guardado, a los 90 s de arrancar abre su Wi-Fi ARMOR-SETUP-… (la contraseña es su código de configuración).")
+            }
+        }
+    }
+
+    private suspend fun findAgain(target: FoundNode, timeoutMs: Long = 8_000): FoundNode? {
+        var found: FoundNode? = null
+        if (!client.startScan { node -> if (node.address == target.address || node.name == target.name) found = node }) return null
+        val end = System.currentTimeMillis() + timeoutMs
+        while (found == null && System.currentTimeMillis() < end) delay(300)
+        client.stopScan()
+        return found
     }
 
     fun close() { client.stopScan(); client.disconnect(); mutable.value = NodeSetupState() }
@@ -176,6 +227,7 @@ fun NodeSetupScreen(onClose: () -> Unit, model: NodeSetupViewModel = viewModel()
             NodeStep.Connecting -> Text("Conectando… Si Android pregunta por emparejar, acepta.")
             NodeStep.SignIn -> SignInStep(state, onSignIn = model::signIn, onBack = { model.close() })
             NodeStep.Configure -> ConfigureStep(state, onScanWifi = model::searchNetworks, onApply = model::apply, onReboot = model::reboot)
+            NodeStep.Verify -> VerifyStep(state, onAgain = { model.check() }, onReconfigure = { state.target?.let(model::connect) }, onDone = { model.close(); onClose() })
         }
     }
 }
@@ -237,12 +289,14 @@ private fun ConfigureStep(state: NodeSetupState, onScanWifi: () -> Unit, onApply
     var brokerUser by remember { mutableStateOf("") }
     var brokerPassword by remember { mutableStateOf("") }
     var bluetooth by remember { mutableStateOf("") }
+    val form = NodeSettingsPatch.Form(name, useWifi, ssid, wifiPassword, fixed, address, netmask, gateway, dns, brokerUri, brokerUser, brokerPassword, bluetooth)
+    val formProblems = NodeSettingsPatch.problems(form)
     if (!state.admin) { Text("Este usuario sólo puede mirar: para cambiar la configuración hace falta un administrador."); return }
 
     state.hello?.let { Text(it.kind.label + " · " + it.nodeId, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary) }
     Text("Nombre y conexión", style = MaterialTheme.typography.titleMedium)
     OutlinedTextField(name, { name = it }, label = { Text("Nombre del nodo") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) { Switch(useWifi, { useWifi = it }); Text("Conectarse al Wi-Fi de un router o punto de acceso") }
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) { Switch(useWifi, { useWifi = it }); Text(if (useWifi) "Conexión por Wi-Fi (router o punto de acceso)" else "Conexión por cable Ethernet") }
     if (useWifi) {
         Button(onClick = onScanWifi, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text("Buscar redes Wi-Fi") }
         state.networks.forEach { network ->
@@ -252,14 +306,15 @@ private fun ConfigureStep(state: NodeSetupState, onScanWifi: () -> Unit, onApply
         }
         OutlinedTextField(ssid, { ssid = it }, label = { Text("Nombre de la red (SSID)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(wifiPassword, { wifiPassword = it }, label = { Text("Contraseña del Wi-Fi") }, singleLine = true, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
-    } else {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) { Switch(fixed, { fixed = it }); Text("Dirección fija (si no, DHCP)") }
-        if (fixed) {
-            OutlinedTextField(address, { address = it }, label = { Text("Dirección IP") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(netmask, { netmask = it }, label = { Text("Máscara de subred") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(gateway, { gateway = it }, label = { Text("Puerta de enlace") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(dns, { dns = it }, label = { Text("DNS (vacío: la puerta de enlace)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        }
+        Text("El nodo sólo usa redes de 2,4 GHz. Al reiniciar, la app vuelve a buscarlo por Bluetooth y te dice si se ha conectado o por qué no.", style = MaterialTheme.typography.bodySmall)
+    }
+    Text("Dirección de red", style = MaterialTheme.typography.titleMedium)
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) { Switch(fixed, { fixed = it }); Text(if (fixed) "Dirección fija" else "Automática (DHCP)") }
+    if (fixed) {
+        OutlinedTextField(address, { address = it }, label = { Text("Dirección IP (por ejemplo 192.168.0.60)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(netmask, { netmask = it }, label = { Text("Máscara de subred") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(gateway, { gateway = it }, label = { Text("Puerta de enlace (el router)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(dns, { dns = it }, label = { Text("DNS (vacío: la puerta de enlace)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
     }
     HorizontalDivider()
     Text("Broker (opcional)", style = MaterialTheme.typography.titleMedium)
@@ -272,9 +327,39 @@ private fun ConfigureStep(state: NodeSetupState, onScanWifi: () -> Unit, onApply
         Row(Modifier.clickable { bluetooth = value }, verticalAlignment = Alignment.CenterVertically) { RadioButton(selected = bluetooth == value, onClick = { bluetooth = value }); Text(label) }
     }
     if (state.problems.isNotEmpty()) Text("Valores que el nodo no acepta: " + state.problems.joinToString("; "), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-    Button(
-        onClick = { onApply(NodeSettingsPatch.Form(name, useWifi, ssid, wifiPassword, fixed, address, netmask, gateway, dns, brokerUri, brokerUser, brokerPassword, bluetooth)) },
-        enabled = !state.busy && (!useWifi || ssid.isNotBlank()), modifier = Modifier.fillMaxWidth(),
-    ) { Text("Guardar en el nodo") }
-    if (state.saved) OutlinedButton(onClick = onReboot, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text("Reiniciar el nodo ahora") }
+    if (formProblems.isNotEmpty()) formProblems.forEach { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+    Button(onClick = { onApply(form) }, enabled = !state.busy && formProblems.isEmpty(), modifier = Modifier.fillMaxWidth()) { Text("Guardar en el nodo") }
+    if (state.saved) OutlinedButton(onClick = onReboot, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text("Reiniciar el nodo y comprobar la conexión") }
+}
+
+@Composable
+private fun VerifyStep(state: NodeSetupState, onAgain: () -> Unit, onReconfigure: () -> Unit, onDone: () -> Unit) {
+    if (state.checking) {
+        LinearProgressIndicator(Modifier.fillMaxWidth())
+        Text("Esto tarda hasta un par de minutos: el nodo se reinicia y se conecta.", style = MaterialTheme.typography.bodySmall)
+    }
+    when (val outcome = state.outcome) {
+        is NodeOutcome.Online -> Card(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("El nodo está en la red", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                Text("Dirección: ${outcome.ip}")
+                if (outcome.ssid.isNotBlank()) Text("Wi-Fi: ${outcome.ssid}")
+                Text("Ya puedes abrir su panel en http://${outcome.ip}/ o añadirlo en Studio.", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+        is NodeOutcome.Failed -> Card(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("El nodo no se ha conectado", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.error)
+                Text(outcome.reason)
+                Text("Sigue con el Bluetooth encendido mientras no tenga red: puedes corregir el Wi-Fi y probar otra vez.", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+        else -> if (!state.checking && state.message.isNotBlank()) Text(state.message, color = MaterialTheme.colorScheme.error)
+    }
+    if (state.checking && state.message.isNotBlank()) Text(state.message)
+    if (!state.checking) {
+        OutlinedButton(onClick = onAgain, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text("Volver a comprobar") }
+        if (state.outcome is NodeOutcome.Failed) Button(onClick = onReconfigure, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text("Cambiar la configuración") }
+        TextButton(onClick = onDone, modifier = Modifier.fillMaxWidth()) { Text("Terminar") }
+    }
 }
