@@ -27,7 +27,7 @@ data class NetworkInternet(
 )
 data class NetworkNode(val nodeId: String, val stale: Boolean, val ip: String, val cidr: String, val gateway: String?, val rxBps: Long?, val txBps: Long?, val internet: NetworkInternet, val devices: List<NetworkDevice>)
 data class NetworkEvent(val id: String, val nodeId: String, val kind: String, val atMs: Long, val deviceId: String?, val port: Int?, val outageS: Int?, val detail: String?)
-data class NetworkOutage(val kind: String, val startedMs: Long, val durationS: Int)
+data class NetworkOutage(val kind: String, val startedMs: Long, val endedMs: Long, val durationS: Int)
 data class NetworkTotals(val nodes: Int = 0, val stale: Int = 0, val devices: Int = 0, val online: Int = 0, val unknown: Int = 0, val internet: String? = null)
 
 data class NetworkOverview(
@@ -88,7 +88,7 @@ object NetworkParser {
             if (json.has("outage_s")) json.optInt("outage_s") else null, json.text("detail"))
     }
 
-    private fun outage(json: JSONObject) = NetworkOutage(json.optString("kind"), json.optLong("started_ms"), json.optInt("duration_s"))
+    private fun outage(json: JSONObject) = NetworkOutage(json.optString("kind"), json.optLong("started_ms"), json.optLong("ended_ms"), json.optInt("duration_s"))
 }
 
 /** The wording of the network, in plain Spanish. */

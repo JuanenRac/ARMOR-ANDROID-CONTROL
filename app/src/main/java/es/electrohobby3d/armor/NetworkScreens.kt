@@ -140,7 +140,10 @@ private fun OutagesPanel(data: NetworkOverview) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text("Cortes", fontWeight = FontWeight.SemiBold)
             data.outages.take(8).forEach { outage ->
-                Text("${when_(outage.startedMs)} · ${NetworkText.duration(outage.durationS.toLong())} · ${if (outage.kind == "gateway") "el router" else "internet"}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                Text(
+                    "${when_(outage.startedMs)} → ${when_(outage.endedMs)} · ${NetworkText.duration(outage.durationS.toLong())} · ${if (outage.kind == "gateway") "el router" else "internet"}",
+                    style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted,
+                )
             }
         }
     }
