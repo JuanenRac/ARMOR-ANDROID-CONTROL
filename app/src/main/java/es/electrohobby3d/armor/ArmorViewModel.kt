@@ -11,6 +11,10 @@ import es.electrohobby3d.armor.model.ArmorSnapshot
 import es.electrohobby3d.armor.model.CameraView
 import es.electrohobby3d.armor.model.MediaCatalogue
 import es.electrohobby3d.armor.network.ArmorApiClient
+import es.electrohobby3d.armor.network.WeatherApiClient
+import es.electrohobby3d.armor.model.Forecast
+import es.electrohobby3d.armor.model.AirQuality
+import es.electrohobby3d.armor.model.Place
 import es.electrohobby3d.armor.network.ArmorApiException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +24,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+
+data class WeatherUiState(
+    val place: Place? = null, val forecast: Forecast? = null, val air: AirQuality? = null, val loading: Boolean = false, val error: String? = null, val results: List<Place> = emptyList(),
+)
 
 data class MonitorUiState(
     val loading: Boolean = false,
@@ -39,6 +47,10 @@ data class MonitorUiState(
     val electrical: es.electrohobby3d.armor.model.ElectricalOverview? = null,
     /** The local network as the ARMOR-NETWORK nodes see it; null until the server has answered (an older server never does). */
     val network: es.electrohobby3d.armor.model.NetworkOverview? = null,
+    /** Every service of the system and field node, running or not; null until the server has answered (an older server never does). */
+    val services: es.electrohobby3d.armor.model.ServicesOverview? = null,
+    /** The weather menu: its own place, forecast and air quality, nothing to do with ARMOR-SERVER. */
+    val weather: WeatherUiState = WeatherUiState(),
     /** The site as Studio designed it, for the radar screen; [siteLoaded] tells "not asked yet" from "no design saved". */
     val site: es.electrohobby3d.armor.model.SiteDesign? = null,
     val siteLoaded: Boolean = false,
@@ -46,7 +58,7 @@ data class MonitorUiState(
     val message: String? = null,
 )
 
-class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient()) : ViewModel() {
+class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), private val weatherClient: WeatherApiClient = WeatherApiClient()) : ViewModel() {
     private val _state = MutableStateFlow(MonitorUiState())
     val state: StateFlow<MonitorUiState> = _state.asStateFlow()
 
@@ -80,6 +92,37 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient()) : Vi
     }
 
     fun reloadNetwork(origin: String) { viewModelScope.launch { pollNetwork(origin) } }
+
+    /** Every service, quickly, while the Services screen is open. A failure is ignored; the next pass tries again. */
+    suspend fun pollServices(origin: String) = withContext(Dispatchers.IO) {
+        runCatching { client.services(origin) }.onSuccess { _state.value = _state.value.copy(services = it) }
+    }
+
+    fun reloadServices(origin: String) { viewModelScope.launch { pollServices(origin) } }
+
+    /** Looks for a place by name (Open-Meteo's geocoding); empty for fewer than two characters. */
+    fun searchPlaces(query: String) {
+        viewModelScope.launch {
+            val results = runCatching { withContext(Dispatchers.IO) { weatherClient.search(query) } }.getOrDefault(emptyList())
+            _state.value = _state.value.copy(weather = _state.value.weather.copy(results = results))
+        }
+    }
+
+    /** Loads the weather of a place and remembers it as the current one. Nothing is asked of ARMOR-SERVER; only this place's coordinates leave the phone. */
+    fun loadWeather(place: Place) {
+        _state.value = _state.value.copy(weather = _state.value.weather.copy(place = place, loading = true, error = null, results = emptyList()))
+        viewModelScope.launch {
+            val outcome = runCatching {
+                withContext(Dispatchers.IO) { val forecast = weatherClient.forecast(place); val air = weatherClient.airQuality(place); forecast to air }
+            }
+            outcome.onSuccess { (forecast, air) -> _state.value = _state.value.copy(weather = _state.value.weather.copy(forecast = forecast, air = air, loading = false)) }
+                .onFailure { _state.value = _state.value.copy(weather = _state.value.weather.copy(loading = false, error = "No se pudo obtener el tiempo.")) }
+        }
+    }
+
+    fun reloadWeather() { _state.value.weather.place?.let(::loadWeather) }
+    fun setWeatherPlace(place: Place) = loadWeather(place)
+    fun clearWeatherPlace() { _state.value = _state.value.copy(weather = WeatherUiState()) }
 
     /** The message on screen has been read. */
     fun dismissMessage() { _state.value = _state.value.copy(message = null) }

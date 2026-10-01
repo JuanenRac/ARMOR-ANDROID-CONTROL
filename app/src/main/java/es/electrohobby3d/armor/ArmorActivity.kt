@@ -62,6 +62,14 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     var password by rememberSaveable { mutableStateOf("") }
     var section by rememberSaveable { mutableStateOf(Section.Status) }
     var moreTab by rememberSaveable { mutableStateOf<MoreTab?>(null) }
+    // The weather's place, remembered between launches; nothing is asked of Open-Meteo until one is chosen.
+    val savedPlace = remember {
+        val name = preferences.getString("wx_name", null)
+        val lat = preferences.getString("wx_lat", null)?.toDoubleOrNull()
+        val lon = preferences.getString("wx_lon", null)?.toDoubleOrNull()
+        if (name != null && lat != null && lon != null) es.electrohobby3d.armor.model.Place(name, preferences.getString("wx_region", null), preferences.getString("wx_country", null), lat, lon) else null
+    }
+    var weatherRestored by rememberSaveable { mutableStateOf(false) }
     var confirmMode by remember { mutableStateOf<String?>(null) }
     var grid by rememberSaveable { mutableIntStateOf(4) }
     var expanded by remember { mutableStateOf<CameraView?>(null) }
@@ -130,6 +138,19 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     LaunchedEffect(section, moreTab, state.authenticated, currentOrigin) {
         if (state.authenticated && currentOrigin.isNotBlank() && section == Section.More && moreTab == MoreTab.Solar) {
             lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { while (true) { viewModel.pollSolar(currentOrigin); delay(5_000) } }
+        }
+    }
+    // The Services screen (in the More menu): every service every eight seconds while it is open and the app is on screen.
+    LaunchedEffect(section, moreTab, state.authenticated, currentOrigin) {
+        if (state.authenticated && currentOrigin.isNotBlank() && section == Section.More && moreTab == MoreTab.Services) {
+            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { while (true) { viewModel.pollServices(currentOrigin); delay(8_000) } }
+        }
+    }
+    // The Weather screen (in the More menu): load the remembered place once, the first time it is opened.
+    LaunchedEffect(section, moreTab) {
+        if (section == Section.More && moreTab == MoreTab.Weather && !weatherRestored) {
+            weatherRestored = true
+            savedPlace?.let { viewModel.loadWeather(it) }
         }
     }
     var reloadSite by remember { mutableIntStateOf(0) }
@@ -228,6 +249,21 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 MoreTab.Network -> SubScreen(Icons.Filled.Router, "Red", onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.reloadNetwork(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
                                 }) { NetworkScreen(state.network) }
+                                MoreTab.Services -> SubScreen(Icons.Filled.Dns, "Servicios", onBack = { moreTab = null }, actions = {
+                                    IconButton(onClick = { viewModel.reloadServices(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
+                                }) { ServicesScreen(state.services, System.currentTimeMillis()) }
+                                MoreTab.Weather -> SubScreen(Icons.Filled.Cloud, "Meteorología", onBack = { moreTab = null }) {
+                                    WeatherScreen(
+                                        state.weather, onSearch = { viewModel.searchPlaces(it) },
+                                        onPick = { place ->
+                                            preferences.edit().putString("wx_name", place.name).putString("wx_region", place.region).putString("wx_country", place.country)
+                                                .putString("wx_lat", place.latitude.toString()).putString("wx_lon", place.longitude.toString()).apply()
+                                            viewModel.loadWeather(place)
+                                        },
+                                        onRefresh = { viewModel.reloadWeather() },
+                                        onChangePlace = { preferences.edit().remove("wx_name").remove("wx_region").remove("wx_country").remove("wx_lat").remove("wx_lon").apply(); viewModel.clearWeatherPlace() },
+                                    )
+                                }
                                 MoreTab.Evidence -> SubScreen(Icons.Filled.VideoLibrary, "Grabaciones", onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.loadMedia(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
                                 }) { EvidenceScreen(state.media.items, state.cameras, currentOrigin, viewModel, state.authenticated) }
