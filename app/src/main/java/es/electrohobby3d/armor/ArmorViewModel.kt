@@ -100,6 +100,9 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
 
     fun reloadServices(origin: String) { viewModelScope.launch { pollServices(origin) } }
 
+    /** Asks the network node to sweep now, for the node finder (Solar, Electrical and Radar screens); a failure is shown as a message. */
+    fun scanNetworkNow(origin: String) = action(origin, "Búsqueda en la red iniciada") { client.scanNetworkNow(origin) }
+
     /** Looks for a place by name (Open-Meteo's geocoding); empty for fewer than two characters. */
     fun searchPlaces(query: String) {
         viewModelScope.launch {
