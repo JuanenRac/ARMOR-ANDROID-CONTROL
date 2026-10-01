@@ -24,6 +24,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -39,7 +41,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
@@ -264,14 +271,29 @@ private fun SignInStep(state: NodeSetupState, onSignIn: (String, String, String,
     if (hello.setup) {
         Text("Este nodo no tiene usuarios. Escribe el código de configuración (el que muestra por su consola USB, o el de la flota) y elige el administrador.", style = MaterialTheme.typography.bodySmall)
         OutlinedTextField(code, { code = it }, label = { Text("Código de configuración") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(secret, { secret = it }, label = { Text("…o el secreto de la flota (calcula el código desde la MAC)") }, singleLine = true, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
+        PasswordField(secret, { secret = it }, "…o el secreto de la flota (calcula el código desde la MAC)", modifier = Modifier.fillMaxWidth())
     } else Text("Inicia sesión con un usuario del nodo.", style = MaterialTheme.typography.bodySmall)
     OutlinedTextField(user, { user = it }, label = { Text("Usuario") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-    OutlinedTextField(password, { password = it }, label = { Text(if (hello.setup) "Contraseña nueva (8 caracteres o más)" else "Contraseña") }, singleLine = true, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
+    PasswordField(password, { password = it }, if (hello.setup) "Contraseña nueva (8 caracteres o más)" else "Contraseña", modifier = Modifier.fillMaxWidth())
     Button(onClick = { onSignIn(code, secret, user, password) }, enabled = !state.busy && user.isNotBlank() && password.isNotEmpty() && (!hello.setup || code.isNotBlank() || secret.isNotBlank()), modifier = Modifier.fillMaxWidth()) {
         Text(if (hello.setup) "Crear administrador" else "Entrar")
     }
     OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text("Elegir otro nodo") }
+}
+
+/** A password field with an eye that shows or hides it while held down... no, while toggled: tap it to see what was typed, tap again to hide it. */
+@Composable
+private fun PasswordField(value: String, onValueChange: (String) -> Unit, label: String, modifier: Modifier = Modifier) {
+    var visible by remember { mutableStateOf(false) }
+    OutlinedTextField(
+        value, onValueChange, label = { Text(label) }, singleLine = true, modifier = modifier,
+        visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
+        trailingIcon = {
+            IconButton(onClick = { visible = !visible }) {
+                Icon(if (visible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, contentDescription = if (visible) "Ocultar contraseña" else "Mostrar contraseña")
+            }
+        },
+    )
 }
 
 @Composable
@@ -305,7 +327,7 @@ private fun ConfigureStep(state: NodeSetupState, onScanWifi: () -> Unit, onApply
             }
         }
         OutlinedTextField(ssid, { ssid = it }, label = { Text("Nombre de la red (SSID)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(wifiPassword, { wifiPassword = it }, label = { Text("Contraseña del Wi-Fi") }, singleLine = true, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
+        PasswordField(wifiPassword, { wifiPassword = it }, "Contraseña del Wi-Fi", modifier = Modifier.fillMaxWidth())
         Text("El nodo sólo usa redes de 2,4 GHz. Al reiniciar, la app vuelve a buscarlo por Bluetooth y te dice si se ha conectado o por qué no.", style = MaterialTheme.typography.bodySmall)
     }
     Text("Dirección de red", style = MaterialTheme.typography.titleMedium)
@@ -320,7 +342,7 @@ private fun ConfigureStep(state: NodeSetupState, onScanWifi: () -> Unit, onApply
     Text("Broker (opcional)", style = MaterialTheme.typography.titleMedium)
     OutlinedTextField(brokerUri, { brokerUri = it }, label = { Text("Dirección del broker (mqtt://host:puerto)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
     OutlinedTextField(brokerUser, { brokerUser = it }, label = { Text("Usuario del broker") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-    OutlinedTextField(brokerPassword, { brokerPassword = it }, label = { Text("Contraseña del broker") }, singleLine = true, visualTransformation = PasswordVisualTransformation(), modifier = Modifier.fillMaxWidth())
+    PasswordField(brokerPassword, { brokerPassword = it }, "Contraseña del broker", modifier = Modifier.fillMaxWidth())
     HorizontalDivider()
     Text("Bluetooth después del reinicio", style = MaterialTheme.typography.titleMedium)
     listOf("" to "no cambiar", "setup" to "sólo mientras el nodo no tenga usuarios", "always" to "siempre (hace falta iniciar sesión)", "off" to "apagado").forEach { (value, label) ->

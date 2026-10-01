@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here.
 
+## [0.3.9] - An eye to check what was typed, on the node's own screens
+
+- **Eye on every password of a node's set-up** (the set-up code's secret, the administrator's password, the node's Wi-Fi, the broker): tap it to check what was typed instead of guessing. The app's own sign-in screen already had it; it was missing here.
+
 ## [0.3.8] - Configuring a node over Bluetooth no longer ends with the node vanishing
 
 - **Real bug, reported by the user:** after giving a node the Wi-Fi of the house over Bluetooth, the node restarted and neither joined the Wi-Fi nor could be found again, and the app only said "open it by its address". The app now looks for the node again by Bluetooth after it restarts and reads, from its `hello`, whether it joined (its address and network) or why it did not (network not found, wrong password, or only "it did not connect"), with buttons to check again or to change the configuration.
