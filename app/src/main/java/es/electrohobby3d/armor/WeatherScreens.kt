@@ -4,6 +4,12 @@
 package es.electrohobby3d.armor
 
 import androidx.compose.foundation.clickable
+import android.annotation.SuppressLint
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.viewinterop.AndroidView
+import java.net.URLEncoder
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -69,6 +75,8 @@ fun WeatherScreen(weather: WeatherUiState, onSearch: (String) -> Unit, onPick: (
                     }
                 }
             }
+            item { Text("Radar en directo", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) }
+            item { RadarMapView(weather.place.latitude, weather.place.longitude, weather.place.name) }
             item { Text("Próximas horas", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) }
             item { HourlyRow(forecast, fromIndex) }
             item { Text("Diez días", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) }
@@ -170,4 +178,23 @@ private fun SunMoonPanel(forecast: es.electrohobby3d.armor.model.Forecast) {
             Column(horizontalAlignment = Alignment.End) { Text("$icon $name", style = MaterialTheme.typography.bodySmall) }
         }
     }
+}
+
+/** The live rain-and-cloud radar: a WebView over assets/weather_radar.html (Leaflet, loaded from a CDN - a port of ARMOR-STUDIO's RadarMap.tsx). */
+@SuppressLint("SetJavaScriptEnabled")
+@Composable
+private fun RadarMapView(lat: Double, lon: Double, name: String) {
+    val url = "file:///android_asset/weather_radar.html?lat=$lat&lon=$lon&name=${URLEncoder.encode(name, "UTF-8")}"
+    AndroidView(
+        modifier = Modifier.fillMaxWidth().height(320.dp),
+        factory = { context ->
+            WebView(context).apply {
+                settings.javaScriptEnabled = true
+                settings.domStorageEnabled = true
+                webViewClient = WebViewClient()
+                loadUrl(url)
+            }
+        },
+        update = { view -> if (view.url != url) view.loadUrl(url) },
+    )
 }

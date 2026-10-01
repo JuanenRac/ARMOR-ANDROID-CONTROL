@@ -26,6 +26,7 @@ import es.electrohobby3d.armor.model.SolarInverterReading
 import es.electrohobby3d.armor.model.SolarOverview
 import es.electrohobby3d.armor.model.SolarText
 import es.electrohobby3d.armor.model.SolarTotals
+import es.electrohobby3d.armor.model.NetworkOverview
 
 private fun socColor(percent: Int?) = when { percent == null -> ArmorColors.Muted; percent < 20 -> ArmorColors.Alert; percent < 40 -> ArmorColors.Amber; else -> ArmorColors.Ok }
 
@@ -35,9 +36,10 @@ fun solarSummary(totals: SolarTotals): String =
     else "${SolarText.watts(totals.pvW)} de sol · ${SolarText.watts(totals.loadW)} de consumo"
 
 @Composable
-fun SolarScreen(overview: SolarOverview?) {
+fun SolarScreen(overview: SolarOverview?, network: NetworkOverview? = null, onScanNetwork: () -> Unit = {}, scanning: Boolean = false) {
     val data = overview ?: SolarOverview()
     LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
+        item { NodeFinderPanel(network, data.devices.map { it.nodeId } + data.waiting.map { it.nodeId }, onScanNetwork, scanning) }
         item {
             Text(
                 when {

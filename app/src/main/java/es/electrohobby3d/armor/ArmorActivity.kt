@@ -242,10 +242,10 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 )
                                 MoreTab.Solar -> SubScreen(Icons.Filled.WbSunny, "Solar", onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.reloadSolar(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
-                                }) { SolarScreen(state.solar) }
+                                }) { SolarScreen(state.solar, state.network, onScanNetwork = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading) }
                                 MoreTab.Electrical -> SubScreen(Icons.Filled.ElectricBolt, "Eléctrica", onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.reloadElectrical(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
-                                }) { ElectricalScreen(state.electrical) }
+                                }) { ElectricalScreen(state.electrical, state.network, onScanNetwork = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading) }
                                 MoreTab.Network -> SubScreen(Icons.Filled.Router, "Red", onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.reloadNetwork(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
                                 }) { NetworkScreen(state.network) }

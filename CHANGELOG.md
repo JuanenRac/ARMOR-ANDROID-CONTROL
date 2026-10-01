@@ -2,10 +2,12 @@
 
 All notable changes to this project are documented here.
 
-## [0.4.0] - Weather and Services, and the full list of outages
+## [0.4.0] - Weather with its live radar, Services, node finding and the switches of the electrical nodes
 
-- **Weather** (More menu): the weather of the place you choose - by name - because guessing it from the network would be wrong. Shows the conditions now, the rain of the next hour, warnings the forecast implies, the next 24 hours, ten days, the air quality and pollen, and the sun and the moon. Nothing is asked of the Internet until a place is chosen, and only its coordinates leave the phone; it never goes through ARMOR-SERVER. The live rain-and-cloud radar map of ARMOR-STUDIO's Weather menu is not in this release.
+- **Weather** (More menu): the weather of the place you choose - by name - because guessing it from the network would be wrong. Shows the conditions now, the rain of the next hour, warnings the forecast implies, the next 24 hours, ten days, the air quality and pollen, the sun and the moon, and a live radar of rain (last two hours, animated) and of clouds (Meteosat infrared) over a map. Nothing is asked of the Internet until a place is chosen, and only its coordinates leave the phone; it never goes through ARMOR-SERVER.
 - **Services** (More menu): every program of the system and every field node, running or not, grouped by family (Core, Network, AI and voice, Field nodes), with its state, systemd unit details, PID, port, memory, restarts and how long it has been up. Read only. Needs ARMOR-SERVER 0.3.9 or later.
+- **Find nodes on the network** (Solar and Electrical menus): a list of what the network node has found that looks like an ARMOR node and is not yet known here, with a button to search now and a link to the node's own panel.
+- **Electrical:** each node's transfer switches (which source is in use, the state of both sides, whether it is closing, a fault), and a notice when a node has its switching disabled.
 - **Network:** the list of outages now shows when each one ended, not only when it started and how long it lasted.
 
 ## [0.3.9] - An eye to check what was typed, on the node's own screens

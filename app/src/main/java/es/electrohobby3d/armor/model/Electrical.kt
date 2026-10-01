@@ -14,7 +14,12 @@ data class ElectricalChannel(
     val state: String?, val alarm: Boolean,
 ) { val name get() = label.ifBlank { id } }
 
-data class ElectricalNode(val nodeId: String, val stale: Boolean, val receivedAt: String, val channels: List<ElectricalChannel>)
+data class ElectricalSwitch(
+    val id: String, val label: String, val sourceA: String?, val sourceB: String?, val aClosed: Boolean, val bClosed: Boolean,
+    val selected: String, val closing: Boolean, val fault: String,
+) { val name get() = label.ifBlank { id } }
+
+data class ElectricalNode(val nodeId: String, val stale: Boolean, val receivedAt: String, val switchingEnabled: Boolean?, val channels: List<ElectricalChannel>, val switches: List<ElectricalSwitch> = emptyList())
 
 /** The sums the server makes over the nodes that are reporting. */
 data class ElectricalTotals(
@@ -40,7 +45,21 @@ object ElectricalParser {
         val id = json.optString("node_id")
         val reading = json.optJSONObject("reading") ?: return null
         if (id.isBlank()) return null
-        return ElectricalNode(id, json.optBoolean("stale"), json.optString("received_at"), reading.optJSONArray("channels").objects().mapNotNull(::channel))
+        return ElectricalNode(
+            id, json.optBoolean("stale"), json.optString("received_at"),
+            if (reading.has("switching_enabled") && !reading.isNull("switching_enabled")) reading.optBoolean("switching_enabled") else null,
+            reading.optJSONArray("channels").objects().mapNotNull(::channel), reading.optJSONArray("switches").objects().mapNotNull(::switch),
+        )
+    }
+
+    private fun switch(json: JSONObject): ElectricalSwitch? {
+        val id = json.optString("id")
+        if (id.isBlank()) return null
+        return ElectricalSwitch(
+            id = id, label = json.optString("label"), sourceA = json.optString("source_a").takeIf { it.isNotBlank() }, sourceB = json.optString("source_b").takeIf { it.isNotBlank() },
+            aClosed = json.optBoolean("a_closed"), bClosed = json.optBoolean("b_closed"), selected = json.optString("selected", "none"),
+            closing = json.optBoolean("closing"), fault = json.optString("fault", "none"),
+        )
     }
 
     private fun channel(c: JSONObject): ElectricalChannel? {
@@ -77,4 +96,13 @@ object ElectricalText {
     }
 
     fun switchState(state: String?): String? = when (state) { "closed" -> "Cerrado"; "open" -> "Abierto"; "unknown" -> "Sin confirmar"; else -> null }
+
+    fun switchSource(switchItem: es.electrohobby3d.armor.model.ElectricalSwitch): String = when (switchItem.selected) {
+        "a" -> "Fuente A" + (switchItem.sourceA?.let { " ($it)" } ?: "")
+        "b" -> "Fuente B" + (switchItem.sourceB?.let { " ($it)" } ?: "")
+        else -> "Ninguna fuente"
+    }
+    fun switchFault(fault: String): String? = when (fault) {
+        "did_not_close" -> "No cerró"; "did_not_open" -> "No abrió"; "both_closed" -> "Las dos fuentes cerradas"; "disabled" -> "Maniobra desactivada"; else -> null
+    }
 }

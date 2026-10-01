@@ -26,18 +26,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import es.electrohobby3d.armor.model.ElectricalChannel
+import es.electrohobby3d.armor.model.ElectricalSwitch
 import es.electrohobby3d.armor.model.ElectricalNode
 import es.electrohobby3d.armor.model.ElectricalOverview
 import es.electrohobby3d.armor.model.ElectricalText
 import es.electrohobby3d.armor.model.ElectricalTotals
+import es.electrohobby3d.armor.model.NetworkOverview
 
 /** The line the Status screen shows under the Electrical tile: "Consume 2.87 kW de la red". */
 fun electricalSummary(totals: ElectricalTotals): String = ElectricalText.gridFlow(totals.gridW)
 
 @Composable
-fun ElectricalScreen(overview: ElectricalOverview?) {
+fun ElectricalScreen(overview: ElectricalOverview?, network: NetworkOverview? = null, onScanNetwork: () -> Unit = {}, scanning: Boolean = false) {
     val data = overview ?: ElectricalOverview()
     LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
+        item { NodeFinderPanel(network, data.nodes.map { it.nodeId }, onScanNetwork, scanning) }
         item {
             Text(
                 when {
@@ -95,9 +98,24 @@ private fun ElectricalNodeCard(node: ElectricalNode) {
                 Text(node.nodeId, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(if (node.stale) "sin señal" else "en línea", style = MaterialTheme.typography.labelSmall, color = if (node.stale) ArmorColors.Amber else ArmorColors.Ok)
             }
+            if (node.switchingEnabled == false) Text("Maniobra desactivada en el nodo", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
             if (node.channels.isEmpty()) Text("No hay ningún contador leyendo", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
             node.channels.forEach { channel -> ChannelRow(channel, node.stale) }
+            node.switches.forEach { switchItem -> SwitchRow(switchItem) }
         }
+    }
+}
+
+@Composable
+private fun SwitchRow(switchItem: ElectricalSwitch) {
+    val fault = switchItem.fault != "none"
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(switchItem.name, fontWeight = FontWeight.Medium, color = if (fault) ArmorColors.Alert else ArmorColors.Text)
+        Text(
+            "${ElectricalText.switchSource(switchItem)} · A: ${if (switchItem.aClosed) "cerrado" else "abierto"} · B: ${if (switchItem.bClosed) "cerrado" else "abierto"}" + if (switchItem.closing) " · maniobrando" else "",
+            style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted,
+        )
+        ElectricalText.switchFault(switchItem.fault)?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = ArmorColors.Alert) }
     }
 }
 
