@@ -31,6 +31,7 @@
 <div class="note" id="note"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
+window.onerror = (message) => { const n = document.getElementById("note"); if (n) n.textContent = "Error: " + message; };
 const params = new URLSearchParams(location.search);
 const lat = parseFloat(params.get("lat")), lon = parseFloat(params.get("lon")), name = params.get("name") || "";
 
@@ -54,12 +55,13 @@ let cloudLayers = [];
 async function loadFrames() {
   try {
     const response = await fetch(RADAR_INDEX);
+    if (!response.ok) throw new Error("HTTP " + response.status);
     const data = await response.json();
     host = data.host || "";
     frames = (data.radar && data.radar.past) || [];
     index = Math.max(0, frames.length - 1);
     updateRain();
-  } catch (e) { document.getElementById("note").textContent = "No se pudo cargar el radar de lluvia."; }
+  } catch (e) { document.getElementById("note").textContent = "No se pudo cargar el radar de lluvia: " + e.message; console.error("loadFrames failed", e); }
 }
 
 function updateRain() {

@@ -5,6 +5,12 @@ package es.electrohobby3d.armor
 
 import androidx.compose.foundation.clickable
 import android.annotation.SuppressLint
+import android.util.Log
+import android.webkit.ConsoleMessage
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.height
@@ -191,7 +197,22 @@ private fun RadarMapView(lat: Double, lon: Double, name: String) {
             WebView(context).apply {
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
-                webViewClient = WebViewClient()
+                // The radar page is a bundled asset (file:///android_asset) that then fetches public weather APIs (RainViewer, EUMETSAT, Esri): WebView
+                // blocks that cross-origin fetch from a file:// page unless these two are explicitly turned on. Nothing private ever goes through it.
+                settings.allowFileAccessFromFileURLs = true
+                settings.allowUniversalAccessFromFileURLs = true
+                settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+                webViewClient = object : WebViewClient() {
+                    override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+                        Log.e("ArmorWeatherRadar", "load error on ${request?.url}: ${error?.description}")
+                    }
+                }
+                webChromeClient = object : WebChromeClient() {
+                    override fun onConsoleMessage(message: ConsoleMessage): Boolean {
+                        Log.d("ArmorWeatherRadar", "${message.messageLevel()} ${message.message()} (${message.sourceId()}:${message.lineNumber()})")
+                        return true
+                    }
+                }
                 loadUrl(url)
             }
         },

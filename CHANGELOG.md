@@ -9,6 +9,7 @@ All notable changes to this project are documented here.
 - **Find nodes on the network** (Solar and Electrical menus): a list of what the network node has found that looks like an ARMOR node and is not yet known here, with a button to search now and a link to the node's own panel.
 - **Electrical:** each node's transfer switches (which source is in use, the state of both sides, whether it is closing, a fault), and a notice when a node has its switching disabled.
 - **Network:** the list of outages now shows when each one ended, not only when it started and how long it lasted.
+- **The radar did not show anything:** the bundled page that draws it could not fetch the rain and cloud services at all - Android's WebView blocks a `file://` page from making cross-origin requests unless that is explicitly turned on. Also logs its own errors now, and says on screen when a service could not be reached instead of staying silent.
 
 ## [0.3.9] - An eye to check what was typed, on the node's own screens
 
