@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here.
 
+## [0.4.1] - The radar map still showed nothing on a phone that could not reach the CDN
+
+- **Real bug, reported by the user:** 0.4.0 had already fixed the WebView's cross-origin block, but the radar still showed nothing on their phone - not even the base map, which needs no special permission at all. The actual cause: Leaflet itself (the map library) was loaded from `cdnjs.cloudflare.com` at runtime; Studio never has this problem because it gets Leaflet from its own build (an npm import), not a CDN. Leaflet is now bundled in the app (`assets/leaflet/`), so the map never depends on reaching that CDN.
+
 ## [0.4.0] - Weather with its live radar, Services, node finding and the switches of the electrical nodes
 
 - **Weather** (More menu): the weather of the place you choose - by name - because guessing it from the network would be wrong. Shows the conditions now, the rain of the next hour, warnings the forecast implies, the next 24 hours, ten days, the air quality and pollen, the sun and the moon, and a live radar of rain (last two hours, animated) and of clouds (Meteosat infrared) over a map. Nothing is asked of the Internet until a place is chosen, and only its coordinates leave the phone; it never goes through ARMOR-SERVER.
