@@ -1,5 +1,5 @@
-// ARMOR-ANDROID-CONTROL - the weather of the chosen place: now, the rain of the next hour, warnings, 24 hours, ten days, the air and pollen, the sun and the moon.
-// Mirrors the core of ARMOR-STUDIO's Weather menu; its live rain-and-cloud radar map is not reproduced here.
+// ARMOR-ANDROID-CONTROL - the weather of the chosen place: now, the rain of the next hour, warnings, 24 hours, ten days, the air and pollen, the sun and the moon,
+// and the live rain-and-cloud radar map (a WebView over assets/weather_radar.html, ported from ARMOR-STUDIO's RadarMap.tsx).
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor
 

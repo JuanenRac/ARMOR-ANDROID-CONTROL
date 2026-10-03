@@ -1,15 +1,18 @@
 <!doctype html>
 <!--
   ARMOR-ANDROID-CONTROL - the live rain-and-cloud radar of the Weather screen, loaded by a WebView. A port of ARMOR-STUDIO's RadarMap.tsx into plain JavaScript
-  and Leaflet (from a CDN): the base map (Esri, no key), the rain of the last two hours (RainViewer, animated) and the infrared image of the clouds (EUMETSAT
+  and Leaflet: the base map (Esri, no key), the rain of the last two hours (RainViewer, animated) and the infrared image of the clouds (EUMETSAT
   Meteosat, 10.5 micrometres) over the chosen place. The place comes in the page's own URL (?lat=&lon=&name=), set by the app before it loads this page.
+  Leaflet itself is bundled in this folder (leaflet/), not fetched from a CDN at runtime: Studio gets it from its own build (an npm import, no network needed
+  to load the map library); a phone whose network cannot reach cdnjs.cloudflare.com showed nothing at all - not even the base map, which needs no API key
+  and no cross-origin fetch - because the map library that draws it had never loaded.
   Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 -->
 <html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="leaflet/leaflet.min.css">
 <style>
   html, body, #map { height: 100%; margin: 0; background: #0b1a22; }
   body { font: 13px -apple-system, Roboto, sans-serif; color: #e8fbff; }
@@ -29,7 +32,7 @@
   <input id="opacity" type="range" min="0.2" max="1" step="0.05" value="0.75">
 </div>
 <div class="note" id="note"></div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="leaflet/leaflet.min.js"></script>
 <script>
 window.onerror = (message) => { const n = document.getElementById("note"); if (n) n.textContent = "Error: " + message; };
 const params = new URLSearchParams(location.search);
