@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [0.4.7] - The weather map without its diagnostic line
+
+- The plain-text line under the weather map (state of the page, errors, WebView version), which found why the map had no height, is gone now that the map works; the map keeps the height the app gives it.
+
+
 ## [0.4.6] - The weather map had no height
 
 - **Real bug, found with the diagnostics of 0.4.4:** the page reported `map size 356x0`: the WebView gave the page a viewport of no height (width was right), and a map that takes all the height of nothing is a map of nothing, so only the buttons showed over a black box. The app now tells the page the height of its box (`?h=`) and the page gives the map that height outright, whatever its viewport says.
