@@ -53,7 +53,10 @@ internal fun radarMimeType(path: String): String = when (path.substringAfterLast
 
 /** The page's own address for a place. */
 internal fun radarPageUrl(lat: Double, lon: Double, name: String): String =
-    "https://$RADAR_HOST/weather_radar.html?lat=$lat&lon=$lon&name=${URLEncoder.encode(name, "UTF-8")}"
+    "https://$RADAR_HOST/weather_radar.html?lat=$lat&lon=$lon&name=${URLEncoder.encode(name, "UTF-8")}&h=$RADAR_HEIGHT_DP"
+
+/** The height of the map box, in dp; the page is told it too, because a WebView can hand its page a viewport of no height at all. */
+internal const val RADAR_HEIGHT_DP = 340
 
 /** What the WebView reports about the page, shown under the map in plain text (it stays readable when the page itself paints nothing). */
 internal class RadarReport {
@@ -86,9 +89,9 @@ fun RadarMapView(lat: Double, lon: Double, name: String) {
     val version = remember { webViewVersion() }
     fun refresh() { reportText = report.text(version) }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-    Box(Modifier.fillMaxWidth().height(340.dp)) {
+    Box(Modifier.fillMaxWidth().height(RADAR_HEIGHT_DP.dp)) {
         AndroidView(
-            modifier = Modifier.fillMaxWidth().height(340.dp),
+            modifier = Modifier.fillMaxWidth().height(RADAR_HEIGHT_DP.dp),
             factory = { context ->
                 WebView(context).apply {
                     settings.javaScriptEnabled = true

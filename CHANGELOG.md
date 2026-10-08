@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here.
 
+## [0.4.6] - The weather map had no height
+
+- **Real bug, found with the diagnostics of 0.4.4:** the page reported `map size 356x0`: the WebView gave the page a viewport of no height (width was right), and a map that takes all the height of nothing is a map of nothing, so only the buttons showed over a black box. The app now tells the page the height of its box (`?h=`) and the page gives the map that height outright, whatever its viewport says.
+
 ## [0.4.5] - The alarm watcher backs off when the server is down, and the version is checked
 
 - **Alarm watcher:** while the server does not answer, the interval between attempts doubles (10 s, 20, 40, up to a minute) with a little jitter instead of staying at 10 s, and the notice says how long it has really been unreachable.
