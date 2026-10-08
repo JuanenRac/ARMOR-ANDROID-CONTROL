@@ -1,21 +1,10 @@
 // ARMOR-ANDROID-CONTROL - the weather of the chosen place: now, the rain of the next hour, warnings, 24 hours, ten days, the air and pollen, the sun and the moon,
-// and the live rain-and-cloud radar map (a WebView over assets/weather_radar.html, ported from ARMOR-STUDIO's RadarMap.tsx).
+// and the live rain-and-cloud radar map (see WeatherRadarView.kt).
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor
 
 import androidx.compose.foundation.clickable
-import android.annotation.SuppressLint
-import android.util.Log
-import android.webkit.ConsoleMessage
-import android.webkit.WebChromeClient
-import android.webkit.WebResourceError
-import android.webkit.WebResourceRequest
-import android.webkit.WebSettings
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.height
-import androidx.compose.ui.viewinterop.AndroidView
-import java.net.URLEncoder
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -184,38 +173,4 @@ private fun SunMoonPanel(forecast: es.electrohobby3d.armor.model.Forecast) {
             Column(horizontalAlignment = Alignment.End) { Text("$icon $name", style = MaterialTheme.typography.bodySmall) }
         }
     }
-}
-
-/** The live rain-and-cloud radar: a WebView over assets/weather_radar.html (Leaflet, loaded from a CDN - a port of ARMOR-STUDIO's RadarMap.tsx). */
-@SuppressLint("SetJavaScriptEnabled")
-@Composable
-private fun RadarMapView(lat: Double, lon: Double, name: String) {
-    val url = "file:///android_asset/weather_radar.html?lat=$lat&lon=$lon&name=${URLEncoder.encode(name, "UTF-8")}"
-    AndroidView(
-        modifier = Modifier.fillMaxWidth().height(320.dp),
-        factory = { context ->
-            WebView(context).apply {
-                settings.javaScriptEnabled = true
-                settings.domStorageEnabled = true
-                // The radar page is a bundled asset (file:///android_asset) that then fetches public weather APIs (RainViewer, EUMETSAT, Esri): WebView
-                // blocks that cross-origin fetch from a file:// page unless these two are explicitly turned on. Nothing private ever goes through it.
-                settings.allowFileAccessFromFileURLs = true
-                settings.allowUniversalAccessFromFileURLs = true
-                settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-                webViewClient = object : WebViewClient() {
-                    override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
-                        Log.e("ArmorWeatherRadar", "load error on ${request?.url}: ${error?.description}")
-                    }
-                }
-                webChromeClient = object : WebChromeClient() {
-                    override fun onConsoleMessage(message: ConsoleMessage): Boolean {
-                        Log.d("ArmorWeatherRadar", "${message.messageLevel()} ${message.message()} (${message.sourceId()}:${message.lineNumber()})")
-                        return true
-                    }
-                }
-                loadUrl(url)
-            }
-        },
-        update = { view -> if (view.url != url) view.loadUrl(url) },
-    )
 }

@@ -57,6 +57,18 @@ fun ArmorSplash(onDone: () -> Unit) {
     }
 }
 
+/** While the app tries the session kept from the last time: the sign-in is not shown for a moment and then taken away. */
+@Composable
+fun RestoringScreen() {
+    Box(Modifier.fillMaxSize().background(ArmorColors.Background), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            ArmorLogo(72.dp)
+            CircularProgressIndicator(Modifier.size(28.dp), strokeWidth = 3.dp)
+            Text("Conectando con tu servidor…", color = ArmorColors.Muted)
+        }
+    }
+}
+
 @Composable
 fun LoginScreen(
     host: String, port: String, username: String, password: String, busy: Boolean, message: String?,
@@ -122,7 +134,7 @@ fun LoginScreen(
                 Text("Configurar un nodo")
             }
             Spacer(Modifier.height(10.dp))
-            Text("Tu contraseña no se guarda en el móvil.", color = ArmorColors.Muted, fontSize = 12.sp, textAlign = TextAlign.Center)
+            Text("Tu contraseña no se guarda en el móvil. La sesión sí, cifrada, y se renueva mientras uses la app: no tendrás que volver a entrar salvo que caduque o la cierres.", color = ArmorColors.Muted, fontSize = 12.sp, textAlign = TextAlign.Center)
         }
     }
 }
