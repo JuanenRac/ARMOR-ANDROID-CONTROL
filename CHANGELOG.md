@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here.
 
+## [0.4.3] - The weather map no longer comes out black on phones that paint it badly
+
+- **Weather radar:** on some phones the WebView paints the 3D-transformed pictures of Leaflet as black squares, so the whole map was black. The map now uses plain 2D transforms and no animations, the WebView has the page's own colour behind it (a page that does not paint is told apart from a dark map), and the bottom of the map says how many pictures of the base map arrived and how many failed, so a map that stays dark says why.
+
 ## [0.4.2] - The weather radar loads again, the session is remembered and the site radar fits the screen
 
 - **Weather radar:** the radar page is now served from a private https address that the app answers from its own assets, instead of being opened as a file (recent Android versions refuse the file permissions it relied on). If it still cannot load, the screen says so and offers *Reintentar* instead of showing an empty box. A map inside the list pans with the finger instead of scrolling the list.
