@@ -69,6 +69,8 @@ fun RadarMapView(lat: Double, lon: Double, name: String) {
                 WebView(context).apply {
                     settings.javaScriptEnabled = true
                     settings.domStorageEnabled = true
+                    // A page that never paints would look like a black box; with the page's own colour behind it, it is told apart from a map that is dark.
+                    setBackgroundColor(android.graphics.Color.parseColor("#0B1A22"))
                     // A map inside a scrolling list: while a finger is on the map it pans the map, it does not scroll the list.
                     setOnTouchListener { view, event ->
                         if (event.actionMasked == MotionEvent.ACTION_DOWN || event.actionMasked == MotionEvent.ACTION_MOVE) view.parent?.requestDisallowInterceptTouchEvent(true)

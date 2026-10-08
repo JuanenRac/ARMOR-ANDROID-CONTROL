@@ -31,7 +31,11 @@
   <button id="btnPlay">⏸ Pausa</button>
   <input id="opacity" type="range" min="0.2" max="1" step="0.05" value="0.75">
 </div>
-<div class="note" id="note"></div>
+<div class="note"><span id="note"></span> <span id="baseNote"></span></div>
+<script>
+// Some phones' WebView paints Leaflet's 3D-transformed tiles as black squares: the map is drawn with plain 2D transforms.
+window.L_DISABLE_3D = true;
+</script>
 <script src="leaflet/leaflet.min.js"></script>
 <script>
 window.onerror = (message) => { const n = document.getElementById("note"); if (n) n.textContent = "Error: " + message; };
@@ -43,11 +47,17 @@ const LABELS = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/Worl
 const RADAR_INDEX = "https://api.rainviewer.com/public/weather-maps.json";
 const SATELLITE_WMS = "https://view.eumetsat.int/geoserver/ows";
 
-const map = L.map("map", { center: [lat, lon], zoom: 7, minZoom: 3, maxZoom: 10, worldCopyJump: true, zoomSnap: 0.5 });
+const map = L.map("map", { center: [lat, lon], zoom: 7, minZoom: 3, maxZoom: 10, worldCopyJump: true, zoomSnap: 0.5, fadeAnimation: false, zoomAnimation: false, markerZoomAnimation: false });
 map.createPane("radar").style.zIndex = 420;
 map.createPane("labels").style.zIndex = 450;
 map.getPane("labels").style.pointerEvents = "none";
-L.tileLayer(BASE_MAP, { maxZoom: 16, attribution: "Esri, HERE, Garmin, © OpenStreetMap contributors" }).addTo(map);
+// What the base map did, written at the bottom of the page: a map that stays dark says here whether its pictures arrived or not.
+let baseLoaded = 0, baseFailed = 0;
+function showBase() { const n = document.getElementById("baseNote"); if (n) n.textContent = "Mapa: " + baseLoaded + " ok" + (baseFailed ? ", " + baseFailed + " con error" : ""); }
+const baseLayer = L.tileLayer(BASE_MAP, { maxZoom: 16, attribution: "Esri, HERE, Garmin, © OpenStreetMap contributors" });
+baseLayer.on("tileload", () => { baseLoaded++; showBase(); });
+baseLayer.on("tileerror", () => { baseFailed++; showBase(); });
+baseLayer.addTo(map);
 L.tileLayer(LABELS, { maxZoom: 16, pane: "labels" }).addTo(map);
 L.circleMarker([lat, lon], { radius: 6, color: "#00e5ff", weight: 2, fillColor: "#00e5ff", fillOpacity: 0.45 }).addTo(map).bindTooltip(name);
 
