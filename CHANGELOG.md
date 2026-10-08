@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [0.4.4] - The weather map says what it is doing, and the video no longer grows a list of bytes
+
+- **Weather radar:** under the map, in plain text that stays readable even when the page paints nothing, the app shows the state of the page (loading, loaded, percentage), the errors of its JavaScript, the failed requests and the version of the phone's WebView, so a map that does not appear says why. The map now fills its box with fixed positioning and measures its size again when the WebView gives the final one (it could be measured when it was still empty and then never draw), and a failure of the page's script is reported before anything else runs.
+- **Camera video:** a picture of the stream is read into a byte buffer with a limit (8 MB) instead of a list of single bytes, which was slow and used far more memory per picture.
+
 ## [0.4.3] - The weather map no longer comes out black on phones that paint it badly
 
 - **Weather radar:** on some phones the WebView paints the 3D-transformed pictures of Leaflet as black squares, so the whole map was black. The map now uses plain 2D transforms and no animations, the WebView has the page's own colour behind it (a page that does not paint is told apart from a dark map), and the bottom of the map says how many pictures of the base map arrived and how many failed, so a map that stays dark says why.

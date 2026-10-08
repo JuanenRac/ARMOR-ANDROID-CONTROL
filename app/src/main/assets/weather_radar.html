@@ -14,7 +14,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <link rel="stylesheet" href="leaflet/leaflet.min.css">
 <style>
-  html, body, #map { height: 100%; margin: 0; background: #0b1a22; }
+  html, body { height: 100%; margin: 0; background: #0b1a22; }
+  #map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #0b1a22; }
   body { font: 13px -apple-system, Roboto, sans-serif; color: #e8fbff; }
   .bar { position: absolute; z-index: 1000; top: 8px; left: 8px; right: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
   .bar button { padding: 6px 10px; border-radius: 8px; border: 1px solid #285a66; background: rgba(10,32,42,.92); color: #d9f6fb; font-size: 12px; }
@@ -32,6 +33,9 @@
   <input id="opacity" type="range" min="0.2" max="1" step="0.05" value="0.75">
 </div>
 <div class="note"><span id="note"></span> <span id="baseNote"></span></div>
+<script>
+window.addEventListener("error", e => { try { console.error("page error: " + e.message + " (" + (e.filename || "").split("/").pop() + ":" + e.lineno + ")"); } catch (x) {} });
+</script>
 <script>
 // Some phones' WebView paints Leaflet's 3D-transformed tiles as black squares: the map is drawn with plain 2D transforms.
 window.L_DISABLE_3D = true;
@@ -122,6 +126,13 @@ document.getElementById("btnClouds").onclick = e => { showClouds = !showClouds; 
 document.getElementById("btnPlay").onclick = e => { playing = !playing; e.target.textContent = playing ? "⏸ Pausa" : "▶ Seguir"; restartAnimation(); };
 document.getElementById("opacity").oninput = e => { opacity = parseFloat(e.target.value); updateRain(); cloudLayers.forEach(o => o.setOpacity(Math.min(1, opacity + 0.1))); };
 document.getElementById("btnRain").classList.add("on");
+
+// The WebView may hand the page its final size after the map was made: the map measures its container again when that happens.
+function remeasure() { map.invalidateSize(); const size = map.getSize(); console.log("map size " + size.x + "x" + size.y); }
+window.addEventListener("load", remeasure);
+window.addEventListener("resize", remeasure);
+[200, 800, 2500].forEach(ms => setTimeout(remeasure, ms));
+if (window.ResizeObserver) new ResizeObserver(remeasure).observe(document.getElementById("map"));
 
 let moveTimer;
 map.on("moveend zoomend resize", () => { clearTimeout(moveTimer); moveTimer = setTimeout(drawClouds, 500); });

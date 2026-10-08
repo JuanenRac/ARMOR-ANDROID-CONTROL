@@ -59,19 +59,22 @@ fun MjpegFeed(url: String, modifier: Modifier = Modifier) {
     }
 }
 
+private const val MAX_JPEG_BYTES = 8 * 1024 * 1024
+
+/** One JPEG of the stream, from its start marker to its end marker, or null when the stream ends or the picture is larger than [MAX_JPEG_BYTES]. */
 private fun readJpeg(input: BufferedInputStream): ByteArray? {
-    val bytes = ArrayList<Byte>(64 * 1024)
+    val bytes = java.io.ByteArrayOutputStream(64 * 1024)
     var previous = -1
     while (true) {
         val value = input.read()
         if (value < 0) return null
-        if (previous == 0xff && value == 0xd8) { bytes.add(0xff.toByte()); bytes.add(0xd8.toByte()); break }
+        if (previous == 0xff && value == 0xd8) { bytes.write(0xff); bytes.write(0xd8); break }
         previous = value
     }
     previous = -1
-    while (bytes.size < 8 * 1024 * 1024) {
+    while (bytes.size() < MAX_JPEG_BYTES) {
         val value = input.read(); if (value < 0) return null
-        bytes.add(value.toByte())
+        bytes.write(value)
         if (previous == 0xff && value == 0xd9) return bytes.toByteArray()
         previous = value
     }
