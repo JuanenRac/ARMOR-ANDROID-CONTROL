@@ -55,6 +55,25 @@ internal fun radarMimeType(path: String): String = when (path.substringAfterLast
 internal fun radarPageUrl(lat: Double, lon: Double, name: String): String =
     "https://$RADAR_HOST/weather_radar.html?lat=$lat&lon=$lon&name=${URLEncoder.encode(name, "UTF-8")}"
 
+/** What the WebView reports about the page, shown under the map in plain text (it stays readable when the page itself paints nothing). */
+internal class RadarReport {
+    var phase = "sin empezar"
+    var progress = 0
+    val problems = ArrayDeque<String>()
+    var networkErrors = 0
+    var httpErrors = 0
+    fun problem(text: String) { if (problems.size >= 3) problems.removeFirst(); problems.addLast(text.take(140)) }
+    fun text(webView: String): String = buildString {
+        append("Radar: ").append(phase).append(" ").append(progress).append("%")
+        if (networkErrors > 0) append(" · ").append(networkErrors).append(" fallos de red")
+        if (httpErrors > 0) append(" · ").append(httpErrors).append(" respuestas con error")
+        append(" · WebView ").append(webView)
+        problems.forEach { append("\n").append(it) }
+    }
+}
+
+private fun webViewVersion(): String = runCatching { android.webkit.WebView.getCurrentWebViewPackage()?.versionName }.getOrNull() ?: "?"
+
 @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility")
 @Composable
 fun RadarMapView(lat: Double, lon: Double, name: String) {
@@ -62,6 +81,11 @@ fun RadarMapView(lat: Double, lon: Double, name: String) {
     var failed by remember(url) { mutableStateOf(false) }
     var attempt by remember(url) { mutableIntStateOf(0) }
     var loaded by remember { mutableStateOf("") }
+    val report = remember(url) { RadarReport() }
+    var reportText by remember(url) { mutableStateOf("") }
+    val version = remember { webViewVersion() }
+    fun refresh() { reportText = report.text(version) }
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
     Box(Modifier.fillMaxWidth().height(340.dp)) {
         AndroidView(
             modifier = Modifier.fillMaxWidth().height(340.dp),
@@ -77,6 +101,13 @@ fun RadarMapView(lat: Double, lon: Double, name: String) {
                         false
                     }
                     webViewClient = object : WebViewClient() {
+                        override fun onPageStarted(view: WebView?, pageUrl: String?, favicon: android.graphics.Bitmap?) { report.phase = "cargando"; refresh() }
+                        override fun onPageFinished(view: WebView?, pageUrl: String?) { report.phase = "página cargada"; refresh() }
+                        override fun onReceivedHttpError(view: WebView?, request: WebResourceRequest?, errorResponse: WebResourceResponse?) {
+                            report.httpErrors += 1
+                            report.problem("HTTP ${errorResponse?.statusCode} en ${request?.url?.host}${request?.url?.path?.takeLast(24)}")
+                            refresh()
+                        }
                         override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
                             if (request.url.host != RADAR_HOST) return null
                             val path = request.url.path.orEmpty().trimStart('/')
@@ -88,14 +119,19 @@ fun RadarMapView(lat: Double, lon: Double, name: String) {
                         }
                         override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
                             Log.e("ArmorWeatherRadar", "load error on ${request?.url}: ${error?.description}")
+                            report.networkErrors += 1
+                            report.problem("${error?.description} en ${request?.url?.host}")
+                            refresh()
                             if (request?.isForMainFrame == true) failed = true
                         }
                     }
                     webChromeClient = object : WebChromeClient() {
                         override fun onConsoleMessage(message: ConsoleMessage): Boolean {
                             Log.d("ArmorWeatherRadar", "${message.messageLevel()} ${message.message()} (${message.sourceId()}:${message.lineNumber()})")
+                            if (message.messageLevel() == ConsoleMessage.MessageLevel.ERROR || message.message().startsWith("map size")) { report.problem(message.message()); refresh() }
                             return true
                         }
+                        override fun onProgressChanged(view: WebView?, newProgress: Int) { report.progress = newProgress; refresh() }
                     }
                 }
             },
@@ -109,5 +145,7 @@ fun RadarMapView(lat: Double, lon: Double, name: String) {
             Text("No se pudo cargar el radar. Comprueba la conexión del móvil.")
             Button(onClick = { attempt += 1 }) { Text("Reintentar") }
         }
+    }
+    if (reportText.isNotEmpty()) Text(reportText, style = androidx.compose.material3.MaterialTheme.typography.labelSmall, color = androidx.compose.ui.graphics.Color(0xFF86A8B3))
     }
 }
