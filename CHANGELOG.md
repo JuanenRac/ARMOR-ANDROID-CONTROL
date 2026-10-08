@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## [0.4.5] - The alarm watcher backs off when the server is down, and the version is checked
+
+- **Alarm watcher:** while the server does not answer, the interval between attempts doubles (10 s, 20, 40, up to a minute) with a little jitter instead of staying at 10 s, and the notice says how long it has really been unreachable.
+- **Version check:** the build stops when `versionName` and the project's manifest (`armor.project.json`) differ, so a release can no longer carry a number the manifest does not say.
+
+
 ## [0.4.4] - The weather map says what it is doing, and the video no longer grows a list of bytes
 
 - **Weather radar:** under the map, in plain text that stays readable even when the page paints nothing, the app shows the state of the page (loading, loaded, percentage), the errors of its JavaScript, the failed requests and the version of the phone's WebView, so a map that does not appear says why. The map now fills its box with fixed positioning and measures its size again when the WebView gives the final one (it could be measured when it was still empty and then never draw), and a failure of the page's script is reported before anything else runs.

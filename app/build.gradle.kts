@@ -1,8 +1,15 @@
 plugins { id("com.android.application"); id("org.jetbrains.kotlin.plugin.compose") }
 
 android { namespace = "es.electrohobby3d.armor"; compileSdk = 37
-    defaultConfig { applicationId = "es.electrohobby3d.armor"; minSdk = 26; targetSdk = 37; versionCode = 26; versionName = "0.4.4" }
+    defaultConfig { applicationId = "es.electrohobby3d.armor"; minSdk = 26; targetSdk = 37; versionCode = 27; versionName = "0.4.5" }
     buildFeatures { compose = true; buildConfig = true }
+}
+// The version lives in two places the Android tools need (here, and the manifest every other tool reads); a build stops when they differ,
+// so a release can never carry a number the project's own manifest does not say.
+afterEvaluate {
+    val manifestVersion = (groovy.json.JsonSlurper().parse(rootProject.file("armor.project.json")) as Map<*, *>)["version"]
+    val appVersion = android.defaultConfig.versionName
+    check(manifestVersion == appVersion) { "armor.project.json says $manifestVersion but versionName is $appVersion: change them together (tools/armor_project_tool.py bump)" }
 }
 dependencies {
     implementation(platform("androidx.compose:compose-bom:2026.09.00"))

@@ -17,6 +17,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlin.random.Random
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -47,20 +48,31 @@ class AlarmWatcherService : Service() {
         // The phone may have closed the app's process: the watcher carries the session kept by the app.
         SessionVault(PreferencesStore(getSharedPreferences("armor-session", Context.MODE_PRIVATE)), KeystoreBox()).load(origin)?.let { client.restoreSessionCookie(origin, it.name, it.value) }
         var failures = 0
+        var firstFailureAt = 0L
         while (scope.isActive) {
             try {
                 AlarmNotifier.poll(this, client, origin)
                 failures = 0
+                firstFailureAt = 0L
             } catch (error: ArmorApiException) {
                 if (error.code == 401) { stopWith("La sesión ha caducado: abre la app e inicia sesión."); return }
                 failures += 1
+                if (failures == 1) firstFailureAt = System.currentTimeMillis()
             } catch (error: Exception) {
                 failures += 1
+                if (failures == 1) firstFailureAt = System.currentTimeMillis()
             }
             // A server that stays unreachable is itself worth knowing about, once.
-            if (failures == UNREACHABLE_AFTER) AlarmNotifier.post(this, AlarmNotice(System.currentTimeMillis() % 1_000_000, "Servidor sin respuesta", "ARMOR-SERVER no responde desde hace ${UNREACHABLE_AFTER * INTERVAL_MS / 1000} s"))
-            delay(INTERVAL_MS)
+            if (failures == UNREACHABLE_AFTER) AlarmNotifier.post(this, AlarmNotice(System.currentTimeMillis() % 1_000_000, "Servidor sin respuesta", "ARMOR-SERVER no responde desde hace ${(System.currentTimeMillis() - firstFailureAt) / 1000} s"))
+            delay(nextDelayMs(failures))
         }
+    }
+
+    /** The normal interval while all goes well; after failures it doubles (up to a minute) with a little jitter, so a server that is down is not hammered. */
+    private fun nextDelayMs(failures: Int): Long {
+        if (failures == 0) return INTERVAL_MS
+        val backoff = (INTERVAL_MS shl failures.coerceAtMost(3)).coerceAtMost(MAX_BACKOFF_MS)
+        return backoff + Random.nextLong(0, 1_000)
     }
 
     private fun stopWith(reason: String) {
@@ -76,6 +88,7 @@ class AlarmWatcherService : Service() {
 
     companion object {
         private const val INTERVAL_MS = 10_000L
+        private const val MAX_BACKOFF_MS = 60_000L
         private const val UNREACHABLE_AFTER = 6
 
         fun start(context: Context) {
