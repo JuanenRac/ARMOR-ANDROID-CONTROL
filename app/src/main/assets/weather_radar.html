@@ -14,7 +14,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <link rel="stylesheet" href="leaflet/leaflet.min.css">
 <style>
-  html, body { height: 100%; margin: 0; background: #0b1a22; }
+  html, body { margin: 0; background: #0b1a22; }
+  body { position: relative; height: 100%; }
   #map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #0b1a22; }
   body { font: 13px -apple-system, Roboto, sans-serif; color: #e8fbff; }
   .bar { position: absolute; z-index: 1000; top: 8px; left: 8px; right: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
@@ -26,6 +27,14 @@
 </head>
 <body>
 <div id="map"></div>
+<script>
+// The app says how tall the box is (?h=, in CSS pixels): a WebView may give its page a viewport of no height at all, and then a map that
+// takes "all the height" is a map of no height ("map size 356x0"). The page is given that height outright.
+(function () {
+  const h = parseInt(new URLSearchParams(location.search).get("h"), 10);
+  if (h > 0) { document.body.style.height = h + "px"; document.documentElement.style.height = h + "px"; document.getElementById("map").style.height = h + "px"; }
+})();
+</script>
 <div class="bar">
   <button id="btnRain">🌧 Lluvia</button>
   <button id="btnClouds">☁ Nubes</button>
