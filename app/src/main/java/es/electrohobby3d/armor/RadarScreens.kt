@@ -116,6 +116,23 @@ private fun rectCorners(f: SiteFeature): List<SitePoint> {
     }
 }
 
+/** The part of the plane that holds the site: its ground, buildings and the field of every radar and camera - not the empty space around the origin. */
+private class SiteBounds(val minX: Double, val maxX: Double, val minY: Double, val maxY: Double)
+
+private fun siteBounds(design: SiteDesign): SiteBounds {
+    val dims = design.dimensions
+    val points = mutableListOf<SitePoint>()
+    points += design.terrain
+    design.buildings.forEach { points += it.points }
+    design.sensors.forEach { s ->
+        val apex = RadarGeometry.toMetres(s.x, s.y, dims)
+        val (range, half) = RadarGeometry.view(s.kind)
+        points += RadarGeometry.sector(apex, RadarGeometry.headingOf(s.x, s.y, s.heading, dims), half, range)
+    }
+    if (points.isEmpty()) points += listOf(SitePoint(0.0, 0.0), SitePoint(dims.width, dims.depth))
+    return SiteBounds(points.minOf { it.x }, points.maxOf { it.x }, points.minOf { it.y }, points.maxOf { it.y })
+}
+
 @Composable
 private fun Site2D(design: SiteDesign, targets: List<PlacedTarget>, modifier: Modifier) {
     var zoom by remember { mutableFloatStateOf(1f) }
@@ -128,10 +145,9 @@ private fun Site2D(design: SiteDesign, targets: List<PlacedTarget>, modifier: Mo
             .pointerInput(Unit) { detectTapGestures(onDoubleTap = { zoom = 1f; pan = Offset.Zero }) },
     ) {
         val dims = design.dimensions
-        val xs = design.terrain.map { it.x } + 0.0 + dims.width
-        val ys = design.terrain.map { it.y } + 0.0 + dims.depth
-        val minX = xs.min(); val maxX = xs.max(); val minY = ys.min(); val maxY = ys.max()
-        val base = min((size.width - 40f) / (maxX - minX).toFloat().coerceAtLeast(1f), (size.height - 40f) / (maxY - minY).toFloat().coerceAtLeast(1f))
+        val bounds = siteBounds(design)
+        val minX = bounds.minX; val maxX = bounds.maxX; val minY = bounds.minY; val maxY = bounds.maxY
+        val base = min((size.width - 24f) / (maxX - minX).toFloat().coerceAtLeast(1f), (size.height - 24f) / (maxY - minY).toFloat().coerceAtLeast(1f))
         val scale = base * zoom
         val midX = (minX + maxX) / 2
         val midY = (minY + maxY) / 2
@@ -248,11 +264,14 @@ private fun Site3D(design: SiteDesign, targets: List<PlacedTarget>, modifier: Mo
             .pointerInput(Unit) { detectTapGestures(onDoubleTap = { yaw = 0.55; pitch = 0.95; zoom = 1f }) },
     ) {
         val dims = design.dimensions
-        val cx = dims.width / 2
-        val cy = dims.depth / 2
-        val radius = max(hypot(dims.width, dims.depth) / 2, 8.0)
+        val bounds = siteBounds(design)
+        val cx = (bounds.minX + bounds.maxX) / 2
+        val cy = (bounds.minY + bounds.maxY) / 2
+        val spanX = (bounds.maxX - bounds.minX).coerceAtLeast(1.0)
+        val spanY = (bounds.maxY - bounds.minY).coerceAtLeast(1.0)
+        val radius = max(hypot(spanX, spanY) / 2, 8.0)
         // fit the width of the phone: a site is wider than tall on a tall screen
-        val scale = size.width / (max(dims.width, dims.depth) * 1.12) * zoom
+        val scale = size.width / (max(spanX, spanY) * 1.12) * zoom
         val cam = Projector(yaw, pitch, cx, cy, scale, radius * 3.0, size.width, size.height)
         fun P(x: Double, y: Double, z: Double = 0.0) = cam.project(x, y, z)
         fun path(points: List<Projector.Point>) = Path().apply { points.forEachIndexed { i, p -> if (i == 0) moveTo(p.at.x, p.at.y) else lineTo(p.at.x, p.at.y) }; close() }

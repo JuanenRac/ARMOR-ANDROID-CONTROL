@@ -143,6 +143,31 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
         refreshInternal(origin, loadMedia = true)
     }
 
+    /** The session cookie as it stands now, for the vault. */
+    fun sessionCookie(origin: String): Pair<String, String>? = client.sessionCookie(origin)
+
+    /**
+     * Opens the app already signed in when the server still honours the session kept from the last time. Returns false (and shows no message) when there is none or the server
+     * refused it; [refused] tells that case from a server that could not be reached, in which the kept session is worth keeping.
+     */
+    suspend fun tryRestore(origin: String, session: StoredSession?, refused: () -> Unit): Boolean = withContext(Dispatchers.IO) {
+        if (session == null || ServerEndpoint.parse(origin) == null) return@withContext false
+        client.restoreSessionCookie(origin, session.name, session.value)
+        try {
+            if (!client.studioSessionActive(origin)) { refused(); return@withContext false }
+            _state.value = _state.value.copy(authenticated = true)
+            refreshInternal(origin, loadMedia = true)
+            true
+        } catch (error: ArmorApiException) {
+            if (error.code == 401 || error.code == 403) refused()
+            _state.value = _state.value.copy(authenticated = false)
+            false
+        } catch (error: Exception) {
+            _state.value = _state.value.copy(authenticated = false)
+            false
+        }
+    }
+
     fun restoreSession(origin: String) = action(origin, "Session restored") {
         require(client.studioSessionActive(origin)) { "Sign in to ARMOR-SERVER" }
         _state.value = _state.value.copy(authenticated = true)

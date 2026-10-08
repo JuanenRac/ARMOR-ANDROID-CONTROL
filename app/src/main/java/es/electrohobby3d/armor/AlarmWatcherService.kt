@@ -44,6 +44,8 @@ class AlarmWatcherService : Service() {
         val origin = getSharedPreferences("armor-control", Context.MODE_PRIVATE).getString("origin", "").orEmpty()
         if (ServerEndpoint.parse(origin) == null) { stopWith("Configura el servidor en la app."); return }
         val client = ArmorApiClient()
+        // The phone may have closed the app's process: the watcher carries the session kept by the app.
+        SessionVault(PreferencesStore(getSharedPreferences("armor-session", Context.MODE_PRIVATE)), KeystoreBox()).load(origin)?.let { client.restoreSessionCookie(origin, it.name, it.value) }
         var failures = 0
         while (scope.isActive) {
             try {

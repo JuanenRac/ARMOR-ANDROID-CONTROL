@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## [0.4.2] - The weather radar loads again, the session is remembered and the site radar fits the screen
+
+- **Weather radar:** the radar page is now served from a private https address that the app answers from its own assets, instead of being opened as a file (recent Android versions refuse the file permissions it relied on). If it still cannot load, the screen says so and offers *Reintentar* instead of showing an empty box. A map inside the list pans with the finger instead of scrolling the list.
+- **Signed in between launches:** the app keeps the server's session cookie, sealed with a key held in the Android Keystore, and opens already signed in (also for the alarm watcher service). The password is never stored. A session the server has ended, or a changed password, is refused and simply asks for the login again; signing out forgets it.
+- **Radar tab:** the 2D and 3D views now fit the real content (ground, buildings and the field of every radar) and are centred on it, instead of fitting a box that included the empty space around the origin, which left the site small, far away and off-centre.
+
 ## [0.4.1] - The radar map still showed nothing on a phone that could not reach the CDN
 
 - **Real bug, reported by the user:** 0.4.0 had already fixed the WebView's cross-origin block, but the radar still showed nothing on their phone - not even the base map, which needs no special permission at all. The actual cause: Leaflet itself (the map library) was loaded from `cdnjs.cloudflare.com` at runtime; Studio never has this problem because it gets Leaflet from its own build (an npm import), not a CDN. Leaflet is now bundled in the app (`assets/leaflet/`), so the map never depends on reaching that CDN.

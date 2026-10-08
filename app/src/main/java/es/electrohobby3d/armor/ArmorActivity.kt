@@ -54,6 +54,8 @@ private enum class Section(val label: String, val icon: ImageVector) {
 private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel: AppUpdateViewModel = viewModel()) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val preferences = remember { context.getSharedPreferences("armor-control", Context.MODE_PRIVATE) }
+    // The server's session is kept (sealed in the Keystore) so the app opens signed in; the password never is.
+    val vault = remember { SessionVault(PreferencesStore(context.getSharedPreferences("armor-session", Context.MODE_PRIVATE)), KeystoreBox()) }
     var origin by rememberSaveable { mutableStateOf(preferences.getString("origin", "") ?: "") }
     val savedUri = remember(origin) { runCatching { URI(origin) }.getOrNull() }
     var serverHost by rememberSaveable { mutableStateOf(savedUri?.host.orEmpty()) }
@@ -77,6 +79,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     var profile by remember { mutableStateOf(false) }
     var confirmLogout by remember { mutableStateOf(false) }
     var splash by rememberSaveable { mutableStateOf(true) }
+    var restoring by rememberSaveable { mutableStateOf(true) }   // trying the session kept from last time, before the sign-in is shown
     var nodeSetup by rememberSaveable { mutableStateOf(false) }   // configuring a field node over Bluetooth, with or without a server
     val state by viewModel.state.collectAsStateWithLifecycle()
     var watching by rememberSaveable { mutableStateOf(preferences.getBoolean("watch", false)) }
@@ -92,6 +95,10 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     // from the operator (see MoreScreens.kt's UpdateScreen and the dialog
     // below).
     LaunchedEffect(Unit) { updateViewModel.checkForUpdate() }
+    LaunchedEffect(Unit) {
+        if (restoring && !state.authenticated && currentOrigin.isNotBlank()) viewModel.tryRestore(currentOrigin, vault.load(currentOrigin)) { vault.clear() }
+        restoring = false
+    }
 
     // Resumes a pending install after the operator grants the one-time
     // "install unknown apps" permission and returns to A.R.M.O.R. Control -
@@ -108,7 +115,12 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     // While the app is on screen everything refreshes every ten seconds and alarms are announced.
     LaunchedEffect(state.authenticated, currentOrigin) {
         if (state.authenticated && currentOrigin.isNotBlank()) lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            while (true) { viewModel.pollOnce(currentOrigin, context.applicationContext); delay(10_000) }
+            while (true) {
+                viewModel.pollOnce(currentOrigin, context.applicationContext)
+                // The server renews a session that is in use: keep the renewed cookie.
+                viewModel.sessionCookie(currentOrigin)?.let { (name, value) -> vault.save(currentOrigin, name, value) }
+                delay(10_000)
+            }
         }
     }
     LaunchedEffect(state.authenticated) {
@@ -164,6 +176,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     BackHandler(enabled = state.authenticated && (moreTab != null || section != Section.Status)) { if (moreTab != null) moreTab = null else section = Section.Status }
 
     fun logout() {
+        vault.clear()
         AlarmWatcherService.stop(context)
         viewModel.logout(currentOrigin)
         profile = false; confirmLogout = false; section = Section.Status; moreTab = null
@@ -172,6 +185,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     ArmorTheme {
         Surface(Modifier.fillMaxSize(), color = ArmorColors.Background) {
             if (splash) { ArmorSplash { splash = false }; return@Surface }
+            if (restoring && !state.authenticated && currentOrigin.isNotBlank()) { RestoringScreen(); return@Surface }
             if (nodeSetup) { NodeSetupScreen(onClose = { nodeSetup = false }); return@Surface }
             if (!state.authenticated) {
                 val loginEndpoint = ServerEndpoint.fromHostAndPort(serverHost, serverPort)

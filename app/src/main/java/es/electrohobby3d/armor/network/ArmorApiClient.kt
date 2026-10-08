@@ -87,6 +87,20 @@ class ArmorApiClient {
         request(origin, "/api/v1/operator/session", "POST", mapOf("Authorization" to "Bearer $token"), null, setOf(201)).disconnect()
     }
 
+    /** The server's session cookie as it stands now (it is renewed while in use), to keep between launches; null when there is none. */
+    fun sessionCookie(origin: String): Pair<String, String>? {
+        val manager = CookieHandler.getDefault() as? CookieManager ?: return null
+        val uri = runCatching { java.net.URI(origin) }.getOrNull() ?: return null
+        return manager.cookieStore.get(uri).firstOrNull { it.name.endsWith("armor_studio_sid") && it.value.isNotBlank() }?.let { it.name to it.value }
+    }
+
+    /** Puts a kept session cookie back, so the next request carries it. */
+    fun restoreSessionCookie(origin: String, name: String, value: String) {
+        val manager = CookieHandler.getDefault() as? CookieManager ?: return
+        val uri = runCatching { java.net.URI(origin) }.getOrNull() ?: return
+        manager.cookieStore.add(uri, java.net.HttpCookie(name, value).apply { path = "/"; isHttpOnly = true; secure = uri.scheme == "https"; maxAge = 7L * 24 * 3600 })
+    }
+
     fun studioSessionActive(origin: String): Boolean = getJson(origin, "/api/v1/studio/session").optBoolean("authenticated")
 
     /** Sends the human login only once; the server returns an HttpOnly session cookie. */
