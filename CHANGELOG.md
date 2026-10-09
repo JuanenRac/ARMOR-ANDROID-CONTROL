@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here.
 
+## [0.4.8] - The Assistant: written and spoken commands
+
+- **More > Assistant:** send commands to the system as text or by voice. Type one, tap one of the four suggestions (*System state*, *Arm the system*, *Disarm the system*, *Silence the alarm*) or press the microphone: the phone's own speech recognition (the system's dialog, so the app asks for no microphone permission) turns what you say into text and it goes the same way. The server asks the voice gateway what it means and carries out what is accepted with your session. Arming and disarming ask for a second turn, shown as *Confirm* and *Cancel* under the question. The answer is also said aloud by the phone's voice (a switch turns it off) and the conversation can be cleared. It says so when the system has no voice gateway installed.
+
 ## [0.4.7] - The weather map without its diagnostic line
 
 - The plain-text line under the weather map (state of the page, errors, WebView version), which found why the map had no height, is gone now that the map works; the map keeps the height the app gives it.

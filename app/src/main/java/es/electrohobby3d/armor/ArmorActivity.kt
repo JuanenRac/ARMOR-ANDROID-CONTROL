@@ -82,6 +82,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     var restoring by rememberSaveable { mutableStateOf(true) }   // trying the session kept from last time, before the sign-in is shown
     var nodeSetup by rememberSaveable { mutableStateOf(false) }   // configuring a field node over Bluetooth, with or without a server
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val voiceState by viewModel.voice.collectAsStateWithLifecycle()
     var watching by rememberSaveable { mutableStateOf(preferences.getBoolean("watch", false)) }
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -250,7 +251,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                             )
                             Section.More -> when (moreTab) {
                                 null -> MoreMenu(
-                                    onOpen = { tab -> moreTab = tab; if (tab == MoreTab.Evidence) viewModel.loadMedia(currentOrigin) },
+                                    onOpen = { tab -> moreTab = tab; if (tab == MoreTab.Evidence) viewModel.loadMedia(currentOrigin); if (tab == MoreTab.Voice) viewModel.checkVoice(currentOrigin) },
                                     onNodeSetup = { nodeSetup = true }, onAbout = { about = true }, onLogout = { confirmLogout = true },
                                     updateAvailable = updateState is AppUpdateState.Available,
                                 )
@@ -266,6 +267,14 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 MoreTab.Services -> SubScreen(Icons.Filled.Dns, "Servicios", onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.reloadServices(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
                                 }) { ServicesScreen(state.services, System.currentTimeMillis()) }
+                                MoreTab.Voice -> SubScreen(Icons.Filled.Mic, "Asistente", onBack = { moreTab = null }) {
+                                    VoiceScreen(
+                                        voiceState, enabled = validOrigin && state.authenticated,
+                                        onSend = { text, speak -> viewModel.sendVoice(currentOrigin, text, spoken = speak) },
+                                        onConfirm = { pending, speak -> viewModel.sendVoice(currentOrigin, pending.text, confirm = pending, spoken = speak) },
+                                        onClear = { viewModel.clearVoice() }, onCancel = { viewModel.cancelVoice() },
+                                    )
+                                }
                                 MoreTab.Weather -> SubScreen(Icons.Filled.Cloud, "Meteorología", onBack = { moreTab = null }) {
                                     WeatherScreen(
                                         state.weather, onSearch = { viewModel.searchPlaces(it) },
