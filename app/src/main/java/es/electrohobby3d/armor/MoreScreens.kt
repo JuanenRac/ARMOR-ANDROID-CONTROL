@@ -27,12 +27,13 @@ import es.electrohobby3d.armor.model.MediaItem
 import es.electrohobby3d.armor.update.AppUpdateState
 
 /** What the "More" tab can show; null is the menu itself. */
-enum class MoreTab { Weather, Solar, Electrical, Network, Services, Evidence, History, Updates, Settings }
+enum class MoreTab { Voice, Weather, Solar, Electrical, Network, Services, Evidence, History, Updates, Settings }
 
 @Composable
 fun MoreMenu(onOpen: (MoreTab) -> Unit, onNodeSetup: () -> Unit, onAbout: () -> Unit, onLogout: () -> Unit, updateAvailable: Boolean = false) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         ScreenTitle(Icons.Filled.GridView, "Más")
+        MenuRow(Icons.Filled.Mic, "Asistente", "Escribe o dí órdenes: armar, desarmar, el estado o silenciar la alarma") { onOpen(MoreTab.Voice) }
         MenuRow(Icons.Filled.Cloud, "Meteorología", "El tiempo del lugar que elijas: ahora, por horas, diez días, aire y polen") { onOpen(MoreTab.Weather) }
         MenuRow(Icons.Filled.WbSunny, "Solar", "Inversores y baterías") { onOpen(MoreTab.Solar) }
         MenuRow(Icons.Filled.ElectricBolt, "Eléctrica", "Red, circuitos y buses de continua") { onOpen(MoreTab.Electrical) }

@@ -15,6 +15,10 @@ import es.electrohobby3d.armor.network.WeatherApiClient
 import es.electrohobby3d.armor.model.Forecast
 import es.electrohobby3d.armor.model.AirQuality
 import es.electrohobby3d.armor.model.Place
+import es.electrohobby3d.armor.model.PendingVoice
+import es.electrohobby3d.armor.model.VoiceMessage
+import es.electrohobby3d.armor.model.VoiceParser
+import es.electrohobby3d.armor.model.VoiceUiState
 import es.electrohobby3d.armor.network.ArmorApiException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -61,6 +65,54 @@ data class MonitorUiState(
 class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), private val weatherClient: WeatherApiClient = WeatherApiClient()) : ViewModel() {
     private val _state = MutableStateFlow(MonitorUiState())
     val state: StateFlow<MonitorUiState> = _state.asStateFlow()
+
+    private val _voice = MutableStateFlow(VoiceUiState())
+    /** The conversation of the Assistant screen (written and spoken commands). */
+    val voice: StateFlow<VoiceUiState> = _voice.asStateFlow()
+
+    /** Asks the server whether this install has the voice gateway. */
+    fun checkVoice(origin: String) {
+        if (ServerEndpoint.parse(origin) == null) return
+        viewModelScope.launch {
+            val available = runCatching { withContext(Dispatchers.IO) { client.voiceAvailable(origin) } }.getOrNull()
+            _voice.value = _voice.value.copy(available = available)
+        }
+    }
+
+    fun clearVoice() { _voice.value = _voice.value.copy(messages = emptyList()) }
+
+    /** The person did not confirm: the question is closed (the token would expire by itself) and nothing was done. */
+    fun cancelVoice() {
+        _voice.value = _voice.value.copy(messages = _voice.value.messages.map { if (it.pending != null) it.copy(pending = null) else it } + VoiceMessage(false, "Cancelado: no he hecho nada."))
+    }
+
+    /**
+     * Sends a command (what was typed, or what the phone's speech recognition heard). [confirm] is the command whose second turn this is; its token goes with the phrase.
+     * What comes back is added to the conversation, and when the server carried something out the state of the system is read again.
+     * [spoken] is called with the sentence to say, for the voice of the phone.
+     */
+    fun sendVoice(origin: String, text: String, language: String = "es", confirm: PendingVoice? = null, spoken: (String) -> Unit = {}) {
+        val phrase = (confirm?.text ?: text).trim()
+        if (phrase.isEmpty() || _voice.value.busy) return
+        if (ServerEndpoint.parse(origin) == null) { _voice.value = _voice.value.copy(messages = _voice.value.messages + VoiceMessage(false, "Configura el servidor en Ajustes.", problem = true)); return }
+        // The person's words go in the conversation (a confirmation is shown as a tap, not as words), and the question that was waiting is closed.
+        val before = _voice.value.messages.map { if (it.pending != null) it.copy(pending = null) else it }
+        _voice.value = _voice.value.copy(busy = true, messages = if (confirm == null) before + VoiceMessage(true, phrase) else before)
+        viewModelScope.launch {
+            val answer = runCatching { withContext(Dispatchers.IO) { client.voiceCommand(origin, phrase, language, confirm?.token) } }
+            val message = answer.fold(
+                onSuccess = { reply ->
+                    val pending = reply.confirmationToken?.let { PendingVoice(phrase, it) }
+                    val line = VoiceParser.lineFor(reply)
+                    spoken(line)
+                    VoiceMessage(false, line, pending = pending, problem = reply.outcome == "not-understood" || reply.outcome == "confirmation-refused") to reply.executed
+                },
+                onFailure = { error -> VoiceMessage(false, VoiceParser.errorText(error.message), problem = true) to false },
+            )
+            _voice.value = _voice.value.copy(busy = false, messages = _voice.value.messages + message.first)
+            if (message.second) runCatching { withContext(Dispatchers.IO) { refreshInternal(origin, false) } }
+        }
+    }
 
     /** The site design for the radar screen (once, and again when asked). A server that predates it, or has no design, leaves it empty. */
     suspend fun loadSite(origin: String) = withContext(Dispatchers.IO) {

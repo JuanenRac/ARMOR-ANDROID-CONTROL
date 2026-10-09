@@ -140,6 +140,17 @@ class ArmorApiClient {
     }
     fun mjpegUrl(origin: String, id: String): String = "$origin/api/v1/cameras/${part(id)}/mjpeg"
 
+    /** Whether this install has the voice gateway, so written and spoken commands work. */
+    fun voiceAvailable(origin: String): Boolean = getJson(origin, "/api/v1/voice/status").optBoolean("available")
+
+    /** One written or spoken command, as text. Arming and disarming need a second turn: send the same phrase again with the token of the first answer. */
+    fun voiceCommand(origin: String, text: String, language: String, confirmation: String?): VoiceReply {
+        val body = JSONObject().put("text", text).put("language", language)
+        if (confirmation != null) body.put("confirmation", confirmation)
+        val connection = request(origin, "/api/v1/voice/command", "POST", mapOf("Content-Type" to "application/json", "Accept" to "application/json"), body.toString(), setOf(200))
+        return try { VoiceParser.parse(JSONObject(connection.inputStream.bufferedReader().use { it.readText() })) } finally { connection.disconnect() }
+    }
+
     private fun getJson(origin: String, path: String): JSONObject {
         val connection = request(origin, path, "GET", mapOf("Accept" to "application/json"), null, setOf(200))
         return try { JSONObject(connection.inputStream.bufferedReader().use { it.readText() }) } finally { connection.disconnect() }
