@@ -42,6 +42,7 @@
 * **Careful with the password:** plain HTTP is allowed only to a private-LAN or loopback IPv4 *literal*. A host name that merely starts like a private address (`10.attacker.example`) or an address with a leading zero (some resolvers read `010.0.0.1` as the public `8.0.0.1`) is refused.
 * **Electrical network:** an entry in *More* (and a tile on the Status screen) shows the power of the grid input (drawing or feeding the network), every channel the electrical nodes measure (voltage, current, power, energy, frequency, power factor, the state of a switch) and the meters' alarms; the alarms of the electrical nodes (a meter's alarm, the mains out of range, the grid lost, a node that stopped answering) wake the operator like the solar ones. An inverter's card also shows its second PV input and the units of a parallel system.
 * **A look made of icons:** near-black surfaces, a cyan accent, amber for attention, big icons with few words, a bottom bar, an About page and a sign-out button.
+* **Assistant and node configurator:** *More > Assistant* takes written or spoken commands (fifteen, with a phrase to tap for each: the alarms, the nodes, the cameras, who the radars see, solar, consumption, the network, the time, help, lights on and off, arm, disarm, state and silence) and answers aloud; *More > Configure nodes* opens the configuration panel of a radar, solar or electrical node inside the app, as if it were opened in a browser (only an address of the local network is opened). The live weather radar sits in the Radar tab.
 
 ## 📂 Repository Structure
 
