@@ -51,7 +51,7 @@ object VoiceParser {
     /** The sentence the person sees, with a note when the phrase was understood but not carried out. */
     fun lineFor(reply: VoiceReply): String = when {
         reply.outcome == "confirmation-needed" -> "${reply.speech}. ${confirmationQuestion(reply.intent)}"
-        reply.outcome == "not-understood" -> "No lo he entendido. Puedo: armar el sistema, desarmarlo, decir el estado o silenciar la alarma."
+        reply.outcome == "not-understood" -> "No lo he entendido. Di «ayuda» para saber qué puedo hacer."
         else -> reply.speech
     }
 
