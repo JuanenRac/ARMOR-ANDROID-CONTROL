@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## [0.4.9] - The configurator of the nodes inside the app, and more commands
+
+- **More > Configure nodes:** the configuration panel of a node (radar, solar, electrical) inside the app - its own page, with every menu and parameter, the login, the firmware update and the import and export of the settings - as if it were opened in a browser. Choose one of the nodes the network node found, or type its address (only an address of the local network is opened). The page can ask for a file (the settings to import, a firmware) and the phone's file picker answers; the exported settings are saved in Downloads; and the panel only goes where the node is. Back goes back through the pages of the panel and then out.
+- **Assistant:** fifteen commands instead of four, with fifteen phrases to tap - the alarms, the nodes, the cameras, who the radars see, the solar system, the consumption, the network, the time, help, and lights on and off - next to arm, disarm, the state and silence.
+- The alarm of a camera that saw movement (the observation service) is named in Spanish.
+
 ## [0.4.8] - The Assistant: written and spoken commands
 
 - **More > Assistant:** send commands to the system as text or by voice. Type one, tap one of the four suggestions (*System state*, *Arm the system*, *Disarm the system*, *Silence the alarm*) or press the microphone: the phone's own speech recognition (the system's dialog, so the app asks for no microphone permission) turns what you say into text and it goes the same way. The server asks the voice gateway what it means and carries out what is accepted with your session. Arming and disarming ask for a second turn, shown as *Confirm* and *Cancel* under the question. The answer is also said aloud by the phone's voice (a switch turns it off) and the conversation can be cleared. It says so when the system has no voice gateway installed.

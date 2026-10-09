@@ -122,7 +122,7 @@ object DeviceText {
     }
 
     fun alarmText(code: String) = when (code) {
-        "intrusion" -> "Intrusión detectada por los radares"; "node_down" -> "Un nodo de campo no responde"; "camera_down" -> "Una cámara no responde"
+        "intrusion" -> "Intrusión detectada por los radares"; "node_down" -> "Un nodo de campo no responde"; "camera_motion" -> "Una cámara ha visto movimiento"; "camera_down" -> "Una cámara no responde"
         "smoke" -> "Humo detectado"; "co" -> "Monóxido de carbono detectado"; "gas" -> "Gas detectado"; "water_leak" -> "Inundación detectada"; "panic" -> "Botón de pánico pulsado"
         "door_open" -> "Puerta abierta con el sistema armado"; "window_open" -> "Ventana abierta con el sistema armado"; "motion" -> "Movimiento con el sistema armado"
         "glass_break" -> "Rotura de cristal con el sistema armado"; "vibration" -> "Vibración con el sistema armado"; "tamper" -> "Un dispositivo ha sido manipulado"

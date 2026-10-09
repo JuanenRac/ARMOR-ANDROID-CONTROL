@@ -83,6 +83,9 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     var nodeSetup by rememberSaveable { mutableStateOf(false) }   // configuring a field node over Bluetooth, with or without a server
     val state by viewModel.state.collectAsStateWithLifecycle()
     val voiceState by viewModel.voice.collectAsStateWithLifecycle()
+    // The panel of a node that is open (null: the list), and the addresses opened lately.
+    var nodePanel by rememberSaveable { mutableStateOf<String?>(null) }
+    var recentNodes by remember { mutableStateOf((preferences.getString("recent_nodes", "") ?: "").split(",").mapNotNull { NodeAddress.parse(it) }) }
     var watching by rememberSaveable { mutableStateOf(preferences.getBoolean("watch", false)) }
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -267,6 +270,17 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 MoreTab.Services -> SubScreen(Icons.Filled.Dns, "Servicios", onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.reloadServices(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
                                 }) { ServicesScreen(state.services, System.currentTimeMillis()) }
+                                MoreTab.Nodes -> SubScreen(Icons.Filled.Tune, if (nodePanel == null) "Configurar nodos" else nodePanel!!.removePrefix("http://").trimEnd('/'), onBack = { if (nodePanel != null) nodePanel = null else moreTab = null }) {
+                                    val panel = nodePanel
+                                    if (panel == null) NodesScreen(
+                                        state.network, recentNodes,
+                                        onOpen = { address ->
+                                            recentNodes = (listOf(address) + recentNodes.filter { it != address }).take(5)
+                                            preferences.edit().putString("recent_nodes", recentNodes.joinToString(",")).apply()
+                                            nodePanel = address
+                                        },
+                                    ) else NodePanelView(panel, onClose = { nodePanel = null })
+                                }
                                 MoreTab.Voice -> SubScreen(Icons.Filled.Mic, "Asistente", onBack = { moreTab = null }) {
                                     VoiceScreen(
                                         voiceState, enabled = validOrigin && state.authenticated,

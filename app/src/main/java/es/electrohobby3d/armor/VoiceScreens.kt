@@ -17,6 +17,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,8 +27,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteSweep
@@ -60,8 +60,12 @@ import es.electrohobby3d.armor.model.VoiceUiState
 import java.util.Locale
 
 /** The four things it understands, as phrases to tap. */
-private val Suggestions = listOf("Estado del sistema", "Armar el sistema", "Desarmar el sistema", "Silenciar la alarma")
+private val Suggestions = listOf(
+    "Estado del sistema", "Armar el sistema", "Desarmar el sistema", "Silenciar la alarma", "Alarmas activas", "Hay alguien", "Estado de los nodos", "Estado de las cámaras",
+    "Estado solar", "Consumo eléctrico", "Estado de la red", "Qué hora es", "Enciende las luces", "Apaga las luces", "Ayuda",
+)
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun VoiceScreen(
     state: VoiceUiState,
@@ -101,7 +105,7 @@ fun VoiceScreen(
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "Escribe o di una orden. Puedo armar el sistema, desarmarlo, decirte el estado y silenciar la alarma. Armar y desarmar te piden confirmar.",
+                "Escribe o di una orden: armar o desarmar el sistema (te pido confirmar), el estado, las alarmas, los nodos, las cámaras, los radares, lo solar, el consumo, la red, la hora, encender o apagar las luces y silenciar la alarma. Di «ayuda» para oírlo.",
                 Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted,
             )
             IconButton(onClick = { speak = !speak; if (!speak) engine?.stop() }) {
@@ -120,7 +124,7 @@ fun VoiceScreen(
             if (state.busy) item { Text("…", color = ArmorColors.Muted) }
         }
 
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Suggestions.forEach { phrase -> AssistChip(onClick = { onSend(phrase, say) }, label = { Text(phrase) }, enabled = enabled && !state.busy) }
         }
         if (notice.isNotEmpty()) Text(notice, color = ArmorColors.Amber, style = MaterialTheme.typography.bodySmall)
