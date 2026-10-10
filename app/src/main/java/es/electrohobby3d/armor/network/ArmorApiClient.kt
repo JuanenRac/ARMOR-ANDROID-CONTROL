@@ -69,6 +69,22 @@ class ArmorApiClient {
     fun solar(origin: String): SolarOverview = SolarParser.overview(getJson(origin, "/api/v1/solar"))
     fun electrical(origin: String): es.electrohobby3d.armor.model.ElectricalOverview = es.electrohobby3d.armor.model.ElectricalParser.overview(getJson(origin, "/api/v1/electrical/readings"))
 
+    /** The alarm nodes (ARMOR-ALARM): each panel's phase and mode, its zones and its last events; an operator session is needed. */
+    fun alarmPanels(origin: String): es.electrohobby3d.armor.model.AlarmPanelsOverview = es.electrohobby3d.armor.model.AlarmPanelsParser.overview(getJson(origin, "/api/v1/alarm/nodes"))
+    /** Whether the server may arm and disarm the panels at all, and what became of the latest commands. */
+    fun alarmCommands(origin: String): es.electrohobby3d.armor.model.AlarmCommandsStatus = es.electrohobby3d.armor.model.AlarmPanelsParser.commands(getJson(origin, "/api/v1/alarm/commands"))
+    /** Arms a panel (mode "away" or "stay", optionally leaving out the open zones) or disarms it (mode null). There is no PIN in it; the server, the node and the broker must have allowed it. */
+    fun sendAlarmCommand(origin: String, node: String, mode: String?, force: Boolean) {
+        val body = JSONObject().put("node", node).put("action", if (mode == null) "disarm" else "arm")
+        if (mode != null) { body.put("mode", mode); if (force) body.put("force", true) }
+        try {
+            request(origin, "/api/v1/alarm/command", "POST", mapOf("Content-Type" to "application/json"), body.toString(), setOf(202)).disconnect()
+        } catch (error: ArmorApiException) {
+            val code = Regex("\"code\"\\s*:\\s*\"([a-z_]+)\"").find(error.message.orEmpty())?.groupValues?.get(1).orEmpty()
+            throw ArmorApiException(es.electrohobby3d.armor.model.AlarmPanelText.error(code), error.code)
+        }
+    }
+
     /** The local network as the ARMOR-NETWORK nodes see it: the internet, the devices with the names an administrator gave them, the events and the outages. */
     fun network(origin: String): es.electrohobby3d.armor.model.NetworkOverview = es.electrohobby3d.armor.model.NetworkParser.overview(getJson(origin, "/api/v1/network"))
     fun services(origin: String): es.electrohobby3d.armor.model.ServicesOverview = es.electrohobby3d.armor.model.ServicesParser.overview(getJson(origin, "/api/v1/system/services"))
@@ -79,8 +95,9 @@ class ArmorApiClient {
 
     fun devices(origin: String): List<SiteDevice> = getJson(origin, "/api/v1/devices").optJSONArray("devices").asObjects().mapNotNull(DeviceParser::device)
     /** [command] is "on", "off" or "toggle"; the server refuses it for a sensor. */
-    fun commandDevice(origin: String, id: String, command: String) {
-        request(origin, "/api/v1/devices/${part(id)}/command", "POST", mapOf("Content-Type" to "application/json"), JSONObject(mapOf("command" to command)).toString(), setOf(200)).disconnect()
+    fun commandDevice(origin: String, id: String, command: String, confirm: Boolean = false) {
+        val body = JSONObject(mapOf("command" to command)).apply { if (confirm) put("confirm", true) }
+        request(origin, "/api/v1/devices/${part(id)}/command", "POST", mapOf("Content-Type" to "application/json"), body.toString(), setOf(200)).disconnect()
     }
 
     fun openOperatorSession(origin: String, token: String) {

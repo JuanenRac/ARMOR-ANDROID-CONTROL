@@ -220,7 +220,7 @@ internal fun kindIcon(kind: String): ImageVector = when (kind) {
     "smoke" -> Icons.Filled.LocalFireDepartment; "co" -> Icons.Filled.Air; "gas" -> Icons.Filled.Whatshot; "water_leak" -> Icons.Filled.WaterDrop; "panic_button" -> Icons.Filled.Warning
     "door" -> Icons.Filled.DoorFront; "window" -> Icons.Filled.Window; "motion" -> Icons.AutoMirrored.Filled.DirectionsRun; "glass_break" -> Icons.Filled.GraphicEq; "vibration" -> Icons.Filled.Vibration
     "climate" -> Icons.Filled.Thermostat; "temperature" -> Icons.Filled.DeviceThermostat; "humidity" -> Icons.Filled.Opacity; "light_level" -> Icons.Filled.LightMode
-    "smart_plug" -> Icons.Filled.Power; "smart_light" -> Icons.Filled.Lightbulb; "smart_switch" -> Icons.Filled.ToggleOn; "siren" -> Icons.Filled.Campaign; "lock" -> Icons.Filled.Lock; "valve" -> Icons.Filled.Plumbing
+    "smart_plug" -> Icons.Filled.Power; "smart_light" -> Icons.Filled.Lightbulb; "smart_switch" -> Icons.Filled.ToggleOn; "smart_breaker" -> Icons.Filled.Bolt; "energy_meter" -> Icons.Filled.Speed; "siren" -> Icons.Filled.Campaign; "lock" -> Icons.Filled.Lock; "valve" -> Icons.Filled.Plumbing
     else -> Icons.Filled.Sensors
 }
 

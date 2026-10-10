@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [0.5.0] - The alarm panels, and the electrical devices of the house
+
+- **More > Alarm panels:** the ARMOR-ALARM nodes. One card per panel with its phase and mode (disarmed, leaving, armed, entry delay, ALARM; away or at home), the siren, its zones (kind and closed, open, tamper or left out) and its last events told as how long ago; the node finder is there too. The screen reads the panels every three seconds while it is open.
+- **Arm and disarm from the card**, only when the server (`ARMOR_ALARM_COMMANDS=1`), the node and the broker all allow it (the screen says so when the server does not). A disarm carries no PIN, so the app asks first; a command the server refuses is explained in Spanish, and what the node answered (accepted, a zone is open, it did not answer) shows on the card. An accepted command is not an armed alarm: the card follows what the node says next.
+- **The alarms of a panel** have their own sentences: it is sounding, a zone shows tamper, the panel is locked out after wrong PINs, the node stopped answering.
+- **Devices:** the circuit-breaker and energy-meter kinds with their voltage, current and energy, and a command to a device that matters (a circuit of the board, a critical one) asks first and goes with the confirmation the server wants.
+- **Alarms:** the solar alarms (cells unbalanced, battery hot, cold or worn, inverter hot) and a watched device that came back onto the network are named in Spanish.
+- **Tests:** the parser and the wording of the panels, the summary line, and every new alarm code having a sentence of its own.
+
 ## [0.4.9] - The configurator of the nodes inside the app, and more commands
 
 - **More > Configure nodes:** the configuration panel of a node (radar, solar, electrical) inside the app - its own page, with every menu and parameter, the login, the firmware update and the import and export of the settings - as if it were opened in a browser. Choose one of the nodes the network node found, or type its address (only an address of the local network is opened). The page can ask for a file (the settings to import, a firmware) and the phone's file picker answers; the exported settings are saved in Downloads; and the panel only goes where the node is. Back goes back through the pages of the panel and then out.

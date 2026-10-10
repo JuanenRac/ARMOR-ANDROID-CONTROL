@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "ecosystem": "A.R.M.O.R.",
   "name": "ARMOR-ANDROID-CONTROL",
-  "version": "0.4.9",
+  "version": "0.5.0",
   "role": "Android operator client",
   "stack": "Kotlin / Jetpack Compose",
   "technologies": [
@@ -16,7 +16,7 @@
   "maturity": "functional",
   "family": "Clients",
   "parent": "ARMOR-SERVER",
-  "native_version": "0.4.9",
+  "native_version": "0.5.0",
   "build": "./gradlew.bat test assembleDebug",
   "notes": "The mobile client authenticates to ARMOR-SERVER with the user-facing Studio session. Camera credentials and RTSP URLs remain server-side; a production signed release still requires a private signing key and HTTPS deployment."
 }

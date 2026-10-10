@@ -30,6 +30,8 @@ data class SiteDevice(
     val online: Boolean,
     val expectedIntervalS: Int,
     val state: Map<String, Any>,
+    /** How much it matters to switch it from afar: "low" (a click), "circuit" (a circuit of the board: asks first) or "critical" (asks first, and only an administrator may). */
+    val risk: String = "low",
 )
 
 object DeviceParser {
@@ -59,6 +61,7 @@ object DeviceParser {
             id = id, name = json.optString("name", id).ifBlank { id }, kind = json.optString("kind"), protocol = json.optString("protocol"),
             location = json.optString("location"), actuator = json.optString("category") == "actuator", canCommand = json.optBoolean("can_command"),
             online = json.optBoolean("online"), expectedIntervalS = json.optInt("expected_interval_s"), state = state,
+            risk = json.optString("risk", "low").ifBlank { "low" },
         )
     }
 }
@@ -70,7 +73,7 @@ object DeviceText {
         "smoke" to "triggered", "co" to "triggered", "gas" to "triggered", "water_leak" to "triggered", "panic_button" to "triggered",
         "door" to "open", "window" to "open", "motion" to "triggered", "glass_break" to "triggered", "vibration" to "triggered",
         "climate" to null, "temperature" to null, "humidity" to null, "light_level" to null,
-        "smart_plug" to "on", "smart_light" to "on", "smart_switch" to "on", "siren" to "on", "lock" to "locked", "valve" to "open",
+        "smart_plug" to "on", "smart_light" to "on", "smart_switch" to "on", "smart_breaker" to "on", "energy_meter" to null, "siren" to "on", "lock" to "locked", "valve" to "open",
     )
     private val alarmKinds = setOf("smoke", "co", "gas", "water_leak", "panic_button", "door", "window", "motion", "glass_break", "vibration")
 
@@ -78,7 +81,7 @@ object DeviceText {
         "smoke" -> "Detector de humo"; "co" -> "Detector de CO"; "gas" -> "Detector de gas"; "water_leak" -> "Detector de inundación"; "panic_button" -> "Botón de pánico"
         "door" -> "Contacto de puerta"; "window" -> "Contacto de ventana"; "motion" -> "Sensor de movimiento"; "glass_break" -> "Rotura de cristal"; "vibration" -> "Sensor de vibración"
         "climate" -> "Temperatura y humedad"; "temperature" -> "Temperatura"; "humidity" -> "Humedad"; "light_level" -> "Nivel de luz"
-        "smart_plug" -> "Enchufe inteligente"; "smart_light" -> "Luz inteligente"; "smart_switch" -> "Interruptor"; "siren" -> "Sirena"; "lock" -> "Cerradura"; "valve" -> "Válvula"
+        "smart_plug" -> "Enchufe inteligente"; "smart_light" -> "Luz inteligente"; "smart_switch" -> "Interruptor"; "smart_breaker" -> "Automático inteligente"; "energy_meter" -> "Medidor de energía"; "siren" -> "Sirena"; "lock" -> "Cerradura"; "valve" -> "Válvula"
         else -> kind
     }
 
@@ -106,6 +109,9 @@ object DeviceText {
         number(device.state, "lux")?.let { add("${it.toInt()} lx") }
         number(device.state, "brightness")?.let { add("brillo ${it.toInt()} %") }
         number(device.state, "power_w")?.let { add("%.1f W".format(java.util.Locale.US, it)) }
+        number(device.state, "voltage_v")?.let { add("%.1f V".format(java.util.Locale.US, it)) }
+        number(device.state, "current_a")?.let { add("%.2f A".format(java.util.Locale.US, it)) }
+        number(device.state, "energy_kwh")?.let { add("%.2f kWh".format(java.util.Locale.US, it)) }
         number(device.state, "co_ppm")?.let { add("${it.toInt()} ppm") }
         number(device.state, "battery")?.let { add("batería ${it.toInt()} %") }
         if (flag(device.state, "tamper")) add("manipulado")
@@ -128,16 +134,28 @@ object DeviceText {
         "glass_break" -> "Rotura de cristal con el sistema armado"; "vibration" -> "Vibración con el sistema armado"; "tamper" -> "Un dispositivo ha sido manipulado"
         "low_battery" -> "Batería baja"; "device_offline" -> "Un dispositivo ha dejado de responder"; "triggered" -> "Un dispositivo se ha activado"
         "solar_fault" -> "Avería en un inversor solar"; "solar_battery_low" -> "Batería solar baja"; "solar_battery_alarm" -> "Una batería solar avisa de un problema"
-        "solar_offline" -> "Un equipo solar ha dejado de responder"
+        "solar_offline" -> "Un equipo solar ha dejado de responder"; "solar_cells_unbalanced" -> "Las celdas de una batería están desequilibradas"
+        "solar_battery_hot" -> "Una batería está demasiado caliente"; "solar_battery_cold" -> "Una batería se está cargando con demasiado frío"; "solar_battery_worn" -> "Una batería está muy desgastada"
+        "solar_inverter_hot" -> "Un inversor está demasiado caliente"
         "electrical_alarm" -> "Un contador de la red eléctrica avisa de una alarma"; "electrical_voltage" -> "La tensión de red está fuera de rango"
         "electrical_grid_lost" -> "Se ha perdido el suministro de la red"; "electrical_offline" -> "Un nodo eléctrico ha dejado de responder"
         "electrical_switch_fault" -> "Un conmutador de fuentes de la red eléctrica tiene una avería y queda abierto"
         "network_internet_down" -> "No hay internet y el router sigue respondiendo: es cosa del operador"; "network_lan_down" -> "La red local está caída: el router no responde"
         "network_degraded" -> "Internet va lento o pierde paquetes"; "network_new_device" -> "Un dispositivo que nunca se había visto se ha unido a la red"
         "network_arp_conflict" -> "Dos máquinas responden por una misma dirección de la red"; "network_port_opened" -> "Un dispositivo de la red ha abierto un puerto"
-        "network_offline" -> "Un nodo de red ha dejado de informar"
+        "network_offline" -> "Un nodo de red ha dejado de informar"; "network_watched_online" -> "Un dispositivo que pediste vigilar ha vuelto a la red"
+        "alarm_sounding" -> "¡La alarma está sonando!"; "alarm_tamper" -> "Una zona de la alarma indica sabotaje (cable cortado o en cortocircuito)"
+        "alarm_locked_out" -> "La central de alarma está bloqueada tras PIN erróneos"; "alarm_offline" -> "Un nodo de alarma ha dejado de responder"
         else -> code
     }
+
+    /** What to ask before a command to a device of that risk (null: nothing, a click is enough). */
+    fun confirmQuestion(device: SiteDevice, command: String): String? = when (device.risk) {
+        "circuit" -> "«${device.name}» es un circuito del cuadro eléctrico. ¿Seguro que quieres ${commandVerb(command)} su alimentación?"
+        "critical" -> "«${device.name}» es crítico (un congelador, una bomba, la alarma...). Solo un administrador puede ordenarlo. ¿Seguro que quieres ${commandVerb(command)} su alimentación?"
+        else -> null
+    }
+    private fun commandVerb(command: String) = when (command) { "on" -> "conectar"; "off" -> "cortar"; else -> "cambiar" }
 
     fun severityLabel(severity: String) = when (severity) { "critical" -> "CRÍTICA"; "high" -> "ALTA"; else -> "AVISO" }
 }

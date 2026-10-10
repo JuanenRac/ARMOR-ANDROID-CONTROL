@@ -7,6 +7,7 @@ import es.electrohobby3d.armor.model.EventParser
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -56,7 +57,7 @@ class DevicesAndAlarmsTest {
     @Test fun everyCodeTheServerRaisesHasItsOwnWording() {
         val codes = listOf("intrusion", "node_down", "camera_down", "smoke", "co", "gas", "water_leak", "panic", "door_open", "window_open", "motion", "glass_break", "vibration", "triggered", "tamper", "low_battery", "device_offline",
             "solar_fault", "solar_battery_low", "solar_battery_alarm", "solar_offline", "electrical_alarm", "electrical_voltage", "electrical_grid_lost", "electrical_offline", "electrical_switch_fault",
-            "network_internet_down", "network_lan_down", "network_degraded", "network_new_device", "network_arp_conflict", "network_port_opened", "network_offline")
+            "network_internet_down", "network_lan_down", "network_degraded", "network_new_device", "network_arp_conflict", "network_port_opened", "network_offline", "alarm_sounding", "alarm_tamper", "alarm_locked_out", "alarm_offline")
         for (code in codes) assertNotEquals(code, DeviceText.alarmText(code))
     }
 
@@ -117,6 +118,29 @@ class DevicesAndAlarmsTest {
         assertEquals(setOf("on", "power_w"), parsed.state.keys)
         assertEquals(42.0, parsed.state["power_w"])
         assertNull(DeviceParser.device(JSONObject("""{"name":"sin id"}""")))
+    }
+
+    @Test fun aBreakerAndAMeterShowTheirMeasuresAndAskBeforeACircuitIsSwitched() {
+        val breaker = device("""{"id":"b","name":"Horno","kind":"smart_breaker","category":"actuator","can_command":true,"online":true,"risk":"circuit","state":{"on":true,"power_w":1200.5,"voltage_v":231.4,"current_a":5.19,"energy_kwh":12.345}}""")
+        assertEquals(listOf("encendido", "1200.5 W", "231.4 V", "5.19 A", "12.35 kWh"), DeviceText.describeState(breaker))
+        assertEquals("Automático inteligente", DeviceText.kindLabel("smart_breaker"))
+        assertEquals("Medidor de energía", DeviceText.kindLabel("energy_meter"))
+        assertEquals("circuit", breaker.risk)
+        assertNotNull(DeviceText.confirmQuestion(breaker, "off"))
+        assertTrue(DeviceText.confirmQuestion(breaker, "off")!!.contains("cortar"))
+        val critical = device("""{"id":"f","name":"Congelador","kind":"smart_plug","category":"actuator","online":true,"risk":"critical","state":{"on":true}}""")
+        assertTrue(DeviceText.confirmQuestion(critical, "off")!!.contains("administrador"))
+        val plug = device("""{"id":"p","kind":"smart_plug","category":"actuator","online":true,"state":{"on":true}}""")
+        assertEquals("low", plug.risk)
+        assertNull(DeviceText.confirmQuestion(plug, "off"))
+        val meter = device("""{"id":"m","kind":"energy_meter","online":true,"state":{"power_w":300,"energy_kwh":4.2}}""")
+        assertEquals(listOf("300.0 W", "4.20 kWh"), DeviceText.describeState(meter))
+        assertNull(DeviceText.problem(meter))
+    }
+
+    @Test fun theNewAlarmsOfTheServerHaveTheirOwnWording() {
+        for (code in listOf("solar_cells_unbalanced", "solar_battery_hot", "solar_battery_cold", "solar_battery_worn", "solar_inverter_hot", "network_watched_online")) assertNotEquals(code, DeviceText.alarmText(code))
+        assertEquals("algo_desconocido", DeviceText.alarmText("algo_desconocido"))
     }
 
     @Test fun aLockIsLockedByOnAndAValveOpenedByOn() {
