@@ -73,6 +73,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     }
     var weatherRestored by rememberSaveable { mutableStateOf(false) }
     var confirmMode by remember { mutableStateOf<String?>(null) }
+    var confirmCommand by remember { mutableStateOf<Pair<es.electrohobby3d.armor.model.SiteDevice, String>?>(null) }   // a command to a device that asks first (a circuit of the board, a critical one)
     var grid by rememberSaveable { mutableIntStateOf(4) }
     var expanded by remember { mutableStateOf<CameraView?>(null) }
     var about by remember { mutableStateOf(false) }
@@ -142,6 +143,12 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     LaunchedEffect(section, moreTab, state.authenticated, currentOrigin) {
         if (state.authenticated && currentOrigin.isNotBlank() && section == Section.More && moreTab == MoreTab.Electrical) {
             lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { while (true) { viewModel.pollElectrical(currentOrigin); delay(5_000) } }
+        }
+    }
+    // The Alarm panels screen (in the More menu): the panels every three seconds while it is open and the app is on screen.
+    LaunchedEffect(section, moreTab, state.authenticated, currentOrigin) {
+        if (state.authenticated && currentOrigin.isNotBlank() && section == Section.More && moreTab == MoreTab.AlarmPanels) {
+            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { while (true) { viewModel.pollAlarmPanels(currentOrigin); delay(3_000) } }
         }
     }
     // The Network screen (in the More menu): the internet and the devices every five seconds while it is open and the app is on screen.
@@ -247,7 +254,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 onAcknowledge = { viewModel.acknowledge(currentOrigin, it) }, onAcknowledgeAll = { viewModel.acknowledgeAll(currentOrigin) }, enabled = validOrigin && !state.loading,
                                 solarNames = state.solar?.let { s -> s.devices.associate { "${it.nodeId}/${it.device}" to it.name } + s.waiting.associate { "${it.nodeId}/${it.device}" to it.name } }.orEmpty(),
                             )
-                            Section.Devices -> DevicesScreen(state.devices, onCommand = { device, command -> viewModel.command(currentOrigin, device, command) }, enabled = validOrigin && !state.loading)
+                            Section.Devices -> DevicesScreen(state.devices, onCommand = { device, command -> if (es.electrohobby3d.armor.model.DeviceText.confirmQuestion(device, command) == null) viewModel.command(currentOrigin, device, command) else confirmCommand = device to command }, enabled = validOrigin && !state.loading)
                             Section.Cameras -> CamerasScreen(
                                 state.cameras, grid, onGrid = { grid = it }, origin = currentOrigin, viewModel = viewModel, authenticated = state.authenticated,
                                 recordingIds = state.media.activeCameraIds, health = state.cameraHealth, onExpand = { expanded = it },
@@ -264,6 +271,14 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 MoreTab.Electrical -> SubScreen(Icons.Filled.ElectricBolt, "Eléctrica", onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.reloadElectrical(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
                                 }) { ElectricalScreen(state.electrical, state.network, onScanNetwork = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading) }
+                                MoreTab.AlarmPanels -> SubScreen(Icons.Filled.Shield, "Centrales de alarma", onBack = { moreTab = null }, actions = {
+                                    IconButton(onClick = { viewModel.reloadAlarmPanels(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
+                                }) {
+                                    AlarmPanelsScreen(
+                                        state.alarmPanels, state.alarmCommands, canCommand = state.authenticated, network = state.network, onScanNetwork = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading,
+                                        onArm = { panel, mode, force -> viewModel.alarmCommand(currentOrigin, panel.nodeId, mode, force) }, onDisarm = { panel -> viewModel.alarmCommand(currentOrigin, panel.nodeId, null) },
+                                    )
+                                }
                                 MoreTab.Network -> SubScreen(Icons.Filled.Router, "Red", onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.reloadNetwork(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
                                 }) { NetworkScreen(state.network) }
@@ -333,6 +348,16 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                         text = { Text(if (arming) "Puertas, ventanas y movimiento harán sonar la alarma." else "Puertas, ventanas y movimiento dejan de avisar. El humo, el gas, el agua y el pánico siguen avisando.") },
                         confirmButton = { Button(onClick = { viewModel.setMode(currentOrigin, mode); confirmMode = null }) { Text(if (arming) "Armar" else "Desarmar") } },
                         dismissButton = { TextButton(onClick = { confirmMode = null }) { Text("Cancelar") } },
+                    )
+                }
+                confirmCommand?.let { (device, command) ->
+                    AlertDialog(
+                        onDismissRequest = { confirmCommand = null }, containerColor = ArmorColors.SurfaceRaised,
+                        icon = { IconBadge(Icons.Filled.Warning, ArmorColors.Amber, size = 56.dp) },
+                        title = { Text("¿Ordenar «${device.name}»?") },
+                        text = { Text(es.electrohobby3d.armor.model.DeviceText.confirmQuestion(device, command).orEmpty()) },
+                        confirmButton = { Button(onClick = { viewModel.command(currentOrigin, device, command, confirm = true); confirmCommand = null }) { Text("Sí, ordenar") } },
+                        dismissButton = { TextButton(onClick = { confirmCommand = null }) { Text("Cancelar") } },
                     )
                 }
                 if (confirmLogout) AlertDialog(

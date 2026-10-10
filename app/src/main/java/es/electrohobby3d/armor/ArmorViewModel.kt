@@ -47,6 +47,10 @@ data class MonitorUiState(
     val devices: List<SiteDevice> = emptyList(),
     /** Solar inverters and batteries; null until the server has answered (an older server never does). */
     val solar: es.electrohobby3d.armor.model.SolarOverview? = null,
+    /** The alarm panels (ARMOR-ALARM nodes); null until the server has answered (an older server never does). */
+    val alarmPanels: es.electrohobby3d.armor.model.AlarmPanelsOverview? = null,
+    /** Whether the server may arm and disarm the panels, and the latest results of the commands. */
+    val alarmCommands: es.electrohobby3d.armor.model.AlarmCommandsStatus = es.electrohobby3d.armor.model.AlarmCommandsStatus(),
     /** The electrical nodes' meters; null until the server has answered (an older server never does). */
     val electrical: es.electrohobby3d.armor.model.ElectricalOverview? = null,
     /** The local network as the ARMOR-NETWORK nodes see it; null until the server has answered (an older server never does). */
@@ -130,6 +134,20 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
     }
 
     fun reloadSolar(origin: String) { viewModelScope.launch { pollSolar(origin) } }
+
+    /** The alarm panels and the status of their commands, quickly, while the Alarm panels screen is open. A failure is ignored; the next pass tries again. */
+    suspend fun pollAlarmPanels(origin: String) = withContext(Dispatchers.IO) {
+        runCatching { client.alarmPanels(origin) }.onSuccess { _state.value = _state.value.copy(alarmPanels = it) }
+        runCatching { client.alarmCommands(origin) }.onSuccess { _state.value = _state.value.copy(alarmCommands = it) }
+    }
+
+    fun reloadAlarmPanels(origin: String) { viewModelScope.launch { pollAlarmPanels(origin) } }
+
+    /** Arms a panel (mode "away" or "stay") or disarms it (mode null); the node's own answer shows in the panel's card a moment later. */
+    fun alarmCommand(origin: String, node: String, mode: String?, force: Boolean = false) = action(origin, if (mode == null) "$node: orden de desarmar enviada" else "$node: orden de armar enviada") {
+        client.sendAlarmCommand(origin, node, mode, force)
+        pollAlarmPanels(origin)
+    }
 
     /** The electrical network, quickly, while the Electrical screen is open. A failure is ignored; the next pass tries again. */
     suspend fun pollElectrical(origin: String) = withContext(Dispatchers.IO) {
@@ -315,8 +333,8 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
     }
 
     /** "on", "off" or "toggle" to a plug, light, switch, siren, lock or valve. */
-    fun command(origin: String, device: SiteDevice, command: String) = action(origin, "${device.name}: orden enviada") {
-        client.commandDevice(origin, device.id, command)
+    fun command(origin: String, device: SiteDevice, command: String, confirm: Boolean = false) = action(origin, "${device.name}: orden enviada") {
+        client.commandDevice(origin, device.id, command, confirm)
         _state.value = _state.value.copy(devices = client.devices(origin))
     }
 
