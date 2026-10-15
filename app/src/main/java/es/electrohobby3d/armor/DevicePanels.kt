@@ -5,9 +5,12 @@ package es.electrohobby3d.armor
 import es.electrohobby3d.armor.model.Alarm
 import es.electrohobby3d.armor.model.SiteDevice
 
-/** The words of the two buttons that command an actuator: a lock is locked by "on", a valve is opened by "on". */
+/** The actuators that open and close something: a valve, a roller shutter, the motor of a gate or of a garage door. "on" opens them. */
+internal val openingKinds = setOf("valve", "shutter", "gate_motor", "garage_motor")
+
+/** The words of the two buttons that command an actuator: a lock is locked by "on", a valve, a shutter or a gate motor is opened by "on". */
 internal fun commandLabels(kind: String): Pair<String, String> = when (kind) {
-    "lock" -> "Cerrar" to "Abrir"; "valve" -> "Abrir" to "Cerrar"; "siren" -> "Sonar" to "Silenciar"; else -> "Encender" to "Apagar"
+    "lock" -> "Cerrar" to "Abrir"; in openingKinds -> "Abrir" to "Cerrar"; "siren" -> "Sonar" to "Silenciar"; else -> "Encender" to "Apagar"
 }
 
 /** Where an alarm came from, in words: the device's own name when it is one. */

@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [0.5.2] - Roller shutters, gate and garage door motors and water heaters
+
+- **Devices:** the new kinds of the server - motorised roller shutter, gate motor, garage door motor and water heater - with their names, icons and cards; the motors and the shutter have the open and close buttons (the water heater, the switch).
+- Tests for the labels of the new kinds and the words of their commands.
+
 ## [0.5.1] - A sounding central wakes the phone, and the PIN to disarm
 
 - **An alarm of an ARMOR-ALARM node** (sounding, a zone in tamper, locked out, gone quiet) is told like the other alarms, armed or not, and its source is named by node and zone. Before, `source_type` `alarm` was not on the list and the phone stayed silent. The app has not been compiled with this change: only the unit test was written.

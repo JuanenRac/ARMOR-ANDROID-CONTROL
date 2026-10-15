@@ -148,4 +148,15 @@ class DevicesAndAlarmsTest {
         assertEquals("Abrir" to "Cerrar", commandLabels("valve"))
         assertEquals("Encender" to "Apagar", commandLabels("smart_plug"))
     }
+
+    @Test fun aShutterAndTheMotorsOfAGateAndOfAGarageDoorAreOpenedByOnAndAWaterHeaterIsSwitched() {
+        for (kind in listOf("shutter", "gate_motor", "garage_motor")) {
+            assertEquals("Abrir" to "Cerrar", commandLabels(kind))
+            assertEquals("open", DeviceText.mainField[kind])
+        }
+        assertEquals("Encender" to "Apagar", commandLabels("water_heater"))
+        assertEquals("on", DeviceText.mainField["water_heater"])
+        assertEquals("Persiana motorizada", DeviceText.kindLabel("shutter"))
+        assertEquals("Calentador de agua", DeviceText.kindLabel("water_heater"))
+    }
 }

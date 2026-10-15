@@ -12,6 +12,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Blinds
+import androidx.compose.material.icons.filled.Fence
+import androidx.compose.material.icons.filled.Garage
+import androidx.compose.material.icons.filled.HotTub
 import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
@@ -221,6 +225,7 @@ internal fun kindIcon(kind: String): ImageVector = when (kind) {
     "door" -> Icons.Filled.DoorFront; "window" -> Icons.Filled.Window; "motion" -> Icons.AutoMirrored.Filled.DirectionsRun; "glass_break" -> Icons.Filled.GraphicEq; "vibration" -> Icons.Filled.Vibration
     "climate" -> Icons.Filled.Thermostat; "temperature" -> Icons.Filled.DeviceThermostat; "humidity" -> Icons.Filled.Opacity; "light_level" -> Icons.Filled.LightMode
     "smart_plug" -> Icons.Filled.Power; "smart_light" -> Icons.Filled.Lightbulb; "smart_switch" -> Icons.Filled.ToggleOn; "smart_breaker" -> Icons.Filled.Bolt; "energy_meter" -> Icons.Filled.Speed; "siren" -> Icons.Filled.Campaign; "lock" -> Icons.Filled.Lock; "valve" -> Icons.Filled.Plumbing
+    "shutter" -> Icons.Filled.Blinds; "gate_motor" -> Icons.Filled.Fence; "garage_motor" -> Icons.Filled.Garage; "water_heater" -> Icons.Filled.HotTub
     else -> Icons.Filled.Sensors
 }
 
@@ -279,7 +284,7 @@ private fun DeviceTile(device: SiteDevice, onCommand: (SiteDevice, String) -> Un
             if (device.actuator && device.canCommand) {
                 val (onLabel, offLabel) = commandLabels(device.kind)
                 when (device.kind) {
-                    "lock", "valve", "siren" -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    "lock", "valve", "shutter", "gate_motor", "garage_motor", "siren" -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         val onIcon = when (device.kind) { "lock" -> Icons.Filled.Lock; "siren" -> Icons.AutoMirrored.Filled.VolumeUp; else -> Icons.Filled.PlayArrow }
                         val offIcon = when (device.kind) { "lock" -> Icons.Filled.LockOpen; "siren" -> Icons.AutoMirrored.Filled.VolumeOff; else -> Icons.Filled.Stop }
                         FilledTonalIconButton(onClick = { onCommand(device, "on") }, enabled = enabled) { Icon(onIcon, contentDescription = onLabel) }

@@ -74,6 +74,7 @@ object DeviceText {
         "door" to "open", "window" to "open", "motion" to "triggered", "glass_break" to "triggered", "vibration" to "triggered",
         "climate" to null, "temperature" to null, "humidity" to null, "light_level" to null,
         "smart_plug" to "on", "smart_light" to "on", "smart_switch" to "on", "smart_breaker" to "on", "energy_meter" to null, "siren" to "on", "lock" to "locked", "valve" to "open",
+        "shutter" to "open", "gate_motor" to "open", "garage_motor" to "open", "water_heater" to "on",
     )
     private val alarmKinds = setOf("smoke", "co", "gas", "water_leak", "panic_button", "door", "window", "motion", "glass_break", "vibration")
 
@@ -82,6 +83,7 @@ object DeviceText {
         "door" -> "Contacto de puerta"; "window" -> "Contacto de ventana"; "motion" -> "Sensor de movimiento"; "glass_break" -> "Rotura de cristal"; "vibration" -> "Sensor de vibración"
         "climate" -> "Temperatura y humedad"; "temperature" -> "Temperatura"; "humidity" -> "Humedad"; "light_level" -> "Nivel de luz"
         "smart_plug" -> "Enchufe inteligente"; "smart_light" -> "Luz inteligente"; "smart_switch" -> "Interruptor"; "smart_breaker" -> "Automático inteligente"; "energy_meter" -> "Medidor de energía"; "siren" -> "Sirena"; "lock" -> "Cerradura"; "valve" -> "Válvula"
+        "shutter" -> "Persiana motorizada"; "gate_motor" -> "Motor de puerta o cancela"; "garage_motor" -> "Motor de puerta de garaje"; "water_heater" -> "Calentador de agua"
         else -> kind
     }
 
