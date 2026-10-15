@@ -25,7 +25,7 @@
 
 ---
 
-**Honesty check - what runs today:** The endpoint-safety, alarm-decision, assistant and node-address rules have unit tests and the app builds. **It runs on a real phone against the real server**: the login with a session kept encrypted on the phone, the status, the live radar of the site and the weather radar have been used there, and that use found and fixed real faults. **Not yet recorded on a phone:** the notification permission flow and the background watch, the written and spoken Assistant, the configurator of the nodes, the Bluetooth set-up of a node, and the solar and electrical screens with real equipment.
+**Honesty check - what runs today:** The endpoint-safety and alarm-decision rules have unit tests and the app builds. It has **not been run on a phone against the server**, so the notification permission flow and the background service are unverified. Arming, alarms and devices follow the server's routes but have not been tried on a real phone.
 
 ---
 
@@ -34,17 +34,14 @@
 * **Sign in with the server's own login:** IP, port, user and password; the password creates an HttpOnly session and is never stored on the phone.
 * **Camera monitor:** 1 to 16 tiles, a maximized view, live MJPEG that keeps the picture ratio, a bounded PTZ pad, snapshots and recordings.
 * **Arm and disarm**, after a confirmation; **alarms** to acknowledge, with a badge for those waiting; **devices** (smoke, gas, flood, door, window, motion, climate, plugs, lights, sirens, locks) with their state and On / Off / Toggle.
-* **Live radar, in 2D and 3D:** the Radar tab draws the site as designed in Studio (ground, buildings, trees, posts, the fields of the radars and cameras) and the people the radars see moving on it, refreshed every second and a half; drag, pinch and turn the 3D view. The placement follows Studio's rules, and the view works with the real nodes of the site.
+* **Live radar, in 2D and 3D:** the Radar tab draws the site as designed in Studio (ground, buildings, trees, posts, the fields of the radars and cameras) and the people the radars see moving on it, refreshed every second and a half; drag, pinch and turn the 3D view. The placement follows Studio's rules, but it has never shown a real radar.
 * **Solar:** an entry in *More* (and a tile on the Status screen) shows the sums (sun, consumption, batteries with their charge and flow, whether the grid is present) and every inverter and battery the server reports: their numbers, the cells of a battery on demand with the highest and the lowest marked, the equipment still waiting for data, and a mark on an example reading or a silent device. Refreshed every five seconds while it is open; tested against the shapes the server answers and tried in an emulator against a local server with example readings, never with real equipment. Solar alarms (an inverter fault, a battery that is low or protecting itself, equipment that went silent) wake the phone like a device alarm.
 * **Set up a field node over Bluetooth** (from the login screen or *Más > Configurar un nodo*): finds the nodes that advertise `ARMOR-xxxxxx`, creates the administrator of a new one or signs in, searches for Wi-Fi networks and sets the node's name, a router's Wi-Fi or a fixed address and the broker, for nodes with no Ethernet cable. Compiled and unit-tested, never run against a node or a phone.
 * **Evidence library**, the perimeter and node state, and a **history** of every alert, node, camera, device, alarm and mode change.
 * **Alarm notifications** for a node reaching HIGH, a camera that stops answering, a device alarm (smoke, gas, flood, panic at any time; a door, window or motion sensor while armed) and, while armed, a node that goes offline; an optional background watch uses the current session and says so when it ends.
 * **Careful with the password:** plain HTTP is allowed only to a private-LAN or loopback IPv4 *literal*. A host name that merely starts like a private address (`10.attacker.example`) or an address with a leading zero (some resolvers read `010.0.0.1` as the public `8.0.0.1`) is refused.
 * **Electrical network:** an entry in *More* (and a tile on the Status screen) shows the power of the grid input (drawing or feeding the network), every channel the electrical nodes measure (voltage, current, power, energy, frequency, power factor, the state of a switch) and the meters' alarms; the alarms of the electrical nodes (a meter's alarm, the mains out of range, the grid lost, a node that stopped answering) wake the operator like the solar ones. An inverter's card also shows its second PV input and the units of a parallel system.
-* **Alarm panels:** an entry in *More* lists the ARMOR-ALARM nodes: whether each one is guarding (away or at home), its zones (closed, open, tamper, left out) and its last events, with the alarm of a panel that sounds (critical) or has a zone in tamper (high) among the alarms. Arm and disarm from the card only when the server (`ARMOR_ALARM_COMMANDS=1`), the node and the broker all allow it; a disarm asks for the PIN of the signed-in user, which the server checks. Not a certified alarm system.
 * **A look made of icons:** near-black surfaces, a cyan accent, amber for attention, big icons with few words, a bottom bar, an About page and a sign-out button.
-* **Assistant and node configurator:** *More > Assistant* takes written or spoken commands (fifteen, with a phrase to tap for each: the alarms, the nodes, the cameras, who the radars see, solar, consumption, the network, the time, help, lights on and off, arm, disarm, state and silence) and answers aloud; *More > Configure nodes* opens the configuration panel of a radar, solar or electrical node inside the app, as if it were opened in a browser (only an address of the local network is opened). The live weather radar sits in the Radar tab.
-* **PIN to disarm and alarms that wake the phone:** disarming the system or an alarm panel asks for the PIN, and a sounding alarm panel, a tamper or a disarm under duress notify the phone whether the system is armed or not (written and tested in the JVM; not yet built on a device).
 
 ## 📂 Repository Structure
 
@@ -77,14 +74,12 @@ The debug APK is not signed for distribution. See the [client boundary](docs/CLI
 * **[ARMOR-RADAR](https://github.com/JuanenRac/ARMOR-RADAR)** - Field-node firmware for ESP32-S3 with three radars and its own web panel
 * **[ARMOR-SOLAR](https://github.com/JuanenRac/ARMOR-SOLAR)** - Solar inverter and battery protocols and the messages of a gateway node
 * **[ARMOR-ELECTRICAL](https://github.com/JuanenRac/ARMOR-ELECTRICAL)** - Electrical node: meters, the message of the network's readings and the rules for switching
-* **[ARMOR-ALARM](https://github.com/JuanenRac/ARMOR-ALARM)** - Alarm node and panel: zones, arming, delays, siren and PIN, with the server or without it
 * **[ARMOR-HMI](https://github.com/JuanenRac/ARMOR-HMI)** - Touch panel: the state of the system on a wall screen, arming and acknowledging, and the home of the voice assistant
 * **[ARMOR-NETWORK](https://github.com/JuanenRac/ARMOR-NETWORK)** - The local network: its devices, the internet and what changes
 * **[ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER)** - Central coordinator: telemetry, alarms, devices, solar readings and cameras
 * **[ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO)** - Web console: cameras, radar, alarms, solar energy and the 2D/3D site designer
 * **ARMOR-ANDROID-CONTROL** (this repository) - Android operator client with a live 2D/3D radar
 * **[ARMOR-SERVER-AI](https://github.com/JuanenRac/ARMOR-SERVER-AI)** - Visual inference policy that explains its decisions and never actuates
-* **[ARMOR-VISION](https://github.com/JuanenRac/ARMOR-VISION)** - Camera zones, masks and detection rules for the Jetson Orin NX
 * **[ARMOR-VOICE-AI](https://github.com/JuanenRac/ARMOR-VOICE-AI)** - Offline voice intents with a confirmation that cannot be forged
 * **[ARMOR-HARDWARE](https://github.com/JuanenRac/ARMOR-HARDWARE)** - Enclosures, electronics and the bench acceptance matrix
 * **[ARMOR-DEVOPS](https://github.com/JuanenRac/ARMOR-DEVOPS)** - Deployment, the CM5 test bench, backup and TLS
