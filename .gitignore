@@ -7,3 +7,7 @@ local.properties
 armor-android-build.log
 
 .kotlin/
+
+__pycache__/
+
+*.pyc
