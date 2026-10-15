@@ -276,7 +276,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 }) {
                                     AlarmPanelsScreen(
                                         state.alarmPanels, state.alarmCommands, canCommand = state.authenticated, network = state.network, onScanNetwork = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading,
-                                        onArm = { panel, mode, force -> viewModel.alarmCommand(currentOrigin, panel.nodeId, mode, force) }, onDisarm = { panel -> viewModel.alarmCommand(currentOrigin, panel.nodeId, null) },
+                                        onArm = { panel, mode, force -> viewModel.alarmCommand(currentOrigin, panel.nodeId, mode, force) }, onDisarm = { panel, pin -> viewModel.alarmCommand(currentOrigin, panel.nodeId, null, pin = pin) },
                                     )
                                 }
                                 MoreTab.Network -> SubScreen(Icons.Filled.Router, "Red", onBack = { moreTab = null }, actions = {
@@ -341,14 +341,22 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                 }
                 confirmMode?.let { mode ->
                     val arming = mode == "armed"
-                    AlertDialog(
-                        onDismissRequest = { confirmMode = null }, containerColor = ArmorColors.SurfaceRaised,
-                        icon = { IconBadge(if (arming) Icons.Filled.Shield else Icons.Filled.LockOpen, if (arming) ArmorColors.Ok else ArmorColors.Amber, size = 56.dp) },
-                        title = { Text(if (arming) "¿Armar el sistema?" else "¿Desarmar el sistema?") },
-                        text = { Text(if (arming) "Puertas, ventanas y movimiento harán sonar la alarma." else "Puertas, ventanas y movimiento dejan de avisar. El humo, el gas, el agua y el pánico siguen avisando.") },
-                        confirmButton = { Button(onClick = { viewModel.setMode(currentOrigin, mode); confirmMode = null }) { Text(if (arming) "Armar" else "Desarmar") } },
-                        dismissButton = { TextButton(onClick = { confirmMode = null }) { Text("Cancelar") } },
-                    )
+                    if (arming) {
+                        AlertDialog(
+                            onDismissRequest = { confirmMode = null }, containerColor = ArmorColors.SurfaceRaised,
+                            icon = { IconBadge(Icons.Filled.Shield, ArmorColors.Ok, size = 56.dp) },
+                            title = { Text("¿Armar el sistema?") },
+                            text = { Text("Puertas, ventanas y movimiento harán sonar la alarma.") },
+                            confirmButton = { Button(onClick = { viewModel.setMode(currentOrigin, mode); confirmMode = null }) { Text("Armar") } },
+                            dismissButton = { TextButton(onClick = { confirmMode = null }) { Text("Cancelar") } },
+                        )
+                    } else {
+                        PinAlertDialog(
+                            title = "¿Desarmar el sistema?",
+                            text = "Puertas, ventanas y movimiento dejan de avisar. El humo, el gas, el agua y el pánico siguen avisando.",
+                            confirmLabel = "Desarmar", onConfirm = { pin -> viewModel.setMode(currentOrigin, mode, pin); confirmMode = null }, onDismiss = { confirmMode = null },
+                        )
+                    }
                 }
                 confirmCommand?.let { (device, command) ->
                     AlertDialog(

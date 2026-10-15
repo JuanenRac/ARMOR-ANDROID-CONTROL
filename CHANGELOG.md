@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [0.5.1] - A sounding central wakes the phone, and the PIN to disarm
+
+- **An alarm of an ARMOR-ALARM node** (sounding, a zone in tamper, locked out, gone quiet) is told like the other alarms, armed or not, and its source is named by node and zone. Before, `source_type` `alarm` was not on the list and the phone stayed silent. The app has not been compiled with this change: only the unit test was written.
+- **Disarming asks for the PIN** (the system, and an alarm panel) in a dialog with a numeric field; a wrong, locked or missing PIN is told in words. The alarm of a disarm under duress has its sentence. The app has not been compiled with this change.
+
 ## [0.5.0] - The alarm panels, and the electrical devices of the house
 
 - **More > Alarm panels:** the ARMOR-ALARM nodes. One card per panel with its phase and mode (disarmed, leaving, armed, entry delay, ALARM; away or at home), the siren, its zones (kind and closed, open, tamper or left out) and its last events told as how long ago; the node finder is there too. The screen reads the panels every three seconds while it is open.

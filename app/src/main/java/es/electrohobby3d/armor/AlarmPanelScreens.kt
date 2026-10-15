@@ -38,7 +38,7 @@ import es.electrohobby3d.armor.model.NetworkOverview
 @Composable
 fun AlarmPanelsScreen(
     overview: AlarmPanelsOverview?, commands: AlarmCommandsStatus, canCommand: Boolean, network: NetworkOverview? = null,
-    onScanNetwork: () -> Unit = {}, scanning: Boolean = false, onArm: (AlarmPanelView, String, Boolean) -> Unit = { _, _, _ -> }, onDisarm: (AlarmPanelView) -> Unit = {},
+    onScanNetwork: () -> Unit = {}, scanning: Boolean = false, onArm: (AlarmPanelView, String, Boolean) -> Unit = { _, _, _ -> }, onDisarm: (AlarmPanelView, String) -> Unit = { _, _ -> },
 ) {
     val data = overview ?: AlarmPanelsOverview()
     var confirmDisarm by remember { mutableStateOf<AlarmPanelView?>(null) }
@@ -62,13 +62,9 @@ fun AlarmPanelsScreen(
         }
     }
     confirmDisarm?.let { panel ->
-        AlertDialog(
-            onDismissRequest = { confirmDisarm = null }, containerColor = ArmorColors.SurfaceRaised,
-            icon = { IconBadge(Icons.Filled.Shield, ArmorColors.Amber, size = 56.dp) },
-            title = { Text("¿Desarmar «${panel.nodeId}»?") },
-            text = { Text(AlarmPanelText.confirmDisarm(panel.nodeId)) },
-            confirmButton = { Button(onClick = { onDisarm(panel); confirmDisarm = null }) { Text("Sí, desarmar") } },
-            dismissButton = { TextButton(onClick = { confirmDisarm = null }) { Text("Cancelar") } },
+        PinAlertDialog(
+            title = "¿Desarmar «${panel.nodeId}»?", text = AlarmPanelText.confirmDisarm(panel.nodeId),
+            confirmLabel = "Sí, desarmar", onConfirm = { pin -> onDisarm(panel, pin); confirmDisarm = null }, onDismiss = { confirmDisarm = null },
         )
     }
 }

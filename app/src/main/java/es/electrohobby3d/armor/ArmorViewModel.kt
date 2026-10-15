@@ -144,8 +144,8 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
     fun reloadAlarmPanels(origin: String) { viewModelScope.launch { pollAlarmPanels(origin) } }
 
     /** Arms a panel (mode "away" or "stay") or disarms it (mode null); the node's own answer shows in the panel's card a moment later. */
-    fun alarmCommand(origin: String, node: String, mode: String?, force: Boolean = false) = action(origin, if (mode == null) "$node: orden de desarmar enviada" else "$node: orden de armar enviada") {
-        client.sendAlarmCommand(origin, node, mode, force)
+    fun alarmCommand(origin: String, node: String, mode: String?, force: Boolean = false, pin: String? = null) = action(origin, if (mode == null) "$node: orden de desarmar enviada" else "$node: orden de armar enviada") {
+        client.sendAlarmCommand(origin, node, mode, force, pin)
         pollAlarmPanels(origin)
     }
 
@@ -317,9 +317,9 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
     }
 
     /** Arm or disarm. The screen asks the person first; a failure shows as a message and changes nothing. */
-    fun setMode(origin: String, mode: String) = action(origin, if (mode == "armed") "Sistema ARMADO" else "Sistema DESARMADO") {
+    fun setMode(origin: String, mode: String, pin: String? = null) = action(origin, if (mode == "armed") "Sistema ARMADO" else "Sistema DESARMADO") {
         require(_state.value.authenticated) { "Sign in first" }
-        _state.value = _state.value.copy(snapshot = client.setMode(origin, mode))
+        _state.value = _state.value.copy(snapshot = client.setMode(origin, mode, pin))
     }
 
     fun acknowledge(origin: String, alarm: Alarm) = action(origin, "Alarma confirmada") {

@@ -51,11 +51,23 @@ class ArmorApiClient {
         CameraView(camera.getString("id"), camera.optString("name", camera.getString("id")), camera.optString("host"), camera.optString("snapshotUrl"), camera.optString("rtspPath"), camera.optInt("onvifPort", 80), camera.optInt("rtspPort", 554), camera.optBoolean("hasCredentials"), camera.optBoolean("liveVideoAvailable"))
     }
 
-    /** Arm or disarm the system; the server audits it with the signed-in user's name. */
-    fun setMode(origin: String, mode: String): ArmorSnapshot {
+    /** Arm or disarm the system; the server audits it with the signed-in user's name. Disarming carries the PIN of the user when there is one to type. */
+    fun setMode(origin: String, mode: String, pin: String? = null): ArmorSnapshot {
         require(mode == "armed" || mode == "disarmed") { "El modo es armed o disarmed" }
-        request(origin, "/api/v1/mode", "POST", mapOf("Content-Type" to "application/json"), JSONObject(mapOf("mode" to mode)).toString(), setOf(200)).disconnect()
+        val body = JSONObject().put("mode", mode)
+        if (mode == "disarmed" && !pin.isNullOrEmpty()) body.put("pin", pin)
+        try {
+            request(origin, "/api/v1/mode", "POST", mapOf("Content-Type" to "application/json"), body.toString(), setOf(200)).disconnect()
+        } catch (error: ArmorApiException) {
+            throw pinFailure(error) ?: error
+        }
         return status(origin)
+    }
+
+    /** The refusal of a PIN (wrong, locked, none set) in words; null for any other failure. */
+    private fun pinFailure(error: ArmorApiException): ArmorApiException? {
+        val code = Regex("\"code\"\\s*:\\s*\"([a-z_]+)\"").find(error.message.orEmpty())?.groupValues?.get(1).orEmpty()
+        return if (code == "wrong_pin" || code == "pin_locked" || code == "pin_not_set") ArmorApiException(es.electrohobby3d.armor.model.AlarmPanelText.error(code), error.code) else null
     }
 
     /** Active alarms first (raised and not yet cleared, or cleared but waiting for a person), then the closed record. */
@@ -73,13 +85,15 @@ class ArmorApiClient {
     fun alarmPanels(origin: String): es.electrohobby3d.armor.model.AlarmPanelsOverview = es.electrohobby3d.armor.model.AlarmPanelsParser.overview(getJson(origin, "/api/v1/alarm/nodes"))
     /** Whether the server may arm and disarm the panels at all, and what became of the latest commands. */
     fun alarmCommands(origin: String): es.electrohobby3d.armor.model.AlarmCommandsStatus = es.electrohobby3d.armor.model.AlarmPanelsParser.commands(getJson(origin, "/api/v1/alarm/commands"))
-    /** Arms a panel (mode "away" or "stay", optionally leaving out the open zones) or disarms it (mode null). There is no PIN in it; the server, the node and the broker must have allowed it. */
-    fun sendAlarmCommand(origin: String, node: String, mode: String?, force: Boolean) {
+    /** Arms a panel (mode "away" or "stay", optionally leaving out the open zones) or disarms it (mode null, with the PIN of the signed-in user when there is one). The server checks the PIN and never sends it to the node. */
+    fun sendAlarmCommand(origin: String, node: String, mode: String?, force: Boolean, pin: String? = null) {
         val body = JSONObject().put("node", node).put("action", if (mode == null) "disarm" else "arm")
         if (mode != null) { body.put("mode", mode); if (force) body.put("force", true) }
+        else if (!pin.isNullOrEmpty()) body.put("pin", pin)
         try {
             request(origin, "/api/v1/alarm/command", "POST", mapOf("Content-Type" to "application/json"), body.toString(), setOf(202)).disconnect()
         } catch (error: ArmorApiException) {
+            pinFailure(error)?.let { throw it }
             val code = Regex("\"code\"\\s*:\\s*\"([a-z_]+)\"").find(error.message.orEmpty())?.groupValues?.get(1).orEmpty()
             throw ArmorApiException(es.electrohobby3d.armor.model.AlarmPanelText.error(code), error.code)
         }

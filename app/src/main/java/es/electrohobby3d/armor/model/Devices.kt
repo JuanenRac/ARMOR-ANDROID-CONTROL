@@ -146,6 +146,7 @@ object DeviceText {
         "network_offline" -> "Un nodo de red ha dejado de informar"; "network_watched_online" -> "Un dispositivo que pediste vigilar ha vuelto a la red"
         "alarm_sounding" -> "¡La alarma está sonando!"; "alarm_tamper" -> "Una zona de la alarma indica sabotaje (cable cortado o en cortocircuito)"
         "alarm_locked_out" -> "La central de alarma está bloqueada tras PIN erróneos"; "alarm_offline" -> "Un nodo de alarma ha dejado de responder"
+        "duress_disarm" -> "El sistema se desarmó con el PIN de coacción: puede que alguien esté siendo obligado"
         else -> code
     }
 

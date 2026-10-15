@@ -101,6 +101,9 @@ object AlarmPanelText {
         "node_commands_off" -> "El nodo no acepta órdenes del servidor"
         "busy" -> "Otra orden a este nodo aún espera su respuesta"
         "mqtt_unavailable" -> "El servidor no está conectado al broker"
+        "wrong_pin" -> "El PIN no es correcto"
+        "pin_locked" -> "Demasiados PIN erróneos: espera un poco"
+        "pin_not_set" -> "Este usuario no tiene PIN: lo pone un administrador"
         else -> "No se pudo enviar la orden"
     }
 

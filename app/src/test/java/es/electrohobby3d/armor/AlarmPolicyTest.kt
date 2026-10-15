@@ -70,4 +70,22 @@ class AlarmPolicyTest {
         assertNull(EventParser.parse(JSONObject("""{"id":1,"type":"node"}""")))
         assertNull(EventParser.parse(JSONObject("""{"type":"mode","mode":"armed"}""")))
     }
+
+    @Test fun aSoundingAlarmNodeWakesTheOperatorWhetherOrNotTheServerIsArmed() {
+        val sounding = ArmorEvent(7, "t", "alarm", "alarm-1", null, "raised", null, null, "critical", "alarm_sounding", "alarm")
+        val tamper = ArmorEvent(8, "t", "alarm", "alarm-1/front-door", null, "raised", null, null, "high", "alarm_tamper", "alarm")
+        val cleared = ArmorEvent(9, "t", "alarm", "alarm-1", null, "cleared", null, null, "critical", "alarm_sounding", "alarm")
+        for (armed in listOf(true, false)) {
+            val notices = AlarmPolicy.notices(listOf(sounding, tamper, cleared), armed)
+            assertEquals(listOf(7L, 8L), notices.map { it.id })
+        }
+    }
+
+    @Test fun theRefusalsOfAPinAreToldInWords() {
+        assertEquals("El PIN no es correcto", es.electrohobby3d.armor.model.AlarmPanelText.error("wrong_pin"))
+        assertEquals("Demasiados PIN erróneos: espera un poco", es.electrohobby3d.armor.model.AlarmPanelText.error("pin_locked"))
+        assertEquals("Este usuario no tiene PIN: lo pone un administrador", es.electrohobby3d.armor.model.AlarmPanelText.error("pin_not_set"))
+        assertEquals("12345678", onlyDigits("12a3-4 5678"))
+        assertEquals("1234567890", onlyDigits("12345678901234"))
+    }
 }
