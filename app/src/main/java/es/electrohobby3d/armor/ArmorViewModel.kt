@@ -35,6 +35,8 @@ data class WeatherUiState(
 )
 
 data class MonitorUiState(
+    /** The role of the signed-in user; a viewer only looks. */
+    val role: String = "",
     val loading: Boolean = false,
     val snapshot: ArmorSnapshot = ArmorSnapshot(),
     val cameras: List<CameraView> = emptyList(),
@@ -65,7 +67,9 @@ data class MonitorUiState(
     val siteLoaded: Boolean = false,
     val authenticated: Boolean = false,
     val message: String? = null,
-)
+) {
+    val readOnly: Boolean get() = role == "viewer"
+}
 
 class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), private val weatherClient: WeatherApiClient = WeatherApiClient()) : ViewModel() {
     private val _state = MutableStateFlow(MonitorUiState())
@@ -97,6 +101,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
      * [spoken] is called with the sentence to say, for the voice of the phone.
      */
     fun sendVoice(origin: String, text: String, language: String = Tr.voiceLanguage(), confirm: PendingVoice? = null, spoken: (String) -> Unit = {}) {
+        if (viewerRefused()) return
         val phrase = (confirm?.text ?: text).trim()
         if (phrase.isEmpty() || _voice.value.busy) return
         if (ServerEndpoint.parse(origin) == null) { _voice.value = _voice.value.copy(messages = _voice.value.messages + VoiceMessage(false, tr("Configura el servidor en Ajustes."), problem = true)); return }
@@ -145,7 +150,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
     fun reloadAlarmPanels(origin: String) { viewModelScope.launch { pollAlarmPanels(origin) } }
 
     /** Arms a panel (mode "away" or "stay") or disarms it (mode null); the node's own answer shows in the panel's card a moment later. */
-    fun alarmCommand(origin: String, node: String, mode: String?, force: Boolean = false, pin: String? = null) = action(origin, if (mode == null) trf("%s: orden de desarmar enviada", node) else trf("%s: orden de armar enviada", node)) {
+    fun alarmCommand(origin: String, node: String, mode: String?, force: Boolean = false, pin: String? = null) = mutating(origin, if (mode == null) trf("%s: orden de desarmar enviada", node) else trf("%s: orden de armar enviada", node)) {
         client.sendAlarmCommand(origin, node, mode, force, pin)
         pollAlarmPanels(origin)
     }
@@ -172,7 +177,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
     fun reloadServices(origin: String) { viewModelScope.launch { pollServices(origin) } }
 
     /** Asks the network node to sweep now, for the node finder (Solar, Electrical and Radar screens); a failure is shown as a message. */
-    fun scanNetworkNow(origin: String) = action(origin, tr("Búsqueda en la red iniciada")) { client.scanNetworkNow(origin) }
+    fun scanNetworkNow(origin: String) = mutating(origin, tr("Búsqueda en la red iniciada")) { client.scanNetworkNow(origin) }
 
     /** Looks for a place by name (Open-Meteo's geocoding); empty for fewer than two characters. */
     fun searchPlaces(query: String) {
@@ -203,6 +208,18 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
     fun setWeatherPlace(place: Place) = loadWeather(place)
     fun clearWeatherPlace() { _state.update { it.copy(weather = WeatherUiState()) } }
 
+    /** A viewer only looks: what changes something is refused here before it is asked of the server (which refuses it too). */
+    fun viewerRefused(): Boolean {
+        if (!_state.value.readOnly) return false
+        _state.update { it.copy(message = tr("Tu usuario solo puede mirar: no puede cambiar nada.")) }
+        return true
+    }
+
+    private fun mutating(origin: String, success: String, operation: suspend () -> Unit) {
+        if (viewerRefused()) return
+        action(origin, success, operation)
+    }
+
     /** The message on screen has been read. */
     fun dismissMessage() { _state.update { it.copy(message = null) } }
 
@@ -215,7 +232,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
     fun login(origin: String, username: String, password: String) = action(origin, "Session established") {
         require(username.isNotBlank() && password.isNotBlank()) { "Enter username and password" }
         client.openStudioSession(origin, username.trim(), password)
-        _state.update { it.copy(authenticated = true) }
+        _state.update { it.copy(authenticated = true, role = runCatching { client.studioRole(origin) }.getOrDefault("")) }
         refreshInternal(origin, loadMedia = true)
     }
 
@@ -231,7 +248,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
         client.restoreSessionCookie(origin, session.name, session.value)
         try {
             if (!client.studioSessionActive(origin)) { refused(); return@withContext false }
-            _state.update { it.copy(authenticated = true) }
+            _state.update { it.copy(authenticated = true, role = runCatching { client.studioRole(origin) }.getOrDefault("")) }
             refreshInternal(origin, loadMedia = true)
             true
         } catch (error: ArmorApiException) {
@@ -246,7 +263,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
 
     fun restoreSession(origin: String) = action(origin, "Session restored") {
         require(client.studioSessionActive(origin)) { "Sign in to ARMOR-SERVER" }
-        _state.update { it.copy(authenticated = true) }
+        _state.update { it.copy(authenticated = true, role = runCatching { client.studioRole(origin) }.getOrDefault("")) }
         refreshInternal(origin, loadMedia = true)
     }
 
@@ -281,6 +298,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
     private val ptzLock = Mutex()
 
     fun ptz(origin: String, camera: CameraView, command: String) {
+        if (viewerRefused()) return
         if (ServerEndpoint.parse(origin) == null || !_state.value.authenticated) return
         viewModelScope.launch {
             ptzLock.withLock {
@@ -290,7 +308,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
         }
     }
 
-    fun deleteMedia(origin: String, item: es.electrohobby3d.armor.model.MediaItem) = action(origin, "Evidence removed") {
+    fun deleteMedia(origin: String, item: es.electrohobby3d.armor.model.MediaItem) = mutating(origin, "Evidence removed") {
         require(_state.value.authenticated) { "Sign in first" }
         client.deleteMedia(origin, item)
         _state.update { it.copy(media = client.media(origin)) }
@@ -331,23 +349,23 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
     suspend fun preflight(origin: String): es.electrohobby3d.armor.model.Preflight? = withContext(Dispatchers.IO) { runCatching { client.preflight(origin) }.getOrNull() }
 
     /** Arm or disarm. The screen asks the person first; a failure shows as a message and changes nothing. */
-    fun setMode(origin: String, mode: String, pin: String? = null) = action(origin, if (mode == "armed") tr("Sistema ARMADO") else tr("Sistema DESARMADO")) {
+    fun setMode(origin: String, mode: String, pin: String? = null) = mutating(origin, if (mode == "armed") tr("Sistema ARMADO") else tr("Sistema DESARMADO")) {
         require(_state.value.authenticated) { "Sign in first" }
         _state.update { it.copy(snapshot = client.setMode(origin, mode, pin)) }
     }
 
-    fun acknowledge(origin: String, alarm: Alarm) = action(origin, tr("Alarma confirmada")) {
+    fun acknowledge(origin: String, alarm: Alarm) = mutating(origin, tr("Alarma confirmada")) {
         client.acknowledgeAlarm(origin, alarm.id)
         client.alarms(origin).let { pair -> _state.update { it.copy(alarms = pair.first, closedAlarms = pair.second) } }
     }
 
-    fun acknowledgeAll(origin: String) = action(origin, tr("Alarmas confirmadas")) {
+    fun acknowledgeAll(origin: String) = mutating(origin, tr("Alarmas confirmadas")) {
         client.acknowledgeAllAlarms(origin)
         client.alarms(origin).let { pair -> _state.update { it.copy(alarms = pair.first, closedAlarms = pair.second) } }
     }
 
     /** "on", "off" or "toggle" to a plug, light, switch, siren, lock or valve. */
-    fun command(origin: String, device: SiteDevice, command: String, confirm: Boolean = false) = action(origin, trf("%s: orden enviada", device.name)) {
+    fun command(origin: String, device: SiteDevice, command: String, confirm: Boolean = false) = mutating(origin, trf("%s: orden enviada", device.name)) {
         client.commandDevice(origin, device.id, command, confirm)
         _state.update { it.copy(devices = client.devices(origin)) }
     }

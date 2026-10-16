@@ -245,7 +245,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                             Section.Status -> StatusScreen(
                                 armed = state.snapshot.mode == "armed", updated = state.snapshot.updatedAt, nodes = state.snapshot.nodes, cameras = state.cameras.size,
                                 camerasDown = state.cameraHealth.count { it.value == "offline" }, pendingAlarms = state.alarms.count { !it.acknowledged }, devices = state.devices,
-                                onMode = { confirmMode = if (state.snapshot.mode == "armed") "disarmed" else "armed" }, onAlarms = { section = Section.Alarms },
+                                onMode = { if (!viewModel.viewerRefused()) confirmMode = if (state.snapshot.mode == "armed") "disarmed" else "armed" }, onAlarms = { section = Section.Alarms },
                                 onDevices = { section = Section.Devices }, onCameras = { section = Section.Cameras }, onRadar = { section = Section.Radar },
                                 onRefresh = { viewModel.refresh(currentOrigin) }, enabled = validOrigin && !state.loading,
                                 solar = state.solar, onSolar = { section = Section.More; moreTab = MoreTab.Solar },
@@ -255,10 +255,10 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                             Section.Radar -> RadarScreen(state.site, state.siteLoaded, state.snapshot.nodes, onReload = { reloadSite++ })
                             Section.Alarms -> AlarmsScreen(
                                 state.alarms, state.closedAlarms, state.devices, state.cameras.associate { it.id to it.name },
-                                onAcknowledge = { viewModel.acknowledge(currentOrigin, it) }, onAcknowledgeAll = { viewModel.acknowledgeAll(currentOrigin) }, enabled = validOrigin && !state.loading,
+                                onAcknowledge = { viewModel.acknowledge(currentOrigin, it) }, onAcknowledgeAll = { viewModel.acknowledgeAll(currentOrigin) }, enabled = validOrigin && !state.loading && !state.readOnly,
                                 solarNames = state.solar?.let { s -> s.devices.associate { "${it.nodeId}/${it.device}" to it.name } + s.waiting.associate { "${it.nodeId}/${it.device}" to it.name } }.orEmpty(),
                             )
-                            Section.Devices -> DevicesScreen(state.devices, onCommand = { device, command -> if (es.electrohobby3d.armor.model.DeviceText.confirmQuestion(device, command) == null) viewModel.command(currentOrigin, device, command) else confirmCommand = device to command }, enabled = validOrigin && !state.loading)
+                            Section.Devices -> DevicesScreen(state.devices, onCommand = { device, command -> if (es.electrohobby3d.armor.model.DeviceText.confirmQuestion(device, command) == null) viewModel.command(currentOrigin, device, command) else confirmCommand = device to command }, enabled = validOrigin && !state.loading && !state.readOnly)
                             Section.Cameras -> CamerasScreen(
                                 state.cameras, grid, onGrid = { grid = it }, origin = currentOrigin, viewModel = viewModel, authenticated = state.authenticated,
                                 recordingIds = state.media.activeCameraIds, health = state.cameraHealth, onExpand = { expanded = it },
@@ -279,7 +279,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                     IconButton(onClick = { viewModel.reloadAlarmPanels(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
                                 }) {
                                     AlarmPanelsScreen(
-                                        state.alarmPanels, state.alarmCommands, canCommand = state.authenticated, network = state.network, onScanNetwork = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading,
+                                        state.alarmPanels, state.alarmCommands, canCommand = state.authenticated && !state.readOnly, network = state.network, onScanNetwork = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading,
                                         onArm = { panel, mode, force -> viewModel.alarmCommand(currentOrigin, panel.nodeId, mode, force) }, onDisarm = { panel, pin -> viewModel.alarmCommand(currentOrigin, panel.nodeId, null, pin = pin) },
                                     )
                                 }

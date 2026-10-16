@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [0.5.6] - Public address in Network and a read-only role
+
+- The Network screen shows the public IP address of the house, the provider and the place (with the country in the language of the app), as the network node reports it.
+- A user with the viewer role now only looks: the app reads the role of the session, the arm and disarm button, the acknowledge buttons, the switches of the devices, the commands of the alarm panels, voice orders, the camera pad, deleting recordings and the network sweep are refused or off, with a clear message.
+- A server that does not say the role leaves all the buttons, and the server still refuses what is not allowed.
+- Tests cover the read-only role and the parsing of the public address.
+
 ## [0.5.5] - The app in eight languages
 
 - The whole app is now in English, Spanish, German, French, Italian, Japanese, Chinese and Portuguese: every screen, button, message, notification and error, about 830 phrases in seven translation tables.

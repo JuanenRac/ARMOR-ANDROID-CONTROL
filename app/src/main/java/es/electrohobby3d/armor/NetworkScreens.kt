@@ -108,6 +108,13 @@ private fun InternetPanel(node: NetworkNode, data: NetworkOverview) {
                 style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted,
             )
             Text(trf("%s · red %s · router %s · ↓ %s ↑ %s", node.ip, node.cidr, node.gateway ?: "—", NetworkText.bps(node.rxBps), NetworkText.bps(node.txBps)), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+            node.publicInfo?.let { info ->
+                Text(trf("IP pública: %s", info.ip), fontWeight = FontWeight.SemiBold)
+                val country = info.country?.let { code -> java.util.Locale("", code).getDisplayCountry(java.util.Locale.forLanguageTag(Tr.language)).ifBlank { code } }
+                val place = listOfNotNull(info.city, info.region, country).joinToString(", ")
+                val line = listOfNotNull(info.org, place.ifBlank { null }).joinToString(" · ")
+                if (line.isNotBlank()) Text(line, style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+            }
             val unknown = data.totals.unknown
             if (unknown > 0) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Icon(Icons.Filled.Warning, null, tint = ArmorColors.Amber, modifier = Modifier.size(16.dp))

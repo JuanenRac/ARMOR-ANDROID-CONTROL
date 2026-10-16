@@ -27,7 +27,9 @@ data class NetworkInternet(
     /** "up", "degraded", "down" (the router answers, nothing beyond does), "lan_down" (the router does not answer) or "unknown". */
     val state: String, val sinceMs: Long?, val gatewayOk: Boolean?, val latencyMs: Double?, val lossPercent: Double?, val probes: List<NetworkProbe>, val outages24h: Int, val downtime24hS: Int,
 )
-data class NetworkNode(val nodeId: String, val stale: Boolean, val ip: String, val cidr: String, val gateway: String?, val rxBps: Long?, val txBps: Long?, val internet: NetworkInternet, val devices: List<NetworkDevice>)
+/** What the Internet sees of the connection, as the network node reports it: the public address, the provider and the place. */
+data class NetworkPublicInfo(val ip: String, val org: String?, val city: String?, val region: String?, val country: String?, val timezone: String?)
+data class NetworkNode(val nodeId: String, val stale: Boolean, val ip: String, val cidr: String, val gateway: String?, val rxBps: Long?, val txBps: Long?, val internet: NetworkInternet, val devices: List<NetworkDevice>, val publicInfo: NetworkPublicInfo? = null)
 data class NetworkEvent(val id: String, val nodeId: String, val kind: String, val atMs: Long, val deviceId: String?, val port: Int?, val outageS: Int?, val detail: String?)
 data class NetworkOutage(val kind: String, val startedMs: Long, val endedMs: Long, val durationS: Int)
 data class NetworkTotals(val nodes: Int = 0, val stale: Int = 0, val devices: Int = 0, val online: Int = 0, val unknown: Int = 0, val internet: String? = null)
@@ -59,6 +61,7 @@ object NetworkParser {
             nodeId = id, stale = json.optBoolean("stale"), ip = iface.optStr("ip"), cidr = iface.optStr("cidr"), gateway = iface.text("gateway"),
             rxBps = iface.number("rx_bps")?.toLong(), txBps = iface.number("tx_bps")?.toLong(), internet = internet(internet),
             devices = json.optJSONArray("devices").objects().mapNotNull(::device),
+            publicInfo = json.optJSONObject("public")?.let { info -> info.optStr("ip").takeIf { it.isNotBlank() }?.let { NetworkPublicInfo(it, info.text("org"), info.text("city"), info.text("region"), info.text("country"), info.text("timezone")) } },
         )
     }
 
