@@ -15,57 +15,80 @@
   <a href="README_por.md">🇵🇹 Português</a>
 </p>
 
-### ARMOR-SERVER 的移动端操作员客户端
+### ARMOR-SERVER 的移动操作端：报警、摄像头、雷达、能源、网络和节点设置，支持八种语言
 
 <p align="center">
   <img src="https://img.shields.io/badge/License-GPL%203.0-blue.svg" alt="GPL 3.0">
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
-  <img src="https://img.shields.io/badge/Maturity-functional%20baseline-00E5FF.svg" alt="Maturity">
+  <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
+  <img src="https://img.shields.io/badge/Tests-123%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Version-0.5.7-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
 ---
 
-**诚实性检查 - 今天真正能运行的部分:** 地址安全和报警决策规则有单元测试（55 个），应用可以构建。它**尚未在手机上对着服务器运行过**，因此通知权限流程和后台服务未经验证。布防、报警和设备遵循服务器的路由，但没有在真实手机上试过。
+**诚实性检查 - 今天真正能运行的部分:** 地址安全、报警决策、报警监视器、翻译和只读角色的规则由 123 个单元测试覆盖，应用可以构建（`gradlew testDebugUnitTest assembleRelease`）。它在真实手机上对照 CM5 测试台运行：登录、摄像头监视器、布防和报警、雷达、通过蓝牙设置节点以及从 GitHub 更新都在使用中。**尚未**证明的是：使用真实设备的太阳能、电气和报警主机界面（目前只有雷达节点）、通过 Firebase 的推送（需要自己的 Firebase 项目，应用中尚未包含），以及在各手机厂商电池规则下的后台报警监视。
 
 ---
 
+## 📋 速览
+
+| | |
+|---|---|
+| 版本 | `0.5.7` |
+| 成熟度 | 成熟 |
+| 测试 | 123 (`gradlew testDebugUnitTest`) |
+| 技术栈 | Kotlin / Jetpack Compose |
+| 真实硬件 | 在真实手机上对照 CM5 测试台使用；太阳能、电气和报警主机界面在等待真实节点 |
+
 ## 🎯 概述
 
-* **使用服务器自己的登录：** IP、端口、用户名和密码；密码创建 HttpOnly 会话，绝不会保存在手机上。
-* **摄像头监控：** 1 到 16 个画面块、最大化视图、保持画面比例的实时 MJPEG、受限的 PTZ 控制盘、快照和录像。
-* **布防与撤防，** 需先确认；待**确认的报警**，未处理的带徽标；**设备**（烟雾、燃气、水浸、门、窗、移动、气候、插座、灯、警笛、门锁）及其状态和 开 / 关 / 切换。
-* **实时雷达，2D 和 3D：** 雷达标签页按 Studio 中设计的样子绘制场地（地面、建筑、树木、立柱、雷达和摄像头的探测范围）以及雷达看到移动的人，每一秒半刷新一次；可拖动、捏合和旋转 3D 视图。摆放遵循 Studio 的规则，但从未显示过真实雷达。
-* **太阳能：** “Más”中的一项（以及状态页的一个磁贴）显示合计（太阳、用电、带电量和流向的电池、是否有市电），以及服务器上报的每台逆变器和电池的数值；电池的电芯可按需展开，并标出最高和最低；尚在等待数据的设备，以及示例读数或无信号的设备都有标记。打开时每五秒刷新一次；已针对服务器的响应格式测试，并在模拟器中对着带示例读数的本地服务器试过，从未用真实设备试过。太阳能警报（逆变器故障、电池电量低或处于保护状态、设备无应答）会像设备警报一样提醒手机。
-* **通过蓝牙配置现场节点**（在登录界面或 *Más > Configurar un nodo* 中）：找到广播 `ARMOR-xxxxxx` 的节点，为新节点创建管理员或登录，搜索 Wi-Fi 网络，并设置节点名称、路由器 Wi-Fi 或固定地址以及代理，适用于没有以太网线的节点。已编译并做过单元测试，从未对着节点或手机运行。
-* **证据库、** 周界与节点状态，以及每一次警告、节点、摄像头、设备、报警和模式变化的**历史**。
-* **报警通知：** 节点达到 HIGH、摄像头不再响应、设备报警（烟雾、燃气、水浸、紧急按钮任何时候；门、窗或移动传感器仅在布防时），以及布防时节点离线；可选的后台监视使用当前会话，并在其结束时提示。
-* **谨慎处理密码：** 仅允许对私有局域网或回环 IPv4 *字面量* 使用明文 HTTP。只是开头像私有地址的主机名（`10.attacker.example`）或带前导零的地址（某些解析器会把 `010.0.0.1` 读成公网的 `8.0.0.1`）会被拒绝。
-* **电网：** “更多”中的一项（以及状态屏幕上的一块卡片）显示电网入口的功率（取电或向电网送电）、电气节点测量的每个通道（电压、电流、功率、电能、频率、功率因数、开关状态）和电表的告警；电气节点的告警（电表告警、市电电压超出范围、电网中断、节点不再应答）与太阳能告警一样会通知操作员。逆变器的卡片还会显示其第二路光伏输入和并联系统的单元。
-* **由图标构成的外观：** 近乎黑色的界面、青色强调、琥珀色表示需要注意、少字的大图标、底部栏、关于页面和退出按钮。
+* **使用服务器自己的登录登录：**IP、端口、用户名和密码；密码创建一个 HttpOnly 会话，从不保存在手机上。**viewer** 角色只能查看：所有会修改内容的按钮都被关闭。
+* **摄像头监视器：**1 到 16 个画面、放大视图、保持画面比例的实时 MJPEG、有限定范围的云台面板、快照和录像，录像带有查看器和删除确认。
+* **布防和撤防：**先做**布防前检查**（哪些是打开、沉默或故障的），撤防需要 PIN；要确认的**报警**，等待中的显示角标；**设备**（烟雾、燃气、漏水、门、窗、移动、气候、插座、灯、警笛、门锁、卷帘、大门和车库门电机、热水器）及其状态和开 / 关 / 切换。
+* **能找到你的报警：**每种严重级别有声音、可选的**语音报警**、节点达到高级、摄像头沉默、设备报警和（布防时）节点离线的通知，**响起的报警主机会唤醒手机**；后台监视在重启后仍然存在，并在服务器宕机时退避。
+* **实时雷达，2D 和 3D：**雷达标签页按 Studio 中的设计绘制场地，以及雷达看到的人在其上移动，每秒半刷新一次；可拖动、捏合和旋转 3D 视图。
+* **太阳能与电气能源：**合计（阳光、用电、带电量的电池、电网是否存在）、每个逆变器和电池（可按需查看电芯），以及电气节点的通道和报警。
+* **报警主机：**每个 ARMOR-ALARM 节点的状态、其防区和事件，以及服务器允许时的布防 / 撤防命令。
+* **网络：**住宅网络的设备、互联网状态以及带运营商和地点的**公网地址**，均由网络节点报告。
+* **通过蓝牙设置现场节点**（从登录界面或*更多 > 设置节点*）：找到广播 `ARMOR-xxxxxx` 的节点，为新节点创建管理员或登录（使用节点的 PIN），搜索 Wi-Fi 网络并设置节点名称、路由器 Wi-Fi 或固定地址以及代理；**节点查找器**列出网络上已有的节点。
+* **助手：**文字和语音命令（封闭列表，八种语言，确认与你绑定），可询问住宅状态，或布防、撤防、静音以及开关灯。
+* **证据库、**周界和节点状态、每次警报、节点、摄像头、设备、报警和模式变化的**历史**、**天气地图**，以及系统的**服务**和更新。
+* **八种语言**（英语、西班牙语、德语、法语、意大利语、日语、中文和葡萄牙语），在*更多 > 设置*中选择或跟随手机；会检查每一句话都在八张表中。
+* **谨慎对待密码：**明文 HTTP 只允许用于私有局域网或回环的 IPv4 *字面量*；仅看起来像私有地址的主机名（`10.attacker.example`）或带前导零的地址会被拒绝。界面由图标构成：近黑色表面、青色强调、琥珀色表示注意。
+
+## 🧩 在 A.R.M.O.R. 中的角色
+
+ARMOR-ANDROID-CONTROL 是手机上通往 [ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO) 所用的同一个 [ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER) 的窗口：它只通过服务器读取和下达命令。报警会跟着你（响起的报警主机会唤醒手机），你可以用语音询问助手，也可以在现场站在新节点旁通过蓝牙设置它。
 
 ## 📂 仓库结构
 
 ```text
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/
-│   ├── ArmorActivity.kt (the shell), EntryScreens.kt (splash, sign-in, account, About), HomeScreens.kt, CameraScreens.kt, RadarScreens.kt, DevicePanels.kt, MoreScreens.kt, SolarScreens.kt
-│   ├── NodeBleClient.kt, NodeSetupScreen.kt   configure a radar, solar or electrical node over Bluetooth (the protocol is in model/NodeBle.kt)
-│   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmNotifier.kt, AlarmWatcherService.kt
-│   ├── ArmorTheme.kt, ServerEndpoint.kt, MjpegFeed.kt
-│   ├── network/   model/
+│   ├── ArmorActivity.kt (the shell), EntryScreens.kt, HomeScreens.kt, CameraScreens.kt, RadarScreens.kt, DevicePanels.kt, MoreScreens.kt
+│   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
+│   ├── NodeBleClient.kt, NodeSetupScreen.kt, NodeFinderScreens.kt, NodePanel.kt   configure a node over Bluetooth (the protocol is in model/NodeBle.kt)
+│   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
+│   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, PinDialog.kt, MjpegFeed.kt
+│   ├── network/   model/   update/
+│   └── assets/i18n/   en, es (the source phrases), de, fr, it, ja, zh, pt
 ├── docs/CLIENT_BOUNDARY.md
-└── app/src/test/   endpoint-safety, plain-words, node-protocol and solar-model tests
+└── app/src/test/   endpoint-safety, plain-words, node-protocol, solar-model, translation and role tests
 ```
 
 ## 🛠️ 开发环境
 
+**环境要求:** JDK 17+, the Android SDK (compile SDK 36), an Android 8.0+ phone (minSdk 26)
+
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug
-adb install -r app\build\outputs\apk\debug\app-debug.apk
+.\gradlew.bat testDebugUnitTest assembleRelease   # 123 tests, then the release APK
+adb install -r app\build\outputs\apk\release\app-release.apk
 ```
 
-调试版 APK 未为发布签名。参见[客户端边界](docs/CLIENT_BOUNDARY.md)。
+发布版本用维护者的密钥签名并发布在 GitHub 上，应用自己会从那里检查更新。参见[客户端边界](docs/CLIENT_BOUNDARY.md)。
 
 ## 🔗 相关项目
 
@@ -75,12 +98,14 @@ adb install -r app\build\outputs\apk\debug\app-debug.apk
 * **[ARMOR-RADAR](https://github.com/JuanenRac/ARMOR-RADAR)** - 适用于 ESP32-S3 的现场节点固件，带三个雷达和自带网页面板
 * **[ARMOR-SOLAR](https://github.com/JuanenRac/ARMOR-SOLAR)** - 太阳能逆变器与电池的协议，以及网关节点的消息
 * **[ARMOR-ELECTRICAL](https://github.com/JuanenRac/ARMOR-ELECTRICAL)** - 电气节点：电表、电网读数消息和开关规则
+* **[ARMOR-ALARM](https://github.com/JuanenRac/ARMOR-ALARM)** - 报警节点与报警主机：防区、布防、延时、警笛和 PIN，有无服务器均可
 * **[ARMOR-HMI](https://github.com/JuanenRac/ARMOR-HMI)** - 触摸面板：墙面屏幕上的系统状态、布防与确认，以及语音助手的所在
 * **[ARMOR-NETWORK](https://github.com/JuanenRac/ARMOR-NETWORK)** - 本地网络：其设备、互联网以及变化
 * **[ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER)** - 中央协调器：遥测、报警、设备、太阳能读数和摄像头
 * **[ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO)** - 网页控制台：摄像头、雷达、报警、太阳能和 2D/3D 场地设计器
 * **ARMOR-ANDROID-CONTROL** (本仓库) - 带实时 2D/3D 雷达的 Android 操作员客户端
 * **[ARMOR-SERVER-AI](https://github.com/JuanenRac/ARMOR-SERVER-AI)** - 会解释决策且从不执行动作的视觉推理策略
+* **[ARMOR-VISION](https://github.com/JuanenRac/ARMOR-VISION)** - Jetson Orin NX 上的摄像头区域、遮罩与检测规则
 * **[ARMOR-VOICE-AI](https://github.com/JuanenRac/ARMOR-VOICE-AI)** - 带无法伪造确认的离线语音意图
 * **[ARMOR-HARDWARE](https://github.com/JuanenRac/ARMOR-HARDWARE)** - 外壳、电子器件和台架验收矩阵
 * **[ARMOR-DEVOPS](https://github.com/JuanenRac/ARMOR-DEVOPS)** - 部署、CM5 测试台、备份与 TLS

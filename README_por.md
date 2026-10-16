@@ -12,61 +12,83 @@
   <a href="README_deu.md">🇩🇪 Deutsch</a> |
   <a href="README_zho.md">🇨🇳 简体中文</a> |
   <a href="README_jpn.md">🇯🇵 日本語</a> |
-  <a href="README_por.md">🇵🇹 Português</a>
+  🇵🇹 <b>Português</b>
 </p>
 
-
-### Cliente móvel de operador para o ARMOR-SERVER
+### Cliente móvel de operador para o ARMOR-SERVER: alarmes, câmaras, radar, energia, a rede e a configuração dos nós, em oito idiomas
 
 <p align="center">
   <img src="https://img.shields.io/badge/License-GPL%203.0-blue.svg" alt="GPL 3.0">
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
-  <img src="https://img.shields.io/badge/Maturity-functional%20baseline-00E5FF.svg" alt="Maturity">
+  <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
+  <img src="https://img.shields.io/badge/Tests-123%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Version-0.5.7-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
 ---
 
-**Verificação de honestidade - o que funciona hoje:** As regras de segurança dos endereços e de decisão de alarmes têm testes unitários e a aplicação compila. **Não foi executada num telemóvel contra o servidor**, por isso o fluxo da permissão de notificações e o serviço em segundo plano não estão verificados. Armar, os alarmes e os dispositivos seguem as rotas do servidor mas não se experimentaram num telemóvel real.
+**Verificação de honestidade - o que funciona hoje:** As regras de segurança do endereço, de decisão de alarmes, do vigia de alarmes, de tradução e do papel só de leitura estão cobertas por 123 testes unitários e a aplicação compila (`gradlew testDebugUnitTest assembleRelease`). Funciona num telemóvel real contra a bancada de testes do CM5: o acesso, o monitor de câmaras, o armar e os alarmes, o radar, a configuração de um nó por Bluetooth e as atualizações a partir do GitHub estão em uso. O que **ainda não** está provado: os ecrãs solar, elétrico e de centrais de alarme com equipamentos reais (só existe um nó radar), o push por Firebase (precisa de um projeto Firebase próprio e ainda não está na aplicação) e a vigilância de alarmes em segundo plano sob as regras de bateria de cada fabricante.
 
 ---
 
+## 📋 Num relance
+
+| | |
+|---|---|
+| Versão | `0.5.7` |
+| Maturidade | Estabelecido |
+| Testes | 123 (`gradlew testDebugUnitTest`) |
+| Tecnologia | Kotlin / Jetpack Compose |
+| Em hardware real | Usada num telemóvel real contra a bancada de testes do CM5; os ecrãs solar, elétrico e de centrais de alarme esperam nós reais |
+
 ## 🎯 Visão geral
 
-* **Iniciar sessão com o próprio início de sessão do servidor:** IP, porta, utilizador e palavra-passe; a palavra-passe cria uma sessão HttpOnly e nunca se guarda no telemóvel.
-* **Monitor de câmaras:** de 1 a 16 mosaicos, uma vista maximizada, MJPEG em direto que mantém a proporção da imagem, um comando PTZ limitado, fotografias e gravações.
-* **Armar e desarmar**, após uma confirmação; **alarmes** a reconhecer, com um distintivo para os que esperam; **dispositivos** (fumo, gás, inundação, porta, janela, movimento, clima, fichas, luzes, sirenes, fechaduras) com o seu estado e Ligar / Desligar / Alternar.
-* **Radar em direto, em 2D e 3D:** o separador Radar desenha o local tal como foi desenhado no Studio (terreno, edifícios, árvores, postes, os campos dos radares e câmaras) e as pessoas que os radares veem a mover-se nele, atualizado de segundo e meio em segundo e meio; arraste, aperte e rode a vista 3D. A colocação segue as regras do Studio, mas nunca mostrou um radar real.
-* **Solar:** uma entrada em *Mais* (e um mosaico no ecrã Estado) mostra as somas (sol, consumo, baterias com a sua carga e fluxo, se a rede está presente) e cada inversor e bateria que o servidor reporta: os seus números, as células de uma bateria a pedido com a mais alta e a mais baixa assinaladas, o equipamento ainda à espera de dados, e uma marca numa leitura de exemplo ou num dispositivo silencioso. Atualizado a cada cinco segundos enquanto está aberto; testado contra as formas que o servidor responde e experimentado num emulador contra um servidor local com leituras de exemplo, nunca com equipamento real. Os alarmes solares (uma avaria de inversor, uma bateria fraca ou a proteger-se, equipamento que ficou em silêncio) acordam o telemóvel como um alarme de dispositivo.
-* **Configurar um nó de campo por Bluetooth** (a partir do ecrã de início de sessão ou *Más > Configurar un nodo*): encontra os nós que anunciam `ARMOR-xxxxxx`, cria o administrador de um novo ou inicia sessão, procura redes Wi-Fi e define o nome do nó, o Wi-Fi de um router ou um endereço fixo e o broker, para nós sem cabo Ethernet. Compilado e testado por unidades, nunca executado contra um nó nem um telemóvel.
-* **Biblioteca de provas**, o estado do perímetro e dos nós, e um **histórico** de cada alerta, nó, câmara, dispositivo, alarme e mudança de modo.
-* **Notificações de alarme** para um nó que chega a ALTO, uma câmara que deixa de responder, um alarme de dispositivo (fumo, gás, inundação, pânico a qualquer hora; um sensor de porta, janela ou movimento com o sistema armado) e, com o sistema armado, um nó que fica desligado; uma vigilância em segundo plano opcional usa a sessão atual e di-lo quando termina.
-* **Cuidado com a palavra-passe:** o HTTP simples só se permite para um *literal* IPv4 de rede local privada ou de loopback. Recusa-se um nome de anfitrião que apenas começa como um endereço privado (`10.attacker.example`) ou um endereço com um zero à esquerda (alguns resolvedores leem `010.0.0.1` como o público `8.0.0.1`).
-* **Rede elétrica:** uma entrada em *Mais* (e um mosaico no ecrã Estado) mostra a potência da entrada da rede (a tirar ou a injetar na rede), cada canal que os nós elétricos medem (tensão, corrente, potência, energia, frequência, fator de potência, o estado de um interruptor) e os alarmes dos contadores; os alarmes dos nós elétricos (o alarme de um contador, a rede fora de gama, a rede perdida, um nó que deixou de responder) acordam o operador como os solares. O cartão de um inversor mostra também a sua segunda entrada FV e as unidades de um sistema em paralelo.
-* **Um aspeto feito de ícones:** superfícies quase pretas, um destaque ciano, âmbar para atenção, ícones grandes com poucas palavras, uma barra inferior, uma página Acerca de e um botão de terminar sessão.
+* **Acesso com o login do próprio servidor:** IP, porta, utilizador e palavra-passe; a palavra-passe cria uma sessão HttpOnly e nunca é guardada no telemóvel. Um papel **viewer** só observa: todo o botão que altera algo está desligado.
+* **Monitor de câmaras:** de 1 a 16 mosaicos, uma vista ampliada, MJPEG em direto que mantém a proporção, um comando PTZ limitado, fotografias e gravações, com visualizador e confirmação de apagamento das gravações.
+* **Armar e desarmar,** depois de uma **verificação antes de armar** (o que está aberto, mudo ou em baixo) e com o PIN para desarmar; **alarmes** a reconhecer, com um distintivo para os que esperam; **dispositivos** (fumo, gás, inundação, porta, janela, movimento, clima, tomadas, luzes, sirenes, fechaduras, estores, motores de portão e garagem, esquentadores) com o seu estado e Ligar / Desligar / Alternar.
+* **Alarmes que o alcançam:** um som para cada gravidade, um **alarme falado** opcional, avisos de um nó que chega a ALTO, uma câmara muda, um alarme de dispositivo e (armado) um nó desligado, e **uma central que toca acorda o telemóvel**; a vigilância em segundo plano sobrevive a um reinício e recua quando o servidor está em baixo.
+* **Radar em direto, em 2D e 3D:** o separador Radar desenha o local como foi desenhado no Studio e as pessoas que os radares veem a mover-se nele, atualizado a cada segundo e meio; arraste, aperte e rode a vista 3D.
+* **Energia solar e elétrica:** os totais (sol, consumo, baterias com a sua carga, se há rede), cada inversor e bateria com as células a pedido, e os canais e alarmes dos nós elétricos.
+* **Centrais de alarme:** o estado de cada nó ARMOR-ALARM, as suas zonas e eventos, e comandos de armar / desarmar quando o servidor os permite.
+* **Rede:** os dispositivos da rede da casa, o estado da internet e o **endereço público** com o fornecedor e o local, como o nó de rede os comunica.
+* **Configurar um nó de campo por Bluetooth** (a partir do ecrã de acesso ou *Mais > Configurar um nó*): encontra os nós que anunciam `ARMOR-xxxxxx`, cria o administrador de um novo ou entra (com o PIN do nó), procura redes Wi-Fi e define o nome do nó, o Wi-Fi de um router ou um endereço fixo e o broker; um **localizador de nós** lista os que já estão na rede.
+* **O assistente:** comandos escritos e falados (lista fechada, em oito idiomas, com uma confirmação ligada a si) para perguntar o estado da casa ou armar, desarmar, silenciar e ligar ou desligar luzes.
+* **Biblioteca de provas,** estado do perímetro e dos nós, um **histórico** de cada alerta, nó, câmara, dispositivo, alarme e mudança de modo, o **mapa do tempo**, e os **serviços** e atualizações da instalação.
+* **Oito idiomas** (inglês, espanhol, alemão, francês, italiano, japonês, chinês e português), escolhidos em *Mais > Definições* ou seguindo o telemóvel; verifica-se que cada frase está nas oito tabelas.
+* **Cuidado com a palavra-passe:** HTTP simples só é permitido para um *literal* IPv4 de LAN privada ou loopback; um nome de anfitrião que só começa como um endereço privado (`10.attacker.example`) ou um endereço com zero à esquerda é recusado. O aspeto é feito de ícones: superfícies quase pretas, um destaque ciano, âmbar para a atenção.
+
+## 🧩 Papel no A.R.M.O.R.
+
+O ARMOR-ANDROID-CONTROL é a janela do telemóvel para o mesmo [ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER) que o [ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO) usa: lê e ordena através dele e de nada mais. É onde os alarmes o seguem (uma central que toca acorda o telemóvel), onde pergunta ao assistente por voz, e a ferramenta para configurar um nó novo por Bluetooth no terreno, ao lado dele.
 
 ## 📂 Estrutura do repositório
 
 ```text
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/
-│   ├── ArmorActivity.kt (the shell), EntryScreens.kt (splash, sign-in, account, About), HomeScreens.kt, CameraScreens.kt, RadarScreens.kt, DevicePanels.kt, MoreScreens.kt, SolarScreens.kt
-│   ├── NodeBleClient.kt, NodeSetupScreen.kt   configure a radar, solar or electrical node over Bluetooth (the protocol is in model/NodeBle.kt)
-│   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmNotifier.kt, AlarmWatcherService.kt
-│   ├── ArmorTheme.kt, ServerEndpoint.kt, MjpegFeed.kt
-│   ├── network/   model/
+│   ├── ArmorActivity.kt (the shell), EntryScreens.kt, HomeScreens.kt, CameraScreens.kt, RadarScreens.kt, DevicePanels.kt, MoreScreens.kt
+│   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
+│   ├── NodeBleClient.kt, NodeSetupScreen.kt, NodeFinderScreens.kt, NodePanel.kt   configure a node over Bluetooth (the protocol is in model/NodeBle.kt)
+│   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
+│   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, PinDialog.kt, MjpegFeed.kt
+│   ├── network/   model/   update/
+│   └── assets/i18n/   en, es (the source phrases), de, fr, it, ja, zh, pt
 ├── docs/CLIENT_BOUNDARY.md
-└── app/src/test/   endpoint-safety, plain-words, node-protocol and solar-model tests
+└── app/src/test/   endpoint-safety, plain-words, node-protocol, solar-model, translation and role tests
 ```
 
 ## 🛠️ Ambiente de desenvolvimento
 
+**Requisitos:** JDK 17+, the Android SDK (compile SDK 36), an Android 8.0+ phone (minSdk 26)
+
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug
-adb install -r app\build\outputs\apk\debug\app-debug.apk
+.\gradlew.bat testDebugUnitTest assembleRelease   # 123 tests, then the release APK
+adb install -r app\build\outputs\apk\release\app-release.apk
 ```
 
-O APK de depuração não está assinado para distribuição. Veja a [fronteira do cliente](docs/CLIENT_BOUNDARY.md).
+As versões de publicação são assinadas com uma chave do responsável e publicadas no GitHub, de onde a própria aplicação procura atualizações. Veja o [limite do cliente](docs/CLIENT_BOUNDARY.md).
 
 ## 🔗 Projetos relacionados
 
@@ -76,12 +98,14 @@ O **A.R.M.O.R.** (Autonomous Radar & Multimodal Observation Range) é um sistema
 * **[ARMOR-RADAR](https://github.com/JuanenRac/ARMOR-RADAR)** - Firmware de nó de campo para ESP32-S3 com três radares e o seu próprio painel web
 * **[ARMOR-SOLAR](https://github.com/JuanenRac/ARMOR-SOLAR)** - Protocolos de inversores e baterias solares e as mensagens de um nó de ligação
 * **[ARMOR-ELECTRICAL](https://github.com/JuanenRac/ARMOR-ELECTRICAL)** - Nó elétrico: contadores, a mensagem das leituras da rede e as regras de comutação
+* **[ARMOR-ALARM](https://github.com/JuanenRac/ARMOR-ALARM)** - Nó e central de alarme: zonas, armar, atrasos, sirene e PIN, com o servidor ou sem ele
 * **[ARMOR-HMI](https://github.com/JuanenRac/ARMOR-HMI)** - Painel tátil: o estado do sistema num ecrã de parede, armar e reconhecer, e a casa do assistente de voz
 * **[ARMOR-NETWORK](https://github.com/JuanenRac/ARMOR-NETWORK)** - A rede local: os seus dispositivos, a internet e o que muda
 * **[ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER)** - Coordenador central: telemetria, alarmes, dispositivos, leituras solares e câmaras
 * **[ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO)** - Consola web: câmaras, radar, alarmes, energia solar e o desenhador de local 2D/3D
 * **ARMOR-ANDROID-CONTROL** (este repositório) - Cliente Android de operador com um radar 2D/3D em direto
 * **[ARMOR-SERVER-AI](https://github.com/JuanenRac/ARMOR-SERVER-AI)** - Política de inferência visual que explica as suas decisões e nunca atua
+* **[ARMOR-VISION](https://github.com/JuanenRac/ARMOR-VISION)** - Zonas de câmara, máscaras e regras de deteção para o Jetson Orin NX
 * **[ARMOR-VOICE-AI](https://github.com/JuanenRac/ARMOR-VOICE-AI)** - Intenções de voz offline com uma confirmação que não se pode falsificar
 * **[ARMOR-HARDWARE](https://github.com/JuanenRac/ARMOR-HARDWARE)** - Caixas, eletrónica e a matriz de aceitação de bancada
 * **[ARMOR-DEVOPS](https://github.com/JuanenRac/ARMOR-DEVOPS)** - Implementação, a bancada de testes CM5, cópias de segurança e TLS

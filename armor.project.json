@@ -13,7 +13,7 @@
     "ONVIF PTZ via server"
   ],
   "deployment_target": "Android 8+",
-  "maturity": "functional",
+  "maturity": "established",
   "family": "Clients",
   "parent": "ARMOR-SERVER",
   "native_version": "0.5.7",
