@@ -17,7 +17,7 @@ object AlarmNotifier {
     const val ALARM_CHANNEL = "armor_alarm"
     const val WATCH_CHANNEL = "armor_watch"
     private const val PREFERENCES = "armor-control"
-    private const val LAST_EVENT = "last_event"
+    private const val LAST_EVENT = "last_event|"
 
     @Volatile private var tracker: AlarmTracker? = null
 
@@ -25,7 +25,7 @@ object AlarmNotifier {
     fun tracker(context: Context): AlarmTracker = tracker ?: synchronized(this) {
         tracker ?: run {
             val preferences = context.applicationContext.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
-            AlarmTracker({ preferences.getLong(LAST_EVENT, -1L) }, { preferences.edit().putLong(LAST_EVENT, it).apply() }).also { tracker = it }
+            AlarmTracker({ origin -> preferences.getLong(LAST_EVENT + origin, -1L) }, { origin, id -> preferences.edit().putLong(LAST_EVENT + origin, id).apply() }).also { tracker = it }
         }
     }
 
@@ -64,9 +64,11 @@ object AlarmNotifier {
 
     /** One polling pass: fetch the newest events and announce the ones that matter. Returns the number announced. */
     fun poll(context: Context, client: ArmorApiClient, origin: String): Int {
-        val events = client.history(origin, limit = 50)
+        val tracker = tracker(context)
+        val window = client.history(origin, limit = 50)
+        val events = freshEvents(tracker.last(origin), window, { after -> client.history(origin, limit = 200, after = after) })
         val armed = client.status(origin).mode == "armed"
-        val notices = tracker(context).claim(events, armed)
+        val notices = tracker.claim(origin, events, armed)
         notices.forEach { post(context, it) }
         return notices.size
     }

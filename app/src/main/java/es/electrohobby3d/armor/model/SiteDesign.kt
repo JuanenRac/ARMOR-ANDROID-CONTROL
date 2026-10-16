@@ -42,7 +42,7 @@ object SiteParser {
         if (p.has("x") && p.has("y")) SitePoint(p.optDouble("x"), p.optDouble("y")) else null
     }
     private fun JSONArray?.objects(): List<JSONObject> = buildList { if (this@objects != null) for (i in 0 until this@objects.length()) this@objects.optJSONObject(i)?.let(::add) }
-    private fun JSONObject.colour(key: String): String? = optString(key, "").takeIf { Regex("^#[0-9a-fA-F]{6}$").matches(it) }?.lowercase()
+    private fun JSONObject.colour(key: String): String? = optStr(key, "").takeIf { Regex("^#[0-9a-fA-F]{6}$").matches(it) }?.lowercase()
 
     /** The server's answer to GET /api/v1/site ({"revision":..,"site":{..}}), or the site object itself. Null when nothing usable is there. */
     fun parse(document: JSONObject): SiteDesign? {
@@ -59,23 +59,23 @@ object SiteParser {
             val roof = b.optJSONObject("roof")
             val floors = b.optJSONArray("floors")?.let { a -> (0 until a.length()).map { a.optDouble(it, 2.8).coerceIn(1.0, 20.0) } }.orEmpty().ifEmpty { listOf(2.8) }
             SiteBuilding(
-                b.optString("id"), b.optString("name"), points, b.optDouble("base", 0.0), floors, b.optDouble("thickness", 0.25), b.colour("color"),
-                roof?.optString("style", "flat") ?: "flat", roof?.optDouble("slope", 20.0) ?: 20.0, b.colour("roofColor"),
+                b.optStr("id"), b.optStr("name"), points, b.optDouble("base", 0.0), floors, b.optDouble("thickness", 0.25), b.colour("color"),
+                roof?.optStr("style", "flat") ?: "flat", roof?.optDouble("slope", 20.0) ?: 20.0, b.colour("roofColor"),
             )
         }
         val features = site.optJSONArray("features").objects().map { f ->
             SiteFeature(
-                f.optString("id"), f.optString("kind"), f.optDouble("x"), f.optDouble("y"), f.optDouble("z", 0.0), f.optDouble("width", 1.0), f.optDouble("depth", 1.0),
+                f.optStr("id"), f.optStr("kind"), f.optDouble("x"), f.optDouble("y"), f.optDouble("z", 0.0), f.optDouble("width", 1.0), f.optDouble("depth", 1.0),
                 f.optDouble("height", 1.0), f.optDouble("rotation", 0.0), f.colour("color"),
             )
         }
         val sensors = site.optJSONArray("sensors").objects().mapNotNull { s ->
-            val id = s.optString("id")
+            val id = s.optStr("id")
             if (id.isBlank() || !s.has("x") || !s.has("y")) return@mapNotNull null
             SiteSensor(
-                id, s.optString("name", id), s.optDouble("x"), s.optDouble("y"), if (s.optString("kind") == "LD2461") "LD2461" else "LD2450",
+                id, s.optStr("name", id), s.optDouble("x"), s.optDouble("y"), if (s.optStr("kind") == "LD2461") "LD2461" else "LD2450",
                 if (s.has("heading") && !s.isNull("heading")) s.optDouble("heading") else null, s.optDouble("z", 1.5),
-                s.optString("node", "").ifBlank { null }, s.optInt("channel", 0), s.optBoolean("mirror", false),
+                s.optStr("node", "").ifBlank { null }, s.optInt("channel", 0), s.optBoolean("mirror", false),
             )
         }
         val places = site.optJSONObject("cameraPlacements")

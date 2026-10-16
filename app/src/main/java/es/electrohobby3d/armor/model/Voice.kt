@@ -30,9 +30,9 @@ data class VoiceUiState(val messages: List<VoiceMessage> = emptyList(), val busy
 object VoiceParser {
     fun parse(root: JSONObject): VoiceReply = VoiceReply(
         accepted = root.optBoolean("accepted"), executed = root.optBoolean("executed"),
-        intent = if (root.isNull("intent")) null else root.optString("intent").ifBlank { null },
-        outcome = root.optString("outcome"), speech = root.optString("speech"),
-        confirmationToken = root.optString("confirmation_token").ifBlank { null },
+        intent = if (root.isNull("intent")) null else root.optStr("intent").ifBlank { null },
+        outcome = root.optStr("outcome"), speech = root.optStr("speech"),
+        confirmationToken = root.optStr("confirmation_token").ifBlank { null },
     )
 
     /** The code an error answer carries (`{"error":"voice_unavailable"}`), taken out of the text of the exception the client raises. */

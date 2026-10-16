@@ -2,6 +2,7 @@
 // Camera passwords and RTSP URLs never enter this client or the Android UI.
 package es.electrohobby3d.armor.network
 
+import es.electrohobby3d.armor.model.optStr
 import es.electrohobby3d.armor.model.*
 import org.json.JSONArray
 import org.json.JSONObject
@@ -31,24 +32,24 @@ class ArmorApiClient {
         val nodeObject = root.optJSONObject("nodes") ?: JSONObject()
         val nodes = nodeObject.keys().asSequence().map { id ->
             nodeObject.getJSONObject(id).let { node ->
-                FieldNode(id, node.optBoolean("online"), if (node.isNull("lux")) null else node.optDouble("lux"), node.optInt("target_count"), node.optString("alert_level", "normal"), node.optBoolean("stale"), SiteParser.targets(node))
+                FieldNode(id, node.optBoolean("online"), if (node.isNull("lux")) null else node.optDouble("lux"), node.optInt("target_count"), node.optStr("alert_level", "normal"), node.optBoolean("stale"), SiteParser.targets(node))
             }
         }.toList()
-        ArmorSnapshot(root.optString("mode", "disarmed"), root.optLong("revision"), root.optString("updated_at"), nodes)
+        ArmorSnapshot(root.optStr("mode", "disarmed"), root.optLong("revision"), root.optStr("updated_at"), nodes)
     }
 
-    /** The newest events first; [before] is an event id (only older events are returned). */
-    fun history(origin: String, limit: Int = 50, before: Long? = null): List<ArmorEvent> {
-        val query = "?limit=$limit" + (before?.let { "&before=$it" } ?: "")
+    /** The newest events first; [before] is an event id (only older events are returned). With [after] the events that came after that id, oldest first (a client that polls misses none). */
+    fun history(origin: String, limit: Int = 50, before: Long? = null, after: Long? = null): List<ArmorEvent> {
+        val query = "?limit=$limit" + (before?.let { "&before=$it" } ?: "") + (after?.let { "&after=$it" } ?: "")
         return getJson(origin, "/api/v1/history$query").optJSONArray("events").asObjects().mapNotNull(EventParser::parse)
     }
 
     /** Reachability of every configured camera, by id. */
     fun cameraStatus(origin: String): List<CameraHealth> = getJson(origin, "/api/v1/camera-status").optJSONArray("cameras").asObjects()
-        .map { CameraHealth(it.optString("id"), it.optString("status", "unknown")) }.filter { it.id.isNotBlank() }
+        .map { CameraHealth(it.optStr("id"), it.optStr("status", "unknown")) }.filter { it.id.isNotBlank() }
 
     fun cameraViews(origin: String): List<CameraView> = getJson(origin, "/api/v1/camera-views").optJSONArray("cameras").asObjects().map { camera ->
-        CameraView(camera.getString("id"), camera.optString("name", camera.getString("id")), camera.optString("host"), camera.optString("snapshotUrl"), camera.optString("rtspPath"), camera.optInt("onvifPort", 80), camera.optInt("rtspPort", 554), camera.optBoolean("hasCredentials"), camera.optBoolean("liveVideoAvailable"))
+        CameraView(camera.getString("id"), camera.optStr("name", camera.getString("id")), camera.optStr("host"), camera.optStr("snapshotUrl"), camera.optStr("rtspPath"), camera.optInt("onvifPort", 80), camera.optInt("rtspPort", 554), camera.optBoolean("hasCredentials"), camera.optBoolean("liveVideoAvailable"))
     }
 
     /** Arm or disarm the system; the server audits it with the signed-in user's name. Disarming carries the PIN of the user when there is one to type. */
@@ -146,6 +147,13 @@ class ArmorApiClient {
         ).disconnect()
     }
 
+    /** Forgets the session cookie held here, whatever the server says (a logout with the server down). */
+    fun forgetSession(origin: String) {
+        val manager = CookieHandler.getDefault() as? CookieManager ?: return
+        val uri = runCatching { java.net.URI(origin) }.getOrNull() ?: return
+        manager.cookieStore.get(uri).forEach { manager.cookieStore.remove(uri, it) }
+    }
+
     fun closeStudioSession(origin: String) {
         request(origin, "/api/v1/studio/session", "DELETE", emptyMap(), null, setOf(204)).disconnect()
     }
@@ -200,8 +208,9 @@ class ArmorApiClient {
         }
         return connection
     }
-    private fun part(value: String) = java.net.URLEncoder.encode(value, StandardCharsets.UTF_8)
+    /** A piece of a path: a space is %20 (the form encoding of URLEncoder writes "+", which in a path is a plus sign, so "cam 1" went to "cam+1"). */
+    private fun part(value: String) = java.net.URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20")
 }
 
 private fun JSONArray?.asObjects(): List<JSONObject> = buildList { if (this@asObjects != null) for (index in 0 until length()) optJSONObject(index)?.let(::add) }
-private fun JSONArray?.asStrings(): List<String> = buildList { if (this@asStrings != null) for (index in 0 until length()) add(optString(index)) }
+private fun JSONArray?.asStrings(): List<String> = buildList { if (this@asStrings != null) for (index in 0 until length()) add(optStr(index)) }

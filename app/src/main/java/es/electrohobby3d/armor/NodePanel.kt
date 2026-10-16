@@ -58,7 +58,8 @@ import java.io.File
 
 /** The address of a node's panel, checked: an IPv4 address of the local network, with its port when it is not the usual one. */
 object NodeAddress {
-    private val Private = Regex("""^(10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})$""")
+    private const val OCTET = """(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)"""   // no leading zero: "010" is not an address, and a program may read it as octal
+    private val Private = Regex("^(?:10\\.$OCTET\\.$OCTET\\.$OCTET|192\\.168\\.$OCTET\\.$OCTET|172\\.(?:1[6-9]|2\\d|3[01])\\.$OCTET\\.$OCTET)$")
 
     /** `http://address[:port]/`, or null when [text] is not an address of the local network (a name, a public address, anything with a path or a login in it). */
     fun parse(text: String): String? {
@@ -66,7 +67,6 @@ object NodeAddress {
         val host = typed.substringBefore(':')
         val port = if (':' in typed) typed.substringAfter(':').toIntOrNull() ?: return null else 80
         if (!Private.matches(host) || port !in 1..65535) return null
-        if (host.split('.').any { it.toInt() > 255 }) return null
         return "http://$host${if (port == 80) "" else ":$port"}/"
     }
 }
@@ -114,9 +114,11 @@ fun NodesScreen(network: NetworkOverview?, recent: List<String>, onOpen: (String
 }
 
 /** What the page of the node can ask of the phone: to save a file it has made (the exported settings), which a WebView does not do by itself. */
-private class SaveBridge(private val context: Context) {
+private class SaveBridge(private val context: Context, private val token: String) {
+    /** The bridge is visible to every frame of the page, a frame from another origin included: only the caller that holds this load's token (the script the app itself runs in the main frame) is obeyed. */
     @JavascriptInterface
-    fun save(name: String, mime: String, base64: String) {
+    fun save(name: String, mime: String, base64: String, given: String) {
+        if (given != token) return
         val safeName = name.replace(Regex("[^A-Za-z0-9._-]"), "_").take(80).ifBlank { "armor-node.json" }
         val bytes = runCatching { Base64.decode(base64, Base64.DEFAULT) }.getOrNull()
         val saved = if (bytes == null || bytes.size > 5 * 1024 * 1024) null else runCatching { write(safeName, mime.ifBlank { "application/octet-stream" }, bytes) }.getOrNull()
@@ -143,6 +145,7 @@ fun NodePanelView(address: String, onClose: () -> Unit) {
     val context = LocalContext.current
     val host = remember(address) { Uri.parse(address).host.orEmpty() }
     var webView by remember { mutableStateOf<WebView?>(null) }
+    val token = remember(address) { java.util.UUID.randomUUID().toString() }
     var failed by remember(address) { mutableStateOf(false) }
     var chooser by remember { mutableStateOf<ValueCallback<Array<Uri>>?>(null) }
     // The page asks for a file (the settings to import, a firmware): the phone's own file picker answers.
@@ -151,6 +154,10 @@ fun NodePanelView(address: String, onClose: () -> Unit) {
         chooser = null
     }
     BackHandler { val view = webView; if (view != null && view.canGoBack()) view.goBack() else onClose() }
+    // Leaving the panel (or the Activity being made again) frees the page and tells a file picker that is still open that nothing was chosen, so the page's file field does not stay stuck.
+    androidx.compose.runtime.DisposableEffect(address) {
+        onDispose { chooser?.onReceiveValue(null); chooser = null; webView?.stopLoading(); webView?.destroy(); webView = null }
+    }
     Column(Modifier.fillMaxSize()) {
         if (failed) Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("No se pudo abrir el nodo en $host. Comprueba que el móvil está en la misma red y que el nodo está encendido.", color = ArmorColors.Amber, style = MaterialTheme.typography.bodySmall)
@@ -166,7 +173,7 @@ fun NodePanelView(address: String, onClose: () -> Unit) {
                     settings.allowContentAccess = false
                     setBackgroundColor(android.graphics.Color.parseColor("#0B1420"))
                     CookieManager.getInstance().setAcceptCookie(true)
-                    addJavascriptInterface(SaveBridge(viewContext), "ArmorSave")
+                    addJavascriptInterface(SaveBridge(viewContext, token), "ArmorSave")
                     // Only the node itself: a link to anywhere else is not followed.
                     webViewClient = object : WebViewClient() {
                         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = request.url.host != host
@@ -183,9 +190,10 @@ fun NodePanelView(address: String, onClose: () -> Unit) {
                     // What the page saves (the exported settings are a file made in the page, a blob): fetched here and written to the phone's Downloads.
                     setDownloadListener { url, _, contentDisposition, mimeType, _ ->
                         val name = Regex("""filename\*?=(?:UTF-8'')?"?([^";]+)"?""").find(contentDisposition.orEmpty())?.groupValues?.get(1) ?: "armor-node.json"
-                        if (url.startsWith("blob:")) {
+                        // A blob made by the page, or a file of the node itself over plain HTTP: both are read by the page's own session and written to Downloads.
+                        if (url.startsWith("blob:") || Uri.parse(url).host == host) {
                             val script = "(function(){var x=new XMLHttpRequest();x.open('GET',${org.json.JSONObject.quote(url)},true);x.responseType='blob';x.onload=function(){var r=new FileReader();" +
-                                "r.onloadend=function(){ArmorSave.save(${org.json.JSONObject.quote(name)},${org.json.JSONObject.quote(mimeType.orEmpty())},String(r.result).split(',')[1]||'');};r.readAsDataURL(x.response);};x.send();})();"
+                                "r.onloadend=function(){ArmorSave.save(${org.json.JSONObject.quote(name)},${org.json.JSONObject.quote(mimeType.orEmpty())},String(r.result).split(',')[1]||'',${org.json.JSONObject.quote(token)});};r.readAsDataURL(x.response);};x.send();})();"
                             evaluateJavascript(script, null)
                         }
                     }

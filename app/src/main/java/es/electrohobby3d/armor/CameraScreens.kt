@@ -78,7 +78,7 @@ private fun CameraTile(camera: CameraView, origin: String, viewModel: ArmorViewM
         Box(Modifier.weight(1f).fillMaxWidth().background(Color.Black)) {
             when {
                 health == "offline" -> CameraMessage(Icons.Filled.VideocamOff, "Sin señal")
-                camera.configured && camera.liveVideoAvailable -> MjpegFeed(viewModel.mjpegUrl(origin, camera), Modifier.fillMaxSize().clickable { expand(camera) })
+                camera.configured && camera.liveVideoAvailable -> MjpegFeed(viewModel.mjpegUrl(origin, camera), Modifier.fillMaxSize().clickable { expand(camera) }, sampleSize = 2)
                 else -> CameraMessage(Icons.Filled.VideocamOff, if (camera.configured) "Sin vídeo" else "Sin configurar")
             }
             if (recording) Icon(Icons.Filled.FiberManualRecord, null, tint = ArmorColors.Alert, modifier = Modifier.align(Alignment.TopStart).padding(8.dp).size(14.dp))

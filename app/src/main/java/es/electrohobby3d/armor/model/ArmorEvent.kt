@@ -33,28 +33,28 @@ object EventParser {
     /** An event from the server's JSON, or null when it is not a well-formed known event (never trusted blindly). */
     fun parse(json: JSONObject): ArmorEvent? {
         val id = json.optLong("id", -1)
-        val type = json.optString("type")
+        val type = json.optStr("type")
         if (id < 1 || type !in KNOWN) return null
         val subject = when (type) {
-            "node", "alert" -> json.optString("node_id")
-            "camera" -> json.optString("camera_id")
-            "device" -> json.optString("device_id")
-            "alarm" -> json.optString("source")
+            "node", "alert" -> json.optStr("node_id")
+            "camera" -> json.optStr("camera_id")
+            "device" -> json.optStr("device_id")
+            "alarm" -> json.optStr("source")
             else -> ""
         }
         if (type != "mode" && subject.isBlank()) return null
         fun text(key: String): String? = if (json.isNull(key) || !json.has(key)) null else json.opt(key)?.toString()?.ifBlank { null }
         return when (type) {
             "alarm" -> ArmorEvent(
-                id = id, at = json.optString("at"), type = type, subject = subject, from = null, to = text("state"), targets = null, mode = null,
+                id = id, at = json.optStr("at"), type = type, subject = subject, from = null, to = text("state"), targets = null, mode = null,
                 severity = text("severity"), code = text("code"), sourceType = text("source_type"),
             )
             "device" -> ArmorEvent(
-                id = id, at = json.optString("at"), type = type, subject = subject, from = text("from"), to = text("to"), targets = null, mode = null,
+                id = id, at = json.optStr("at"), type = type, subject = subject, from = text("from"), to = text("to"), targets = null, mode = null,
                 code = text("kind"), field = text("field"),
             )
             else -> ArmorEvent(
-                id = id, at = json.optString("at"), type = type, subject = subject,
+                id = id, at = json.optStr("at"), type = type, subject = subject,
                 from = text("from"), to = text("to"),
                 targets = if (json.has("targets")) json.optInt("targets") else null,
                 mode = text("mode"),

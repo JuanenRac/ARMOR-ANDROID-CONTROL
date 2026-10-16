@@ -67,7 +67,7 @@ data class NodeReply(val id: Long, val ok: Boolean, val error: String, val data:
     /** The fields the node found wrong in a settings document, as "path: code". */
     fun problems(): List<String> {
         val list: JSONArray = data.optJSONArray("problems") ?: return emptyList()
-        return (0 until list.length()).map { val item = list.getJSONObject(it); problemText(item.optString("path"), item.optString("code")) }
+        return (0 until list.length()).map { val item = list.getJSONObject(it); problemText(item.optStr("path"), item.optStr("code")) }
     }
 }
 
@@ -80,7 +80,7 @@ object NodeProtocol {
     fun reply(text: String): NodeReply? = runCatching {
         val json = JSONObject(text)
         if (!json.has("id") || !json.has("ok")) return null
-        NodeReply(json.getLong("id"), json.getBoolean("ok"), json.optString("error"), json.optJSONObject("data") ?: JSONObject())
+        NodeReply(json.getLong("id"), json.getBoolean("ok"), json.optStr("error"), json.optJSONObject("data") ?: JSONObject())
     }.getOrNull()
 
     /** Why a node could not join the Wi-Fi network it was given, in Spanish. */
@@ -135,7 +135,7 @@ data class WifiNetwork(val ssid: String, val rssi: Int, val channel: Int, val se
     companion object {
         fun list(data: JSONObject): List<WifiNetwork> {
             val array = data.optJSONArray("networks") ?: return emptyList()
-            return (0 until array.length()).map { val n = array.getJSONObject(it); WifiNetwork(n.optString("ssid"), n.optInt("rssi"), n.optInt("channel"), n.optString("security")) }
+            return (0 until array.length()).map { val n = array.getJSONObject(it); WifiNetwork(n.optStr("ssid"), n.optInt("rssi"), n.optInt("channel"), n.optStr("security")) }
         }
     }
 }
@@ -161,9 +161,9 @@ enum class NodeKind(val label: String) {
 data class NodeHello(val nodeId: String, val name: String, val mac: String, val firmware: String, val setup: Boolean, val hasIp: Boolean, val ip: String, val staConnected: Boolean, val staSsid: String,
                      val kind: NodeKind = NodeKind.Unknown, val staError: String = "", val apActive: Boolean = false) {
     companion object {
-        fun from(data: JSONObject) = NodeHello(data.optString("node_id"), data.optString("name"), data.optString("mac"), data.optString("firmware"), data.optBoolean("setup"),
-            data.optBoolean("has_ip"), data.optString("ip"), data.optBoolean("sta_connected"), data.optString("sta_ssid"), NodeKind.of(data.optString("kind"), data.optString("node_id")),
-            data.optString("sta_error"), data.optBoolean("ap_active"))
+        fun from(data: JSONObject) = NodeHello(data.optStr("node_id"), data.optStr("name"), data.optStr("mac"), data.optStr("firmware"), data.optBoolean("setup"),
+            data.optBoolean("has_ip"), data.optStr("ip"), data.optBoolean("sta_connected"), data.optStr("sta_ssid"), NodeKind.of(data.optStr("kind"), data.optStr("node_id")),
+            data.optStr("sta_error"), data.optBoolean("ap_active"))
     }
 }
 

@@ -25,6 +25,7 @@ sealed interface AppUpdateState {
 class AppUpdateViewModel(application: Application) : AndroidViewModel(application) {
     private val updater = GitHubReleaseUpdater(application.applicationContext)
     private val mutableState = MutableStateFlow<AppUpdateState>(AppUpdateState.Idle)
+    private val downloading = java.util.concurrent.atomic.AtomicBoolean(false)
     val state: StateFlow<AppUpdateState> = mutableState.asStateFlow()
 
     /** Safe to call at startup: it only reads release metadata, never downloads an APK. */
@@ -42,10 +43,12 @@ class AppUpdateViewModel(application: Application) : AndroidViewModel(applicatio
 
     /** Called only after the operator explicitly chooses "Descargar e instalar". */
     fun downloadAndInstall(update: AvailableUpdate) {
+        // A second tap while a download runs would start another one over the same file: the first claim is made at once, before the first byte arrives.
+        if (!downloading.compareAndSet(false, true)) return
         viewModelScope.launch {
-            val result = updater.download(update) { progress ->
-                mutableState.value = AppUpdateState.Downloading(update, progress)
-            }
+            val result = try {
+                updater.download(update) { progress -> mutableState.value = AppUpdateState.Downloading(update, progress) }
+            } finally { downloading.set(false) }
             when (result) {
                 is UpdateDownloadResult.Failed -> mutableState.value = AppUpdateState.Failed(result.message)
                 is UpdateDownloadResult.ReadyToInstall -> {

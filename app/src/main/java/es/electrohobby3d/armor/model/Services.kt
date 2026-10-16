@@ -15,7 +15,7 @@ data class ServicesOverview(val timeMs: Long = 0, val systemd: Boolean = false, 
 object ServicesParser {
     private fun JSONObject.longOrNull(key: String): Long? = if (has(key) && !isNull(key)) optLong(key) else null
     private fun JSONObject.boolOrNull(key: String): Boolean? = if (has(key) && !isNull(key)) optBoolean(key) else null
-    private fun JSONObject.textOrNull(key: String): String? = if (has(key) && !isNull(key)) optString(key).takeIf { it.isNotBlank() } else null
+    private fun JSONObject.textOrNull(key: String): String? = if (has(key) && !isNull(key)) optStr(key).takeIf { it.isNotBlank() } else null
 
     fun overview(root: JSONObject): ServicesOverview {
         val array = root.optJSONArray("services")
@@ -24,8 +24,8 @@ object ServicesParser {
     }
 
     private fun service(json: JSONObject) = ServiceInfo(
-        id = json.optString("id"), name = json.optString("name"), family = json.optString("family"), description = json.optString("description"),
-        kind = json.optString("kind"), state = json.optString("state", "unknown"), subState = json.textOrNull("sub_state"), unit = json.textOrNull("unit"),
+        id = json.optStr("id"), name = json.optStr("name"), family = json.optStr("family"), description = json.optStr("description"),
+        kind = json.optStr("kind"), state = json.optStr("state", "unknown"), subState = json.textOrNull("sub_state"), unit = json.textOrNull("unit"),
         enabled = json.boolOrNull("enabled"), pid = json.longOrNull("pid"), sinceMs = json.longOrNull("since_ms"), memoryBytes = json.longOrNull("memory_bytes"),
         restarts = json.longOrNull("restarts"), port = if (json.has("port") && !json.isNull("port")) json.optInt("port") else null,
     )

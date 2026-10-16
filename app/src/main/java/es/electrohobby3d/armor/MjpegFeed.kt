@@ -24,12 +24,14 @@ import java.net.URL
 private sealed interface MjpegState { data object Loading : MjpegState; data class Frame(val bitmap: Bitmap) : MjpegState; data class Failure(val message: String) : MjpegState }
 
 @Composable
-fun MjpegFeed(url: String, modifier: Modifier = Modifier) {
+/** [sampleSize] 2 or 4 decodes a picture at half or a quarter of its size: a grid of sixteen tiles does not need sixteen full-size pictures at once. */
+fun MjpegFeed(url: String, modifier: Modifier = Modifier, sampleSize: Int = 1) {
     val feed by produceState<MjpegState>(MjpegState.Loading, url) {
         value = MjpegState.Loading
         withContext(Dispatchers.IO) {
+            var connection: HttpURLConnection? = null
             try {
-                val connection = URL(url).openConnection() as HttpURLConnection
+                connection = URL(url).openConnection() as HttpURLConnection
                 connection.connectTimeout = 8_000
                 connection.readTimeout = 20_000
                 connection.setRequestProperty("Accept", "multipart/x-mixed-replace")
@@ -38,11 +40,13 @@ fun MjpegFeed(url: String, modifier: Modifier = Modifier) {
                     val input = BufferedInputStream(raw, 64 * 1024)
                     while (isActive) {
                         val frame = readJpeg(input) ?: break
-                        BitmapFactory.decodeByteArray(frame, 0, frame.size)?.let { value = MjpegState.Frame(it) }
+                        val options = BitmapFactory.Options().apply { inSampleSize = sampleSize.coerceIn(1, 8) }
+                        BitmapFactory.decodeByteArray(frame, 0, frame.size, options)?.let { value = MjpegState.Frame(it) }
                     }
                     if (value is MjpegState.Loading) value = MjpegState.Failure("No video frames received")
-                }.also { connection.disconnect() }
-            } catch (error: Exception) { value = MjpegState.Failure(error.message ?: "Camera stream unavailable") }
+                }
+            } catch (error: Exception) { value = MjpegState.Failure(error.message ?: "Camera stream unavailable")
+            } finally { connection?.disconnect() }   // whatever happened (a cancelled screen, a lost connection), the socket is closed
         }
     }
     Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
@@ -61,22 +65,58 @@ fun MjpegFeed(url: String, modifier: Modifier = Modifier) {
 
 private const val MAX_JPEG_BYTES = 8 * 1024 * 1024
 
-/** One JPEG of the stream, from its start marker to its end marker, or null when the stream ends or the picture is larger than [MAX_JPEG_BYTES]. */
+/**
+ * One JPEG of the stream, read by its structure: after the start marker every segment is skipped whole by its length, and the picture ends at the end marker that follows the scan.
+ * Cutting at the first FFD9 (the end of a picture) was wrong for a picture that carries a thumbnail (an EXIF block holds a whole small JPEG with its own end marker): the frame came out truncated.
+ * Null when the stream ends or the picture is larger than [MAX_JPEG_BYTES].
+ */
 private fun readJpeg(input: BufferedInputStream): ByteArray? {
-    val bytes = java.io.ByteArrayOutputStream(64 * 1024)
+    val out = java.io.ByteArrayOutputStream(64 * 1024)
     var previous = -1
     while (true) {
         val value = input.read()
         if (value < 0) return null
-        if (previous == 0xff && value == 0xd8) { bytes.write(0xff); bytes.write(0xd8); break }
+        if (previous == 0xff && value == 0xd8) { out.write(0xff); out.write(0xd8); break }
         previous = value
     }
-    previous = -1
-    while (bytes.size() < MAX_JPEG_BYTES) {
-        val value = input.read(); if (value < 0) return null
-        bytes.write(value)
-        if (previous == 0xff && value == 0xd9) return bytes.toByteArray()
-        previous = value
+    var marker = nextMarker(input) ?: return null
+    while (true) {
+        out.write(0xff); out.write(marker)
+        if (marker == 0xd9) return out.toByteArray()
+        if (marker in 0xd0..0xd7 || marker == 0x01) { marker = nextMarker(input) ?: return null; continue }
+        val high = input.read(); val low = input.read()
+        if (high < 0 || low < 0) return null
+        out.write(high); out.write(low)
+        val length = (high shl 8) or low
+        if (length < 2) return null
+        for (i in 0 until length - 2) { val value = input.read(); if (value < 0) return null; out.write(value) }
+        if (out.size() > MAX_JPEG_BYTES) return null
+        if (marker == 0xda) {
+            // The coded picture: it goes on until a marker that is neither a stuffed zero nor a restart.
+            while (true) {
+                val value = input.read()
+                if (value < 0) return null
+                if (value != 0xff) { out.write(value); if (out.size() > MAX_JPEG_BYTES) return null; continue }
+                var next = input.read()
+                while (next == 0xff) next = input.read()
+                if (next < 0) return null
+                if (next == 0x00 || next in 0xd0..0xd7) { out.write(0xff); out.write(next); continue }
+                marker = next
+                break
+            }
+        } else marker = nextMarker(input) ?: return null
     }
-    return null
+}
+
+/** The code of the next marker (the byte after an FF that is not a fill FF or a stuffed zero), or null at the end of the stream. */
+private fun nextMarker(input: BufferedInputStream): Int? {
+    while (true) {
+        val value = input.read()
+        if (value < 0) return null
+        if (value != 0xff) continue
+        var next = input.read()
+        while (next == 0xff) next = input.read()
+        if (next < 0) return null
+        if (next != 0x00) return next
+    }
 }

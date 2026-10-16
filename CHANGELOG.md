@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented here.
 
+## [0.5.3] - Sturdier parsing, per-origin alarm tracking, a media viewer and a watcher that survives a reboot
+
+- A field the server sends as null no longer shows as the word "null": every model reads text through one helper.
+- An alarm is tracked per origin and expires after a limit, so a repeated condition wakes the phone again and an old alarm does not.
+- Events are merged and de-duplicated, and a history request asks only for what is newer.
+- Photos and recordings open in a viewer inside the app, and deleting one asks first.
+- The live picture reads the structure of each JPEG instead of guessing its end, and decodes at a smaller size when the screen is small.
+- The Bluetooth set-up honours the back button, limits the networks it scans and checks the job before it reports success.
+- The address of a node accepts only four plain octets, and the panel of a node is opened with a token bridge that is closed with the screen.
+- The background watch starts again after the phone reboots, as a foreground service of a declared type.
+- Signing out forgets the session, and the login cookie is saved only when it changed.
+- The update check downloads once, follows only https redirects and shows a single progress.
+- Settings are edited as a draft and saved together, and the state updates are atomic so two refreshes cannot lose each other's changes.
+
 ## [0.5.2] - Roller shutters, gate and garage door motors and water heaters
 
 - **Devices:** the new kinds of the server - motorised roller shutter, gate motor, garage door motor and water heater - with their names, icons and cards; the motors and the shutter have the open and close buttons (the water heater, the switch).

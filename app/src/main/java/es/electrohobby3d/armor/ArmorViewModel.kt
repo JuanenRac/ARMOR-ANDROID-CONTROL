@@ -24,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -120,25 +121,25 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
 
     /** The site design for the radar screen (once, and again when asked). A server that predates it, or has no design, leaves it empty. */
     suspend fun loadSite(origin: String) = withContext(Dispatchers.IO) {
-        runCatching { client.site(origin) }.onSuccess { _state.value = _state.value.copy(site = it, siteLoaded = true) }.onFailure { _state.value = _state.value.copy(siteLoaded = true) }
+        runCatching { client.site(origin) }.onSuccess { site -> _state.update { it.copy(site = site, siteLoaded = true) } }.onFailure { _state.update { it.copy(siteLoaded = true) } }
     }
 
     /** Only the nodes' state, quickly, for the live radar: the targets move every second. A failure is ignored; the next pass tries again. */
     suspend fun pollRadar(origin: String) = withContext(Dispatchers.IO) {
-        runCatching { client.status(origin) }.onSuccess { _state.value = _state.value.copy(snapshot = it) }
+        runCatching { client.status(origin) }.onSuccess { value -> _state.update { it.copy(snapshot = value) } }
     }
 
     /** The solar equipment, quickly, while the Solar screen is open. A failure is ignored; the next pass tries again. */
     suspend fun pollSolar(origin: String) = withContext(Dispatchers.IO) {
-        runCatching { client.solar(origin) }.onSuccess { _state.value = _state.value.copy(solar = it) }
+        runCatching { client.solar(origin) }.onSuccess { value -> _state.update { it.copy(solar = value) } }
     }
 
     fun reloadSolar(origin: String) { viewModelScope.launch { pollSolar(origin) } }
 
     /** The alarm panels and the status of their commands, quickly, while the Alarm panels screen is open. A failure is ignored; the next pass tries again. */
     suspend fun pollAlarmPanels(origin: String) = withContext(Dispatchers.IO) {
-        runCatching { client.alarmPanels(origin) }.onSuccess { _state.value = _state.value.copy(alarmPanels = it) }
-        runCatching { client.alarmCommands(origin) }.onSuccess { _state.value = _state.value.copy(alarmCommands = it) }
+        runCatching { client.alarmPanels(origin) }.onSuccess { value -> _state.update { it.copy(alarmPanels = value) } }
+        runCatching { client.alarmCommands(origin) }.onSuccess { value -> _state.update { it.copy(alarmCommands = value) } }
     }
 
     fun reloadAlarmPanels(origin: String) { viewModelScope.launch { pollAlarmPanels(origin) } }
@@ -151,21 +152,21 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
 
     /** The electrical network, quickly, while the Electrical screen is open. A failure is ignored; the next pass tries again. */
     suspend fun pollElectrical(origin: String) = withContext(Dispatchers.IO) {
-        runCatching { client.electrical(origin) }.onSuccess { _state.value = _state.value.copy(electrical = it) }
+        runCatching { client.electrical(origin) }.onSuccess { value -> _state.update { it.copy(electrical = value) } }
     }
 
     fun reloadElectrical(origin: String) { viewModelScope.launch { pollElectrical(origin) } }
 
     /** The local network, quickly, while the Network screen is open. A failure is ignored; the next pass tries again. */
     suspend fun pollNetwork(origin: String) = withContext(Dispatchers.IO) {
-        runCatching { client.network(origin) }.onSuccess { _state.value = _state.value.copy(network = it) }
+        runCatching { client.network(origin) }.onSuccess { value -> _state.update { it.copy(network = value) } }
     }
 
     fun reloadNetwork(origin: String) { viewModelScope.launch { pollNetwork(origin) } }
 
     /** Every service, quickly, while the Services screen is open. A failure is ignored; the next pass tries again. */
     suspend fun pollServices(origin: String) = withContext(Dispatchers.IO) {
-        runCatching { client.services(origin) }.onSuccess { _state.value = _state.value.copy(services = it) }
+        runCatching { client.services(origin) }.onSuccess { value -> _state.update { it.copy(services = value) } }
     }
 
     fun reloadServices(origin: String) { viewModelScope.launch { pollServices(origin) } }
@@ -175,41 +176,46 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
 
     /** Looks for a place by name (Open-Meteo's geocoding); empty for fewer than two characters. */
     fun searchPlaces(query: String) {
+        val ticket = ++placeTicket
         viewModelScope.launch {
             val results = runCatching { withContext(Dispatchers.IO) { weatherClient.search(query) } }.getOrDefault(emptyList())
-            _state.value = _state.value.copy(weather = _state.value.weather.copy(results = results))
+            if (ticket == placeTicket) _state.update { it.copy(weather = it.weather.copy(results = results)) }   // an answer to an older search is not shown over a newer one
         }
     }
+    @Volatile private var placeTicket = 0
+    @Volatile private var weatherTicket = 0
 
     /** Loads the weather of a place and remembers it as the current one. Nothing is asked of ARMOR-SERVER; only this place's coordinates leave the phone. */
     fun loadWeather(place: Place) {
-        _state.value = _state.value.copy(weather = _state.value.weather.copy(place = place, loading = true, error = null, results = emptyList()))
+        val ticket = ++weatherTicket
+        _state.update { it.copy(weather = it.weather.copy(place = place, loading = true, error = null, results = emptyList())) }
         viewModelScope.launch {
             val outcome = runCatching {
                 withContext(Dispatchers.IO) { val forecast = weatherClient.forecast(place); val air = weatherClient.airQuality(place); forecast to air }
             }
-            outcome.onSuccess { (forecast, air) -> _state.value = _state.value.copy(weather = _state.value.weather.copy(forecast = forecast, air = air, loading = false)) }
-                .onFailure { _state.value = _state.value.copy(weather = _state.value.weather.copy(loading = false, error = "No se pudo obtener el tiempo.")) }
+            if (ticket != weatherTicket) return@launch   // another place was chosen meanwhile
+            outcome.onSuccess { (forecast, air) -> _state.update { it.copy(weather = it.weather.copy(forecast = forecast, air = air, loading = false)) } }
+                .onFailure { _state.update { it.copy(weather = it.weather.copy(loading = false, error = "No se pudo obtener el tiempo.")) } }
         }
     }
 
     fun reloadWeather() { _state.value.weather.place?.let(::loadWeather) }
     fun setWeatherPlace(place: Place) = loadWeather(place)
-    fun clearWeatherPlace() { _state.value = _state.value.copy(weather = WeatherUiState()) }
+    fun clearWeatherPlace() { _state.update { it.copy(weather = WeatherUiState()) } }
 
     /** The message on screen has been read. */
-    fun dismissMessage() { _state.value = _state.value.copy(message = null) }
+    fun dismissMessage() { _state.update { it.copy(message = null) } }
 
     fun refresh(origin: String) = action(origin, "Connection refreshed") {
         val status = client.status(origin)
         val cameras = client.cameraViews(origin)
-        _state.value = _state.value.copy(snapshot = status, cameras = cameras)
+        _state.update { it.copy(snapshot = status, cameras = cameras) }
     }
 
     fun login(origin: String, username: String, password: String) = action(origin, "Session established") {
         require(username.isNotBlank() && password.isNotBlank()) { "Enter username and password" }
         client.openStudioSession(origin, username.trim(), password)
-        _state.value = _state.value.copy(authenticated = true)
+        _state.update { it.copy(authenticated = true) }
         refreshInternal(origin, loadMedia = true)
     }
 
@@ -225,46 +231,49 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
         client.restoreSessionCookie(origin, session.name, session.value)
         try {
             if (!client.studioSessionActive(origin)) { refused(); return@withContext false }
-            _state.value = _state.value.copy(authenticated = true)
+            _state.update { it.copy(authenticated = true) }
             refreshInternal(origin, loadMedia = true)
             true
         } catch (error: ArmorApiException) {
             if (error.code == 401 || error.code == 403) refused()
-            _state.value = _state.value.copy(authenticated = false)
+            _state.update { it.copy(authenticated = false) }
             false
         } catch (error: Exception) {
-            _state.value = _state.value.copy(authenticated = false)
+            _state.update { it.copy(authenticated = false) }
             false
         }
     }
 
     fun restoreSession(origin: String) = action(origin, "Session restored") {
         require(client.studioSessionActive(origin)) { "Sign in to ARMOR-SERVER" }
-        _state.value = _state.value.copy(authenticated = true)
+        _state.update { it.copy(authenticated = true) }
         refreshInternal(origin, loadMedia = true)
     }
 
-    fun logout(origin: String) = action(origin, "Session closed") {
-        client.closeStudioSession(origin)
-        _state.value = MonitorUiState()
+    /** Closes the session on the server when it can, and always forgets it here: with the server down the person is no longer "inside", with the polling stopped and the cookie gone. */
+    fun logout(origin: String) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) { runCatching { client.closeStudioSession(origin) }; client.forgetSession(origin) }
+            _state.update { MonitorUiState(message = "Session closed") }
+        }
     }
 
     fun loadMedia(origin: String) = action(origin, "Evidence library refreshed") {
         require(_state.value.authenticated) { "Sign in first" }
-        _state.value = _state.value.copy(media = client.media(origin))
+        _state.update { it.copy(media = client.media(origin)) }
     }
 
     fun snapshot(origin: String, camera: CameraView) = action(origin, "Snapshot saved: ${camera.name}") {
         require(_state.value.authenticated) { "Sign in first" }
         client.snapshot(origin, camera.id)
-        _state.value = _state.value.copy(media = client.media(origin))
+        _state.update { it.copy(media = client.media(origin)) }
     }
 
     fun toggleRecording(origin: String, camera: CameraView) = action(origin, if (_state.value.media.activeCameraIds.contains(camera.id)) "Recording finalized: ${camera.name}" else "Recording started: ${camera.name}") {
         require(_state.value.authenticated) { "Sign in first" }
         val start = !_state.value.media.activeCameraIds.contains(camera.id)
         client.recording(origin, camera.id, start)
-        _state.value = _state.value.copy(media = client.media(origin))
+        _state.update { it.copy(media = client.media(origin)) }
     }
 
     // PTZ commands go out strictly in the order they were given (a "stop" must never overtake its move), and
@@ -276,7 +285,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
         viewModelScope.launch {
             ptzLock.withLock {
                 runCatching { withContext(Dispatchers.IO) { client.ptz(origin, camera.id, command) } }
-                    .onFailure { _state.value = _state.value.copy(message = it.message ?: "PTZ command failed") }
+                    .onFailure { _state.update { it.copy(message = it.message ?: "PTZ command failed") } }
             }
         }
     }
@@ -284,7 +293,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
     fun deleteMedia(origin: String, item: es.electrohobby3d.armor.model.MediaItem) = action(origin, "Evidence removed") {
         require(_state.value.authenticated) { "Sign in first" }
         client.deleteMedia(origin, item)
-        _state.value = _state.value.copy(media = client.media(origin))
+        _state.update { it.copy(media = client.media(origin)) }
     }
 
     /**
@@ -295,22 +304,24 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
         try {
             val status = client.status(origin)
             val cameras = client.cameraViews(origin)
-            val events = client.history(origin, limit = 50)
+            val window = client.history(origin, limit = 50)
             val health = client.cameraStatus(origin).associate { it.id to it.status }
-            AlarmNotifier.tracker(app).claim(events, status.mode == "armed").forEach { AlarmNotifier.post(app, it) }
+            val tracker = AlarmNotifier.tracker(app)
+            val news = freshEvents(tracker.last(origin), window, { after -> client.history(origin, limit = 200, after = after) })
+            tracker.claim(origin, news, status.mode == "armed").forEach { AlarmNotifier.post(app, it) }
             // An older server has neither: keep what was there rather than failing the whole pass.
             val alarms = runCatching { client.alarms(origin) }.getOrNull()
             val devices = runCatching { client.devices(origin) }.getOrNull()
             val solar = runCatching { client.solar(origin) }.getOrNull()
             val electrical = runCatching { client.electrical(origin) }.getOrNull()
             val network = runCatching { client.network(origin) }.getOrNull()
-            _state.value = _state.value.copy(
-                solar = solar ?: _state.value.solar, electrical = electrical ?: _state.value.electrical, network = network ?: _state.value.network,
-                snapshot = status, cameras = cameras, events = events, cameraHealth = health,
-                alarms = alarms?.first ?: _state.value.alarms, closedAlarms = alarms?.second ?: _state.value.closedAlarms, devices = devices ?: _state.value.devices,
-            )
+            _state.update { it.copy(
+                solar = solar ?: it.solar, electrical = electrical ?: it.electrical, network = network ?: it.network,
+                snapshot = status, cameras = cameras, events = mergeEvents(window, it.events), cameraHealth = health,
+                alarms = alarms?.first ?: it.alarms, closedAlarms = alarms?.second ?: it.closedAlarms, devices = devices ?: it.devices,
+            ) }
         } catch (error: ArmorApiException) {
-            if (error.code == 401) _state.value = MonitorUiState(message = "La sesión ha caducado: inicia sesión de nuevo")
+            if (error.code == 401) _state.update { MonitorUiState(message = "La sesión ha caducado: inicia sesión de nuevo") }
         } catch (_: Exception) {
             // The server may be restarting or the network changing; the next pass tries again.
         }
@@ -319,41 +330,41 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
     /** Arm or disarm. The screen asks the person first; a failure shows as a message and changes nothing. */
     fun setMode(origin: String, mode: String, pin: String? = null) = action(origin, if (mode == "armed") "Sistema ARMADO" else "Sistema DESARMADO") {
         require(_state.value.authenticated) { "Sign in first" }
-        _state.value = _state.value.copy(snapshot = client.setMode(origin, mode, pin))
+        _state.update { it.copy(snapshot = client.setMode(origin, mode, pin)) }
     }
 
     fun acknowledge(origin: String, alarm: Alarm) = action(origin, "Alarma confirmada") {
         client.acknowledgeAlarm(origin, alarm.id)
-        client.alarms(origin).let { _state.value = _state.value.copy(alarms = it.first, closedAlarms = it.second) }
+        client.alarms(origin).let { pair -> _state.update { it.copy(alarms = pair.first, closedAlarms = pair.second) } }
     }
 
     fun acknowledgeAll(origin: String) = action(origin, "Alarmas confirmadas") {
         client.acknowledgeAllAlarms(origin)
-        client.alarms(origin).let { _state.value = _state.value.copy(alarms = it.first, closedAlarms = it.second) }
+        client.alarms(origin).let { pair -> _state.update { it.copy(alarms = pair.first, closedAlarms = pair.second) } }
     }
 
     /** "on", "off" or "toggle" to a plug, light, switch, siren, lock or valve. */
     fun command(origin: String, device: SiteDevice, command: String, confirm: Boolean = false) = action(origin, "${device.name}: orden enviada") {
         client.commandDevice(origin, device.id, command, confirm)
-        _state.value = _state.value.copy(devices = client.devices(origin))
+        _state.update { it.copy(devices = client.devices(origin)) }
     }
 
     fun loadOlderEvents(origin: String) = action(origin, "Historial ampliado") {
         val oldest = _state.value.events.lastOrNull()?.id ?: return@action
         val older = client.history(origin, limit = 50, before = oldest)
-        _state.value = _state.value.copy(events = _state.value.events + older)
+        _state.update { it.copy(events = it.events + older) }
     }
 
     fun mjpegUrl(origin: String, camera: CameraView) = client.mjpegUrl(origin, camera.id)
     fun mediaUrl(origin: String, item: es.electrohobby3d.armor.model.MediaItem) = client.mediaUrl(origin, item)
 
     private fun action(origin: String, success: String, operation: suspend () -> Unit) {
-        if (ServerEndpoint.parse(origin) == null) { _state.value = _state.value.copy(message = "Enter a valid HTTPS origin or a private-LAN HTTP origin"); return }
+        if (ServerEndpoint.parse(origin) == null) { _state.update { it.copy(message = "Enter a valid HTTPS origin or a private-LAN HTTP origin") }; return }
         viewModelScope.launch {
-            _state.value = _state.value.copy(loading = true, message = null)
+            _state.update { it.copy(loading = true, message = null) }
             runCatching { withContext(Dispatchers.IO) { operation() } }
-                .onSuccess { _state.value = _state.value.copy(loading = false, message = success) }
-                .onFailure { _state.value = _state.value.copy(loading = false, message = it.message ?: "Server operation failed") }
+                .onSuccess { _state.update { it.copy(loading = false, message = success) } }
+                .onFailure { _state.update { it.copy(loading = false, message = it.message ?: "Server operation failed") } }
         }
     }
 
@@ -365,6 +376,6 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
         val solar = runCatching { client.solar(origin) }.getOrNull()
         val electrical = runCatching { client.electrical(origin) }.getOrNull()
         val network = runCatching { client.network(origin) }.getOrNull()
-        _state.value = _state.value.copy(solar = solar, electrical = electrical, network = network, snapshot = status, cameras = cameras, alarms = alarms?.first ?: emptyList(), closedAlarms = alarms?.second ?: emptyList(), devices = devices ?: emptyList(), media = if (loadMedia) client.media(origin) else _state.value.media)
+        _state.update { it.copy(solar = solar, electrical = electrical, network = network, snapshot = status, cameras = cameras, alarms = alarms?.first ?: emptyList(), closedAlarms = alarms?.second ?: emptyList(), devices = devices ?: emptyList(), media = if (loadMedia) client.media(origin) else it.media) }
     }
 }

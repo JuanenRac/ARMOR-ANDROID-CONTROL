@@ -95,7 +95,7 @@ fun VoiceScreen(
         notice = ""
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
             .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-ES").putExtra(RecognizerIntent.EXTRA_PROMPT, "Dí una orden").putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+            .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-ES").putExtra(RecognizerIntent.EXTRA_PROMPT, "Di una orden").putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
         try { recognizer.launch(intent) } catch (error: ActivityNotFoundException) { notice = "Este móvil no tiene reconocimiento de voz. Puedes escribir la orden." }
     }
 

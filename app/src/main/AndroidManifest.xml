@@ -7,6 +7,10 @@
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- The watch for alarms is a service that must go on all day: a data-sync service is stopped by Android 15 after six hours, so from Android 14 it runs as a "special use" one (it has no such limit). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- The watch starts again when the phone does, if the person had it on. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- Configuring a field node over Bluetooth Low Energy (the node advertises "ARMOR-xxxxxx"). Location is only asked for on Android 11 and older,
          where scanning needs it, and the app never uses it for anything else. -->
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
@@ -36,7 +40,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".AlarmWatcherService" android:exported="false" android:foregroundServiceType="dataSync" />
+        <service android:name=".AlarmWatcherService" android:exported="false" android:foregroundServiceType="specialUse|dataSync">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="Watches the A.R.M.O.R. server for new alarms and tells the person at once" />
+        </service>
+        <receiver android:name=".BootReceiver" android:exported="false">
+            <intent-filter><action android:name="android.intent.action.BOOT_COMPLETED" /></intent-filter>
+        </receiver>
         <!-- Shares an APK held in the app cache with Android's package
              installer through a temporary content:// URI; no file:// URI or
              broad external-storage permission is needed. -->

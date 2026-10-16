@@ -160,7 +160,9 @@ class GitHubReleaseUpdater(private val context: Context) {
                 val location = connection.getHeaderField("Location")
                 connection.disconnect()
                 if (location.isNullOrBlank()) return connection
-                currentUrl = location
+                // A relative Location is resolved against the address that answered, and the chain never leaves HTTPS (the APK is verified anyway, but nothing should travel in the clear).
+                currentUrl = URL(URL(currentUrl), location).toString()
+                if (!currentUrl.startsWith("https://")) throw IOException("La descarga del APK se desvió a una dirección que no es HTTPS.")
                 return@repeat
             }
             return connection

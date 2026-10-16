@@ -36,7 +36,7 @@ data class NetworkOverview(
 
 object NetworkParser {
     private fun JSONObject.number(key: String): Double? = if (has(key) && !isNull(key)) optDouble(key).takeIf { !it.isNaN() } else null
-    private fun JSONObject.text(key: String): String? = if (has(key) && !isNull(key)) optString(key).takeIf { it.isNotBlank() } else null
+    private fun JSONObject.text(key: String): String? = if (has(key) && !isNull(key)) optStr(key).takeIf { it.isNotBlank() } else null
     private fun JSONArray?.objects(): List<JSONObject> = buildList { if (this@objects != null) for (i in 0 until length()) optJSONObject(i)?.let(::add) }
 
     fun overview(root: JSONObject): NetworkOverview = NetworkOverview(
@@ -49,46 +49,46 @@ object NetworkParser {
     private fun totals(json: JSONObject) = NetworkTotals(json.optInt("nodes"), json.optInt("stale"), json.optInt("devices"), json.optInt("online"), json.optInt("unknown"), json.text("internet"))
 
     private fun node(json: JSONObject): NetworkNode? {
-        val id = json.optString("node_id")
+        val id = json.optStr("node_id")
         val iface = json.optJSONObject("interface") ?: return null
         val internet = json.optJSONObject("internet") ?: return null
         if (id.isBlank()) return null
         return NetworkNode(
-            nodeId = id, stale = json.optBoolean("stale"), ip = iface.optString("ip"), cidr = iface.optString("cidr"), gateway = iface.text("gateway"),
+            nodeId = id, stale = json.optBoolean("stale"), ip = iface.optStr("ip"), cidr = iface.optStr("cidr"), gateway = iface.text("gateway"),
             rxBps = iface.number("rx_bps")?.toLong(), txBps = iface.number("tx_bps")?.toLong(), internet = internet(internet),
             devices = json.optJSONArray("devices").objects().mapNotNull(::device),
         )
     }
 
     private fun internet(json: JSONObject) = NetworkInternet(
-        state = json.optString("state", "unknown"), sinceMs = json.number("since_ms")?.toLong(), gatewayOk = if (json.has("gateway_ok")) json.optBoolean("gateway_ok") else null,
+        state = json.optStr("state", "unknown"), sinceMs = json.number("since_ms")?.toLong(), gatewayOk = if (json.has("gateway_ok")) json.optBoolean("gateway_ok") else null,
         latencyMs = json.number("latency_ms"), lossPercent = json.number("loss_percent"),
-        probes = json.optJSONArray("probes").objects().map { NetworkProbe(it.optString("target"), it.optString("kind"), it.optBoolean("ok"), it.number("latency_ms")) },
+        probes = json.optJSONArray("probes").objects().map { NetworkProbe(it.optStr("target"), it.optStr("kind"), it.optBoolean("ok"), it.number("latency_ms")) },
         outages24h = json.optInt("outages_24h"), downtime24hS = json.optInt("downtime_24h_s"),
     )
 
     private fun device(json: JSONObject): NetworkDevice? {
-        val id = json.optString("id")
-        val ip = json.optString("ip")
+        val id = json.optStr("id")
+        val ip = json.optStr("ip")
         if (id.isBlank() || ip.isBlank()) return null
         val note = json.optJSONObject("note")?.let { NetworkNote(it.text("name"), it.text("notes"), it.optBoolean("trusted"), it.text("kind")) }
         return NetworkDevice(
             id = id, ip = ip, mac = json.text("mac"), randomizedMac = json.optBoolean("randomized_mac"), vendor = json.text("vendor"), hostname = json.text("hostname"),
-            kind = json.optString("kind", "unknown"), os = json.text("os"), online = json.optBoolean("online"), firstSeenMs = json.optLong("first_seen_ms"), lastSeenMs = json.optLong("last_seen_ms"),
+            kind = json.optStr("kind", "unknown"), os = json.text("os"), online = json.optBoolean("online"), firstSeenMs = json.optLong("first_seen_ms"), lastSeenMs = json.optLong("last_seen_ms"),
             latencyMs = json.number("latency_ms"),
-            ports = json.optJSONArray("ports").objects().map { NetworkPort(it.optInt("port"), it.optString("proto", "tcp"), it.text("service"), it.text("banner")) },
-            services = buildList { json.optJSONArray("services")?.let { for (i in 0 until it.length()) add(it.optString(i)) } }, note = note,
+            ports = json.optJSONArray("ports").objects().map { NetworkPort(it.optInt("port"), it.optStr("proto", "tcp"), it.text("service"), it.text("banner")) },
+            services = buildList { json.optJSONArray("services")?.let { for (i in 0 until it.length()) add(it.optStr(i)) } }, note = note,
         )
     }
 
     private fun event(json: JSONObject): NetworkEvent? {
-        val id = json.optString("id")
+        val id = json.optStr("id")
         if (id.isBlank()) return null
-        return NetworkEvent(id, json.optString("node_id"), json.optString("kind"), json.optLong("at_ms"), json.text("device_id"), if (json.has("port")) json.optInt("port") else null,
+        return NetworkEvent(id, json.optStr("node_id"), json.optStr("kind"), json.optLong("at_ms"), json.text("device_id"), if (json.has("port")) json.optInt("port") else null,
             if (json.has("outage_s")) json.optInt("outage_s") else null, json.text("detail"))
     }
 
-    private fun outage(json: JSONObject) = NetworkOutage(json.optString("kind"), json.optLong("started_ms"), json.optLong("ended_ms"), json.optInt("duration_s"))
+    private fun outage(json: JSONObject) = NetworkOutage(json.optStr("kind"), json.optLong("started_ms"), json.optLong("ended_ms"), json.optInt("duration_s"))
 }
 
 /** The wording of the network, in plain Spanish. */

@@ -35,10 +35,15 @@ class AlarmWatcherService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val notification = AlarmNotifier.watchNotification(this, "Comprobando eventos cada ${INTERVAL_MS / 1000} s")
-        if (Build.VERSION.SDK_INT >= 29) startForeground(AlarmNotifier.WATCH_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        else startForeground(AlarmNotifier.WATCH_ID, notification)
+        // From Android 14 the watch is a "special use" service, which Android 15 does not stop after six hours as it does a data-sync one.
+        when {
+            Build.VERSION.SDK_INT >= 34 -> startForeground(AlarmNotifier.WATCH_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+            Build.VERSION.SDK_INT >= 29 -> startForeground(AlarmNotifier.WATCH_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+            else -> startForeground(AlarmNotifier.WATCH_ID, notification)
+        }
         if (job?.isActive != true) job = scope.launch { watch() }
-        return START_NOT_STICKY
+        // If Android ends the process to get memory back, the watch comes back by itself (the session is read again from the vault).
+        return START_STICKY
     }
 
     private suspend fun watch() {

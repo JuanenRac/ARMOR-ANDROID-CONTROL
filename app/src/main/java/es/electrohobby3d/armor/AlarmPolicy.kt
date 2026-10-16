@@ -53,15 +53,62 @@ object AlarmPolicy {
  * service announces the same event twice. The first call only records a baseline: opening the
  * app for the first time must not replay the whole history as alarms.
  */
-class AlarmTracker(private val load: () -> Long, private val save: (Long) -> Unit) {
+class AlarmTracker(private val load: (String) -> Long, private val save: (String, Long) -> Unit, private val now: () -> Long = System::currentTimeMillis) {
+    /** The newest event handled for this server, or -1 when it was never looked at. */
+    fun last(origin: String): Long = load(origin)
+
+    /**
+     * The notices for what is new. The memory is per server (a number is only meaningful for the server that gave it), an event older than [MAX_AGE_MS] is history and not news (the app
+     * opened after days, or a service that was asleep), and a server whose numbering started again (a new database, another machine at the same address) is read from its start.
+     */
     @Synchronized
-    fun claim(events: List<ArmorEvent>, armed: Boolean): List<AlarmNotice> {
+    fun claim(origin: String, events: List<ArmorEvent>, armed: Boolean): List<AlarmNotice> {
         if (events.isEmpty()) return emptyList()
         val newest = events.maxOf { it.id }
-        val last = load()
-        if (last < 0) { save(newest); return emptyList() }
+        val last = load(origin)
+        if (last < 0) { save(origin, newest); return emptyList() }
+        if (newest < last) { save(origin, newest); return AlarmPolicy.notices(recent(events), armed) }
         val fresh = events.filter { it.id > last }
-        if (newest > last) save(newest)
-        return AlarmPolicy.notices(fresh, armed)
+        if (newest > last) save(origin, newest)
+        return AlarmPolicy.notices(recent(fresh), armed)
     }
+
+    private fun recent(events: List<ArmorEvent>): List<ArmorEvent> = events.filter { event ->
+        val at = runCatching { java.time.Instant.parse(event.at).toEpochMilli() }.getOrNull()
+        at == null || now() - at <= MAX_AGE_MS
+    }
+
+    companion object {
+        /** Older than this an event is shown in the history but does not wake anybody. */
+        const val MAX_AGE_MS = 15 * 60_000L
+    }
+}
+
+/**
+ * What came after the last event handled, with no gap: [newest] is the newest events the screen already has (newest first); when the window does not reach back to [last] (more than a
+ * window of events came between two looks) [after] is asked, page by page, for the ones in between (oldest first). A server that was reset (its newest is below [last]) is read from its newest.
+ */
+fun freshEvents(last: Long, newest: List<ArmorEvent>, after: (Long) -> List<ArmorEvent>, maxPages: Int = 5): List<ArmorEvent> {
+    if (last < 0 || newest.isEmpty()) return newest
+    val top = newest.maxOf { it.id }
+    if (top < last) return newest
+    val bottom = newest.minOf { it.id }
+    if (bottom <= last + 1) return newest
+    val gap = ArrayList<ArmorEvent>()
+    var cursor = last
+    repeat(maxPages) {
+        val page = after(cursor)
+        if (page.isEmpty()) return@repeat
+        gap += page
+        cursor = page.maxOf { it.id }
+        if (cursor >= bottom - 1) return (gap + newest).distinctBy { it.id }
+    }
+    return (gap + newest).distinctBy { it.id }
+}
+
+/** The events the screen shows after a poll: the newest window from the server plus the older ones the person asked to see ("Ver anteriores") that are not in it, so a poll no longer erases them. */
+fun mergeEvents(fresh: List<ArmorEvent>, previous: List<ArmorEvent>, keep: Int = 500): List<ArmorEvent> {
+    if (fresh.isEmpty()) return previous
+    val oldestFresh = fresh.minOf { it.id }
+    return (fresh + previous.filter { it.id < oldestFresh }).distinctBy { it.id }.sortedByDescending { it.id }.take(keep)
 }

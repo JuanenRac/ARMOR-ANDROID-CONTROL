@@ -39,29 +39,29 @@ object AlarmPanelsParser {
     )
 
     private fun panel(json: JSONObject): AlarmPanelView? {
-        val id = json.optString("node_id")
+        val id = json.optStr("node_id")
         val state = json.optJSONObject("state") ?: return null
         if (id.isBlank()) return null
         return AlarmPanelView(
-            nodeId = id, stale = json.optBoolean("stale"), receivedAt = json.optString("received_at"),
-            phase = state.optString("phase", "disarmed"), mode = state.optString("mode", "disarmed"),
+            nodeId = id, stale = json.optBoolean("stale"), receivedAt = json.optStr("received_at"),
+            phase = state.optStr("phase", "disarmed"), mode = state.optStr("mode", "disarmed"),
             siren = state.optBoolean("siren"), lockedOut = state.optBoolean("locked_out"), commandsEnabled = state.optBoolean("commands_enabled"),
             zones = state.optJSONArray("zones").objects().mapNotNull(::zone),
-            openZones = buildList { val array = state.optJSONArray("open_zones"); if (array != null) for (i in 0 until array.length()) array.optString(i).takeIf { it.isNotBlank() }?.let(::add) },
-            events = state.optJSONArray("events").objects().map { AlarmEventView(it.optLong("ago_s"), it.optString("kind"), it.optString("zone").takeIf { zone -> zone.isNotBlank() }) },
+            openZones = buildList { val array = state.optJSONArray("open_zones"); if (array != null) for (i in 0 until array.length()) array.optStr(i).takeIf { it.isNotBlank() }?.let(::add) },
+            events = state.optJSONArray("events").objects().map { AlarmEventView(it.optLong("ago_s"), it.optStr("kind"), it.optStr("zone").takeIf { zone -> zone.isNotBlank() }) },
         )
     }
 
     private fun zone(json: JSONObject): AlarmZoneView? {
-        val id = json.optString("id")
+        val id = json.optStr("id")
         if (id.isBlank()) return null
-        return AlarmZoneView(id, json.optString("name"), json.optString("kind", "instant"), json.optString("state", "normal"), json.optBoolean("bypassed"))
+        return AlarmZoneView(id, json.optStr("name"), json.optStr("kind", "instant"), json.optStr("state", "normal"), json.optBoolean("bypassed"))
     }
 
     fun commands(root: JSONObject): AlarmCommandsStatus = AlarmCommandsStatus(
         enabled = root.optBoolean("enabled"),
         recent = root.optJSONArray("recent").objects().map {
-            AlarmCommandRecord(it.optString("command_id"), it.optString("node_id"), it.optString("action"), it.optString("mode").takeIf { mode -> mode.isNotBlank() }, it.optBoolean("accepted"), it.optString("refusal"))
+            AlarmCommandRecord(it.optStr("command_id"), it.optStr("node_id"), it.optStr("action"), it.optStr("mode").takeIf { mode -> mode.isNotBlank() }, it.optBoolean("accepted"), it.optStr("refusal"))
         },
     )
 }

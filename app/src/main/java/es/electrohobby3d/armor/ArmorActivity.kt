@@ -43,7 +43,7 @@ class ArmorActivity : ComponentActivity() {
     }
 }
 
-/** The five places of the bottom bar: an icon each, and the word only under the one that is open. */
+/** The six places of the bottom bar: an icon each, and the word only under the one that is open. */
 private enum class Section(val label: String, val icon: ImageVector) {
     Status("Estado", Icons.Filled.Shield), Radar("Radar", Icons.Filled.Radar), Alarms("Alarmas", Icons.Filled.NotificationsActive), Devices("Dispositivos", Icons.Filled.Sensors),
     Cameras("Cámaras", Icons.Filled.Videocam), More("Más", Icons.Filled.GridView)
@@ -118,12 +118,14 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     }
 
     // While the app is on screen everything refreshes every ten seconds and alarms are announced.
+    var lastSavedCookie by remember { mutableStateOf<Pair<String, String>?>(null) }
     LaunchedEffect(state.authenticated, currentOrigin) {
         if (state.authenticated && currentOrigin.isNotBlank()) lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             while (true) {
                 viewModel.pollOnce(currentOrigin, context.applicationContext)
                 // The server renews a session that is in use: keep the renewed cookie.
-                viewModel.sessionCookie(currentOrigin)?.let { (name, value) -> vault.save(currentOrigin, name, value) }
+                // (only when it changed: sealing it with the Keystore and writing it every ten seconds for nothing wears the flash)
+                viewModel.sessionCookie(currentOrigin)?.let { cookie -> if (cookie != lastSavedCookie) { vault.save(currentOrigin, cookie.first, cookie.second); lastSavedCookie = cookie } }
                 delay(10_000)
             }
         }
@@ -322,8 +324,8 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 MoreTab.History -> SubScreen(Icons.Filled.History, "Historial", onBack = { moreTab = null }) { HistoryScreen(state.events, onMore = { viewModel.loadOlderEvents(currentOrigin) }) }
                                 MoreTab.Settings -> SubScreen(Icons.Filled.Settings, "Ajustes", onBack = { moreTab = null }) {
                                     SettingsScreen(
-                                        origin, { origin = it }, validOrigin, state.authenticated,
-                                        onConnect = { preferences.edit().putString("origin", currentOrigin).apply(); viewModel.refresh(currentOrigin) },
+                                        origin, state.authenticated,
+                                        onConnect = { typed -> ServerEndpoint.parse(typed)?.let { endpoint -> origin = endpoint.origin; preferences.edit().putString("origin", endpoint.origin).apply(); viewModel.refresh(endpoint.origin) } },
                                         watching = watching, onWatching = { on -> watching = on; setWatching(context, preferences, on) { notificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS) } },
                                     )
                                 }

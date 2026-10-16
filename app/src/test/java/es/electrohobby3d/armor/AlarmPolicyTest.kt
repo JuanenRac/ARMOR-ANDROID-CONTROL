@@ -39,23 +39,65 @@ class AlarmPolicyTest {
     }
 
     @Test fun theFirstRunOnlyRecordsABaselineAndNothingIsAnnouncedTwice() {
-        var stored = -1L
-        val tracker = AlarmTracker({ stored }, { stored = it })
+        val stored = mutableMapOf<String, Long>()
+        val tracker = AlarmTracker({ stored[it] ?: -1L }, { origin, id -> stored[origin] = id })
         val history = listOf(alert(5, "review", "high"), alert(4, "normal", "review", 1))
-        assertTrue("the whole history must not replay as alarms", tracker.claim(history, armed = true).isEmpty())
-        assertEquals(5L, stored)
-        assertTrue(tracker.claim(history, armed = true).isEmpty())
+        assertTrue("the whole history must not replay as alarms", tracker.claim("s", history, armed = true).isEmpty())
+        assertEquals(5L, stored["s"])
+        assertTrue(tracker.claim("s", history, armed = true).isEmpty())
         val next = listOf(camera(6, "offline")) + history
-        assertEquals(listOf(6L), tracker.claim(next, armed = true).map { it.id })
-        assertEquals(6L, stored)
-        assertTrue("already claimed", tracker.claim(next, armed = true).isEmpty())
+        assertEquals(listOf(6L), tracker.claim("s", next, armed = true).map { it.id })
+        assertEquals(6L, stored["s"])
+        assertTrue("already claimed", tracker.claim("s", next, armed = true).isEmpty())
+    }
+
+    @Test fun eachServerHasItsOwnMemoryAndANewNumberingIsReadFromItsStart() {
+        val stored = mutableMapOf<String, Long>()
+        val tracker = AlarmTracker({ stored[it] ?: -1L }, { origin, id -> stored[origin] = id })
+        tracker.claim("a", listOf(alert(900, "review", "high")), armed = true)
+        // another server starts from its own baseline: its low numbers are not "old" because server a had reached 900
+        assertTrue(tracker.claim("b", listOf(alert(3, "review", "high")), armed = true).isEmpty())
+        assertEquals(3L, stored["b"])
+        // the database of server a was started again: its numbering is back at 2, and what it has now is news
+        assertEquals(listOf(2L), tracker.claim("a", listOf(camera(2, "offline")), armed = true).map { it.id })
+        assertEquals(2L, stored["a"])
+    }
+
+    @Test fun anEventOlderThanTheLimitIsHistoryAndNotNews() {
+        val stored = mutableMapOf("s" to 1L)
+        val now = java.time.Instant.parse("2026-01-01T12:00:00Z").toEpochMilli()
+        val tracker = AlarmTracker({ stored[it] ?: -1L }, { origin, id -> stored[origin] = id }, { now })
+        fun at(id: Long, time: String) = ArmorEvent(id, time, "camera", "cam-01", "online", "offline", null, null)
+        val news = tracker.claim("s", listOf(at(3, "2026-01-01T11:59:00Z"), at(2, "2025-12-31T08:00:00Z")), armed = true)
+        assertEquals(listOf(3L), news.map { it.id })
+    }
+
+    @Test fun whenMoreEventsCameThanTheWindowHoldsTheGapIsFetchedWithNoneMissed() {
+        val newest = (300L downTo 251L).map { alert(it, "review", "high") }   // the last 50, newest first
+        val asked = mutableListOf<Long>()
+        val gap = freshEvents(100, newest, { after -> asked += after; (after + 1..minOf(after + 100, 250)).map { alert(it, "review", "high") } })
+        assertEquals((101L..300L).toSet(), gap.map { it.id }.toSet())
+        assertTrue(asked.isNotEmpty())
+        // no gap: nothing is asked
+        asked.clear()
+        assertEquals(newest, freshEvents(290, newest, { asked += it; emptyList() }))
+        assertTrue(asked.isEmpty())
+    }
+
+    @Test fun olderEventsTheOperatorAskedForSurviveAPoll() {
+        val shown = (60L downTo 11L).map { alert(it, "review", "high") }   // the window plus 'ver anteriores'
+        val polled = (62L downTo 13L).map { alert(it, "review", "high") }
+        val merged = mergeEvents(polled, shown)
+        assertEquals(62L, merged.first().id)
+        assertEquals(11L, merged.last().id)
+        assertEquals(merged.size, merged.map { it.id }.toSet().size)
     }
 
     @Test fun anEmptyHistoryChangesNothing() {
-        var stored = -1L
-        val tracker = AlarmTracker({ stored }, { stored = it })
-        assertTrue(tracker.claim(emptyList(), armed = true).isEmpty())
-        assertEquals(-1L, stored)
+        val stored = mutableMapOf<String, Long>()
+        val tracker = AlarmTracker({ stored[it] ?: -1L }, { origin, id -> stored[origin] = id })
+        assertTrue(tracker.claim("s", emptyList(), armed = true).isEmpty())
+        assertEquals(null, stored["s"])
     }
 
     @Test fun parsingAcceptsKnownEventsAndRefusesEverythingElse() {

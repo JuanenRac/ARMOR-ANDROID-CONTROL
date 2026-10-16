@@ -33,12 +33,12 @@ object WeatherParser {
     private fun code(array: JSONArray?, i: Int): Int? = num(array, i)?.roundToInt()
     private fun doubles(array: JSONArray?): List<Double?> = buildList { val n = array?.length() ?: 0; for (i in 0 until n) add(num(array, i)) }
     private fun codes(array: JSONArray?): List<Int?> = buildList { val n = array?.length() ?: 0; for (i in 0 until n) add(code(array, i)) }
-    private fun strings(array: JSONArray?): List<String> = buildList { val n = array?.length() ?: 0; for (i in 0 until n) add(array!!.optString(i)) }
+    private fun strings(array: JSONArray?): List<String> = buildList { val n = array?.length() ?: 0; for (i in 0 until n) add(array!!.optStr(i)) }
 
     fun place(json: JSONObject): Place? {
         val lat = json.optDouble("latitude"); val lon = json.optDouble("longitude")
         if (lat.isNaN() || lon.isNaN()) return null
-        return Place(json.optString("name"), json.optString("admin1").takeIf { it.isNotBlank() }, json.optString("country").takeIf { it.isNotBlank() }, lat, lon)
+        return Place(json.optStr("name"), json.optStr("admin1").takeIf { it.isNotBlank() }, json.optStr("country").takeIf { it.isNotBlank() }, lat, lon)
     }
     fun places(root: JSONObject): List<Place> {
         val array = root.optJSONArray("results") ?: return emptyList()
@@ -54,14 +54,14 @@ object WeatherParser {
         val m = root.optJSONObject("minutely_15")
         val current = c?.takeIf { it.has("time") }?.let {
             WxCurrent(
-                it.optString("time"), it.optDouble("temperature_2m").takeIf { v -> !v.isNaN() }, it.optDouble("apparent_temperature").takeIf { v -> !v.isNaN() },
+                it.optStr("time"), it.optDouble("temperature_2m").takeIf { v -> !v.isNaN() }, it.optDouble("apparent_temperature").takeIf { v -> !v.isNaN() },
                 it.optDouble("relative_humidity_2m").takeIf { v -> !v.isNaN() }, it.optInt("is_day") != 0, it.optDouble("precipitation").takeIf { v -> !v.isNaN() },
                 if (it.has("weather_code")) it.optInt("weather_code") else null, it.optDouble("cloud_cover").takeIf { v -> !v.isNaN() }, it.optDouble("pressure_msl").takeIf { v -> !v.isNaN() },
                 it.optDouble("wind_speed_10m").takeIf { v -> !v.isNaN() }, it.optDouble("wind_direction_10m").takeIf { v -> !v.isNaN() }, it.optDouble("wind_gusts_10m").takeIf { v -> !v.isNaN() },
             )
         }
         return Forecast(
-            latitude = lat, longitude = lon, timezone = root.optString("timezone", "UTC"), utcOffsetSeconds = root.optInt("utc_offset_seconds"), current = current,
+            latitude = lat, longitude = lon, timezone = root.optStr("timezone", "UTC"), utcOffsetSeconds = root.optInt("utc_offset_seconds"), current = current,
             minutely = WxMinutely(strings(m?.optJSONArray("time")), doubles(m?.optJSONArray("precipitation"))),
             hourly = WxHourly(
                 strings(h?.optJSONArray("time")), doubles(h?.optJSONArray("temperature_2m")), doubles(h?.optJSONArray("precipitation_probability")),

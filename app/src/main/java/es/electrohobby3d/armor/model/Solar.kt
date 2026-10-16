@@ -68,7 +68,7 @@ object SolarParser {
     private fun JSONObject.whole(key: String): Int? = number(key)?.let { Math.round(it).toInt() }
     private fun JSONArray?.objects(): List<JSONObject> = buildList { if (this@objects != null) for (i in 0 until length()) optJSONObject(i)?.let(::add) }
     private fun JSONArray?.numbers(): List<Double> = buildList { if (this@numbers != null) for (i in 0 until length()) optDouble(i).takeIf { !it.isNaN() }?.let(::add) }
-    private fun JSONArray?.strings(): List<String> = buildList { if (this@strings != null) for (i in 0 until length()) optString(i).takeIf { it.isNotBlank() }?.let(::add) }
+    private fun JSONArray?.strings(): List<String> = buildList { if (this@strings != null) for (i in 0 until length()) optStr(i).takeIf { it.isNotBlank() }?.let(::add) }
 
     fun overview(root: JSONObject): SolarOverview = SolarOverview(
         devices = root.optJSONArray("devices").objects().mapNotNull(::device),
@@ -80,26 +80,26 @@ object SolarParser {
         inverters = json.optInt("inverters"), batteries = json.optInt("batteries"), stale = json.optInt("stale"),
         pvW = json.number("pv_w") ?: 0.0, loadW = json.number("load_w") ?: 0.0, batteryW = json.number("battery_w"), socPercent = json.whole("soc_percent"),
         capacityAh = json.number("capacity_ah"), fullCapacityAh = json.number("full_capacity_ah"), energyKwh = json.number("energy_kwh"),
-        gridPresent = json.optBoolean("grid_present"), mode = if (json.has("mode") && !json.isNull("mode")) json.optString("mode") else null,
+        gridPresent = json.optBoolean("grid_present"), mode = if (json.has("mode") && !json.isNull("mode")) json.optStr("mode") else null,
     )
 
     private fun waiting(json: JSONObject): SolarWaiting? {
-        val node = json.optString("node_id"); val device = json.optString("device")
+        val node = json.optStr("node_id"); val device = json.optStr("device")
         if (node.isBlank() || device.isBlank()) return null
-        return SolarWaiting(node, device, json.optString("name").ifBlank { device }, json.optString("kind"), json.optString("model"))
+        return SolarWaiting(node, device, json.optStr("name").ifBlank { device }, json.optStr("kind"), json.optStr("model"))
     }
 
     fun device(json: JSONObject): SolarDevice? {
-        val node = json.optString("node_id"); val device = json.optString("device")
+        val node = json.optStr("node_id"); val device = json.optStr("device")
         val reading = json.optJSONObject("reading") ?: return null
         if (node.isBlank() || device.isBlank()) return null
         val registered = json.optJSONObject("registered")
-        val name = registered?.optString("name").orEmpty().ifBlank { device }
-        val model = registered?.optString("model").orEmpty()
+        val name = registered?.optStr("name").orEmpty().ifBlank { device }
+        val model = registered?.optStr("model").orEmpty()
         val common = { inverter: SolarInverterReading?, battery: SolarBatteryReading? ->
-            SolarDevice(node, device, name, model, json.optBoolean("stale"), json.optBoolean("example"), json.optString("received_at"), inverter, battery)
+            SolarDevice(node, device, name, model, json.optBoolean("stale"), json.optBoolean("example"), json.optStr("received_at"), inverter, battery)
         }
-        return when (json.optString("kind")) {
+        return when (json.optStr("kind")) {
             "inverter" -> common(inverter(reading), null)
             "battery" -> common(null, battery(reading))
             else -> null
@@ -107,23 +107,23 @@ object SolarParser {
     }
 
     private fun inverter(r: JSONObject) = SolarInverterReading(
-        mode = r.optString("mode", "unknown"),
+        mode = r.optStr("mode", "unknown"),
         gridV = r.number("grid_v"), gridHz = r.number("grid_hz"), outV = r.number("out_v"), outHz = r.number("out_hz"), outVa = r.number("out_va"), outW = r.number("out_w"),
         loadPercent = r.number("load_percent"), batteryV = r.number("battery_v"), batteryA = r.number("battery_a"), batteryPercent = r.number("battery_percent"),
         pvV = r.number("pv_v"), pvA = r.number("pv_a"), pvW = r.number("pv_w"), heatsinkC = r.number("heatsink_c"),
         acCharging = r.optBoolean("ac_charging"), pvCharging = r.optBoolean("pv_charging"), loadOn = r.optBoolean("load_on"), warnings = r.optJSONArray("warnings").strings(),
         pv2V = r.number("pv2_v"), pv2A = r.number("pv2_a"), pv2W = r.number("pv2_w"), totalOutW = r.number("total_out_w"),
-        units = r.optJSONArray("units").objects().map { SolarUnit(it.optInt("unit"), it.optString("mode", "unknown"), it.optString("serial"), it.optString("fault_code"), it.number("out_w"), it.number("load_percent"), it.number("battery_v")) },
+        units = r.optJSONArray("units").objects().map { SolarUnit(it.optInt("unit"), it.optStr("mode", "unknown"), it.optStr("serial"), it.optStr("fault_code"), it.number("out_w"), it.number("load_percent"), it.number("battery_v")) },
     )
 
     private fun module(m: JSONObject) = SolarModule(
         number = m.optInt("n"), present = m.optBoolean("present"), voltageV = m.number("voltage_v"), currentA = m.number("current_a"), temperatureC = m.number("temperature_c"),
-        socPercent = m.whole("soc_percent"), state = m.optString("state"), cellsV = m.optJSONArray("cells_v").numbers(), temperaturesC = m.optJSONArray("temperatures_c").numbers(),
+        socPercent = m.whole("soc_percent"), state = m.optStr("state"), cellsV = m.optJSONArray("cells_v").numbers(), temperaturesC = m.optJSONArray("temperatures_c").numbers(),
         capacityAh = m.number("capacity_ah"), fullCapacityAh = m.number("full_capacity_ah"), cycles = m.whole("cycles"), healthPercent = m.whole("health_percent"),
     )
 
     private fun battery(r: JSONObject) = SolarBatteryReading(
-        modules = r.optInt("modules"), model = r.optString("model"), state = r.optString("state"), voltageV = r.number("voltage_v"), currentA = r.number("current_a"),
+        modules = r.optInt("modules"), model = r.optStr("model"), state = r.optStr("state"), voltageV = r.number("voltage_v"), currentA = r.number("current_a"),
         temperatureMinC = r.number("temperature_min_c"), temperatureMaxC = r.number("temperature_max_c"), cellMinV = r.number("cell_min_v"), cellMaxV = r.number("cell_max_v"),
         socPercent = r.whole("soc_percent"), alarm = r.optBoolean("alarm"), capacityAh = r.number("capacity_ah"), fullCapacityAh = r.number("full_capacity_ah"),
         energyKwh = r.number("energy_kwh"), cycles = r.whole("cycles"), stack = r.optJSONArray("stack").objects().map(::module).filter { it.present }, healthPercent = r.whole("health_percent"),

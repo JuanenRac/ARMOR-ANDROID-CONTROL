@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -104,6 +105,17 @@ private fun eventIcon(type: String): ImageVector = when (type) {
 fun EvidenceScreen(items: List<MediaItem>, cameras: List<CameraView>, origin: String, viewModel: ArmorViewModel, unlocked: Boolean) {
     if (!unlocked) { EmptyNote(Icons.Filled.Lock, "Inicia sesión", "Las grabaciones se ven con la sesión abierta."); return }
     if (items.isEmpty()) { EmptyNote(Icons.Filled.VideoLibrary, "No hay grabaciones", "Las fotos y vídeos que hagas con las cámaras aparecerán aquí."); return }
+    var viewing by remember { mutableStateOf<MediaItem?>(null) }
+    var deleting by remember { mutableStateOf<MediaItem?>(null) }
+    viewing?.let { MediaViewerDialog(it, viewModel.mediaUrl(origin, it), viewModel.sessionCookie(origin)) { viewing = null } }
+    deleting?.let { doomed ->
+        AlertDialog(
+            onDismissRequest = { deleting = null }, containerColor = ArmorColors.SurfaceRaised,
+            title = { Text("¿Borrar la grabación?") }, text = { Text("Se borra del servidor y no se puede deshacer.") },
+            confirmButton = { TextButton(onClick = { viewModel.deleteMedia(origin, doomed); deleting = null }) { Text("Borrar", color = ArmorColors.Alert) } },
+            dismissButton = { TextButton(onClick = { deleting = null }) { Text("Cancelar") } },
+        )
+    }
     LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
         items(items, key = { it.id }) { item ->
             val name = cameras.firstOrNull { it.id == item.cameraId }?.name ?: item.cameraId
@@ -114,7 +126,8 @@ fun EvidenceScreen(items: List<MediaItem>, cameras: List<CameraView>, origin: St
                         Text(name, fontWeight = FontWeight.SemiBold)
                         Text("${if (item.kind == "snapshot") "Foto" else "Vídeo"} · ${Friendly.dayAndClock(item.createdAt)}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                     }
-                    IconButton(onClick = { viewModel.deleteMedia(origin, item) }) { Icon(Icons.Filled.Delete, contentDescription = "Borrar", tint = ArmorColors.Alert) }
+                    IconButton(onClick = { viewing = item }) { Icon(Icons.Filled.PlayArrow, contentDescription = "Ver", tint = ArmorColors.Cyan) }
+                    IconButton(onClick = { deleting = item }) { Icon(Icons.Filled.Delete, contentDescription = "Borrar", tint = ArmorColors.Alert) }
                 }
             }
         }
@@ -194,18 +207,21 @@ private fun ReleaseNotesDialog(update: es.electrohobby3d.armor.update.AvailableU
 
 @Composable
 fun SettingsScreen(
-    origin: String, changeOrigin: (String) -> Unit, valid: Boolean, authenticated: Boolean, onConnect: () -> Unit,
+    origin: String, authenticated: Boolean, onConnect: (String) -> Unit,
     watching: Boolean, onWatching: (Boolean) -> Unit,
 ) {
+    // What is typed here is a draft: the address the app talks to changes only when the person taps "Conectar" (it used to change with every key, restarting the polling against a half-typed address).
+    var draft by rememberSaveable(origin) { mutableStateOf(origin) }
+    val valid = ServerEndpoint.parse(draft) != null
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Panel(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) { Icon(Icons.Filled.Dns, null, tint = ArmorColors.Cyan); Text("Servidor", fontWeight = FontWeight.SemiBold) }
                 OutlinedTextField(
-                    value = origin, onValueChange = changeOrigin, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("Dirección") },
-                    isError = origin.isNotBlank() && !valid, supportingText = { Text(if (origin.isBlank() || valid) "Por ejemplo http://192.168.0.50:8080" else "La dirección no es válida") },
+                    value = draft, onValueChange = { draft = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("Dirección") },
+                    isError = draft.isNotBlank() && !valid, supportingText = { Text(if (draft.isBlank() || valid) "Por ejemplo http://192.168.0.50:8080" else "La dirección no es válida") },
                 )
-                Button(onClick = onConnect, enabled = valid, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Filled.Refresh, null); Spacer(Modifier.width(8.dp)); Text("Conectar") }
+                Button(onClick = { onConnect(draft) }, enabled = valid, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Filled.Refresh, null); Spacer(Modifier.width(8.dp)); Text("Conectar") }
             }
         }
         Panel(Modifier.fillMaxWidth()) {
@@ -213,7 +229,7 @@ fun SettingsScreen(
                 IconBadge(Icons.Filled.NotificationsActive, size = 44.dp)
                 Column(Modifier.weight(1f)) {
                     Text("Avisos con la app cerrada", fontWeight = FontWeight.SemiBold)
-                    Text("Te avisa de alertas, cámaras sin señal y nodos caídos mientras el sistema está armado.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                    Text("Te avisa de alertas altas, cámaras sin señal y alarmas siempre; de nodos caídos o en silencio, solo con el sistema armado.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                 }
                 Switch(checked = watching, onCheckedChange = onWatching, enabled = authenticated)
             }

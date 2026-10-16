@@ -2,6 +2,7 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor.update
 
+import es.electrohobby3d.armor.model.optStr
 import org.json.JSONObject
 
 /** A stable GitHub release and its explicitly named installable APK asset. */
@@ -32,7 +33,7 @@ object ReleaseMetadataParser {
         if (release.optBoolean("draft") || release.optBoolean("prerelease")) {
             return UpdateCheckResult.UpToDate
         }
-        val remoteVersion = SemanticVersion.parseStable(release.optString("tag_name"))
+        val remoteVersion = SemanticVersion.parseStable(release.optStr("tag_name"))
             ?: return UpdateCheckResult.Failed("La última versión publicada en GitHub no tiene una etiqueta estable MAYOR.MENOR.PARCHE.")
         val localVersion = SemanticVersion.parseStable(installedVersionName)
             ?: return UpdateCheckResult.Failed("La versión instalada no es un número de versión estable.")
@@ -43,17 +44,17 @@ object ReleaseMetadataParser {
         val asset = (0 until assets.length())
             .asSequence()
             .map { assets.optJSONObject(it) }
-            .firstOrNull { it?.optString("name") == REQUIRED_ASSET_NAME }
+            .firstOrNull { it?.optStr("name") == REQUIRED_ASSET_NAME }
             ?: return UpdateCheckResult.Failed("La versión v$remoteVersion no tiene el archivo $REQUIRED_ASSET_NAME.")
-        val assetUrl = asset.optString("browser_download_url")
+        val assetUrl = asset.optStr("browser_download_url")
         if (!assetUrl.startsWith("https://")) {
             return UpdateCheckResult.Failed("El enlace del APK de la versión no usa HTTPS.")
         }
         return UpdateCheckResult.Available(
             AvailableUpdate(
                 version = remoteVersion,
-                releaseName = release.optString("name", "A.R.M.O.R. v$remoteVersion"),
-                notes = release.optString("body").trim(),
+                releaseName = release.optStr("name", "A.R.M.O.R. v$remoteVersion"),
+                notes = release.optStr("body").trim(),
                 assetUrl = assetUrl,
             ),
         )

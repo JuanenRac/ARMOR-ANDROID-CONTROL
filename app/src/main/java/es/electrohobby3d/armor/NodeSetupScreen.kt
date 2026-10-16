@@ -5,6 +5,7 @@
 // Compiled, never run against a node.
 package es.electrohobby3d.armor
 
+import es.electrohobby3d.armor.model.optStr
 import android.Manifest
 import android.app.Application
 import android.content.Context
@@ -90,16 +91,28 @@ class NodeSetupViewModel(application: Application) : AndroidViewModel(applicatio
     private val mutable = MutableStateFlow(NodeSetupState())
     val state: StateFlow<NodeSetupState> = mutable
 
+    private var scanTimeout: kotlinx.coroutines.Job? = null
+    private val scanStarts = ArrayDeque<Long>()
+    private var checkJob: kotlinx.coroutines.Job? = null
+
     fun scan() {
         if (!client.bluetoothOn) { mutable.update { it.copy(message = "El Bluetooth del teléfono está apagado.") }; return }
+        // Android refuses a scan that is started more than five times in thirty seconds (and says nothing): ask the person to wait instead of failing silently.
+        val now = System.currentTimeMillis()
+        while (scanStarts.isNotEmpty() && now - scanStarts.first() > 30_000) scanStarts.removeFirst()
+        if (scanStarts.size >= 4) { mutable.update { it.copy(message = "Espera unos segundos antes de buscar otra vez.") }; return }
+        scanStarts.addLast(now)
         mutable.update { it.copy(scanning = true, found = emptyList(), message = "") }
+        // A search does not go on for ever (it uses the battery): after half a minute it stops by itself.
+        scanTimeout?.cancel()
+        scanTimeout = viewModelScope.launch { delay(30_000); if (mutable.value.scanning) stopScan() }
         val ok = client.startScan { node ->
             mutable.update { s -> s.copy(found = (s.found.filter { it.address != node.address } + node).sortedByDescending { it.rssi }) }
         }
         if (!ok) mutable.update { it.copy(scanning = false, message = "No se pudo empezar la búsqueda.") }
     }
 
-    fun stopScan() { client.stopScan(); mutable.update { it.copy(scanning = false) } }
+    fun stopScan() { scanTimeout?.cancel(); client.stopScan(); mutable.update { it.copy(scanning = false) } }
 
     fun connect(node: FoundNode) {
         stopScan()
@@ -124,7 +137,7 @@ class NodeSetupViewModel(application: Application) : AndroidViewModel(applicatio
                 client.request("setup", args.put("code", effective.trim().uppercase()))
             } else client.request("login", args)
             if (reply.ok) {
-                val isAdmin = hello.setup || reply.data.optString("role") == "admin"
+                val isAdmin = hello.setup || reply.data.optStr("role") == "admin"
                 mutable.update { it.copy(busy = false, step = NodeStep.Configure, admin = isAdmin, message = "") }
             } else mutable.update { it.copy(busy = false, message = NodeProtocol.errorText(reply.error)) }
         }
@@ -168,7 +181,8 @@ class NodeSetupViewModel(application: Application) : AndroidViewModel(applicatio
     fun check(firstWaitMs: Long = 0) {
         val target = mutable.value.target ?: return
         mutable.update { it.copy(step = NodeStep.Verify, busy = true, checking = true, outcome = null, saved = false, message = "El nodo se reinicia. Comprobando su conexión…") }
-        viewModelScope.launch {
+        checkJob?.cancel()
+        checkJob = viewModelScope.launch {
             if (firstWaitMs > 0) delay(firstWaitMs)
             var last: NodeOutcome = NodeOutcome.Waiting
             var seen = false
@@ -206,7 +220,8 @@ class NodeSetupViewModel(application: Application) : AndroidViewModel(applicatio
         return found
     }
 
-    fun close() { client.stopScan(); client.disconnect(); mutable.value = NodeSetupState() }
+    /** Leaves the set-up: a check that was still running is stopped too (it would otherwise put the screen back on "Verificar" after it was closed). */
+    fun close() { checkJob?.cancel(); scanTimeout?.cancel(); client.stopScan(); client.disconnect(); mutable.value = NodeSetupState() }
 
     override fun onCleared() { client.stopScan(); client.disconnect() }
 }
@@ -223,6 +238,8 @@ fun NodeSetupScreen(onClose: () -> Unit, model: NodeSetupViewModel = viewModel()
     var granted by remember { mutableStateOf(hasBlePermissions(context)) }
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result -> granted = result.values.all { it }; if (granted) model.scan() }
 
+    // Back goes one step back (to the search, disconnected), and from the search it leaves the set-up: it used to close the app or change the section hidden behind.
+    androidx.activity.compose.BackHandler { if (state.step == NodeStep.Search) { model.close(); onClose() } else model.close() }
     Column(Modifier.fillMaxSize().padding(12.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Configurar nodo por Bluetooth", style = MaterialTheme.typography.headlineSmall)

@@ -36,19 +36,19 @@ data class SiteDevice(
 
 object DeviceParser {
     fun alarm(json: JSONObject): Alarm? {
-        val id = json.optString("id")
+        val id = json.optStr("id")
         val source = json.optJSONObject("source") ?: return null
-        if (id.isBlank() || source.optString("id").isBlank()) return null
+        if (id.isBlank() || source.optStr("id").isBlank()) return null
         return Alarm(
-            id = id, sourceType = source.optString("type"), sourceId = source.optString("id"),
-            severity = json.optString("severity", "warning"), code = json.optString("code"), raisedAt = json.optString("raised_at"),
-            acknowledgedBy = if (json.has("acknowledged_at") && !json.isNull("acknowledged_at")) json.optString("acknowledged_by", "").ifBlank { "?" } else null,
+            id = id, sourceType = source.optStr("type"), sourceId = source.optStr("id"),
+            severity = json.optStr("severity", "warning"), code = json.optStr("code"), raisedAt = json.optStr("raised_at"),
+            acknowledgedBy = if (json.has("acknowledged_at") && !json.isNull("acknowledged_at")) json.optStr("acknowledged_by", "").ifBlank { "?" } else null,
             cleared = json.has("cleared_at") && !json.isNull("cleared_at"),
         )
     }
 
     fun device(json: JSONObject): SiteDevice? {
-        val id = json.optString("id")
+        val id = json.optStr("id")
         if (id.isBlank()) return null
         val raw = json.optJSONObject("state")
         val state = buildMap<String, Any> {
@@ -58,10 +58,10 @@ object DeviceParser {
             }
         }
         return SiteDevice(
-            id = id, name = json.optString("name", id).ifBlank { id }, kind = json.optString("kind"), protocol = json.optString("protocol"),
-            location = json.optString("location"), actuator = json.optString("category") == "actuator", canCommand = json.optBoolean("can_command"),
+            id = id, name = json.optStr("name", id).ifBlank { id }, kind = json.optStr("kind"), protocol = json.optStr("protocol"),
+            location = json.optStr("location"), actuator = json.optStr("category") == "actuator", canCommand = json.optBoolean("can_command"),
             online = json.optBoolean("online"), expectedIntervalS = json.optInt("expected_interval_s"), state = state,
-            risk = json.optString("risk", "low").ifBlank { "low" },
+            risk = json.optStr("risk", "low").ifBlank { "low" },
         )
     }
 }

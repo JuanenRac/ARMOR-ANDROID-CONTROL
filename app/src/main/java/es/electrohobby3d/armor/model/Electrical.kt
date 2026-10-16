@@ -42,34 +42,34 @@ object ElectricalParser {
     fun totals(json: JSONObject) = ElectricalTotals(json.optInt("nodes"), json.optInt("channels"), json.optInt("stale"), json.number("grid_w"), json.number("grid_kwh"), json.optInt("alarms"))
 
     private fun node(json: JSONObject): ElectricalNode? {
-        val id = json.optString("node_id")
+        val id = json.optStr("node_id")
         val reading = json.optJSONObject("reading") ?: return null
         if (id.isBlank()) return null
         return ElectricalNode(
-            id, json.optBoolean("stale"), json.optString("received_at"),
+            id, json.optBoolean("stale"), json.optStr("received_at"),
             if (reading.has("switching_enabled") && !reading.isNull("switching_enabled")) reading.optBoolean("switching_enabled") else null,
             reading.optJSONArray("channels").objects().mapNotNull(::channel), reading.optJSONArray("switches").objects().mapNotNull(::switch),
         )
     }
 
     private fun switch(json: JSONObject): ElectricalSwitch? {
-        val id = json.optString("id")
+        val id = json.optStr("id")
         if (id.isBlank()) return null
         return ElectricalSwitch(
-            id = id, label = json.optString("label"), sourceA = json.optString("source_a").takeIf { it.isNotBlank() }, sourceB = json.optString("source_b").takeIf { it.isNotBlank() },
-            aClosed = json.optBoolean("a_closed"), bClosed = json.optBoolean("b_closed"), selected = json.optString("selected", "none"),
-            closing = json.optBoolean("closing"), fault = json.optString("fault", "none"),
+            id = id, label = json.optStr("label"), sourceA = json.optStr("source_a").takeIf { it.isNotBlank() }, sourceB = json.optStr("source_b").takeIf { it.isNotBlank() },
+            aClosed = json.optBoolean("a_closed"), bClosed = json.optBoolean("b_closed"), selected = json.optStr("selected", "none"),
+            closing = json.optBoolean("closing"), fault = json.optStr("fault", "none"),
         )
     }
 
     private fun channel(c: JSONObject): ElectricalChannel? {
-        val id = c.optString("id")
+        val id = c.optStr("id")
         if (id.isBlank()) return null
         return ElectricalChannel(
-            id = id, domain = c.optString("domain", "ac"), label = c.optString("label"),
+            id = id, domain = c.optStr("domain", "ac"), label = c.optStr("label"),
             voltageV = c.number("voltage_v"), currentA = c.number("current_a"), powerW = c.number("power_w"), energyKwh = c.number("energy_kwh"),
             frequencyHz = c.number("frequency_hz"), powerFactor = c.number("power_factor"),
-            state = if (c.has("state") && !c.isNull("state")) c.optString("state") else null, alarm = c.optBoolean("alarm"),
+            state = if (c.has("state") && !c.isNull("state")) c.optStr("state") else null, alarm = c.optBoolean("alarm"),
         )
     }
 }
