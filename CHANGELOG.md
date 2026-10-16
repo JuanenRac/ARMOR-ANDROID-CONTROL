@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [0.5.4] - Check before arming, sounds by severity and spoken alarms
+
+- Arming now runs the server's check first and lists what would leave the perimeter blind or noisy: a silent radar node, an open zone, a camera that does not answer, an open door or window.
+- When something blocks, the dialog says so and the button reads "Arm anyway", so arming stays possible but never by accident.
+- Critical alarms and warnings now use separate notification channels, so you can silence the quiet ones without losing the loud ones.
+- Alarms can be spoken aloud when they arrive, with the text of the alarm.
+- A new Sounds and voice panel in More chooses which severities make a sound and whether alarms are spoken.
+
 ## [0.5.3] - Sturdier parsing, per-origin alarm tracking, a media viewer and a watcher that survives a reboot
 
 - A field the server sends as null no longer shows as the word "null": every model reads text through one helper.

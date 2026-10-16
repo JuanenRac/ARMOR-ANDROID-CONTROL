@@ -44,6 +44,9 @@ class ArmorApiClient {
         return getJson(origin, "/api/v1/history$query").optJSONArray("events").asObjects().mapNotNull(EventParser::parse)
     }
 
+    /** What would leave the perimeter blind or noisy, asked before arming. */
+    fun preflight(origin: String): es.electrohobby3d.armor.model.Preflight = es.electrohobby3d.armor.model.PreflightParser.parse(getJson(origin, "/api/v1/preflight"))
+
     /** Reachability of every configured camera, by id. */
     fun cameraStatus(origin: String): List<CameraHealth> = getJson(origin, "/api/v1/camera-status").optJSONArray("cameras").asObjects()
         .map { CameraHealth(it.optStr("id"), it.optStr("status", "unknown")) }.filter { it.id.isNotBlank() }

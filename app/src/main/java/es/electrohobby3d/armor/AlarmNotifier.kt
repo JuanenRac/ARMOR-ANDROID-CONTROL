@@ -15,7 +15,10 @@ import es.electrohobby3d.armor.network.ArmorApiClient
 
 object AlarmNotifier {
     const val ALARM_CHANNEL = "armor_alarm"
+    const val CRITICAL_CHANNEL = "armor_alarm_critical"
+    const val WARNING_CHANNEL = "armor_alarm_warning"
     const val WATCH_CHANNEL = "armor_watch"
+    private const val SPEAK = "speak_alarms"
     private const val PREFERENCES = "armor-control"
     private const val LAST_EVENT = "last_event|"
 
@@ -32,6 +35,14 @@ object AlarmNotifier {
     fun ensureChannels(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(NotificationChannel(ALARM_CHANNEL, "Alarmas de A.R.M.O.R.", NotificationManager.IMPORTANCE_HIGH).apply { description = "Alertas altas, cámaras sin respuesta y nodos caídos" })
+        // One channel per severity, so each can have its own sound, vibration and priority in the phone's own settings (a critical one uses the alarm sound and the alarm volume).
+        manager.createNotificationChannel(NotificationChannel(CRITICAL_CHANNEL, "Alarmas críticas", NotificationManager.IMPORTANCE_HIGH).apply {
+            description = "Humo, gas, agua, pánico y lo más grave: suena como una alarma."
+            setSound(android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_ALARM), android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_ALARM).setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION).build())
+            enableVibration(true); vibrationPattern = longArrayOf(0, 600, 300, 600, 300, 900)
+            setBypassDnd(true)
+        })
+        manager.createNotificationChannel(NotificationChannel(WARNING_CHANNEL, "Avisos", NotificationManager.IMPORTANCE_DEFAULT).apply { description = "Avisos menos graves: batería baja, un dispositivo sin respuesta." })
         manager.createNotificationChannel(NotificationChannel(WATCH_CHANNEL, "Vigilancia en segundo plano", NotificationManager.IMPORTANCE_LOW).apply { description = "Aviso permanente mientras la vigilancia está activa" })
     }
 
@@ -45,13 +56,19 @@ object AlarmNotifier {
     fun post(context: Context, notice: AlarmNotice) {
         if (!canNotify(context)) return
         ensureChannels(context)
-        val notification = Notification.Builder(context, ALARM_CHANNEL)
+        val channel = when (notice.severity) { "critical" -> CRITICAL_CHANNEL; "warning" -> WARNING_CHANNEL; else -> ALARM_CHANNEL }
+        val notification = Notification.Builder(context, channel)
             .setSmallIcon(android.R.drawable.ic_dialog_alert)
             .setContentTitle(notice.title).setContentText(notice.text)
             .setCategory(Notification.CATEGORY_ALARM).setAutoCancel(true).setContentIntent(openApp(context))
             .build()
         context.getSystemService(NotificationManager::class.java).notify(NOTICE_BASE + (notice.id % 10_000).toInt(), notification)
+        if (notice.severity != "warning" && speaksAlarms(context)) AlarmSpeaker.say(context, "${notice.title}. ${notice.text}")
     }
+
+    /** Whether the phone says an alarm aloud as well as showing it (off by default). */
+    fun speaksAlarms(context: Context): Boolean = context.applicationContext.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getBoolean(SPEAK, false)
+    fun setSpeaksAlarms(context: Context, on: Boolean) { context.applicationContext.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit().putBoolean(SPEAK, on).apply() }
 
     fun watchNotification(context: Context, text: String): Notification {
         ensureChannels(context)

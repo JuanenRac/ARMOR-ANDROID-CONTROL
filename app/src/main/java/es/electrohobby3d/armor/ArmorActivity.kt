@@ -344,12 +344,25 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                 confirmMode?.let { mode ->
                     val arming = mode == "armed"
                     if (arming) {
+                        val check by produceState<es.electrohobby3d.armor.model.Preflight?>(null, mode) { value = viewModel.preflight(currentOrigin) }
+                        val blocked = check?.ready == false
                         AlertDialog(
                             onDismissRequest = { confirmMode = null }, containerColor = ArmorColors.SurfaceRaised,
-                            icon = { IconBadge(Icons.Filled.Shield, ArmorColors.Ok, size = 56.dp) },
+                            icon = { IconBadge(Icons.Filled.Shield, if (blocked) ArmorColors.Amber else ArmorColors.Ok, size = 56.dp) },
                             title = { Text("¿Armar el sistema?") },
-                            text = { Text("Puertas, ventanas y movimiento harán sonar la alarma.") },
-                            confirmButton = { Button(onClick = { viewModel.setMode(currentOrigin, mode); confirmMode = null }) { Text("Armar") } },
+                            text = {
+                                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Text("Puertas, ventanas y movimiento harán sonar la alarma.")
+                                    when {
+                                        check == null -> Text("Comprobando el perímetro…", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                                        check!!.issues.isEmpty() -> Text("✓ Todo listo: los nodos responden y no hay zonas abiertas.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Ok)
+                                        else -> check!!.issues.forEach { issue ->
+                                            Text((if (issue.blocks) "⛔ " else "⚠ ") + es.electrohobby3d.armor.model.PreflightText.describe(issue), style = MaterialTheme.typography.bodySmall, color = if (issue.blocks) ArmorColors.Amber else ArmorColors.Muted)
+                                        }
+                                    }
+                                }
+                            },
+                            confirmButton = { Button(onClick = { viewModel.setMode(currentOrigin, mode); confirmMode = null }) { Text(if (blocked) "Armar igualmente" else "Armar") } },
                             dismissButton = { TextButton(onClick = { confirmMode = null }) { Text("Cancelar") } },
                         )
                     } else {

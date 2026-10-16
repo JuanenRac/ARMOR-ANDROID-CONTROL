@@ -224,6 +224,25 @@ fun SettingsScreen(
                 Button(onClick = { onConnect(draft) }, enabled = valid, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Filled.Refresh, null); Spacer(Modifier.width(8.dp)); Text("Conectar") }
             }
         }
+        val soundContext = androidx.compose.ui.platform.LocalContext.current
+        var speak by rememberSaveable { mutableStateOf(AlarmNotifier.speaksAlarms(soundContext)) }
+        Panel(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("Sonidos y voz de las alarmas", fontWeight = FontWeight.SemiBold)
+                Text("Las alarmas críticas suenan como una alarma, las altas como un aviso fuerte y los avisos como una notificación. Cada gravedad tiene su propio canal: puedes elegir su sonido, su vibración o silenciarla en los ajustes del móvil.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                Button(onClick = {
+                    AlarmNotifier.ensureChannels(soundContext)
+                    soundContext.startActivity(android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, soundContext.packageName).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+                }, modifier = Modifier.fillMaxWidth()) { Text("Elegir el sonido de cada gravedad") }
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Decir la alarma en voz alta")
+                        Text("Con la voz del móvil, para las críticas y las altas.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                    }
+                    Switch(checked = speak, onCheckedChange = { speak = it; AlarmNotifier.setSpeaksAlarms(soundContext, it) })
+                }
+            }
+        }
         Panel(Modifier.fillMaxWidth()) {
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 IconBadge(Icons.Filled.NotificationsActive, size = 44.dp)

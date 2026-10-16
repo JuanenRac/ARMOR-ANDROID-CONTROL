@@ -5,7 +5,8 @@ package es.electrohobby3d.armor
 import es.electrohobby3d.armor.model.ArmorEvent
 import es.electrohobby3d.armor.model.DeviceText
 
-data class AlarmNotice(val id: Long, val title: String, val text: String)
+/** `severity` is "critical", "high" or "warning": it picks the channel (the sound) the notification goes to. */
+data class AlarmNotice(val id: Long, val title: String, val text: String, val severity: String = "high")
 
 object AlarmPolicy {
     /**
@@ -23,7 +24,7 @@ object AlarmPolicy {
             event.type == "node" && armed && event.to == "offline" -> AlarmNotice(event.id, "Nodo fuera de línea", event.subject)
             event.type == "node" && armed && event.to == "stale" -> AlarmNotice(event.id, "Nodo en silencio", event.subject)
             event.type == "alarm" && event.to == "raised" && (event.sourceType == "device" || event.sourceType == "solar" || event.sourceType == "electrical" || event.sourceType == "network" || event.sourceType == "alarm") ->
-                AlarmNotice(event.id, "ALARMA ${DeviceText.severityLabel(event.severity ?: "warning")}", "${DeviceText.alarmText(event.code.orEmpty())} · ${event.subject}")
+                AlarmNotice(event.id, "ALARMA ${DeviceText.severityLabel(event.severity ?: "warning")}", "${DeviceText.alarmText(event.code.orEmpty())} · ${event.subject}", event.severity ?: "warning")
             else -> null
         }
     }

@@ -327,6 +327,9 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
         }
     }
 
+    /** The check before arming; null when the server cannot answer it (the person may still arm). */
+    suspend fun preflight(origin: String): es.electrohobby3d.armor.model.Preflight? = withContext(Dispatchers.IO) { runCatching { client.preflight(origin) }.getOrNull() }
+
     /** Arm or disarm. The screen asks the person first; a failure shows as a message and changes nothing. */
     fun setMode(origin: String, mode: String, pin: String? = null) = action(origin, if (mode == "armed") "Sistema ARMADO" else "Sistema DESARMADO") {
         require(_state.value.authenticated) { "Sign in first" }
