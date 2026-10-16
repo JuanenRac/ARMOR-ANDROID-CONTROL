@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## [0.5.8] - Push alarms through the installation's own Firebase project
+
+**Push when the app is closed:** the phone registers its Firebase token with the server once signed in and takes it back at sign-out; the server's alarms then reach it as notifications on the channel of their severity (critical ones sound like an alarm), whether or not the app is open.
+It is the installation's own: the build reads `app/google-services.json` (never kept in the repository) and, without that file, has no push at all and works as before. The steps to get the file are in docs/PUSH_NOTIFICATIONS.md.
+A new server route lets a phone take its token back with a POST, for HTTP stacks that send no body with DELETE.
+
 ## [0.5.7] - Portuguese for the voice assistant
 
 - The voice assistant of the server is now told the language of the app also in Portuguese, so a phone set to Portuguese gets its answers in Portuguese instead of English.

@@ -43,6 +43,10 @@
         <service android:name=".AlarmWatcherService" android:exported="false" android:foregroundServiceType="specialUse|dataSync">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="Watches the A.R.M.O.R. server for new alarms and tells the person at once" />
         </service>
+        <!-- Push from the installation's own Firebase project: Firebase calls this when the phone's token changes or a message arrives. Without a Firebase file in the build it is never called. -->
+        <service android:name=".PushService" android:exported="false">
+            <intent-filter><action android:name="com.google.firebase.MESSAGING_EVENT" /></intent-filter>
+        </service>
         <receiver android:name=".BootReceiver" android:exported="false">
             <intent-filter><action android:name="android.intent.action.BOOT_COMPLETED" /></intent-filter>
         </receiver>

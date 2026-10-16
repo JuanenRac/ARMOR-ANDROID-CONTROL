@@ -1,7 +1,27 @@
 plugins { id("com.android.application"); id("org.jetbrains.kotlin.plugin.compose") }
 
+// Push through Firebase is the installation's own: the build reads app/google-services.json (the file Firebase's console gives, which is NOT kept in the repository) and turns what the app needs into
+// build constants; with no such file the constants are empty and the app has no push at all (it still watches the server itself). See docs/PUSH_NOTIFICATIONS.md.
+val firebase: Map<String, String> = run {
+    val file = file("google-services.json")
+    if (!file.exists()) return@run emptyMap<String, String>()
+    @Suppress("UNCHECKED_CAST")
+    val root = groovy.json.JsonSlurper().parse(file) as Map<String, Any?>
+    val info = root["project_info"] as Map<String, Any?>
+    val clients = (root["client"] as List<Map<String, Any?>>).filter { (((it["client_info"] as Map<String, Any?>)["android_client_info"]) as Map<String, Any?>)["package_name"] == "es.electrohobby3d.armor" }
+    check(clients.isNotEmpty()) { "app/google-services.json has no client for es.electrohobby3d.armor: register the Android app with exactly that package name in the Firebase console" }
+    val client = clients.first()
+    mapOf("project" to info["project_id"].toString(), "sender" to info["project_number"].toString(), "app" to ((client["client_info"] as Map<String, Any?>)["mobilesdk_app_id"]).toString(),
+        "key" to (((client["api_key"] as List<Map<String, Any?>>).first())["current_key"]).toString())
+}
+
 android { namespace = "es.electrohobby3d.armor"; compileSdk = 37
-    defaultConfig { applicationId = "es.electrohobby3d.armor"; minSdk = 26; targetSdk = 37; versionCode = 39; versionName = "0.5.7" }
+    defaultConfig { applicationId = "es.electrohobby3d.armor"; minSdk = 26; targetSdk = 37; versionCode = 40; versionName = "0.5.8"
+        buildConfigField("String", "FCM_PROJECT_ID", "\"${firebase["project"] ?: ""}\"")
+        buildConfigField("String", "FCM_SENDER_ID", "\"${firebase["sender"] ?: ""}\"")
+        buildConfigField("String", "FCM_APP_ID", "\"${firebase["app"] ?: ""}\"")
+        buildConfigField("String", "FCM_API_KEY", "\"${firebase["key"] ?: ""}\"")
+    }
     buildFeatures { compose = true; buildConfig = true }
 }
 // The version lives in two places the Android tools need (here, and the manifest every other tool reads); a build stops when they differ,
@@ -21,6 +41,9 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.ui:ui")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    // Push messages from the installation's own Firebase project (see PushService); the app starts Firebase itself from the build constants, so no Google Services plugin is needed.
+    implementation(platform("com.google.firebase:firebase-bom:34.0.0"))
+    implementation("com.google.firebase:firebase-messaging")
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
     testImplementation("junit:junit:4.13.2")

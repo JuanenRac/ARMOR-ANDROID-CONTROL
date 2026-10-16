@@ -236,6 +236,14 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
         refreshInternal(origin, loadMedia = true)
     }
 
+    @Volatile private var pushToken: String? = null
+
+    /** Registers this phone's push token with the server (once signed in); kept to take it back at sign-out. */
+    fun registerPush(origin: String, token: String) {
+        pushToken = token
+        viewModelScope.launch(Dispatchers.IO) { runCatching { client.registerPush(origin, token) } }
+    }
+
     /** The session cookie as it stands now, for the vault. */
     fun sessionCookie(origin: String): Pair<String, String>? = client.sessionCookie(origin)
 
@@ -270,7 +278,10 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
     /** Closes the session on the server when it can, and always forgets it here: with the server down the person is no longer "inside", with the polling stopped and the cookie gone. */
     fun logout(origin: String) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) { runCatching { client.closeStudioSession(origin) }; client.forgetSession(origin) }
+            withContext(Dispatchers.IO) {
+                pushToken?.let { token -> runCatching { client.unregisterPush(origin, token) } }   // a signed-out phone gets no alarms from the server
+                runCatching { client.closeStudioSession(origin) }; client.forgetSession(origin)
+            }
             _state.update { MonitorUiState(message = "Session closed") }
         }
     }

@@ -13,3 +13,6 @@ __pycache__/
 *.pyc
 __pycache__/
 *.pyc
+
+# the installation's own Firebase file: never in the repository
+app/google-services.json

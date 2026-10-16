@@ -102,6 +102,9 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     // from the operator (see MoreScreens.kt's UpdateScreen and the dialog
     // below).
     LaunchedEffect(Unit) { updateViewModel.checkForUpdate() }
+    LaunchedEffect(state.authenticated, currentOrigin) {
+        if (state.authenticated && currentOrigin.isNotBlank() && Push.available) Push.token(context.applicationContext) { viewModel.registerPush(currentOrigin, it) }
+    }
     LaunchedEffect(Unit) {
         if (restoring && !state.authenticated && currentOrigin.isNotBlank()) viewModel.tryRestore(currentOrigin, vault.load(currentOrigin)) { vault.clear() }
         restoring = false

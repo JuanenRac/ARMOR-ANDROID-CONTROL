@@ -160,6 +160,16 @@ class ArmorApiClient {
         manager.cookieStore.get(uri).forEach { manager.cookieStore.remove(uri, it) }
     }
 
+    /** Tells the server the token Firebase gave this phone, so that it can push alarms to it (a server with push off answers 409, which is not a failure of the app). */
+    fun registerPush(origin: String, token: String) {
+        request(origin, "/api/v1/push/register", "POST", mapOf("Content-Type" to "application/json"), JSONObject().put("token", token).toString(), setOf(200, 201, 409)).disconnect()
+    }
+
+    /** Takes the phone's token back (it signs out): by POST, because some HTTP stacks send no body with DELETE. */
+    fun unregisterPush(origin: String, token: String) {
+        request(origin, "/api/v1/push/unregister", "POST", mapOf("Content-Type" to "application/json"), JSONObject().put("token", token).toString(), setOf(200)).disconnect()
+    }
+
     fun closeStudioSession(origin: String) {
         request(origin, "/api/v1/studio/session", "DELETE", emptyMap(), null, setOf(204)).disconnect()
     }
