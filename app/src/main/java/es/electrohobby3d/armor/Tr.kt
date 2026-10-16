@@ -53,8 +53,8 @@ object Tr {
         } catch (_: Exception) { emptyMap() }
     }
 
-    /** The language to tell the voice assistant of the server: the ones it knows, else English. */
-    fun voiceLanguage(): String = if (language in setOf("en", "es", "de", "fr", "it", "ja", "zh")) language else "en"
+    /** The language to tell the voice assistant of the server: the eight of the app, which it now all knows. */
+    fun voiceLanguage(): String = if (language in setOf("en", "es", "de", "fr", "it", "ja", "zh", "pt")) language else "en"
 
     /** The phrase (written in Spanish in the source) in the language of the app. */
     fun tr(es: String): String = if (language == "es") es else tables[language]?.get(es) ?: es

@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here.
 
+## [0.5.7] - Portuguese for the voice assistant
+
+- The voice assistant of the server is now told the language of the app also in Portuguese, so a phone set to Portuguese gets its answers in Portuguese instead of English.
+
 ## [0.5.6] - Public address in Network and a read-only role
 
 - The Network screen shows the public IP address of the house, the provider and the place (with the country in the language of the app), as the network node reports it.
