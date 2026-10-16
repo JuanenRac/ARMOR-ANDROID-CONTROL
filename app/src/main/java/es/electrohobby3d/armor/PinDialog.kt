@@ -36,13 +36,13 @@ internal fun PinAlertDialog(title: String, text: String, confirmLabel: String, o
                 Text(text)
                 OutlinedTextField(
                     value = pin, onValueChange = { pin = onlyDigits(it) }, singleLine = true,
-                    label = { Text("PIN (si tienes uno)") },
+                    label = { Text(tr("PIN (si tienes uno)")) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                     visualTransformation = PasswordVisualTransformation(),
                 )
             }
         },
         confirmButton = { Button(onClick = { onConfirm(pin) }) { Text(confirmLabel) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Cancelar")) } },
     )
 }

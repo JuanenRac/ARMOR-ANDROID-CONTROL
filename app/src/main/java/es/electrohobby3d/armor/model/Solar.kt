@@ -2,6 +2,8 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor.model
 
+import es.electrohobby3d.armor.tr
+import es.electrohobby3d.armor.trf
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Locale
@@ -133,11 +135,11 @@ object SolarParser {
 /** The wording of solar equipment, in plain Spanish. */
 object SolarText {
     fun mode(mode: String?) = when (mode) {
-        "power_on" -> "Arrancando"; "standby" -> "En espera"; "line" -> "Con la red"; "battery" -> "Con la batería"; "fault" -> "Avería"
-        "power_saving" -> "Ahorro de energía"; "shutdown" -> "Apagado"; else -> "Sin dato"
+        "power_on" -> tr("Arrancando"); "standby" -> tr("En espera"); "line" -> tr("Con la red"); "battery" -> tr("Con la batería"); "fault" -> tr("Avería")
+        "power_saving" -> tr("Ahorro de energía"); "shutdown" -> tr("Apagado"); else -> tr("Sin dato")
     }
 
-    fun batteryState(state: String?) = when (state) { "charging" -> "Cargando"; "discharging" -> "Descargando"; "idle" -> "En reposo"; else -> "Sin dato" }
+    fun batteryState(state: String?) = when (state) { "charging" -> tr("Cargando"); "discharging" -> tr("Descargando"); "idle" -> tr("En reposo"); else -> tr("Sin dato") }
 
     /** The names of the models the server's catalogue lists (brands are the same in every language). An unknown model is its own identifier. */
     private val models = mapOf(
@@ -178,10 +180,10 @@ object SolarText {
 
     /** What the batteries do as one short phrase: "Cargando · 340 W". */
     fun batteryFlow(watts: Double?): String = when {
-        watts == null -> "Sin dato"
-        watts > 20 -> "Cargando · ${watts(watts)}"
-        watts < -20 -> "Descargando · ${watts(-watts)}"
-        else -> "En reposo"
+        watts == null -> tr("Sin dato")
+        watts > 20 -> trf("Cargando · %s", watts(watts))
+        watts < -20 -> trf("Descargando · %s", watts(-watts))
+        else -> tr("En reposo")
     }
 
     /** The spread between the highest and the lowest cell, in millivolts: the number that tells an unbalanced pack. */

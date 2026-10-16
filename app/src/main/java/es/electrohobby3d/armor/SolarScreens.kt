@@ -32,8 +32,8 @@ private fun socColor(percent: Int?) = when { percent == null -> ArmorColors.Mute
 
 /** The summary line the Status screen shows under the Solar tile: "2.40 kW de sol · 1.18 kW de consumo". */
 fun solarSummary(totals: SolarTotals): String =
-    if (totals.inverters == 0) "Baterías: ${SolarText.batteryFlow(totals.batteryW)}"
-    else "${SolarText.watts(totals.pvW)} de sol · ${SolarText.watts(totals.loadW)} de consumo"
+    if (totals.inverters == 0) trf("Baterías: %s", SolarText.batteryFlow(totals.batteryW))
+    else trf("%s de sol · %s de consumo", SolarText.watts(totals.pvW), SolarText.watts(totals.loadW))
 
 @Composable
 fun SolarScreen(overview: SolarOverview?, network: NetworkOverview? = null, onScanNetwork: () -> Unit = {}, scanning: Boolean = false) {
@@ -43,10 +43,10 @@ fun SolarScreen(overview: SolarOverview?, network: NetworkOverview? = null, onSc
         item {
             Text(
                 when {
-                    overview == null -> "Buscando datos…"
-                    data.devices.isEmpty() -> "Sin equipos leyendo"
-                    data.totals.stale > 0 -> "${data.totals.stale} sin señal de ${data.devices.size}"
-                    else -> "${data.devices.size} equipos en línea"
+                    overview == null -> tr("Buscando datos…")
+                    data.devices.isEmpty() -> tr("Sin equipos leyendo")
+                    data.totals.stale > 0 -> trf("%s sin señal de %s", data.totals.stale, data.devices.size)
+                    else -> trf("%s equipos en línea", data.devices.size)
                 },
                 style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted,
             )
@@ -57,16 +57,16 @@ fun SolarScreen(overview: SolarOverview?, network: NetworkOverview? = null, onSc
             if (device.inverter != null) InverterCard(device, device.inverter) else if (device.battery != null) BatteryCard(device, device.battery)
         }
         if (data.waiting.isNotEmpty()) {
-            item { Text("Esperando datos", style = MaterialTheme.typography.titleMedium, color = ArmorColors.Muted) }
+            item { Text(tr("Esperando datos"), style = MaterialTheme.typography.titleMedium, color = ArmorColors.Muted) }
             items(data.waiting, key = { "w-${it.nodeId}/${it.device}" }) { waiting ->
                 Panel(Modifier.fillMaxWidth()) {
                     Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         IconBadge(if (waiting.kind == "inverter") Icons.Filled.Bolt else Icons.Filled.BatteryStd, ArmorColors.Muted, size = 40.dp)
                         Column(Modifier.weight(1f)) {
                             Text(waiting.name, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text("${SolarText.model(waiting.model).ifBlank { if (waiting.kind == "inverter") "Inversor" else "Batería" }} · nodo ${waiting.nodeId}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                            Text(trf("%s · nodo %s", SolarText.model(waiting.model).ifBlank { if (waiting.kind == "inverter") "Inversor" else tr("Batería") }, waiting.nodeId), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                         }
-                        Text("sin lecturas", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
+                        Text(tr("sin lecturas"), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
                     }
                 }
             }
@@ -79,8 +79,8 @@ private fun EmptySolar() {
     Panel(Modifier.fillMaxWidth()) {
         Column(Modifier.fillMaxWidth().padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
             IconBadge(Icons.Filled.WbSunny, ArmorColors.Muted, size = 64.dp)
-            Text("Aún no hay equipos solares", style = MaterialTheme.typography.titleMedium)
-            Text("Los inversores y las baterías se añaden desde Studio, y un nodo solar los lee y envía sus datos aquí.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, textAlign = TextAlign.Center)
+            Text(tr("Aún no hay equipos solares"), style = MaterialTheme.typography.titleMedium)
+            Text(tr("Los inversores y las baterías se añaden desde Studio, y un nodo solar los lee y envía sus datos aquí."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, textAlign = TextAlign.Center)
         }
     }
 }
@@ -90,8 +90,8 @@ private fun TotalsPanel(totals: SolarTotals) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             if (totals.inverters > 0) {
-                Tile(Icons.Filled.WbSunny, SolarText.watts(totals.pvW), "Sol", ArmorColors.Amber, Modifier.weight(1f))
-                Tile(Icons.Filled.Home, SolarText.watts(totals.loadW), "Consumo", ArmorColors.Cyan, Modifier.weight(1f))
+                Tile(Icons.Filled.WbSunny, SolarText.watts(totals.pvW), tr("Sol"), ArmorColors.Amber, Modifier.weight(1f))
+                Tile(Icons.Filled.Home, SolarText.watts(totals.loadW), tr("Consumo"), ArmorColors.Cyan, Modifier.weight(1f))
             }
         }
         val soc = totals.socPercent
@@ -100,7 +100,7 @@ private fun TotalsPanel(totals: SolarTotals) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     IconBadge(if ((totals.batteryW ?: 0.0) > 20) Icons.Filled.BatteryChargingFull else Icons.Filled.BatteryStd, socColor(soc), size = 40.dp)
                     Column(Modifier.weight(1f)) {
-                        Text("Baterías", fontWeight = FontWeight.SemiBold)
+                        Text(tr("Baterías"), fontWeight = FontWeight.SemiBold)
                         Text(SolarText.batteryFlow(totals.batteryW), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                     }
                     Text(SolarText.percent(soc), fontSize = 28.sp, fontWeight = FontWeight.Bold, color = socColor(soc))
@@ -110,7 +110,7 @@ private fun TotalsPanel(totals: SolarTotals) {
                     Text(
                         listOfNotNull(
                             totals.capacityAh?.let { "${SolarText.ah(it)}${totals.fullCapacityAh?.let { full -> " de ${SolarText.ah(full)}" } ?: ""}" },
-                            totals.energyKwh?.let { String.format(java.util.Locale.US, "%.2f kWh guardados", it) },
+                            totals.energyKwh?.let { String.format(java.util.Locale.US, tr("%.2f kWh guardados"), it) },
                         ).joinToString(" · "),
                         style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted,
                     )
@@ -119,7 +119,7 @@ private fun TotalsPanel(totals: SolarTotals) {
         }
         if (totals.inverters > 0) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Icon(if (totals.gridPresent) Icons.Filled.Power else Icons.Filled.PowerOff, null, tint = if (totals.gridPresent) ArmorColors.Ok else ArmorColors.Amber, modifier = Modifier.size(18.dp))
-            Text(if (totals.gridPresent) "Hay red eléctrica" else "Sin red eléctrica", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+            Text(if (totals.gridPresent) tr("Hay red eléctrica") else tr("Sin red eléctrica"), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
             if (totals.mode != null) Text("· ${SolarText.mode(totals.mode)}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
         }
     }
@@ -139,8 +139,8 @@ private fun Tile(icon: ImageVector, value: String, label: String, tint: Color, m
 /** The small marks a card can carry: no signal, or an example reading made by the server. */
 @Composable
 private fun Marks(device: SolarDevice) {
-    if (device.example) Text("EJEMPLO", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
-    if (device.stale) Text("SIN SEÑAL", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Alert)
+    if (device.example) Text(tr("EJEMPLO"), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
+    if (device.stale) Text(tr("SIN SEÑAL"), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Alert)
 }
 
 @Composable
@@ -161,20 +161,20 @@ private fun InverterCard(device: SolarDevice, r: SolarInverterReading) {
                 IconBadge(Icons.Filled.Bolt, if (device.stale) ArmorColors.Muted else tint ?: ArmorColors.Cyan, size = 40.dp)
                 Column(Modifier.weight(1f)) {
                     Text(device.name, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text("${SolarText.mode(r.mode)}${SolarText.model(device.model).let { if (it.isBlank()) "" else " · $it" }}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                    Text("${SolarText.mode(r.mode)}${SolarText.model(device.model).let { if (it.isBlank()) "" else " · ${it}" }}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                 }
                 Column(horizontalAlignment = Alignment.End) { Marks(device) }
             }
-            Line("Red", "${SolarText.volts(r.gridV)} · ${SolarText.hertz(r.gridHz)}")
-            Line("Consumo", "${SolarText.watts(r.outW)} · ${SolarText.percent(r.loadPercent)}")
-            Line("Paneles", "${SolarText.watts(r.pvW)} · ${SolarText.volts(r.pvV, 0)}")
-            if (r.pv2W != null) Line("Segunda entrada", "${SolarText.watts(r.pv2W)} · ${SolarText.volts(r.pv2V, 0)}")
-            Line("Batería", "${SolarText.percent(r.batteryPercent)} · ${SolarText.volts(r.batteryV, 2)} · ${SolarText.amps(r.batteryA)}", socColor(r.batteryPercent?.toInt()))
-            Line("Temperatura", SolarText.celsius(r.heatsinkC))
+            Line(tr("Red"), "${SolarText.volts(r.gridV)} · ${SolarText.hertz(r.gridHz)}")
+            Line(tr("Consumo"), "${SolarText.watts(r.outW)} · ${SolarText.percent(r.loadPercent)}")
+            Line(tr("Paneles"), "${SolarText.watts(r.pvW)} · ${SolarText.volts(r.pvV, 0)}")
+            if (r.pv2W != null) Line(tr("Segunda entrada"), "${SolarText.watts(r.pv2W)} · ${SolarText.volts(r.pv2V, 0)}")
+            Line(tr("Batería"), "${SolarText.percent(r.batteryPercent)} · ${SolarText.volts(r.batteryV, 2)} · ${SolarText.amps(r.batteryA)}", socColor(r.batteryPercent?.toInt()))
+            Line(tr("Temperatura"), SolarText.celsius(r.heatsinkC))
             if (r.units.isNotEmpty()) {
-                Line("Sistema en paralelo", "${r.units.size} unidades${r.totalOutW?.let { " · ${SolarText.watts(it)}" } ?: ""}")
+                Line(tr("Sistema en paralelo"), "${r.units.size} unidades${r.totalOutW?.let { " · ${SolarText.watts(it)}" } ?: ""}")
                 r.units.forEach { unit ->
-                    Line("Unidad ${unit.unit + 1}", "${SolarText.mode(unit.mode)}${if (unit.faultCode.isNotEmpty() && unit.faultCode != "00") " · fallo ${unit.faultCode}" else ""} · ${SolarText.watts(unit.outW)}", if (unit.mode == "fault") ArmorColors.Alert else ArmorColors.Text)
+                    Line(trf("Unidad %s", unit.unit + 1), "${SolarText.mode(unit.mode)}${if (unit.faultCode.isNotEmpty() && unit.faultCode != "00") " · fallo ${unit.faultCode}" else ""} · ${SolarText.watts(unit.outW)}", if (unit.mode == "fault") ArmorColors.Alert else ArmorColors.Text)
                 }
             }
             if (fault && r.warnings.isNotEmpty()) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -208,31 +208,31 @@ private fun BatteryCard(device: SolarDevice, r: SolarBatteryReading) {
             }
             val soc = r.socPercent
             if (soc != null) LinearProgressIndicator(progress = { soc.coerceIn(0, 100) / 100f }, Modifier.fillMaxWidth().height(6.dp), color = socColor(soc), trackColor = ArmorColors.Outline)
-            if (r.modules == 0) Text("La batería no responde a los módulos.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Amber) else {
-                Line("Tensión y corriente", "${SolarText.volts(r.voltageV, 2)} · ${SolarText.amps(r.currentA, 2)}")
-                Line("Potencia", SolarText.batteryFlow(r.powerW))
-                if (r.temperatureMinC != null) Line("Temperatura", if (r.temperatureMinC == r.temperatureMaxC || r.temperatureMaxC == null) SolarText.celsius(r.temperatureMinC) else "${SolarText.celsius(r.temperatureMinC)} – ${SolarText.celsius(r.temperatureMaxC)}")
+            if (r.modules == 0) Text(tr("La batería no responde a los módulos."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Amber) else {
+                Line(tr("Tensión y corriente"), "${SolarText.volts(r.voltageV, 2)} · ${SolarText.amps(r.currentA, 2)}")
+                Line(tr("Potencia"), SolarText.batteryFlow(r.powerW))
+                if (r.temperatureMinC != null) Line(tr("Temperatura"), if (r.temperatureMinC == r.temperatureMaxC || r.temperatureMaxC == null) SolarText.celsius(r.temperatureMinC) else "${SolarText.celsius(r.temperatureMinC)} – ${SolarText.celsius(r.temperatureMaxC)}")
                 if (r.cellMinV != null && r.cellMaxV != null) {
                     val spread = r.stack.firstOrNull { it.cellsV.size > 1 }?.let { SolarText.cellSpreadMv(it.cellsV) }
-                    Line("Celdas", "${String.format(java.util.Locale.US, "%.3f", r.cellMinV)} – ${String.format(java.util.Locale.US, "%.3f", r.cellMaxV)} V${if (spread != null) " ($spread mV)" else ""}", if ((spread ?: 0) > 100) ArmorColors.Amber else ArmorColors.Text)
+                    Line(tr("Celdas"), "${String.format(java.util.Locale.US, "%.3f", r.cellMinV)} – ${String.format(java.util.Locale.US, "%.3f", r.cellMaxV)} V${if (spread != null) " (${spread} mV)" else ""}", if ((spread ?: 0) > 100) ArmorColors.Amber else ArmorColors.Text)
                 }
-                if (r.capacityAh != null) Line("Capacidad", "${SolarText.ah(r.capacityAh)}${r.fullCapacityAh?.let { " de ${SolarText.ah(it)}" } ?: ""}")
-                if (r.cycles != null) Line("Ciclos", r.cycles.toString())
-                if (r.healthPercent != null) Line("Salud (capacidad frente a nueva)", "${r.healthPercent} %")
-                if (r.modules > 1) Line("Módulos", r.modules.toString())
+                if (r.capacityAh != null) Line(tr("Capacidad"), "${SolarText.ah(r.capacityAh)}${r.fullCapacityAh?.let { " de ${SolarText.ah(it)}" } ?: ""}")
+                if (r.cycles != null) Line(tr("Ciclos"), r.cycles.toString())
+                if (r.healthPercent != null) Line(tr("Salud (capacidad frente a nueva)"), "${r.healthPercent} %")
+                if (r.modules > 1) Line(tr("Módulos"), r.modules.toString())
             }
             if (r.alarm) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Icon(Icons.Filled.Warning, null, tint = ArmorColors.Alert, modifier = Modifier.size(16.dp))
-                Text("La batería avisa de un problema (una protección está actuando).", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Alert)
+                Text(tr("La batería avisa de un problema (una protección está actuando)."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Alert)
             }
             if (hasCells) {
                 TextButton(onClick = { showCells = !showCells }) {
                     Icon(if (showCells) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, null)
                     Spacer(Modifier.width(6.dp))
-                    Text(if (showCells) "Ocultar celdas" else "Ver celdas")
+                    Text(if (showCells) tr("Ocultar celdas") else tr("Ver celdas"))
                 }
                 if (showCells) r.stack.filter { it.cellsV.isNotEmpty() }.forEach { module ->
-                    if (r.stack.size > 1) Text("Módulo ${module.number}", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+                    if (r.stack.size > 1) Text(trf("Módulo %s", module.number), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
                     val low = module.cellsV.min(); val high = module.cellsV.max()
                     module.cellsV.withIndex().toList().chunked(4).forEach { row ->
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -245,7 +245,7 @@ private fun BatteryCard(device: SolarDevice, r: SolarBatteryReading) {
                             repeat(4 - row.size) { Spacer(Modifier.weight(1f)) }
                         }
                     }
-                    if (module.temperaturesC.isNotEmpty()) Text("Sensores: " + module.temperaturesC.joinToString(" · ") { SolarText.celsius(it) }, style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+                    if (module.temperaturesC.isNotEmpty()) Text(tr("Sensores: ") + module.temperaturesC.joinToString(" · ") { SolarText.celsius(it) }, style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
                 }
             }
         }

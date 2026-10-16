@@ -50,10 +50,10 @@ fun NetworkScreen(overview: NetworkOverview?) {
         item {
             Text(
                 when {
-                    overview == null -> "Buscando datos…"
-                    data.nodes.isEmpty() -> "Sin nodos de red leyendo"
-                    data.totals.stale > 0 -> "${data.totals.stale} sin señal de ${data.nodes.size}"
-                    else -> "${data.nodes.size} nodos en línea"
+                    overview == null -> tr("Buscando datos…")
+                    data.nodes.isEmpty() -> tr("Sin nodos de red leyendo")
+                    data.totals.stale > 0 -> trf("%s sin señal de %s", data.totals.stale, data.nodes.size)
+                    else -> trf("%s nodos en línea", data.nodes.size)
                 },
                 style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted,
             )
@@ -63,8 +63,8 @@ fun NetworkScreen(overview: NetworkOverview?) {
             item { InternetPanel(node, data) }
             item {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Dispositivos", style = MaterialTheme.typography.titleMedium, color = ArmorColors.Muted, modifier = Modifier.weight(1f))
-                    Text(if (showOnlyNew) "Solo sin conocer" else "Todos", style = MaterialTheme.typography.labelMedium, color = ArmorColors.Cyan, modifier = Modifier.clickable { showOnlyNew = !showOnlyNew }.padding(4.dp))
+                    Text(tr("Dispositivos"), style = MaterialTheme.typography.titleMedium, color = ArmorColors.Muted, modifier = Modifier.weight(1f))
+                    Text(if (showOnlyNew) tr("Solo sin conocer") else tr("Todos"), style = MaterialTheme.typography.labelMedium, color = ArmorColors.Cyan, modifier = Modifier.clickable { showOnlyNew = !showOnlyNew }.padding(4.dp))
                 }
             }
             val shown = node.devices.sortedBy { ipKey(it.ip) }.filter { !showOnlyNew || !it.known }
@@ -82,8 +82,8 @@ private fun EmptyNetwork() {
     Panel(Modifier.fillMaxWidth()) {
         Column(Modifier.fillMaxWidth().padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
             IconBadge(Icons.Filled.Router, ArmorColors.Muted, size = 64.dp)
-            Text("Aún no hay nodos de red", style = MaterialTheme.typography.titleMedium)
-            Text("Cuando un nodo ARMOR-NETWORK vigile la red, aparecerán aquí: si hay internet, los dispositivos y lo que cambia.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+            Text(tr("Aún no hay nodos de red"), style = MaterialTheme.typography.titleMedium)
+            Text(tr("Cuando un nodo ARMOR-NETWORK vigile la red, aparecerán aquí: si hay internet, los dispositivos y lo que cambia."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
         }
     }
 }
@@ -99,19 +99,19 @@ private fun InternetPanel(node: NetworkNode, data: NetworkOverview) {
                 Column(Modifier.weight(1f)) {
                     Text(NetworkText.state(internet.state), fontWeight = FontWeight.SemiBold, color = colour)
                     NetworkText.hint(internet.state)?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted) }
-                    internet.sinceMs?.let { Text("Desde ${when_(it)}", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted) }
+                    internet.sinceMs?.let { Text(trf("Desde %s", when_(it)), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted) }
                 }
                 internet.latencyMs?.let { Text("${Math.round(it)} ms", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
             }
             Text(
-                "Cortes en 24 h: ${internet.outages24h} · sin internet ${NetworkText.duration(internet.downtime24hS.toLong())}" + (internet.lossPercent?.let { " · pérdida ${Math.round(it)} %" } ?: ""),
+                trf("Cortes en 24 h: %s · sin internet %s", internet.outages24h, NetworkText.duration(internet.downtime24hS.toLong())) + (internet.lossPercent?.let { trf(" · pérdida %s %%", Math.round(it)) } ?: ""),
                 style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted,
             )
-            Text("${node.ip} · red ${node.cidr} · router ${node.gateway ?: "—"} · ↓ ${NetworkText.bps(node.rxBps)} ↑ ${NetworkText.bps(node.txBps)}", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+            Text(trf("%s · red %s · router %s · ↓ %s ↑ %s", node.ip, node.cidr, node.gateway ?: "—", NetworkText.bps(node.rxBps), NetworkText.bps(node.txBps)), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
             val unknown = data.totals.unknown
             if (unknown > 0) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Icon(Icons.Filled.Warning, null, tint = ArmorColors.Amber, modifier = Modifier.size(16.dp))
-                Text(if (unknown == 1) "Un dispositivo sin marcar como conocido" else "$unknown dispositivos sin marcar como conocidos", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
+                Text(if (unknown == 1) tr("Un dispositivo sin marcar como conocido") else trf("%s dispositivos sin marcar como conocidos", unknown), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
             }
         }
     }
@@ -123,13 +123,13 @@ private fun DeviceRow(device: NetworkDevice, ownIp: String) {
     Panel(Modifier.fillMaxWidth(), tint = if (!device.online) ArmorColors.Muted else if (risky.isNotEmpty()) ArmorColors.Alert else null) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(device.name + if (device.ip == ownIp) " (este nodo)" else "", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(if (device.online) "en línea" else "sin conexión", style = MaterialTheme.typography.labelSmall, color = if (device.online) ArmorColors.Ok else ArmorColors.Muted)
+                Text(device.name + if (device.ip == ownIp) tr(" (este nodo)") else "", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(if (device.online) tr("en línea") else tr("sin conexión"), style = MaterialTheme.typography.labelSmall, color = if (device.online) ArmorColors.Ok else ArmorColors.Muted)
             }
-            Text("${device.ip} · ${NetworkText.kind(device.shownKind)}${device.vendor?.let { " · $it" } ?: ""}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            if (device.ports.isNotEmpty()) Text("Puertos: " + device.ports.joinToString(", ") { it.port.toString() }, style = MaterialTheme.typography.labelSmall, color = if (risky.isNotEmpty()) ArmorColors.Alert else ArmorColors.Muted)
-            if (risky.isNotEmpty()) Text("Puerto que una casa rara vez quiere abierto: ${risky.joinToString(", ") { "${it.port}${it.service?.let { s -> " ($s)" } ?: ""}" }}", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Alert)
-            if (!device.known) Text("Sin marcar como conocido", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
+            Text("${device.ip} · ${NetworkText.kind(device.shownKind)}${device.vendor?.let { " · ${it}" } ?: ""}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (device.ports.isNotEmpty()) Text(tr("Puertos: ") + device.ports.joinToString(", ") { it.port.toString() }, style = MaterialTheme.typography.labelSmall, color = if (risky.isNotEmpty()) ArmorColors.Alert else ArmorColors.Muted)
+            if (risky.isNotEmpty()) Text(trf("Puerto que una casa rara vez quiere abierto: %s", risky.joinToString(", ") { "${it.port}${it.service?.let { s -> " (${s})" } ?: ""}" }), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Alert)
+            if (!device.known) Text(tr("Sin marcar como conocido"), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
         }
     }
 }
@@ -138,7 +138,7 @@ private fun DeviceRow(device: NetworkDevice, ownIp: String) {
 private fun OutagesPanel(data: NetworkOverview) {
     Panel(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Cortes", fontWeight = FontWeight.SemiBold)
+            Text(tr("Cortes"), fontWeight = FontWeight.SemiBold)
             data.outages.take(8).forEach { outage ->
                 Text(
                     "${when_(outage.startedMs)} → ${when_(outage.endedMs)} · ${NetworkText.duration(outage.durationS.toLong())} · ${if (outage.kind == "gateway") "el router" else "internet"}",
@@ -153,7 +153,7 @@ private fun OutagesPanel(data: NetworkOverview) {
 private fun EventsPanel(data: NetworkOverview, devices: List<NetworkDevice>) {
     Panel(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("Qué ha cambiado", fontWeight = FontWeight.SemiBold)
+            Text(tr("Qué ha cambiado"), fontWeight = FontWeight.SemiBold)
             data.events.take(20).forEach { event: NetworkEvent ->
                 Column {
                     Text(NetworkText.event(event, devices), style = MaterialTheme.typography.bodySmall)

@@ -19,29 +19,29 @@ object AlarmPolicy {
      */
     fun notices(events: List<ArmorEvent>, armed: Boolean): List<AlarmNotice> = events.sortedBy { it.id }.mapNotNull { event ->
         when {
-            event.type == "alert" && event.to == "high" -> AlarmNotice(event.id, "ALERTA ALTA", "${event.subject}: ${event.targets ?: 0} objetivos")
-            event.type == "camera" && event.to == "offline" -> AlarmNotice(event.id, "Cámara sin respuesta", event.subject)
-            event.type == "node" && armed && event.to == "offline" -> AlarmNotice(event.id, "Nodo fuera de línea", event.subject)
-            event.type == "node" && armed && event.to == "stale" -> AlarmNotice(event.id, "Nodo en silencio", event.subject)
+            event.type == "alert" && event.to == "high" -> AlarmNotice(event.id, tr("ALERTA ALTA"), trf("%s: %s objetivos", event.subject, event.targets ?: 0))
+            event.type == "camera" && event.to == "offline" -> AlarmNotice(event.id, tr("Cámara sin respuesta"), event.subject)
+            event.type == "node" && armed && event.to == "offline" -> AlarmNotice(event.id, tr("Nodo fuera de línea"), event.subject)
+            event.type == "node" && armed && event.to == "stale" -> AlarmNotice(event.id, tr("Nodo en silencio"), event.subject)
             event.type == "alarm" && event.to == "raised" && (event.sourceType == "device" || event.sourceType == "solar" || event.sourceType == "electrical" || event.sourceType == "network" || event.sourceType == "alarm") ->
-                AlarmNotice(event.id, "ALARMA ${DeviceText.severityLabel(event.severity ?: "warning")}", "${DeviceText.alarmText(event.code.orEmpty())} · ${event.subject}", event.severity ?: "warning")
+                AlarmNotice(event.id, trf("ALARMA %s", DeviceText.severityLabel(event.severity ?: "warning")), "${DeviceText.alarmText(event.code.orEmpty())} · ${event.subject}", event.severity ?: "warning")
             else -> null
         }
     }
 
-    private fun level(value: String?) = when (value) { "normal" -> "normal"; "review" -> "revisar"; "high" -> "ALTA"; else -> value.orEmpty() }
-    private fun status(value: String?) = when (value) { "online" -> "en línea"; "offline" -> "fuera de línea"; "stale" -> "en silencio"; "unknown" -> "desconocido"; else -> value.orEmpty() }
+    private fun level(value: String?) = when (value) { "normal" -> "normal"; "review" -> tr("revisar"); "high" -> tr("ALTA"); else -> value.orEmpty() }
+    private fun status(value: String?) = when (value) { "online" -> tr("en línea"); "offline" -> tr("fuera de línea"); "stale" -> tr("en silencio"); "unknown" -> tr("desconocido"); else -> value.orEmpty() }
 
-    private fun alarmState(value: String?) = when (value) { "raised" -> "generada"; "acknowledged" -> "confirmada"; "cleared" -> "cerrada"; else -> value.orEmpty() }
+    private fun alarmState(value: String?) = when (value) { "raised" -> tr("generada"); "acknowledged" -> tr("confirmada"); "cleared" -> tr("cerrada"); else -> value.orEmpty() }
     private fun fieldLabel(field: String?) = when (field) {
-        "triggered" -> "activado"; "open" -> "abierto"; "on" -> "encendido"; "locked" -> "cerrada"; "tamper" -> "manipulación"; "online" -> "conexión"; else -> field.orEmpty()
+        "triggered" -> tr("activado"); "open" -> tr("abierto"); "on" -> tr("encendido"); "locked" -> tr("cerrada"); "tamper" -> tr("manipulación"); "online" -> tr("conexión"); else -> field.orEmpty()
     }
-    private fun value(value: String?) = when (value) { "true" -> "sí"; "false" -> "no"; else -> value.orEmpty() }
+    private fun value(value: String?) = when (value) { "true" -> tr("sí"); "false" -> tr("no"); else -> value.orEmpty() }
 
     /** One line for the history list. */
     fun describe(event: ArmorEvent): String = when (event.type) {
-        "mode" -> if (event.mode == "armed") "Sistema ARMADO" else "Sistema DESARMADO"
-        "alert" -> "${event.subject}: ${level(event.from)} → ${level(event.to)} (${event.targets ?: 0} objetivos)"
+        "mode" -> if (event.mode == "armed") tr("Sistema ARMADO") else tr("Sistema DESARMADO")
+        "alert" -> trf("%s: %s → %s (%s objetivos)", event.subject, level(event.from), level(event.to), event.targets ?: 0)
         "camera" -> "${event.subject}: ${status(event.from)} → ${status(event.to)}"
         "alarm" -> "${DeviceText.alarmText(event.code.orEmpty())} · ${event.subject} · ${alarmState(event.to)}"
         "device" -> "${event.subject}: ${fieldLabel(event.field)} ${event.from?.let { value(it) + " → " }.orEmpty()}${value(event.to)}"

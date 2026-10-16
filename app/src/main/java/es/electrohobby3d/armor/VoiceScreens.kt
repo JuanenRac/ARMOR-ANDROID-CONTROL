@@ -60,9 +60,9 @@ import es.electrohobby3d.armor.model.VoiceUiState
 import java.util.Locale
 
 /** The four things it understands, as phrases to tap. */
-private val Suggestions = listOf(
-    "Estado del sistema", "Armar el sistema", "Desarmar el sistema", "Silenciar la alarma", "Alarmas activas", "Hay alguien", "Estado de los nodos", "Estado de las cámaras",
-    "Estado solar", "Consumo eléctrico", "Estado de la red", "Qué hora es", "Enciende las luces", "Apaga las luces", "Ayuda",
+private val Suggestions: List<String> get() = listOf(
+    tr("Estado del sistema"), tr("Armar el sistema"), tr("Desarmar el sistema"), tr("Silenciar la alarma"), tr("Alarmas activas"), tr("Hay alguien"), tr("Estado de los nodos"), tr("Estado de las cámaras"),
+    tr("Estado solar"), tr("Consumo eléctrico"), tr("Estado de la red"), tr("Qué hora es"), tr("Enciende las luces"), tr("Apaga las luces"), tr("Ayuda"),
 )
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -81,7 +81,7 @@ fun VoiceScreen(
     var notice by remember { mutableStateOf("") }
     var engine by remember { mutableStateOf<TextToSpeech?>(null) }
     DisposableEffect(context) {
-        val created = TextToSpeech(context) { status -> if (status == TextToSpeech.SUCCESS) engine?.language = Locale("es", "ES") }
+        val created = TextToSpeech(context) { status -> if (status == TextToSpeech.SUCCESS) engine?.language = Locale.forLanguageTag(Tr.language) }
         engine = created
         onDispose { created.stop(); created.shutdown(); engine = null }
     }
@@ -95,8 +95,8 @@ fun VoiceScreen(
         notice = ""
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
             .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-ES").putExtra(RecognizerIntent.EXTRA_PROMPT, "Di una orden").putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
-        try { recognizer.launch(intent) } catch (error: ActivityNotFoundException) { notice = "Este móvil no tiene reconocimiento de voz. Puedes escribir la orden." }
+            .putExtra(RecognizerIntent.EXTRA_LANGUAGE, Tr.language).putExtra(RecognizerIntent.EXTRA_PROMPT, tr("Di una orden")).putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        try { recognizer.launch(intent) } catch (error: ActivityNotFoundException) { notice = tr("Este móvil no tiene reconocimiento de voz. Puedes escribir la orden.") }
     }
 
     val list = rememberLazyListState()
@@ -105,20 +105,20 @@ fun VoiceScreen(
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "Escribe o di una orden: armar o desarmar el sistema (te pido confirmar), el estado, las alarmas, los nodos, las cámaras, los radares, lo solar, el consumo, la red, la hora, encender o apagar las luces y silenciar la alarma. Di «ayuda» para oírlo.",
+                tr("Escribe o di una orden: armar o desarmar el sistema (te pido confirmar), el estado, las alarmas, los nodos, las cámaras, los radares, lo solar, el consumo, la red, la hora, encender o apagar las luces y silenciar la alarma. Di «ayuda» para oírlo."),
                 Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted,
             )
             IconButton(onClick = { speak = !speak; if (!speak) engine?.stop() }) {
-                Icon(if (speak) Icons.Filled.VolumeUp else Icons.Filled.VolumeOff, contentDescription = if (speak) "Silenciar la voz del móvil" else "Activar la voz del móvil", tint = if (speak) ArmorColors.Cyan else ArmorColors.Muted)
+                Icon(if (speak) Icons.Filled.VolumeUp else Icons.Filled.VolumeOff, contentDescription = if (speak) tr("Silenciar la voz del móvil") else tr("Activar la voz del móvil"), tint = if (speak) ArmorColors.Cyan else ArmorColors.Muted)
             }
-            IconButton(onClick = onClear, enabled = state.messages.isNotEmpty()) { Icon(Icons.Filled.DeleteSweep, contentDescription = "Borrar la conversación", tint = ArmorColors.Muted) }
+            IconButton(onClick = onClear, enabled = state.messages.isNotEmpty()) { Icon(Icons.Filled.DeleteSweep, contentDescription = tr("Borrar la conversación"), tint = ArmorColors.Muted) }
         }
-        if (state.available == false) Text("Este sistema no tiene instalado el asistente de voz: las órdenes no funcionarán hasta que se instale.", color = ArmorColors.Amber, style = MaterialTheme.typography.bodySmall)
-        if (!enabled) Text("Conecta con el servidor e inicia sesión para dar órdenes.", color = ArmorColors.Amber, style = MaterialTheme.typography.bodySmall)
+        if (state.available == false) Text(tr("Este sistema no tiene instalado el asistente de voz: las órdenes no funcionarán hasta que se instale."), color = ArmorColors.Amber, style = MaterialTheme.typography.bodySmall)
+        if (!enabled) Text(tr("Conecta con el servidor e inicia sesión para dar órdenes."), color = ArmorColors.Amber, style = MaterialTheme.typography.bodySmall)
 
         LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = list, verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (state.messages.isEmpty()) item {
-                Text("Aún no hay órdenes. Toca una de las de abajo, escribe o pulsa el micrófono.", color = ArmorColors.Muted, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 12.dp))
+                Text(tr("Aún no hay órdenes. Toca una de las de abajo, escribe o pulsa el micrófono."), color = ArmorColors.Muted, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 12.dp))
             }
             items(state.messages) { message -> Bubble(message, enabled && !state.busy, onConfirm = { onConfirm(it, say) }, onCancel = onCancel) }
             if (state.busy) item { Text("…", color = ArmorColors.Muted) }
@@ -131,11 +131,11 @@ fun VoiceScreen(
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             OutlinedTextField(
                 value = text, onValueChange = { text = it.take(200) }, modifier = Modifier.weight(1f), singleLine = true, enabled = enabled,
-                placeholder = { Text("Escribe una orden") },
+                placeholder = { Text(tr("Escribe una orden")) },
             )
-            IconButton(onClick = { listen() }, enabled = enabled && !state.busy) { Icon(Icons.Filled.Mic, contentDescription = "Decir una orden", tint = if (enabled && !state.busy) ArmorColors.Cyan else ArmorColors.Muted) }
+            IconButton(onClick = { listen() }, enabled = enabled && !state.busy) { Icon(Icons.Filled.Mic, contentDescription = tr("Decir una orden"), tint = if (enabled && !state.busy) ArmorColors.Cyan else ArmorColors.Muted) }
             IconButton(onClick = { val phrase = text.trim(); if (phrase.isNotEmpty()) { text = ""; onSend(phrase, say) } }, enabled = enabled && !state.busy && text.isNotBlank()) {
-                Icon(Icons.Filled.Send, contentDescription = "Enviar la orden", tint = if (enabled && !state.busy && text.isNotBlank()) ArmorColors.Cyan else ArmorColors.Muted)
+                Icon(Icons.Filled.Send, contentDescription = tr("Enviar la orden"), tint = if (enabled && !state.busy && text.isNotBlank()) ArmorColors.Cyan else ArmorColors.Muted)
             }
         }
     }
@@ -153,8 +153,8 @@ private fun Bubble(message: VoiceMessage, canAnswer: Boolean, onConfirm: (Pendin
             Text(message.text, color = if (message.problem) ArmorColors.Amber else ArmorColors.Text, style = MaterialTheme.typography.bodyMedium)
             message.pending?.let { pending ->
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { onConfirm(pending) }, enabled = canAnswer) { Text("Confirmar") }
-                    OutlinedButton(onClick = onCancel, enabled = canAnswer) { Text("Cancelar") }
+                    Button(onClick = { onConfirm(pending) }, enabled = canAnswer) { Text(tr("Confirmar")) }
+                    OutlinedButton(onClick = onCancel, enabled = canAnswer) { Text(tr("Cancelar")) }
                 }
             }
         }

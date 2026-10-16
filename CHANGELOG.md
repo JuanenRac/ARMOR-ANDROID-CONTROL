@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [0.5.5] - The app in eight languages
+
+- The whole app is now in English, Spanish, German, French, Italian, Japanese, Chinese and Portuguese: every screen, button, message, notification and error, about 830 phrases in seven translation tables.
+- A language picker in More > Settings; without a choice the app follows the phone's language when it is one of the eight, and English otherwise. The change shows at once, with no restart.
+- The alarm notifications and the spoken alarm use the language of the app, and the voice commands are heard and answered in it (the server's voice assistant is told English when the language is Portuguese, which it does not know yet).
+- The weather shows its days and months in the language of the app, written by the phone's own calendar.
+- The Bluetooth set-up of a node now tells you to type the PIN that the node shows on its USB console when Android asks to pair.
+- Tests keep it complete: every phrase of the source has its text in all seven tables, a translation keeps the holes of the original, the tables have the same phrases and the language choice falls back to English.
+
 ## [0.5.4] - Check before arming, sounds by severity and spoken alarms
 
 - Arming now runs the server's check first and lists what would leave the perimeter blind or noisy: a silent radar node, an open zone, a camera that does not answer, an open door or window.

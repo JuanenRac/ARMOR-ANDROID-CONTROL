@@ -52,7 +52,7 @@ fun ArmorSplash(onDone: () -> Unit) {
             Spacer(Modifier.height(20.dp))
             Text("A.R.M.O.R.", fontSize = 30.sp, fontWeight = FontWeight.Black, letterSpacing = 6.sp, color = ArmorColors.Text)
             Spacer(Modifier.height(6.dp))
-            Text("Seguridad de tu perímetro", color = ArmorColors.Muted, fontSize = 14.sp)
+            Text(tr("Seguridad de tu perímetro"), color = ArmorColors.Muted, fontSize = 14.sp)
         }
     }
 }
@@ -64,7 +64,7 @@ fun RestoringScreen() {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
             ArmorLogo(72.dp)
             CircularProgressIndicator(Modifier.size(28.dp), strokeWidth = 3.dp)
-            Text("Conectando con tu servidor…", color = ArmorColors.Muted)
+            Text(tr("Conectando con tu servidor…"), color = ArmorColors.Muted)
         }
     }
 }
@@ -78,7 +78,7 @@ fun LoginScreen(
     var visible by rememberSaveable { mutableStateOf(false) }
     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF0A2A33), ArmorColors.Background, ArmorColors.Background)))) {
         IconButton(onClick = onAbout, Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(8.dp)) {
-            Icon(Icons.Filled.Info, contentDescription = "Acerca de", tint = ArmorColors.Muted)
+            Icon(Icons.Filled.Info, contentDescription = tr("Acerca de"), tint = ArmorColors.Muted)
         }
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).statusBarsPadding().navigationBarsPadding().imePadding().padding(horizontal = 24.dp, vertical = 32.dp),
@@ -87,37 +87,37 @@ fun LoginScreen(
             ArmorLogo(84.dp)
             Spacer(Modifier.height(14.dp))
             Text("A.R.M.O.R.", fontSize = 28.sp, fontWeight = FontWeight.Black, letterSpacing = 5.sp)
-            Text("Seguridad de tu perímetro", color = ArmorColors.Muted, fontSize = 13.sp)
+            Text(tr("Seguridad de tu perímetro"), color = ArmorColors.Muted, fontSize = 13.sp)
             Spacer(Modifier.height(28.dp))
             Panel(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         OutlinedTextField(
                             value = host, onValueChange = onHost, modifier = Modifier.weight(1f), singleLine = true,
-                            label = { Text("Servidor") }, placeholder = { Text("192.168.0.50") }, leadingIcon = { Icon(Icons.Filled.Dns, null) },
+                            label = { Text(tr("Servidor")) }, placeholder = { Text("192.168.0.50") }, leadingIcon = { Icon(Icons.Filled.Dns, null) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
                         )
                         OutlinedTextField(
                             value = port, onValueChange = { onPort(it.filter(Char::isDigit).take(5)) }, modifier = Modifier.width(96.dp), singleLine = true,
-                            label = { Text("Puerto") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            label = { Text(tr("Puerto")) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         )
                     }
                     OutlinedTextField(
                         value = username, onValueChange = onUsername, modifier = Modifier.fillMaxWidth(), singleLine = true,
-                        label = { Text("Usuario") }, leadingIcon = { Icon(Icons.Filled.Person, null) },
+                        label = { Text(tr("Usuario")) }, leadingIcon = { Icon(Icons.Filled.Person, null) },
                     )
                     OutlinedTextField(
                         value = password, onValueChange = onPassword, modifier = Modifier.fillMaxWidth(), singleLine = true,
-                        label = { Text("Contraseña") }, leadingIcon = { Icon(Icons.Filled.Lock, null) },
+                        label = { Text(tr("Contraseña")) }, leadingIcon = { Icon(Icons.Filled.Lock, null) },
                         visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        trailingIcon = { IconButton(onClick = { visible = !visible }) { Icon(if (visible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, contentDescription = if (visible) "Ocultar" else "Mostrar") } },
+                        trailingIcon = { IconButton(onClick = { visible = !visible }) { Icon(if (visible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, contentDescription = if (visible) tr("Ocultar") else tr("Mostrar")) } },
                     )
                     Button(onClick = onLogin, enabled = canLogin && !busy, modifier = Modifier.fillMaxWidth().height(52.dp), shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp)) {
                         if (busy) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
                         else Icon(Icons.AutoMirrored.Filled.Login, null)
                         Spacer(Modifier.width(10.dp))
-                        Text(if (busy) "Conectando…" else "Entrar", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text(if (busy) tr("Conectando…") else tr("Entrar"), fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
                     Friendly.message(message)?.let {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -131,10 +131,10 @@ fun LoginScreen(
             FilledTonalButton(onClick = onNodeSetup, shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp)) {
                 Icon(Icons.Filled.Bluetooth, null)
                 Spacer(Modifier.width(8.dp))
-                Text("Configurar un nodo")
+                Text(tr("Configurar un nodo"))
             }
             Spacer(Modifier.height(10.dp))
-            Text("Tu contraseña no se guarda en el móvil. La sesión sí, cifrada, y se renueva mientras uses la app: no tendrás que volver a entrar salvo que caduque o la cierres.", color = ArmorColors.Muted, fontSize = 12.sp, textAlign = TextAlign.Center)
+            Text(tr("Tu contraseña no se guarda en el móvil. La sesión sí, cifrada, y se renueva mientras uses la app: no tendrás que volver a entrar salvo que caduque o la cierres."), color = ArmorColors.Muted, fontSize = 12.sp, textAlign = TextAlign.Center)
         }
     }
 }
@@ -144,26 +144,26 @@ fun ProfileDialog(username: String, server: String, connected: Boolean, watching
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = ArmorColors.SurfaceRaised,
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Cerrar") } },
-        title = { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) { IconBadge(Icons.Filled.Person, size = 44.dp); Text("Mi cuenta") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Cerrar")) } },
+        title = { Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) { IconBadge(Icons.Filled.Person, size = 44.dp); Text(tr("Mi cuenta")) } },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                InfoRow(Icons.Filled.Person, "Usuario", username.ifBlank { "—" })
-                InfoRow(Icons.Filled.Dns, "Servidor", server.ifBlank { "—" })
+                InfoRow(Icons.Filled.Person, tr("Usuario"), username.ifBlank { "—" })
+                InfoRow(Icons.Filled.Dns, tr("Servidor"), server.ifBlank { "—" })
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     StatusDot(if (connected) ArmorColors.Ok else ArmorColors.Alert, 12.dp)
-                    Text(if (connected) "Conectado" else "Sin conexión", fontWeight = FontWeight.Medium)
+                    Text(if (connected) tr("Conectado") else tr("Sin conexión"), fontWeight = FontWeight.Medium)
                 }
                 HorizontalDivider(color = ArmorColors.Outline)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Icon(Icons.Filled.NotificationsActive, null, tint = ArmorColors.Cyan)
-                    Column(Modifier.weight(1f)) { Text("Avisos con la app cerrada"); Text("Te avisa de alertas aunque no la tengas abierta.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted) }
+                    Column(Modifier.weight(1f)) { Text(tr("Avisos con la app cerrada")); Text(tr("Te avisa de alertas aunque no la tengas abierta."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted) }
                     Switch(checked = watching, onCheckedChange = onWatching)
                 }
                 FilledTonalButton(onClick = onLogout, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.filledTonalButtonColors(containerColor = Color(0xFF3A1319), contentColor = Color(0xFFFFD9DD))) {
                     Icon(Icons.AutoMirrored.Filled.Logout, null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Cerrar sesión")
+                    Text(tr("Cerrar sesión"))
                 }
             }
         },
@@ -183,26 +183,26 @@ fun AboutDialog(onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = ArmorColors.SurfaceRaised,
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Cerrar") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Cerrar")) } },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 ArmorLogo(72.dp)
                 Text("A.R.M.O.R.", fontSize = 26.sp, fontWeight = FontWeight.Black, letterSpacing = 4.sp)
-                Text("Versión ${BuildConfig.VERSION_NAME}", color = ArmorColors.Cyan, style = MaterialTheme.typography.labelLarge)
+                Text(trf("Versión %s", BuildConfig.VERSION_NAME), color = ArmorColors.Cyan, style = MaterialTheme.typography.labelLarge)
                 Text(
-                    "Vigila tu perímetro desde el móvil: mira quién se acerca, recibe avisos, controla las luces y las sirenas, y ve tus cámaras en directo.",
+                    tr("Vigila tu perímetro desde el móvil: mira quién se acerca, recibe avisos, controla las luces y las sirenas, y ve tus cámaras en directo."),
                     textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyMedium, color = ArmorColors.Muted,
                 )
                 HorizontalDivider(color = ArmorColors.Outline)
-                AboutFeature(Icons.Filled.Shield, "Armar y desarmar", "Con un toque, con confirmación.")
-                AboutFeature(Icons.Filled.NotificationsActive, "Alarmas", "Avisos claros que confirmas cuando los has visto.")
-                AboutFeature(Icons.Filled.Videocam, "Cámaras", "Directo, foto, grabación y movimiento de cámara.")
-                AboutFeature(Icons.Filled.Sensors, "Dispositivos", "Sensores, luces, enchufes, cerraduras y sirenas.")
-                AboutFeature(Icons.Filled.Bluetooth, "Nodos", "Configura un nodo nuevo por Bluetooth.")
+                AboutFeature(Icons.Filled.Shield, tr("Armar y desarmar"), tr("Con un toque, con confirmación."))
+                AboutFeature(Icons.Filled.NotificationsActive, tr("Alarmas"), tr("Avisos claros que confirmas cuando los has visto."))
+                AboutFeature(Icons.Filled.Videocam, tr("Cámaras"), tr("Directo, foto, grabación y movimiento de cámara."))
+                AboutFeature(Icons.Filled.Sensors, tr("Dispositivos"), tr("Sensores, luces, enchufes, cerraduras y sirenas."))
+                AboutFeature(Icons.Filled.Bluetooth, tr("Nodos"), tr("Configura un nodo nuevo por Bluetooth."))
                 HorizontalDivider(color = ArmorColors.Outline)
-                Text("Hecho por", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+                Text(tr("Hecho por"), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
                 Text("Electro Hobby 3D", fontWeight = FontWeight.Bold, color = ArmorColors.Cyan)
-                Text("Software libre, licencia GPL-3.0.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                Text(tr("Software libre, licencia GPL-3.0."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
             }
         },
     )

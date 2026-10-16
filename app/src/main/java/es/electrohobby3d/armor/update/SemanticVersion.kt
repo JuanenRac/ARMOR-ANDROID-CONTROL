@@ -18,7 +18,7 @@ data class SemanticVersion(val major: Int, val minor: Int, val patch: Int, val b
         { version: SemanticVersion -> version.build ?: 0 },
     )
 
-    override fun toString(): String = if (build == null) "$major.$minor.$patch" else "$major.$minor.$patch.$build"
+    override fun toString(): String = if (build == null) "${major}.${minor}.${patch}" else "${major}.${minor}.${patch}.${build}"
 
     companion object {
         private val stablePattern = Regex("^v?(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:\\.(0|[1-9]\\d*))?$")

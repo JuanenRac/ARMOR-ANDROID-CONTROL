@@ -2,6 +2,7 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor.model
 
+import es.electrohobby3d.armor.trf
 import org.json.JSONObject
 
 /** One finding: `level` is "block" (it should stop the person) or "warn" (only to know); `code` says what, `id` where, `detail` the zone of a panel. */
@@ -27,13 +28,13 @@ object PreflightParser {
 
 object PreflightText {
     fun describe(issue: PreflightIssue): String = when (issue.code) {
-        "node_offline" -> "El nodo de radar ${issue.id} no responde."
-        "panel_silent" -> "La central de alarma ${issue.id} está en silencio."
-        "zone_open" -> "La zona ${issue.detail.orEmpty()} de la central ${issue.id} está abierta."
-        "camera_down" -> "La cámara ${issue.id} no responde."
-        "opening_open" -> "La puerta o ventana ${issue.id} está abierta."
-        "device_offline" -> "El dispositivo ${issue.id} dejó de responder."
-        "alarm_unseen" -> "Hay una alarma que nadie ha visto (${issue.id})."
+        "node_offline" -> trf("El nodo de radar %s no responde.", issue.id)
+        "panel_silent" -> trf("La central de alarma %s está en silencio.", issue.id)
+        "zone_open" -> trf("La zona %s de la central %s está abierta.", issue.detail.orEmpty(), issue.id)
+        "camera_down" -> trf("La cámara %s no responde.", issue.id)
+        "opening_open" -> trf("La puerta o ventana %s está abierta.", issue.id)
+        "device_offline" -> trf("El dispositivo %s dejó de responder.", issue.id)
+        "alarm_unseen" -> trf("Hay una alarma que nadie ha visto (%s).", issue.id)
         else -> issue.code
     }
 }

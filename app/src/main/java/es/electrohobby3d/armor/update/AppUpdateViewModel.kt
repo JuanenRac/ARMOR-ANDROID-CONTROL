@@ -2,6 +2,7 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor.update
 
+import es.electrohobby3d.armor.tr
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -76,7 +77,7 @@ class AppUpdateViewModel(application: Application) : AndroidViewModel(applicatio
         val apk = updater.cachedInstallableApk()
         if (apk == null) {
             mutableState.value = AppUpdateState.Failed(
-                "La actualización descargada ya no está disponible o no es válida. Vuelve a comprobar si hay actualizaciones.",
+                tr("La actualización descargada ya no está disponible o no es válida. Vuelve a comprobar si hay actualizaciones."),
             )
             return
         }

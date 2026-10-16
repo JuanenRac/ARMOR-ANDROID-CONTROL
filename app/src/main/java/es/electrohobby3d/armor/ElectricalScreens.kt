@@ -44,10 +44,10 @@ fun ElectricalScreen(overview: ElectricalOverview?, network: NetworkOverview? = 
         item {
             Text(
                 when {
-                    overview == null -> "Buscando datos…"
-                    data.nodes.isEmpty() -> "Sin nodos eléctricos leyendo"
-                    data.totals.stale > 0 -> "${data.totals.stale} sin señal de ${data.nodes.size}"
-                    else -> "${data.nodes.size} nodos en línea"
+                    overview == null -> tr("Buscando datos…")
+                    data.nodes.isEmpty() -> tr("Sin nodos eléctricos leyendo")
+                    data.totals.stale > 0 -> trf("%s sin señal de %s", data.totals.stale, data.nodes.size)
+                    else -> trf("%s nodos en línea", data.nodes.size)
                 },
                 style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted,
             )
@@ -63,8 +63,8 @@ private fun EmptyElectrical() {
     Panel(Modifier.fillMaxWidth()) {
         Column(Modifier.fillMaxWidth().padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
             IconBadge(Icons.Filled.ElectricBolt, ArmorColors.Muted, size = 64.dp)
-            Text("Aún no hay nodos eléctricos", style = MaterialTheme.typography.titleMedium)
-            Text("Cuando un nodo con contadores publique sus lecturas, aparecerán aquí: la red, los circuitos y los buses de continua.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+            Text(tr("Aún no hay nodos eléctricos"), style = MaterialTheme.typography.titleMedium)
+            Text(tr("Cuando un nodo con contadores publique sus lecturas, aparecerán aquí: la red, los circuitos y los buses de continua."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
         }
     }
 }
@@ -77,14 +77,14 @@ private fun ElectricalTotalsPanel(totals: ElectricalTotals) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 IconBadge(Icons.Filled.ElectricBolt, tint ?: ArmorColors.Cyan, size = 40.dp)
                 Column(Modifier.weight(1f)) {
-                    Text("Red eléctrica", fontWeight = FontWeight.SemiBold)
+                    Text(tr("Red eléctrica"), fontWeight = FontWeight.SemiBold)
                     Text(electricalSummary(totals), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                 }
                 totals.gridKwh?.let { Text(ElectricalText.kwh(it), style = MaterialTheme.typography.labelMedium, color = ArmorColors.Muted) }
             }
             if (totals.alarms > 0) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Icon(Icons.Filled.Warning, null, tint = ArmorColors.Amber, modifier = Modifier.size(16.dp))
-                Text(if (totals.alarms == 1) "Un contador avisa de una alarma" else "${totals.alarms} contadores avisan de una alarma", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
+                Text(if (totals.alarms == 1) tr("Un contador avisa de una alarma") else trf("%s contadores avisan de una alarma", totals.alarms), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
             }
         }
     }
@@ -96,10 +96,10 @@ private fun ElectricalNodeCard(node: ElectricalNode) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(node.nodeId, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(if (node.stale) "sin señal" else "en línea", style = MaterialTheme.typography.labelSmall, color = if (node.stale) ArmorColors.Amber else ArmorColors.Ok)
+                Text(if (node.stale) tr("sin señal") else tr("en línea"), style = MaterialTheme.typography.labelSmall, color = if (node.stale) ArmorColors.Amber else ArmorColors.Ok)
             }
-            if (node.switchingEnabled == false) Text("Maniobra desactivada en el nodo", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
-            if (node.channels.isEmpty()) Text("No hay ningún contador leyendo", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+            if (node.switchingEnabled == false) Text(tr("Maniobra desactivada en el nodo"), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
+            if (node.channels.isEmpty()) Text(tr("No hay ningún contador leyendo"), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
             node.channels.forEach { channel -> ChannelRow(channel, node.stale) }
             node.switches.forEach { switchItem -> SwitchRow(switchItem) }
         }
@@ -112,7 +112,7 @@ private fun SwitchRow(switchItem: ElectricalSwitch) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(switchItem.name, fontWeight = FontWeight.Medium, color = if (fault) ArmorColors.Alert else ArmorColors.Text)
         Text(
-            "${ElectricalText.switchSource(switchItem)} · A: ${if (switchItem.aClosed) "cerrado" else "abierto"} · B: ${if (switchItem.bClosed) "cerrado" else "abierto"}" + if (switchItem.closing) " · maniobrando" else "",
+            "${ElectricalText.switchSource(switchItem)} · A: ${if (switchItem.aClosed) tr("cerrado") else tr("abierto")} · B: ${if (switchItem.bClosed) tr("cerrado") else tr("abierto")}" + if (switchItem.closing) tr(" · maniobrando") else "",
             style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted,
         )
         ElectricalText.switchFault(switchItem.fault)?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = ArmorColors.Alert) }
@@ -131,11 +131,11 @@ private fun ChannelRow(channel: ElectricalChannel, stale: Boolean) {
         val details = buildList {
             add(ElectricalText.volts(channel.voltageV)); add(ElectricalText.amps(channel.currentA))
             channel.frequencyHz?.let { add("${String.format(java.util.Locale.US, "%.1f", it)} Hz") }
-            channel.powerFactor?.let { add("cos φ ${String.format(java.util.Locale.US, "%.2f", it)}") }
+            channel.powerFactor?.let { add(trf("cos φ %s", String.format(java.util.Locale.US, "%.2f", it))) }
             channel.energyKwh?.let { add(ElectricalText.kwh(it)) }
             ElectricalText.switchState(channel.state)?.let { add(it) }
         }
         Text(details.joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
-        if (channel.alarm) Text("El contador avisa de una alarma", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
+        if (channel.alarm) Text(tr("El contador avisa de una alarma"), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
     }
 }

@@ -4,6 +4,7 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor.model
 
+import es.electrohobby3d.armor.tr
 import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.math.ln
@@ -90,39 +91,39 @@ object WeatherParser {
 
 /** The wording, icons and simple classifications of the Weather screen, in plain Spanish (matches ARMOR-STUDIO's). */
 object WeatherText {
-    private val codes: Map<Int, Pair<String, String>> = mapOf(
-        0 to ("Despejado" to "☀️"), 1 to ("Poco nuboso" to "🌤️"), 2 to ("Parcialmente nublado" to "⛅"), 3 to ("Cubierto" to "☁️"), 45 to ("Niebla" to "🌫️"), 48 to ("Niebla helada" to "🌫️"),
-        51 to ("Llovizna ligera" to "🌦️"), 53 to ("Llovizna" to "🌦️"), 55 to ("Llovizna intensa" to "🌧️"), 56 to ("Llovizna helada" to "🌧️"), 57 to ("Llovizna helada intensa" to "🌧️"),
-        61 to ("Lluvia ligera" to "🌦️"), 63 to ("Lluvia" to "🌧️"), 65 to ("Lluvia intensa" to "🌧️"), 66 to ("Lluvia helada" to "🌧️"), 67 to ("Lluvia helada intensa" to "🌧️"),
-        71 to ("Nevada ligera" to "🌨️"), 73 to ("Nevada" to "🌨️"), 75 to ("Nevada intensa" to "❄️"), 77 to ("Granos de nieve" to "🌨️"),
-        80 to ("Chubascos ligeros" to "🌦️"), 81 to ("Chubascos" to "🌧️"), 82 to ("Chubascos violentos" to "⛈️"),
-        85 to ("Chubascos de nieve ligeros" to "🌨️"), 86 to ("Chubascos de nieve intensos" to "❄️"), 95 to ("Tormenta" to "⛈️"), 96 to ("Tormenta con granizo" to "⛈️"), 99 to ("Tormenta con granizo fuerte" to "⛈️"),
+    private val codes: Map<Int, Pair<String, String>> get() = mapOf(
+        0 to (tr("Despejado") to "☀️"), 1 to (tr("Poco nuboso") to "🌤️"), 2 to (tr("Parcialmente nublado") to "⛅"), 3 to (tr("Cubierto") to "☁️"), 45 to (tr("Niebla") to "🌫️"), 48 to (tr("Niebla helada") to "🌫️"),
+        51 to (tr("Llovizna ligera") to "🌦️"), 53 to (tr("Llovizna") to "🌦️"), 55 to (tr("Llovizna intensa") to "🌧️"), 56 to (tr("Llovizna helada") to "🌧️"), 57 to (tr("Llovizna helada intensa") to "🌧️"),
+        61 to (tr("Lluvia ligera") to "🌦️"), 63 to (tr("Lluvia") to "🌧️"), 65 to (tr("Lluvia intensa") to "🌧️"), 66 to (tr("Lluvia helada") to "🌧️"), 67 to (tr("Lluvia helada intensa") to "🌧️"),
+        71 to (tr("Nevada ligera") to "🌨️"), 73 to (tr("Nevada") to "🌨️"), 75 to (tr("Nevada intensa") to "❄️"), 77 to (tr("Granos de nieve") to "🌨️"),
+        80 to (tr("Chubascos ligeros") to "🌦️"), 81 to (tr("Chubascos") to "🌧️"), 82 to (tr("Chubascos violentos") to "⛈️"),
+        85 to (tr("Chubascos de nieve ligeros") to "🌨️"), 86 to (tr("Chubascos de nieve intensos") to "❄️"), 95 to (tr("Tormenta") to "⛈️"), 96 to (tr("Tormenta con granizo") to "⛈️"), 99 to (tr("Tormenta con granizo fuerte") to "⛈️"),
     )
-    fun description(code: Int?): String = code?.let { codes[it]?.first } ?: "Desconocido"
+    fun description(code: Int?): String = code?.let { codes[it]?.first } ?: tr("Desconocido")
     fun icon(code: Int?, isDay: Boolean = true): String = code?.let { codes[it]?.second } ?: "❔"
 
-    private val compassWords = listOf("N", "NE", "E", "SE", "S", "SO", "O", "NO")
+    private val compassWords: List<String> get() = listOf(tr("N"), tr("NE"), tr("E"), tr("SE"), tr("S"), tr("SO"), tr("O"), tr("NO"))
     fun compass(degrees: Double?): String? = degrees?.let { compassWords[(((it % 360) + 360) % 360 / 45.0).roundToInt() % 8] }
 
     fun wind(kmh: Double?): String = when {
-        kmh == null -> "—"; kmh < 2 -> "Calma"; kmh < 20 -> "Flojo"; kmh < 39 -> "Moderado"; kmh < 50 -> "Fresco"; kmh < 62 -> "Fuerte"; kmh < 88 -> "Muy fuerte"; kmh < 118 -> "Temporal"; else -> "Huracanado"
+        kmh == null -> "—"; kmh < 2 -> tr("Calma"); kmh < 20 -> tr("Flojo"); kmh < 39 -> tr("Moderado"); kmh < 50 -> tr("Fresco"); kmh < 62 -> tr("Fuerte"); kmh < 88 -> tr("Muy fuerte"); kmh < 118 -> tr("Temporal"); else -> tr("Huracanado")
     }
     fun uv(index: Double?): String = when {
-        index == null -> "—"; index < 3 -> "Bajo"; index < 6 -> "Moderado"; index < 8 -> "Alto"; index < 11 -> "Muy alto"; else -> "Extremo"
+        index == null -> "—"; index < 3 -> tr("Bajo"); index < 6 -> tr("Moderado"); index < 8 -> tr("Alto"); index < 11 -> tr("Muy alto"); else -> tr("Extremo")
     }
     fun aqi(index: Int?): String = when {
-        index == null -> "—"; index <= 20 -> "Buena"; index <= 40 -> "Razonable"; index <= 60 -> "Moderada"; index <= 80 -> "Mala"; index <= 100 -> "Muy mala"; else -> "Extrema"
+        index == null -> "—"; index <= 20 -> tr("Buena"); index <= 40 -> tr("Razonable"); index <= 60 -> tr("Moderada"); index <= 80 -> tr("Mala"); index <= 100 -> tr("Muy mala"); else -> tr("Extrema")
     }
     fun pollenName(key: String): String = when (key) {
-        "alder" -> "Aliso"; "birch" -> "Abedul"; "grass" -> "Gramíneas"; "mugwort" -> "Artemisa"; "olive" -> "Olivo"; "ragweed" -> "Ambrosía"; else -> key
+        "alder" -> tr("Aliso"); "birch" -> tr("Abedul"); "grass" -> tr("Gramíneas"); "mugwort" -> tr("Artemisa"); "olive" -> tr("Olivo"); "ragweed" -> tr("Ambrosía"); else -> key
     }
     fun pollen(grains: Double?): String = when {
-        grains == null -> "—"; grains < 1 -> "Nulo"; grains < 10 -> "Bajo"; grains < 50 -> "Moderado"; grains < 200 -> "Alto"; else -> "Muy alto"
+        grains == null -> "—"; grains < 1 -> tr("Nulo"); grains < 10 -> tr("Bajo"); grains < 50 -> tr("Moderado"); grains < 200 -> tr("Alto"); else -> tr("Muy alto")
     }
     fun pressureTrend(now: Double?, before: Double?): String? {
         if (now == null || before == null) return null
         val change = now - before
-        return if (change >= 1) "Subiendo" else if (change <= -1) "Bajando" else "Estable"
+        return if (change >= 1) tr("Subiendo") else if (change <= -1) tr("Bajando") else tr("Estable")
     }
     fun dewPoint(celsius: Double?, humidity: Double?): Double? {
         if (celsius == null || humidity == null || humidity <= 0) return null
@@ -134,23 +135,22 @@ object WeatherText {
         val phase = ((days / 29.530588853) % 1 + 1) % 1
         val index = (phase * 8).roundToInt() % 8
         val icons = listOf("🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘")
-        val names = listOf("Luna nueva", "Creciente", "Cuarto creciente", "Gibosa creciente", "Luna llena", "Gibosa menguante", "Cuarto menguante", "Menguante")
+        val names = listOf(tr("Luna nueva"), tr("Creciente"), tr("Cuarto creciente"), tr("Gibosa creciente"), tr("Luna llena"), tr("Gibosa menguante"), tr("Cuarto menguante"), tr("Menguante"))
         return icons[index] to names[index]
     }
 
     /** Short date/time formatting from Open-Meteo's local, offset-less ISO strings ("2026-10-02T14:00"). */
     fun hourOf(iso: String): String = iso.takeIf { it.length >= 16 }?.substring(11, 16) ?: iso
-    fun dayOf(iso: String): String {
-        val months = listOf("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
-        return runCatching { val y = iso.substring(0, 4).toInt(); val mo = iso.substring(5, 7).toInt(); val d = iso.substring(8, 10).toInt(); "$d ${months[mo - 1]}" }.getOrDefault(iso)
-    }
-    fun weekday(iso: String): String {
-        return runCatching {
-            val cal = java.util.Calendar.getInstance()
-            cal.set(iso.substring(0, 4).toInt(), iso.substring(5, 7).toInt() - 1, iso.substring(8, 10).toInt())
-            listOf("dom", "lun", "mar", "mié", "jue", "vie", "sáb")[cal.get(java.util.Calendar.DAY_OF_WEEK) - 1]
-        }.getOrDefault("")
-    }
+    private fun locale(): java.util.Locale = java.util.Locale.forLanguageTag(es.electrohobby3d.armor.Tr.language)
+
+    fun dayOf(iso: String): String = runCatching {
+        val date = java.time.LocalDate.of(iso.substring(0, 4).toInt(), iso.substring(5, 7).toInt(), iso.substring(8, 10).toInt())
+        "${date.dayOfMonth} ${date.month.getDisplayName(java.time.format.TextStyle.SHORT, locale())}"
+    }.getOrDefault(iso)
+
+    fun weekday(iso: String): String = runCatching {
+        java.time.LocalDate.of(iso.substring(0, 4).toInt(), iso.substring(5, 7).toInt(), iso.substring(8, 10).toInt()).dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT, locale())
+    }.getOrDefault("")
 
     /** The place's current local time, as Open-Meteo's own ISO form, to find "now" in its hourly/daily series. */
     fun localIso(nowMs: Long, utcOffsetSeconds: Int): String {
@@ -181,10 +181,10 @@ object WeatherText {
         val rain = forecast.hourly.precip.subList(fromIndex, end)
         val wind = forecast.hourly.windSpeed.subList(fromIndex, end)
         val temp = forecast.hourly.temperature.subList(fromIndex, end)
-        rain.withIndex().maxByOrNull { it.value ?: 0.0 }?.let { (i, v) -> if ((v ?: 0.0) >= 4) out.add(Warning("warning", "Lluvia intensa", v!!, forecast.hourly.time[fromIndex + i])) }
-        wind.withIndex().maxByOrNull { it.value ?: 0.0 }?.let { (i, v) -> if ((v ?: 0.0) >= 50) out.add(Warning(if ((v ?: 0.0) >= 70) "warning" else "watch", "Viento fuerte", v!!, forecast.hourly.time[fromIndex + i])) }
-        temp.withIndex().minByOrNull { it.value ?: 100.0 }?.let { (i, v) -> if (v != null && v <= 0) out.add(Warning("watch", "Riesgo de helada", v, forecast.hourly.time[fromIndex + i])) }
-        forecast.daily.uvMax.firstOrNull()?.let { if (it >= 8) out.add(Warning(if (it >= 11) "warning" else "watch", "Índice UV muy alto", it, forecast.daily.time.firstOrNull().orEmpty())) }
+        rain.withIndex().maxByOrNull { it.value ?: 0.0 }?.let { (i, v) -> if ((v ?: 0.0) >= 4) out.add(Warning("warning", tr("Lluvia intensa"), v!!, forecast.hourly.time[fromIndex + i])) }
+        wind.withIndex().maxByOrNull { it.value ?: 0.0 }?.let { (i, v) -> if ((v ?: 0.0) >= 50) out.add(Warning(if ((v ?: 0.0) >= 70) "warning" else "watch", tr("Viento fuerte"), v!!, forecast.hourly.time[fromIndex + i])) }
+        temp.withIndex().minByOrNull { it.value ?: 100.0 }?.let { (i, v) -> if (v != null && v <= 0) out.add(Warning("watch", tr("Riesgo de helada"), v, forecast.hourly.time[fromIndex + i])) }
+        forecast.daily.uvMax.firstOrNull()?.let { if (it >= 8) out.add(Warning(if (it >= 11) "warning" else "watch", tr("Índice UV muy alto"), it, forecast.daily.time.firstOrNull().orEmpty())) }
         return out
     }
 }

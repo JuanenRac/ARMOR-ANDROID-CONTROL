@@ -19,7 +19,7 @@ object AlarmSpeaker {
                     synchronized(this) {
                         ready = status == TextToSpeech.SUCCESS
                         if (ready) {
-                            engine?.language = Locale("es", "ES")
+                            engine?.language = Locale.forLanguageTag(Tr.language)
                             while (waiting.isNotEmpty()) engine?.speak(waiting.removeFirst(), TextToSpeech.QUEUE_ADD, null, "armor-alarm")
                         } else waiting.clear()
                     }

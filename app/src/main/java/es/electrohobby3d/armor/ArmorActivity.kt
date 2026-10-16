@@ -39,14 +39,16 @@ import java.net.URI
 class ArmorActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Tr.init(this)
         setContent { ArmorScreen() }
     }
 }
 
 /** The six places of the bottom bar: an icon each, and the word only under the one that is open. */
-private enum class Section(val label: String, val icon: ImageVector) {
+private enum class Section(private val key: String, val icon: ImageVector) {
     Status("Estado", Icons.Filled.Shield), Radar("Radar", Icons.Filled.Radar), Alarms("Alarmas", Icons.Filled.NotificationsActive), Devices("Dispositivos", Icons.Filled.Sensors),
-    Cameras("Cámaras", Icons.Filled.Videocam), More("Más", Icons.Filled.GridView)
+    Cameras("Cámaras", Icons.Filled.Videocam), More("Más", Icons.Filled.GridView);
+    val label: String get() = tr(key)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -267,27 +269,27 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                     onNodeSetup = { nodeSetup = true }, onAbout = { about = true }, onLogout = { confirmLogout = true },
                                     updateAvailable = updateState is AppUpdateState.Available,
                                 )
-                                MoreTab.Solar -> SubScreen(Icons.Filled.WbSunny, "Solar", onBack = { moreTab = null }, actions = {
-                                    IconButton(onClick = { viewModel.reloadSolar(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
+                                MoreTab.Solar -> SubScreen(Icons.Filled.WbSunny, tr("Solar"), onBack = { moreTab = null }, actions = {
+                                    IconButton(onClick = { viewModel.reloadSolar(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
                                 }) { SolarScreen(state.solar, state.network, onScanNetwork = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading) }
-                                MoreTab.Electrical -> SubScreen(Icons.Filled.ElectricBolt, "Eléctrica", onBack = { moreTab = null }, actions = {
-                                    IconButton(onClick = { viewModel.reloadElectrical(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
+                                MoreTab.Electrical -> SubScreen(Icons.Filled.ElectricBolt, tr("Eléctrica"), onBack = { moreTab = null }, actions = {
+                                    IconButton(onClick = { viewModel.reloadElectrical(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
                                 }) { ElectricalScreen(state.electrical, state.network, onScanNetwork = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading) }
-                                MoreTab.AlarmPanels -> SubScreen(Icons.Filled.Shield, "Centrales de alarma", onBack = { moreTab = null }, actions = {
-                                    IconButton(onClick = { viewModel.reloadAlarmPanels(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
+                                MoreTab.AlarmPanels -> SubScreen(Icons.Filled.Shield, tr("Centrales de alarma"), onBack = { moreTab = null }, actions = {
+                                    IconButton(onClick = { viewModel.reloadAlarmPanels(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
                                 }) {
                                     AlarmPanelsScreen(
                                         state.alarmPanels, state.alarmCommands, canCommand = state.authenticated, network = state.network, onScanNetwork = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading,
                                         onArm = { panel, mode, force -> viewModel.alarmCommand(currentOrigin, panel.nodeId, mode, force) }, onDisarm = { panel, pin -> viewModel.alarmCommand(currentOrigin, panel.nodeId, null, pin = pin) },
                                     )
                                 }
-                                MoreTab.Network -> SubScreen(Icons.Filled.Router, "Red", onBack = { moreTab = null }, actions = {
-                                    IconButton(onClick = { viewModel.reloadNetwork(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
+                                MoreTab.Network -> SubScreen(Icons.Filled.Router, tr("Red"), onBack = { moreTab = null }, actions = {
+                                    IconButton(onClick = { viewModel.reloadNetwork(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
                                 }) { NetworkScreen(state.network) }
-                                MoreTab.Services -> SubScreen(Icons.Filled.Dns, "Servicios", onBack = { moreTab = null }, actions = {
-                                    IconButton(onClick = { viewModel.reloadServices(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
+                                MoreTab.Services -> SubScreen(Icons.Filled.Dns, tr("Servicios"), onBack = { moreTab = null }, actions = {
+                                    IconButton(onClick = { viewModel.reloadServices(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
                                 }) { ServicesScreen(state.services, System.currentTimeMillis()) }
-                                MoreTab.Nodes -> SubScreen(Icons.Filled.Tune, if (nodePanel == null) "Configurar nodos" else nodePanel!!.removePrefix("http://").trimEnd('/'), onBack = { if (nodePanel != null) nodePanel = null else moreTab = null }) {
+                                MoreTab.Nodes -> SubScreen(Icons.Filled.Tune, if (nodePanel == null) tr("Configurar nodos") else nodePanel!!.removePrefix("http://").trimEnd('/'), onBack = { if (nodePanel != null) nodePanel = null else moreTab = null }) {
                                     val panel = nodePanel
                                     if (panel == null) NodesScreen(
                                         state.network, recentNodes,
@@ -298,7 +300,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                         },
                                     ) else NodePanelView(panel, onClose = { nodePanel = null })
                                 }
-                                MoreTab.Voice -> SubScreen(Icons.Filled.Mic, "Asistente", onBack = { moreTab = null }) {
+                                MoreTab.Voice -> SubScreen(Icons.Filled.Mic, tr("Asistente"), onBack = { moreTab = null }) {
                                     VoiceScreen(
                                         voiceState, enabled = validOrigin && state.authenticated,
                                         onSend = { text, speak -> viewModel.sendVoice(currentOrigin, text, spoken = speak) },
@@ -306,7 +308,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                         onClear = { viewModel.clearVoice() }, onCancel = { viewModel.cancelVoice() },
                                     )
                                 }
-                                MoreTab.Weather -> SubScreen(Icons.Filled.Cloud, "Meteorología", onBack = { moreTab = null }) {
+                                MoreTab.Weather -> SubScreen(Icons.Filled.Cloud, tr("Meteorología"), onBack = { moreTab = null }) {
                                     WeatherScreen(
                                         state.weather, onSearch = { viewModel.searchPlaces(it) },
                                         onPick = { place ->
@@ -318,18 +320,18 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                         onChangePlace = { preferences.edit().remove("wx_name").remove("wx_region").remove("wx_country").remove("wx_lat").remove("wx_lon").apply(); viewModel.clearWeatherPlace() },
                                     )
                                 }
-                                MoreTab.Evidence -> SubScreen(Icons.Filled.VideoLibrary, "Grabaciones", onBack = { moreTab = null }, actions = {
-                                    IconButton(onClick = { viewModel.loadMedia(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
+                                MoreTab.Evidence -> SubScreen(Icons.Filled.VideoLibrary, tr("Grabaciones"), onBack = { moreTab = null }, actions = {
+                                    IconButton(onClick = { viewModel.loadMedia(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
                                 }) { EvidenceScreen(state.media.items, state.cameras, currentOrigin, viewModel, state.authenticated) }
-                                MoreTab.History -> SubScreen(Icons.Filled.History, "Historial", onBack = { moreTab = null }) { HistoryScreen(state.events, onMore = { viewModel.loadOlderEvents(currentOrigin) }) }
-                                MoreTab.Settings -> SubScreen(Icons.Filled.Settings, "Ajustes", onBack = { moreTab = null }) {
+                                MoreTab.History -> SubScreen(Icons.Filled.History, tr("Historial"), onBack = { moreTab = null }) { HistoryScreen(state.events, onMore = { viewModel.loadOlderEvents(currentOrigin) }) }
+                                MoreTab.Settings -> SubScreen(Icons.Filled.Settings, tr("Ajustes"), onBack = { moreTab = null }) {
                                     SettingsScreen(
                                         origin, state.authenticated,
                                         onConnect = { typed -> ServerEndpoint.parse(typed)?.let { endpoint -> origin = endpoint.origin; preferences.edit().putString("origin", endpoint.origin).apply(); viewModel.refresh(endpoint.origin) } },
                                         watching = watching, onWatching = { on -> watching = on; setWatching(context, preferences, on) { notificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS) } },
                                     )
                                 }
-                                MoreTab.Updates -> SubScreen(Icons.Filled.SystemUpdate, "Actualizaciones", onBack = { moreTab = null }) {
+                                MoreTab.Updates -> SubScreen(Icons.Filled.SystemUpdate, tr("Actualizaciones"), onBack = { moreTab = null }) {
                                     UpdateScreen(
                                         updateState,
                                         onCheck = { updateViewModel.checkForUpdate() },
@@ -349,27 +351,27 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                         AlertDialog(
                             onDismissRequest = { confirmMode = null }, containerColor = ArmorColors.SurfaceRaised,
                             icon = { IconBadge(Icons.Filled.Shield, if (blocked) ArmorColors.Amber else ArmorColors.Ok, size = 56.dp) },
-                            title = { Text("¿Armar el sistema?") },
+                            title = { Text(tr("¿Armar el sistema?")) },
                             text = {
                                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Text("Puertas, ventanas y movimiento harán sonar la alarma.")
+                                    Text(tr("Puertas, ventanas y movimiento harán sonar la alarma."))
                                     when {
-                                        check == null -> Text("Comprobando el perímetro…", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
-                                        check!!.issues.isEmpty() -> Text("✓ Todo listo: los nodos responden y no hay zonas abiertas.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Ok)
+                                        check == null -> Text(tr("Comprobando el perímetro…"), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                                        check!!.issues.isEmpty() -> Text(tr("✓ Todo listo: los nodos responden y no hay zonas abiertas."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Ok)
                                         else -> check!!.issues.forEach { issue ->
                                             Text((if (issue.blocks) "⛔ " else "⚠ ") + es.electrohobby3d.armor.model.PreflightText.describe(issue), style = MaterialTheme.typography.bodySmall, color = if (issue.blocks) ArmorColors.Amber else ArmorColors.Muted)
                                         }
                                     }
                                 }
                             },
-                            confirmButton = { Button(onClick = { viewModel.setMode(currentOrigin, mode); confirmMode = null }) { Text(if (blocked) "Armar igualmente" else "Armar") } },
-                            dismissButton = { TextButton(onClick = { confirmMode = null }) { Text("Cancelar") } },
+                            confirmButton = { Button(onClick = { viewModel.setMode(currentOrigin, mode); confirmMode = null }) { Text(if (blocked) tr("Armar igualmente") else tr("Armar")) } },
+                            dismissButton = { TextButton(onClick = { confirmMode = null }) { Text(tr("Cancelar")) } },
                         )
                     } else {
                         PinAlertDialog(
-                            title = "¿Desarmar el sistema?",
-                            text = "Puertas, ventanas y movimiento dejan de avisar. El humo, el gas, el agua y el pánico siguen avisando.",
-                            confirmLabel = "Desarmar", onConfirm = { pin -> viewModel.setMode(currentOrigin, mode, pin); confirmMode = null }, onDismiss = { confirmMode = null },
+                            title = tr("¿Desarmar el sistema?"),
+                            text = tr("Puertas, ventanas y movimiento dejan de avisar. El humo, el gas, el agua y el pánico siguen avisando."),
+                            confirmLabel = tr("Desarmar"), onConfirm = { pin -> viewModel.setMode(currentOrigin, mode, pin); confirmMode = null }, onDismiss = { confirmMode = null },
                         )
                     }
                 }
@@ -377,19 +379,19 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                     AlertDialog(
                         onDismissRequest = { confirmCommand = null }, containerColor = ArmorColors.SurfaceRaised,
                         icon = { IconBadge(Icons.Filled.Warning, ArmorColors.Amber, size = 56.dp) },
-                        title = { Text("¿Ordenar «${device.name}»?") },
+                        title = { Text(trf("¿Ordenar «%s»?", device.name)) },
                         text = { Text(es.electrohobby3d.armor.model.DeviceText.confirmQuestion(device, command).orEmpty()) },
-                        confirmButton = { Button(onClick = { viewModel.command(currentOrigin, device, command, confirm = true); confirmCommand = null }) { Text("Sí, ordenar") } },
-                        dismissButton = { TextButton(onClick = { confirmCommand = null }) { Text("Cancelar") } },
+                        confirmButton = { Button(onClick = { viewModel.command(currentOrigin, device, command, confirm = true); confirmCommand = null }) { Text(tr("Sí, ordenar")) } },
+                        dismissButton = { TextButton(onClick = { confirmCommand = null }) { Text(tr("Cancelar")) } },
                     )
                 }
                 if (confirmLogout) AlertDialog(
                     onDismissRequest = { confirmLogout = false }, containerColor = ArmorColors.SurfaceRaised,
                     icon = { IconBadge(Icons.AutoMirrored.Filled.Logout, ArmorColors.Alert, size = 56.dp) },
-                    title = { Text("¿Cerrar sesión?") },
-                    text = { Text("Dejarás de recibir avisos en este móvil hasta que vuelvas a entrar.") },
-                    confirmButton = { Button(onClick = ::logout, colors = ButtonDefaults.buttonColors(containerColor = ArmorColors.Alert)) { Text("Cerrar sesión") } },
-                    dismissButton = { TextButton(onClick = { confirmLogout = false }) { Text("Cancelar") } },
+                    title = { Text(tr("¿Cerrar sesión?")) },
+                    text = { Text(tr("Dejarás de recibir avisos en este móvil hasta que vuelvas a entrar.")) },
+                    confirmButton = { Button(onClick = ::logout, colors = ButtonDefaults.buttonColors(containerColor = ArmorColors.Alert)) { Text(tr("Cerrar sesión")) } },
+                    dismissButton = { TextButton(onClick = { confirmLogout = false }) { Text(tr("Cancelar")) } },
                 )
                 if (profile) ProfileDialog(
                     username = username, server = savedUri?.let { "${it.host}:${it.port}" } ?: origin, connected = state.authenticated, watching = watching,
@@ -407,10 +409,10 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                     AlertDialog(
                         onDismissRequest = { updateViewModel.dismiss() }, containerColor = ArmorColors.SurfaceRaised,
                         icon = { IconBadge(Icons.Filled.SystemUpdate, ArmorColors.Cyan, size = 56.dp) },
-                        title = { Text("Nueva versión disponible") },
+                        title = { Text(tr("Nueva versión disponible")) },
                         text = { UpdateAvailableContent(availableUpdate, onDownload = { updateViewModel.downloadAndInstall(availableUpdate); section = Section.More; moreTab = MoreTab.Updates }) },
                         confirmButton = {},
-                        dismissButton = { TextButton(onClick = { updateViewModel.dismiss() }) { Text("Más tarde") } },
+                        dismissButton = { TextButton(onClick = { updateViewModel.dismiss() }) { Text(tr("Más tarde")) } },
                     )
                 }
             }
@@ -441,16 +443,16 @@ private fun TopBar(host: String, armed: Boolean, connected: Boolean, onProfile: 
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Icon(if (armed) Icons.Filled.Shield else Icons.Filled.LockOpen, null, tint = if (armed) ArmorColors.Ok else ArmorColors.Amber, modifier = Modifier.size(16.dp))
-                Text(if (armed) "Armado" else "Desarmado", color = if (armed) ArmorColors.Ok else ArmorColors.Amber, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                Text(if (armed) tr("Armado") else tr("Desarmado"), color = if (armed) ArmorColors.Ok else ArmorColors.Amber, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
             }
         }
         Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             StatusDot(if (connected) ArmorColors.Ok else ArmorColors.Alert)
             Spacer(Modifier.width(8.dp))
-            Text(if (connected) host.ifBlank { "Conectado" } else "Sin conexión", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-            IconButton(onClick = onProfile) { Icon(Icons.Filled.Person, contentDescription = "Mi cuenta", tint = ArmorColors.Cyan) }
-            IconButton(onClick = onAbout) { Icon(Icons.Filled.Info, contentDescription = "Acerca de", tint = ArmorColors.Cyan) }
-            IconButton(onClick = onLogout) { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Cerrar sesión", tint = ArmorColors.Alert) }
+            Text(if (connected) host.ifBlank { tr("Conectado") } else tr("Sin conexión"), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+            IconButton(onClick = onProfile) { Icon(Icons.Filled.Person, contentDescription = tr("Mi cuenta"), tint = ArmorColors.Cyan) }
+            IconButton(onClick = onAbout) { Icon(Icons.Filled.Info, contentDescription = tr("Acerca de"), tint = ArmorColors.Cyan) }
+            IconButton(onClick = onLogout) { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = tr("Cerrar sesión"), tint = ArmorColors.Alert) }
         }
         HorizontalDivider(color = ArmorColors.Outline)
     }

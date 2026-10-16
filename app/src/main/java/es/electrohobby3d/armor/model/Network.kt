@@ -2,6 +2,8 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor.model
 
+import es.electrohobby3d.armor.tr
+import es.electrohobby3d.armor.trf
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -97,44 +99,44 @@ object NetworkText {
     val riskyPorts = setOf(21, 23, 445, 3306, 3389, 5432, 5900, 6379, 7547)
 
     fun state(state: String): String = when (state) {
-        "up" -> "Hay internet"
-        "degraded" -> "Internet va lento o pierde paquetes"
-        "down" -> "Sin internet: el router responde y nada más allá"
-        "lan_down" -> "La red local está caída: el router no responde"
-        else -> "Comprobando internet…"
+        "up" -> tr("Hay internet")
+        "degraded" -> tr("Internet va lento o pierde paquetes")
+        "down" -> tr("Sin internet: el router responde y nada más allá")
+        "lan_down" -> tr("La red local está caída: el router no responde")
+        else -> tr("Comprobando internet…")
     }
 
     /** Whose fault it is, when it is a fault. */
     fun hint(state: String): String? = when (state) {
-        "down" -> "La avería está más allá del router: el operador, la línea o la conexión del propio router."
-        "lan_down" -> "La avería está de este lado: el router apagado, un cable o un conmutador, o la máquina del nodo."
+        "down" -> tr("La avería está más allá del router: el operador, la línea o la conexión del propio router.")
+        "lan_down" -> tr("La avería está de este lado: el router apagado, un cable o un conmutador, o la máquina del nodo.")
         else -> null
     }
 
     fun kind(kind: String): String = when (kind) {
-        "router" -> "Router"; "computer" -> "Ordenador"; "phone" -> "Móvil o tableta"; "tv" -> "TV o reproductor"; "printer" -> "Impresora"; "camera" -> "Cámara"
-        "iot" -> "Dispositivo inteligente"; "server" -> "Servidor"; "nas" -> "Almacenamiento (NAS)"; "network" -> "Equipo de red"; else -> "Desconocido"
+        "router" -> "Router"; "computer" -> tr("Ordenador"); "phone" -> tr("Móvil o tableta"); "tv" -> tr("TV o reproductor"); "printer" -> tr("Impresora"); "camera" -> tr("Cámara")
+        "iot" -> tr("Dispositivo inteligente"); "server" -> tr("Servidor"); "nas" -> tr("Almacenamiento (NAS)"); "network" -> tr("Equipo de red"); else -> tr("Desconocido")
     }
 
     /** 45 -> "45 s", 200 -> "3 min", 7500 -> "2 h 5 min", 200000 -> "2 d 7 h". */
     fun duration(seconds: Long): String {
         val s = seconds.coerceAtLeast(0)
-        if (s < 60) return "$s s"
+        if (s < 60) return "${s} s"
         val m = Math.round(s / 60.0)
-        if (m < 60) return "$m min"
+        if (m < 60) return "${m} min"
         val h = m / 60
-        if (h < 24) return if (m % 60 != 0L) "$h h ${m % 60} min" else "$h h"
+        if (h < 24) return if (m % 60 != 0L) trf("%s h %s min", h, m % 60) else "${h} h"
         val d = h / 24
-        return if (h % 24 != 0L) "$d d ${h % 24} h" else "$d d"
+        return if (h % 24 != 0L) "${d} d ${h % 24} h" else "${d} d"
     }
 
     fun bps(value: Long?): String = when {
         value == null -> "—"
-        value >= 1_000_000_000 -> String.format(java.util.Locale.US, "%.2f Gbit/s", value / 1e9)
+        value >= 1_000_000_000 -> String.format(java.util.Locale.US, tr("%.2f Gbit/s"), value / 1e9)
         value >= 10_000_000 -> "${Math.round(value / 1e6)} Mbit/s"
-        value >= 1_000_000 -> String.format(java.util.Locale.US, "%.1f Mbit/s", value / 1e6)
+        value >= 1_000_000 -> String.format(java.util.Locale.US, tr("%.1f Mbit/s"), value / 1e6)
         value >= 1_000 -> "${Math.round(value / 1e3)} kbit/s"
-        else -> "$value bit/s"
+        else -> "${value} bit/s"
     }
 
     /** The sentence of an event; the device is named as the operator would call it. */
@@ -142,17 +144,17 @@ object NetworkText {
         val device = devices.firstOrNull { it.id == event.deviceId }
         val name = device?.let { if (it.name == it.ip) it.ip else "${it.name} (${it.ip})" } ?: event.deviceId.orEmpty()
         return when (event.kind) {
-            "new_device" -> "Ha aparecido un dispositivo que nunca se había visto: $name"
-            "device_online" -> "$name ha vuelto"
-            "device_offline" -> "$name ha dejado de responder"
-            "ip_changed" -> "$name ha cambiado de dirección"
-            "arp_conflict" -> "Dos máquinas responden por una misma dirección: ${event.detail ?: name}"
-            "port_opened" -> "$name ha abierto el puerto ${event.port}"
-            "port_closed" -> "$name ha cerrado el puerto ${event.port}"
-            "internet_down" -> "Se cayó internet"
-            "internet_up" -> "Vuelve internet tras ${duration((event.outageS ?: 0).toLong())}"
-            "gateway_down" -> "El router ha dejado de responder"
-            "gateway_up" -> "El router vuelve a responder"
+            "new_device" -> trf("Ha aparecido un dispositivo que nunca se había visto: %s", name)
+            "device_online" -> trf("%s ha vuelto", name)
+            "device_offline" -> trf("%s ha dejado de responder", name)
+            "ip_changed" -> trf("%s ha cambiado de dirección", name)
+            "arp_conflict" -> trf("Dos máquinas responden por una misma dirección: %s", event.detail ?: name)
+            "port_opened" -> trf("%s ha abierto el puerto %s", name, event.port)
+            "port_closed" -> trf("%s ha cerrado el puerto %s", name, event.port)
+            "internet_down" -> tr("Se cayó internet")
+            "internet_up" -> trf("Vuelve internet tras %s", duration((event.outageS ?: 0).toLong()))
+            "gateway_down" -> tr("El router ha dejado de responder")
+            "gateway_up" -> tr("El router vuelve a responder")
             else -> event.kind
         }
     }
@@ -160,7 +162,7 @@ object NetworkText {
     /** The line the Status screen shows under the Network tile: the state of the internet and how many devices there are. */
     fun summary(overview: NetworkOverview): String {
         val node = overview.nodes.firstOrNull() ?: return ""
-        val devices = "${overview.totals.online}/${overview.totals.devices} dispositivos"
-        return "${state(node.internet.state)} · $devices" + if (overview.totals.unknown > 0) " · ${overview.totals.unknown} sin conocer" else ""
+        val devices = trf("%s/%s dispositivos", overview.totals.online, overview.totals.devices)
+        return "${state(node.internet.state)} · ${devices}" + if (overview.totals.unknown > 0) trf(" · %s sin conocer", overview.totals.unknown) else ""
     }
 }

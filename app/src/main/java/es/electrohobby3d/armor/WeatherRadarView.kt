@@ -53,7 +53,7 @@ internal fun radarMimeType(path: String): String = when (path.substringAfterLast
 
 /** The page's own address for a place. */
 internal fun radarPageUrl(lat: Double, lon: Double, name: String): String =
-    "https://$RADAR_HOST/weather_radar.html?lat=$lat&lon=$lon&name=${URLEncoder.encode(name, "UTF-8")}&h=$RADAR_HEIGHT_DP"
+    "https://${RADAR_HOST}/weather_radar.html?lat=${lat}&lon=${lon}&name=${URLEncoder.encode(name, "UTF-8")}&h=${RADAR_HEIGHT_DP}"
 
 /** The height of the map box, in dp; the page is told it too, because a WebView can hand its page a viewport of no height at all. */
 internal const val RADAR_HEIGHT_DP = 340
@@ -104,13 +104,13 @@ fun RadarMapView(lat: Double, lon: Double, name: String) {
             },
             // Loads when the place changes or when the person asks again - not on every redraw of the screen, which would restart the animation.
             update = { view ->
-                val wanted = "$url#$attempt"
+                val wanted = "${url}#${attempt}"
                 if (loaded != wanted) { loaded = wanted; failed = false; view.loadUrl(url) }
             },
         )
         if (failed) Column(Modifier.align(Alignment.Center).padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("No se pudo cargar el radar. Comprueba la conexión del móvil.")
-            Button(onClick = { attempt += 1 }) { Text("Reintentar") }
+            Text(tr("No se pudo cargar el radar. Comprueba la conexión del móvil."))
+            Button(onClick = { attempt += 1 }) { Text(tr("Reintentar")) }
         }
     }
 }

@@ -69,7 +69,7 @@ class SessionVault(private val store: KeyValueStore, private val box: SecretBox)
     /** Remembers the session of [origin]; replaces whatever was kept. */
     fun save(origin: String, name: String, value: String) {
         if (name.isBlank() || value.isBlank()) return
-        store.put(KEY, box.seal("$origin\n$name\n$value"))
+        store.put(KEY, box.seal("${origin}\n${name}\n${value}"))
     }
 
     /** The session kept for [origin], or null when there is none, it is for another server, or it cannot be read. */

@@ -2,6 +2,7 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor.model
 
+import es.electrohobby3d.armor.tr
 import org.json.JSONObject
 
 /** What the server answered to one command: the voice gateway's verdict and, when it was accepted, what the server did. */
@@ -40,24 +41,24 @@ object VoiceParser {
 
     /** What to tell the person when the server could not even take the command. */
     fun errorText(message: String?): String = when (errorCode(message)) {
-        "voice_unavailable" -> "Este sistema no tiene instalado el asistente de voz."
-        "voice_not_answering" -> "El asistente de voz no responde ahora mismo."
-        "voice_refused_the_token" -> "El servidor y el asistente de voz no se ponen de acuerdo (la clave no coincide)."
-        "text_too_long" -> "La orden es demasiado larga."
-        "no_text" -> "Escribe o di una orden."
-        else -> if (message?.contains("HTTP 401") == true) "La sesión ha caducado: abre la app e inicia sesión." else "No se pudo enviar la orden al servidor."
+        "voice_unavailable" -> tr("Este sistema no tiene instalado el asistente de voz.")
+        "voice_not_answering" -> tr("El asistente de voz no responde ahora mismo.")
+        "voice_refused_the_token" -> tr("El servidor y el asistente de voz no se ponen de acuerdo (la clave no coincide).")
+        "text_too_long" -> tr("La orden es demasiado larga.")
+        "no_text" -> tr("Escribe o di una orden.")
+        else -> if (message?.contains("HTTP 401") == true) tr("La sesión ha caducado: abre la app e inicia sesión.") else tr("No se pudo enviar la orden al servidor.")
     }
 
     /** The sentence the person sees, with a note when the phrase was understood but not carried out. */
     fun lineFor(reply: VoiceReply): String = when {
         reply.outcome == "confirmation-needed" -> "${reply.speech}. ${confirmationQuestion(reply.intent)}"
-        reply.outcome == "not-understood" -> "No lo he entendido. Di «ayuda» para saber qué puedo hacer."
+        reply.outcome == "not-understood" -> tr("No lo he entendido. Di «ayuda» para saber qué puedo hacer.")
         else -> reply.speech
     }
 
     private fun confirmationQuestion(intent: String?) = when (intent) {
-        "arm" -> "¿Armo el sistema?"
-        "disarm" -> "¿Desarmo el sistema?"
-        else -> "¿Lo hago?"
+        "arm" -> tr("¿Armo el sistema?")
+        "disarm" -> tr("¿Desarmo el sistema?")
+        else -> tr("¿Lo hago?")
     }
 }

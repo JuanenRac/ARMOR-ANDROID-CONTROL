@@ -3,6 +3,8 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor.model
 
+import es.electrohobby3d.armor.tr
+import es.electrohobby3d.armor.trf
 import org.json.JSONObject
 
 /** "running", "stopped", "failed", "starting", "not_installed", "online", "offline" or "unknown". */
@@ -35,11 +37,11 @@ object ServicesParser {
 object ServicesText {
     val familyOrder = listOf("Core", "Network", "AI_and_voice", "Field_nodes")
     fun family(id: String): String = when (id) {
-        "Core" -> "Núcleo"; "Network" -> "Red"; "AI_and_voice" -> "IA y voz"; "Field_nodes" -> "Nodos de campo"; else -> id
+        "Core" -> tr("Núcleo"); "Network" -> tr("Red"); "AI_and_voice" -> tr("IA y voz"); "Field_nodes" -> tr("Nodos de campo"); else -> id
     }
     fun state(state: String): String = when (state) {
-        "running" -> "En marcha"; "stopped" -> "Parado"; "failed" -> "Fallido"; "starting" -> "Arrancando"; "not_installed" -> "No instalado"
-        "online" -> "En línea"; "offline" -> "Sin responder"; else -> "Desconocido"
+        "running" -> tr("En marcha"); "stopped" -> tr("Parado"); "failed" -> tr("Fallido"); "starting" -> tr("Arrancando"); "not_installed" -> tr("No instalado")
+        "online" -> tr("En línea"); "offline" -> tr("Sin responder"); else -> tr("Desconocido")
     }
     fun memory(bytes: Long?): String = when {
         bytes == null -> "—"
@@ -52,15 +54,15 @@ object ServicesText {
         if (sinceMs == null || sinceMs <= 0) return "—"
         val seconds = ((nowMs - sinceMs) / 1000).coerceAtLeast(0)
         return when {
-            seconds < 90 -> "hace ${seconds} s"
-            seconds < 5400 -> "hace ${seconds / 60} min"
-            seconds < 36 * 3600 -> "hace ${seconds / 3600} h"
-            else -> "hace ${seconds / 86400} d"
+            seconds < 90 -> trf("hace %s s", seconds)
+            seconds < 5400 -> trf("hace %s min", seconds / 60)
+            seconds < 36 * 3600 -> trf("hace %s h", seconds / 3600)
+            else -> trf("hace %s d", seconds / 86400)
         }
     }
     fun summary(overview: ServicesOverview): String {
         val failed = overview.services.count { it.state == "failed" || it.state == "offline" }
         val running = overview.services.count { it.state == "running" || it.state == "online" }
-        return if (failed > 0) "$failed con problemas de ${overview.services.size}" else "$running de ${overview.services.size} en marcha"
+        return if (failed > 0) trf("%s con problemas de %s", failed, overview.services.size) else trf("%s de %s en marcha", running, overview.services.size)
     }
 }

@@ -12,7 +12,7 @@ data class ServerEndpoint(val origin: String) {
             val scheme = if (source.startsWith("https://", ignoreCase = true)) "https" else "http"
             val host = source.removePrefix("http://").removePrefix("https://").substringBefore('/').substringBefore(':')
             val port = portInput.trim().toIntOrNull()?.takeIf { it in 1..65535 } ?: return null
-            return parse("$scheme://$host:$port")
+            return parse("${scheme}://${host}:${port}")
         }
 
         // No leading zeros: some resolvers read "010.0.0.1" as octal, i.e. the public address 8.0.0.1.

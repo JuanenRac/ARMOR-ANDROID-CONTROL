@@ -32,19 +32,19 @@ class WeatherApiClient {
     }
 
     fun forecast(place: Place): Forecast {
-        val url = "$FORECAST_API/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&timezone=auto&forecast_days=10&forecast_minutely_15=8" +
-            "&wind_speed_unit=kmh&current=$CURRENT&minutely_15=precipitation&hourly=$HOURLY&daily=$DAILY"
+        val url = "${FORECAST_API}/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&timezone=auto&forecast_days=10&forecast_minutely_15=8" +
+            "&wind_speed_unit=kmh&current=${CURRENT}&minutely_15=precipitation&hourly=${HOURLY}&daily=${DAILY}"
         return WeatherParser.forecast(getJson(url)) ?: throw IllegalStateException("not a forecast")
     }
 
     fun airQuality(place: Place): AirQuality? = runCatching {
-        WeatherParser.airQuality(getJson("$AIR_QUALITY_API/v1/air-quality?latitude=${place.latitude}&longitude=${place.longitude}&timezone=auto&current=$AIR"))
+        WeatherParser.airQuality(getJson("${AIR_QUALITY_API}/v1/air-quality?latitude=${place.latitude}&longitude=${place.longitude}&timezone=auto&current=${AIR}"))
     }.getOrNull()
 
     fun search(query: String): List<Place> {
         if (query.trim().length < 2) return emptyList()
         val encoded = URLEncoder.encode(query.trim().take(80), "UTF-8")
-        val url = "$GEOCODING_API/v1/search?name=$encoded&count=8&language=es&format=json"
+        val url = "${GEOCODING_API}/v1/search?name=${encoded}&count=8&language=es&format=json"
         return WeatherParser.places(getJson(url))
     }
 }

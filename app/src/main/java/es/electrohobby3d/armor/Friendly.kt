@@ -13,29 +13,29 @@ object Friendly {
         val lower = text.lowercase()
         val code = Regex("""http (\d{3})""").find(lower)?.groupValues?.get(1)?.toIntOrNull()
         return when {
-            code == 401 -> "Usuario o contraseña incorrectos, o la sesión ha caducado."
-            code == 403 -> "No tienes permiso para hacer esto."
-            code == 404 -> "El servidor no tiene lo que se pide. Puede que necesite actualizarse."
-            code == 429 -> "Demasiados intentos. Espera unos minutos y vuelve a probar."
-            code != null && code >= 500 -> "El servidor tiene un problema. Inténtalo de nuevo en un momento."
-            code != null -> "El servidor no ha aceptado la petición."
+            code == 401 -> tr("Usuario o contraseña incorrectos, o la sesión ha caducado.")
+            code == 403 -> tr("No tienes permiso para hacer esto.")
+            code == 404 -> tr("El servidor no tiene lo que se pide. Puede que necesite actualizarse.")
+            code == 429 -> tr("Demasiados intentos. Espera unos minutos y vuelve a probar.")
+            code != null && code >= 500 -> tr("El servidor tiene un problema. Inténtalo de nuevo en un momento.")
+            code != null -> tr("El servidor no ha aceptado la petición.")
             "unable to resolve host" in lower || "failed to connect" in lower || "connectexception" in lower || "timeout" in lower || "timed out" in lower ||
                 "no route to host" in lower || "connection refused" in lower || "econnrefused" in lower || "unknownhost" in lower ->
-                "No se puede conectar con el servidor. Comprueba que el móvil está en la misma wifi y que la dirección es correcta."
-            "enter username and password" in lower -> "Escribe el usuario y la contraseña."
-            "sign in first" in lower || "sign in to armor-server" in lower -> "Inicia sesión primero."
-            "valid https origin" in lower -> "La dirección del servidor no es válida."
-            lower == "session established" -> "Sesión iniciada."
-            lower == "session restored" -> "Sesión recuperada."
-            lower == "session closed" -> "Sesión cerrada."
-            lower == "connection refreshed" -> "Todo actualizado."
-            lower == "evidence library refreshed" -> "Grabaciones actualizadas."
-            lower == "evidence removed" -> "Grabación borrada."
-            lower.startsWith("snapshot saved") -> "Foto guardada."
-            lower.startsWith("recording started") -> "Grabando."
-            lower.startsWith("recording finalized") -> "Grabación guardada."
-            lower == "ptz command failed" -> "La cámara no ha podido moverse."
-            "server operation failed" in lower -> "El servidor no ha podido hacerlo."
+                tr("No se puede conectar con el servidor. Comprueba que el móvil está en la misma wifi y que la dirección es correcta.")
+            "enter username and password" in lower -> tr("Escribe el usuario y la contraseña.")
+            "sign in first" in lower || "sign in to armor-server" in lower -> tr("Inicia sesión primero.")
+            "valid https origin" in lower -> tr("La dirección del servidor no es válida.")
+            lower == "session established" -> tr("Sesión iniciada.")
+            lower == "session restored" -> tr("Sesión recuperada.")
+            lower == "session closed" -> tr("Sesión cerrada.")
+            lower == "connection refreshed" -> tr("Todo actualizado.")
+            lower == "evidence library refreshed" -> tr("Grabaciones actualizadas.")
+            lower == "evidence removed" -> tr("Grabación borrada.")
+            lower.startsWith("snapshot saved") -> tr("Foto guardada.")
+            lower.startsWith("recording started") -> tr("Grabando.")
+            lower.startsWith("recording finalized") -> tr("Grabación guardada.")
+            lower == "ptz command failed" -> tr("La cámara no ha podido moverse.")
+            "server operation failed" in lower -> tr("El servidor no ha podido hacerlo.")
             else -> text
         }
     }

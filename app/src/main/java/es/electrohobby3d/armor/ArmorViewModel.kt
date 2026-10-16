@@ -88,7 +88,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
 
     /** The person did not confirm: the question is closed (the token would expire by itself) and nothing was done. */
     fun cancelVoice() {
-        _voice.value = _voice.value.copy(messages = _voice.value.messages.map { if (it.pending != null) it.copy(pending = null) else it } + VoiceMessage(false, "Cancelado: no he hecho nada."))
+        _voice.value = _voice.value.copy(messages = _voice.value.messages.map { if (it.pending != null) it.copy(pending = null) else it } + VoiceMessage(false, tr("Cancelado: no he hecho nada.")))
     }
 
     /**
@@ -96,10 +96,10 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
      * What comes back is added to the conversation, and when the server carried something out the state of the system is read again.
      * [spoken] is called with the sentence to say, for the voice of the phone.
      */
-    fun sendVoice(origin: String, text: String, language: String = "es", confirm: PendingVoice? = null, spoken: (String) -> Unit = {}) {
+    fun sendVoice(origin: String, text: String, language: String = Tr.voiceLanguage(), confirm: PendingVoice? = null, spoken: (String) -> Unit = {}) {
         val phrase = (confirm?.text ?: text).trim()
         if (phrase.isEmpty() || _voice.value.busy) return
-        if (ServerEndpoint.parse(origin) == null) { _voice.value = _voice.value.copy(messages = _voice.value.messages + VoiceMessage(false, "Configura el servidor en Ajustes.", problem = true)); return }
+        if (ServerEndpoint.parse(origin) == null) { _voice.value = _voice.value.copy(messages = _voice.value.messages + VoiceMessage(false, tr("Configura el servidor en Ajustes."), problem = true)); return }
         // The person's words go in the conversation (a confirmation is shown as a tap, not as words), and the question that was waiting is closed.
         val before = _voice.value.messages.map { if (it.pending != null) it.copy(pending = null) else it }
         _voice.value = _voice.value.copy(busy = true, messages = if (confirm == null) before + VoiceMessage(true, phrase) else before)
@@ -145,7 +145,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
     fun reloadAlarmPanels(origin: String) { viewModelScope.launch { pollAlarmPanels(origin) } }
 
     /** Arms a panel (mode "away" or "stay") or disarms it (mode null); the node's own answer shows in the panel's card a moment later. */
-    fun alarmCommand(origin: String, node: String, mode: String?, force: Boolean = false, pin: String? = null) = action(origin, if (mode == null) "$node: orden de desarmar enviada" else "$node: orden de armar enviada") {
+    fun alarmCommand(origin: String, node: String, mode: String?, force: Boolean = false, pin: String? = null) = action(origin, if (mode == null) trf("%s: orden de desarmar enviada", node) else trf("%s: orden de armar enviada", node)) {
         client.sendAlarmCommand(origin, node, mode, force, pin)
         pollAlarmPanels(origin)
     }
@@ -172,7 +172,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
     fun reloadServices(origin: String) { viewModelScope.launch { pollServices(origin) } }
 
     /** Asks the network node to sweep now, for the node finder (Solar, Electrical and Radar screens); a failure is shown as a message. */
-    fun scanNetworkNow(origin: String) = action(origin, "Búsqueda en la red iniciada") { client.scanNetworkNow(origin) }
+    fun scanNetworkNow(origin: String) = action(origin, tr("Búsqueda en la red iniciada")) { client.scanNetworkNow(origin) }
 
     /** Looks for a place by name (Open-Meteo's geocoding); empty for fewer than two characters. */
     fun searchPlaces(query: String) {
@@ -195,7 +195,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
             }
             if (ticket != weatherTicket) return@launch   // another place was chosen meanwhile
             outcome.onSuccess { (forecast, air) -> _state.update { it.copy(weather = it.weather.copy(forecast = forecast, air = air, loading = false)) } }
-                .onFailure { _state.update { it.copy(weather = it.weather.copy(loading = false, error = "No se pudo obtener el tiempo.")) } }
+                .onFailure { _state.update { it.copy(weather = it.weather.copy(loading = false, error = tr("No se pudo obtener el tiempo."))) } }
         }
     }
 
@@ -321,7 +321,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
                 alarms = alarms?.first ?: it.alarms, closedAlarms = alarms?.second ?: it.closedAlarms, devices = devices ?: it.devices,
             ) }
         } catch (error: ArmorApiException) {
-            if (error.code == 401) _state.update { MonitorUiState(message = "La sesión ha caducado: inicia sesión de nuevo") }
+            if (error.code == 401) _state.update { MonitorUiState(message = tr("La sesión ha caducado: inicia sesión de nuevo")) }
         } catch (_: Exception) {
             // The server may be restarting or the network changing; the next pass tries again.
         }
@@ -331,28 +331,28 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
     suspend fun preflight(origin: String): es.electrohobby3d.armor.model.Preflight? = withContext(Dispatchers.IO) { runCatching { client.preflight(origin) }.getOrNull() }
 
     /** Arm or disarm. The screen asks the person first; a failure shows as a message and changes nothing. */
-    fun setMode(origin: String, mode: String, pin: String? = null) = action(origin, if (mode == "armed") "Sistema ARMADO" else "Sistema DESARMADO") {
+    fun setMode(origin: String, mode: String, pin: String? = null) = action(origin, if (mode == "armed") tr("Sistema ARMADO") else tr("Sistema DESARMADO")) {
         require(_state.value.authenticated) { "Sign in first" }
         _state.update { it.copy(snapshot = client.setMode(origin, mode, pin)) }
     }
 
-    fun acknowledge(origin: String, alarm: Alarm) = action(origin, "Alarma confirmada") {
+    fun acknowledge(origin: String, alarm: Alarm) = action(origin, tr("Alarma confirmada")) {
         client.acknowledgeAlarm(origin, alarm.id)
         client.alarms(origin).let { pair -> _state.update { it.copy(alarms = pair.first, closedAlarms = pair.second) } }
     }
 
-    fun acknowledgeAll(origin: String) = action(origin, "Alarmas confirmadas") {
+    fun acknowledgeAll(origin: String) = action(origin, tr("Alarmas confirmadas")) {
         client.acknowledgeAllAlarms(origin)
         client.alarms(origin).let { pair -> _state.update { it.copy(alarms = pair.first, closedAlarms = pair.second) } }
     }
 
     /** "on", "off" or "toggle" to a plug, light, switch, siren, lock or valve. */
-    fun command(origin: String, device: SiteDevice, command: String, confirm: Boolean = false) = action(origin, "${device.name}: orden enviada") {
+    fun command(origin: String, device: SiteDevice, command: String, confirm: Boolean = false) = action(origin, trf("%s: orden enviada", device.name)) {
         client.commandDevice(origin, device.id, command, confirm)
         _state.update { it.copy(devices = client.devices(origin)) }
     }
 
-    fun loadOlderEvents(origin: String) = action(origin, "Historial ampliado") {
+    fun loadOlderEvents(origin: String) = action(origin, tr("Historial ampliado")) {
         val oldest = _state.value.events.lastOrNull()?.id ?: return@action
         val older = client.history(origin, limit = 50, before = oldest)
         _state.update { it.copy(events = it.events + older) }

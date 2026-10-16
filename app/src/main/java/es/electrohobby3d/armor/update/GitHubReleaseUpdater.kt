@@ -8,6 +8,8 @@
 // otherwise deliberately has none.
 package es.electrohobby3d.armor.update
 
+import es.electrohobby3d.armor.tr
+import es.electrohobby3d.armor.trf
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInfo
@@ -62,9 +64,9 @@ class GitHubReleaseUpdater(private val context: Context) {
                 connection.disconnect()
             }
         } catch (error: IOException) {
-            UpdateCheckResult.Failed("No se pudo consultar los lanzamientos de GitHub: ${error.message ?: "error de red"}")
+            UpdateCheckResult.Failed(trf("No se pudo consultar los lanzamientos de GitHub: %s", error.message ?: "error de red"))
         } catch (error: Exception) {
-            UpdateCheckResult.Failed("Los datos del lanzamiento no son válidos: ${error.message ?: "error desconocido"}")
+            UpdateCheckResult.Failed(trf("Los datos del lanzamiento no son válidos: %s", error.message ?: "error desconocido"))
         }
     }
 
@@ -82,11 +84,11 @@ class GitHubReleaseUpdater(private val context: Context) {
                 val connection = openFollowingRedirects(update.assetUrl)
                 try {
                     if (connection.responseCode !in 200..299) {
-                        return@withContext UpdateDownloadResult.Failed("La descarga del APK devolvió el código HTTP ${connection.responseCode}.")
+                        return@withContext UpdateDownloadResult.Failed(trf("La descarga del APK devolvió el código HTTP %s.", connection.responseCode))
                     }
                     val expectedLength = connection.contentLengthLong
                     val updateDirectory = File(context.cacheDir, UPDATE_DIRECTORY).apply { mkdirs() }
-                    val partial = File(updateDirectory, "$APK_FILE_NAME.part")
+                    val partial = File(updateDirectory, "${APK_FILE_NAME}.part")
                     val apk = File(updateDirectory, APK_FILE_NAME)
                     partial.delete()
                     apk.delete()
@@ -109,33 +111,33 @@ class GitHubReleaseUpdater(private val context: Context) {
                     if (expectedLength >= 0 && downloaded != expectedLength) {
                         partial.delete()
                         return@withContext UpdateDownloadResult.Failed(
-                            "La descarga del APK quedó incompleta: se esperaban $expectedLength bytes y llegaron $downloaded.",
+                            trf("La descarga del APK quedó incompleta: se esperaban %s bytes y llegaron %s.", expectedLength, downloaded),
                         )
                     }
                     if (!partial.renameTo(apk)) {
-                        return@withContext UpdateDownloadResult.Failed("No se pudo finalizar el archivo APK descargado.")
+                        return@withContext UpdateDownloadResult.Failed(tr("No se pudo finalizar el archivo APK descargado."))
                     }
                     val packageInfo = packageArchiveInfo(apk)
                         ?: run {
                             apk.delete()
-                            return@withContext UpdateDownloadResult.Failed("El archivo descargado no es un paquete de Android válido.")
+                            return@withContext UpdateDownloadResult.Failed(tr("El archivo descargado no es un paquete de Android válido."))
                         }
                     if (packageInfo.packageName != context.packageName) {
                         apk.delete()
-                        return@withContext UpdateDownloadResult.Failed("El APK descargado tiene un nombre de paquete inesperado.")
+                        return@withContext UpdateDownloadResult.Failed(tr("El APK descargado tiene un nombre de paquete inesperado."))
                     }
                     if (packageVersionCode(packageInfo) <= installedVersionCode()) {
                         apk.delete()
-                        return@withContext UpdateDownloadResult.Failed("El APK descargado no es más nuevo que la aplicación instalada.")
+                        return@withContext UpdateDownloadResult.Failed(tr("El APK descargado no es más nuevo que la aplicación instalada."))
                     }
                     UpdateDownloadResult.ReadyToInstall(apk)
                 } finally {
                     connection.disconnect()
                 }
             } catch (error: IOException) {
-                UpdateDownloadResult.Failed("No se pudo descargar el APK: ${error.message ?: "error de red"}")
+                UpdateDownloadResult.Failed(trf("No se pudo descargar el APK: %s", error.message ?: "error de red"))
             } catch (error: Exception) {
-                UpdateDownloadResult.Failed("No se pudo validar el APK: ${error.message ?: "error desconocido"}")
+                UpdateDownloadResult.Failed(trf("No se pudo validar el APK: %s", error.message ?: "error desconocido"))
             }
         }
 
@@ -162,12 +164,12 @@ class GitHubReleaseUpdater(private val context: Context) {
                 if (location.isNullOrBlank()) return connection
                 // A relative Location is resolved against the address that answered, and the chain never leaves HTTPS (the APK is verified anyway, but nothing should travel in the clear).
                 currentUrl = URL(URL(currentUrl), location).toString()
-                if (!currentUrl.startsWith("https://")) throw IOException("La descarga del APK se desvió a una dirección que no es HTTPS.")
+                if (!currentUrl.startsWith("https://")) throw IOException(tr("La descarga del APK se desvió a una dirección que no es HTTPS."))
                 return@repeat
             }
             return connection
         }
-        throw IOException("La descarga del APK tuvo demasiadas redirecciones.")
+        throw IOException(tr("La descarga del APK tuvo demasiadas redirecciones."))
     }
 
     /** Android 8+ requires a one-time per-app approval before opening an APK installer. */
@@ -241,7 +243,7 @@ class GitHubReleaseUpdater(private val context: Context) {
 
     private companion object {
         const val REPOSITORY = "JuanenRac/ARMOR-ANDROID-CONTROL"
-        const val LATEST_RELEASE_URL = "https://api.github.com/repos/$REPOSITORY/releases/latest"
+        const val LATEST_RELEASE_URL = "https://api.github.com/repos/${REPOSITORY}/releases/latest"
         const val UPDATE_DIRECTORY = "updates"
         const val APK_FILE_NAME = "ARMOR-ANDROID-CONTROL-update.apk"
         const val APK_MIME_TYPE = "application/vnd.android.package-archive"
@@ -272,10 +274,10 @@ internal fun describeHttpFailure(
             val secondsLeft = reset - nowEpochSeconds
             if (secondsLeft > 0) (secondsLeft / 60L) + 1 else null
         }
-        val whenText = if (minutes != null) "en unos $minutes minuto(s)" else "dentro de un rato"
-        return "GitHub ha limitado temporalmente las consultas sin iniciar sesión desde esta red " +
-            "(comparte el límite con cualquier otro dispositivo de la misma casa/Wi-Fi). " +
-            "Inténtalo de nuevo $whenText; no hace falta hacer nada más."
+        val whenText = if (minutes != null) trf("en unos %s minuto(s)", minutes) else tr("dentro de un rato")
+        return tr("GitHub ha limitado temporalmente las consultas sin iniciar sesión desde esta red ") +
+            tr("(comparte el límite con cualquier otro dispositivo de la misma casa/Wi-Fi). ") +
+            trf("Inténtalo de nuevo %s; no hace falta hacer nada más.", whenText)
     }
-    return "GitHub devolvió el código HTTP $code."
+    return trf("GitHub devolvió el código HTTP %s.", code)
 }

@@ -47,8 +47,8 @@ fun WeatherScreen(weather: WeatherUiState, onSearch: (String) -> Unit, onPick: (
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column { Text(weather.place.name, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium); Text(listOfNotNull(weather.place.region, weather.place.country).joinToString(", "), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted) }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Cambiar lugar", style = MaterialTheme.typography.labelMedium, color = ArmorColors.Cyan, modifier = Modifier.clickable(onClick = onChangePlace).padding(4.dp))
-                    IconButton(onClick = onRefresh) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
+                    Text(tr("Cambiar lugar"), style = MaterialTheme.typography.labelMedium, color = ArmorColors.Cyan, modifier = Modifier.clickable(onClick = onChangePlace).padding(4.dp))
+                    IconButton(onClick = onRefresh) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
                 }
             }
         }
@@ -60,7 +60,7 @@ fun WeatherScreen(weather: WeatherUiState, onSearch: (String) -> Unit, onPick: (
             item { HeroPanel(forecast) }
             val (rainMm, raining) = WeatherText.nextHourRain(forecast.minutely, nowIso)
             if (rainMm > 0 || raining) item {
-                Panel(Modifier.fillMaxWidth()) { Text(if (raining) "Está lloviendo ahora · ${rainMm} mm en la próxima hora" else "Puede llover: ${rainMm} mm en la próxima hora", Modifier.padding(14.dp), style = MaterialTheme.typography.bodyMedium) }
+                Panel(Modifier.fillMaxWidth()) { Text(if (raining) trf("Está lloviendo ahora · %s mm en la próxima hora", rainMm) else trf("Puede llover: %s mm en la próxima hora", rainMm), Modifier.padding(14.dp), style = MaterialTheme.typography.bodyMedium) }
             }
             val warnings = WeatherText.warnings(forecast, fromIndex)
             if (warnings.isNotEmpty()) item {
@@ -70,11 +70,11 @@ fun WeatherScreen(weather: WeatherUiState, onSearch: (String) -> Unit, onPick: (
                     }
                 }
             }
-            item { Text("Radar en directo", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) }
+            item { Text(tr("Radar en directo"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) }
             item { RadarMapView(weather.place.latitude, weather.place.longitude, weather.place.name) }
-            item { Text("Próximas horas", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) }
+            item { Text(tr("Próximas horas"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) }
             item { HourlyRow(forecast, fromIndex) }
-            item { Text("Diez días", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) }
+            item { Text(tr("Diez días"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) }
             items(forecast.daily.time.indices.toList()) { DayRow(forecast, it) }
             if (weather.air != null) item { AirPanel(weather) }
             item { SunMoonPanel(forecast) }
@@ -86,11 +86,11 @@ fun WeatherScreen(weather: WeatherUiState, onSearch: (String) -> Unit, onPick: (
 private fun PlacePicker(weather: WeatherUiState, onSearch: (String) -> Unit, onPick: (Place) -> Unit) {
     var query by remember { mutableStateOf("") }
     Column(Modifier.fillMaxSize().padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("Elige el lugar del que quieres ver el tiempo", style = MaterialTheme.typography.bodyMedium)
-        Text("No se pide nada por Internet hasta que eliges un lugar; solo sale su coordenada.", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+        Text(tr("Elige el lugar del que quieres ver el tiempo"), style = MaterialTheme.typography.bodyMedium)
+        Text(tr("No se pide nada por Internet hasta que eliges un lugar; solo sale su coordenada."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            OutlinedTextField(query, { query = it; onSearch(it) }, label = { Text("Buscar un lugar") }, singleLine = true, modifier = Modifier.weight(1f))
-            IconButton(onClick = { onSearch(query) }) { Icon(Icons.Filled.Search, contentDescription = "Buscar", tint = ArmorColors.Cyan) }
+            OutlinedTextField(query, { query = it; onSearch(it) }, label = { Text(tr("Buscar un lugar")) }, singleLine = true, modifier = Modifier.weight(1f))
+            IconButton(onClick = { onSearch(query) }) { Icon(Icons.Filled.Search, contentDescription = tr("Buscar"), tint = ArmorColors.Cyan) }
         }
         weather.results.forEach { place ->
             Panel(Modifier.fillMaxWidth(), onClick = { onPick(place) }) {
@@ -112,9 +112,9 @@ private fun HeroPanel(forecast: es.electrohobby3d.armor.model.Forecast) {
                     Text(WeatherText.description(current?.code), style = MaterialTheme.typography.bodyMedium, color = ArmorColors.Muted)
                 }
             }
-            Text("Sensación ${current?.apparent?.let { Math.round(it) } ?: "—"}° · Humedad ${current?.humidity?.toInt() ?: "—"}% · Nubes ${current?.cloud?.toInt() ?: "—"}%", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
-            Text("Viento ${WeatherText.wind(current?.windSpeed)} ${WeatherText.compass(current?.windDir) ?: ""} · ${current?.windSpeed?.toInt() ?: "—"} km/h (ráfagas ${current?.windGust?.toInt() ?: "—"})", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
-            Text("Presión ${current?.pressure?.toInt() ?: "—"} hPa", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+            Text(trf("Sensación %s° · Humedad %s%% · Nubes %s%%", current?.apparent?.let { Math.round(it) } ?: "—", current?.humidity?.toInt() ?: "—", current?.cloud?.toInt() ?: "—"), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+            Text(trf("Viento %s %s · %s km/h (ráfagas %s)", WeatherText.wind(current?.windSpeed), WeatherText.compass(current?.windDir) ?: "", current?.windSpeed?.toInt() ?: "—", current?.windGust?.toInt() ?: "—"), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+            Text(trf("Presión %s hPa", current?.pressure?.toInt() ?: "—"), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
         }
     }
 }
@@ -155,11 +155,11 @@ private fun AirPanel(weather: WeatherUiState) {
     val air = weather.air ?: return
     Panel(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("Aire y polen", fontWeight = FontWeight.SemiBold)
-            Text("Calidad del aire: ${WeatherText.aqi(air.europeanAqi)} (índice ${air.europeanAqi ?: "—"}) · PM2.5 ${air.pm25?.toInt() ?: "—"} · PM10 ${air.pm10?.toInt() ?: "—"} · O₃ ${air.o3?.toInt() ?: "—"} · NO₂ ${air.no2?.toInt() ?: "—"}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+            Text(tr("Aire y polen"), fontWeight = FontWeight.SemiBold)
+            Text(trf("Calidad del aire: %s (índice %s) · PM2.5 %s · PM10 %s · O₃ %s · NO₂ %s", WeatherText.aqi(air.europeanAqi), air.europeanAqi ?: "—", air.pm25?.toInt() ?: "—", air.pm10?.toInt() ?: "—", air.o3?.toInt() ?: "—", air.no2?.toInt() ?: "—"), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
             val pollen = air.pollen.entries.filter { it.value != null && it.value!! > 0 }
             if (pollen.isNotEmpty()) Text(pollen.joinToString(" · ") { "${WeatherText.pollenName(it.key)}: ${WeatherText.pollen(it.value)}" }, style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
-            else Text("Sin polen relevante ahora mismo.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+            else Text(tr("Sin polen relevante ahora mismo."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
         }
     }
 }
@@ -169,8 +169,8 @@ private fun SunMoonPanel(forecast: es.electrohobby3d.armor.model.Forecast) {
     val (icon, name) = WeatherText.moonPhase(System.currentTimeMillis())
     Panel(Modifier.fillMaxWidth()) {
         Row(Modifier.padding(14.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Column { Text("☀️ Amanece ${forecast.daily.sunrise.firstOrNull()?.let(WeatherText::hourOf) ?: "—"}", style = MaterialTheme.typography.bodySmall); Text("Anochece ${forecast.daily.sunset.firstOrNull()?.let(WeatherText::hourOf) ?: "—"}", style = MaterialTheme.typography.bodySmall) }
-            Column(horizontalAlignment = Alignment.End) { Text("$icon $name", style = MaterialTheme.typography.bodySmall) }
+            Column { Text(trf("☀️ Amanece %s", forecast.daily.sunrise.firstOrNull()?.let(WeatherText::hourOf) ?: "—"), style = MaterialTheme.typography.bodySmall); Text(trf("Anochece %s", forecast.daily.sunset.firstOrNull()?.let(WeatherText::hourOf) ?: "—"), style = MaterialTheme.typography.bodySmall) }
+            Column(horizontalAlignment = Alignment.End) { Text("${icon} ${name}", style = MaterialTheme.typography.bodySmall) }
         }
     }
 }

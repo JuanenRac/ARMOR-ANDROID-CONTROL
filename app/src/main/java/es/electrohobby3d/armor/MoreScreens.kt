@@ -33,22 +33,22 @@ enum class MoreTab { Nodes, Voice, Weather, Solar, Electrical, AlarmPanels, Netw
 @Composable
 fun MoreMenu(onOpen: (MoreTab) -> Unit, onNodeSetup: () -> Unit, onAbout: () -> Unit, onLogout: () -> Unit, updateAvailable: Boolean = false) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        ScreenTitle(Icons.Filled.GridView, "Más")
-        MenuRow(Icons.Filled.Tune, "Configurar nodos", "El configurador de un nodo (radar, solar, eléctrico) dentro de la app: todos sus parámetros") { onOpen(MoreTab.Nodes) }
-        MenuRow(Icons.Filled.Mic, "Asistente", "Escribe o dí órdenes: armar, desarmar, el estado o silenciar la alarma") { onOpen(MoreTab.Voice) }
-        MenuRow(Icons.Filled.Cloud, "Meteorología", "El tiempo del lugar que elijas: ahora, por horas, diez días, aire y polen") { onOpen(MoreTab.Weather) }
-        MenuRow(Icons.Filled.WbSunny, "Solar", "Inversores y baterías") { onOpen(MoreTab.Solar) }
-        MenuRow(Icons.Filled.ElectricBolt, "Eléctrica", "Red, circuitos y buses de continua") { onOpen(MoreTab.Electrical) }
-        MenuRow(Icons.Filled.Shield, "Centrales de alarma", "Nodos ARMOR-ALARM: zonas, estado y armado") { onOpen(MoreTab.AlarmPanels) }
-        MenuRow(Icons.Filled.Router, "Red", "Internet, dispositivos y cambios de la red local") { onOpen(MoreTab.Network) }
-        MenuRow(Icons.Filled.Dns, "Servicios", "Programas del sistema y nodos de campo, activos o no") { onOpen(MoreTab.Services) }
-        MenuRow(Icons.Filled.VideoLibrary, "Grabaciones", "Fotos y vídeos guardados") { onOpen(MoreTab.Evidence) }
-        MenuRow(Icons.Filled.History, "Historial", "Todo lo que ha pasado") { onOpen(MoreTab.History) }
-        MenuRow(Icons.Filled.Bluetooth, "Configurar un nodo", "Prepara un nodo nuevo por Bluetooth", onClick = onNodeSetup)
-        MenuRow(Icons.Filled.SystemUpdate, "Actualizaciones", if (updateAvailable) "Hay una versión nueva" else "Buscar una versión nueva en GitHub", tint = if (updateAvailable) ArmorColors.Cyan else ArmorColors.Cyan) { onOpen(MoreTab.Updates) }
-        MenuRow(Icons.Filled.Settings, "Ajustes", "Servidor y avisos") { onOpen(MoreTab.Settings) }
-        MenuRow(Icons.Filled.Info, "Acerca de", "Versión y créditos", onClick = onAbout)
-        MenuRow(Icons.AutoMirrored.Filled.Logout, "Cerrar sesión", null, tint = ArmorColors.Alert, onClick = onLogout)
+        ScreenTitle(Icons.Filled.GridView, tr("Más"))
+        MenuRow(Icons.Filled.Tune, tr("Configurar nodos"), tr("El configurador de un nodo (radar, solar, eléctrico) dentro de la app: todos sus parámetros")) { onOpen(MoreTab.Nodes) }
+        MenuRow(Icons.Filled.Mic, tr("Asistente"), tr("Escribe o dí órdenes: armar, desarmar, el estado o silenciar la alarma")) { onOpen(MoreTab.Voice) }
+        MenuRow(Icons.Filled.Cloud, tr("Meteorología"), tr("El tiempo del lugar que elijas: ahora, por horas, diez días, aire y polen")) { onOpen(MoreTab.Weather) }
+        MenuRow(Icons.Filled.WbSunny, tr("Solar"), tr("Inversores y baterías")) { onOpen(MoreTab.Solar) }
+        MenuRow(Icons.Filled.ElectricBolt, tr("Eléctrica"), tr("Red, circuitos y buses de continua")) { onOpen(MoreTab.Electrical) }
+        MenuRow(Icons.Filled.Shield, tr("Centrales de alarma"), tr("Nodos ARMOR-ALARM: zonas, estado y armado")) { onOpen(MoreTab.AlarmPanels) }
+        MenuRow(Icons.Filled.Router, tr("Red"), tr("Internet, dispositivos y cambios de la red local")) { onOpen(MoreTab.Network) }
+        MenuRow(Icons.Filled.Dns, tr("Servicios"), tr("Programas del sistema y nodos de campo, activos o no")) { onOpen(MoreTab.Services) }
+        MenuRow(Icons.Filled.VideoLibrary, tr("Grabaciones"), tr("Fotos y vídeos guardados")) { onOpen(MoreTab.Evidence) }
+        MenuRow(Icons.Filled.History, tr("Historial"), tr("Todo lo que ha pasado")) { onOpen(MoreTab.History) }
+        MenuRow(Icons.Filled.Bluetooth, tr("Configurar un nodo"), tr("Prepara un nodo nuevo por Bluetooth"), onClick = onNodeSetup)
+        MenuRow(Icons.Filled.SystemUpdate, tr("Actualizaciones"), if (updateAvailable) tr("Hay una versión nueva") else tr("Buscar una versión nueva en GitHub"), tint = if (updateAvailable) ArmorColors.Cyan else ArmorColors.Cyan) { onOpen(MoreTab.Updates) }
+        MenuRow(Icons.Filled.Settings, tr("Ajustes"), tr("Servidor y avisos")) { onOpen(MoreTab.Settings) }
+        MenuRow(Icons.Filled.Info, tr("Acerca de"), tr("Versión y créditos"), onClick = onAbout)
+        MenuRow(Icons.AutoMirrored.Filled.Logout, tr("Cerrar sesión"), null, tint = ArmorColors.Alert, onClick = onLogout)
     }
 }
 
@@ -71,7 +71,7 @@ fun SubScreen(icon: ImageVector, title: String, onBack: () -> Unit, actions: @Co
     Column(Modifier.fillMaxSize()) {
         ScreenTitle(icon, title) {
             actions()
-            IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = ArmorColors.Cyan) }
+            IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Volver"), tint = ArmorColors.Cyan) }
         }
         content()
     }
@@ -79,7 +79,7 @@ fun SubScreen(icon: ImageVector, title: String, onBack: () -> Unit, actions: @Co
 
 @Composable
 fun HistoryScreen(events: List<ArmorEvent>, onMore: () -> Unit) {
-    if (events.isEmpty()) { EmptyNote(Icons.Filled.History, "Todavía no ha pasado nada", "Aquí verás los cambios de estado, las alarmas y las órdenes."); return }
+    if (events.isEmpty()) { EmptyNote(Icons.Filled.History, tr("Todavía no ha pasado nada"), tr("Aquí verás los cambios de estado, las alarmas y las órdenes.")); return }
     LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
         items(events, key = { it.id }) { event ->
             val high = (event.type == "alert" && event.to == "high") || (event.type == "alarm" && event.to == "raised" && event.severity == "critical")
@@ -93,7 +93,7 @@ fun HistoryScreen(events: List<ArmorEvent>, onMore: () -> Unit) {
                 }
             }
         }
-        if (events.size >= 50) item { TextButton(onClick = onMore) { Icon(Icons.Filled.ExpandMore, null); Spacer(Modifier.width(8.dp)); Text("Ver anteriores") } }
+        if (events.size >= 50) item { TextButton(onClick = onMore) { Icon(Icons.Filled.ExpandMore, null); Spacer(Modifier.width(8.dp)); Text(tr("Ver anteriores")) } }
     }
 }
 
@@ -103,17 +103,17 @@ private fun eventIcon(type: String): ImageVector = when (type) {
 
 @Composable
 fun EvidenceScreen(items: List<MediaItem>, cameras: List<CameraView>, origin: String, viewModel: ArmorViewModel, unlocked: Boolean) {
-    if (!unlocked) { EmptyNote(Icons.Filled.Lock, "Inicia sesión", "Las grabaciones se ven con la sesión abierta."); return }
-    if (items.isEmpty()) { EmptyNote(Icons.Filled.VideoLibrary, "No hay grabaciones", "Las fotos y vídeos que hagas con las cámaras aparecerán aquí."); return }
+    if (!unlocked) { EmptyNote(Icons.Filled.Lock, tr("Inicia sesión"), tr("Las grabaciones se ven con la sesión abierta.")); return }
+    if (items.isEmpty()) { EmptyNote(Icons.Filled.VideoLibrary, tr("No hay grabaciones"), tr("Las fotos y vídeos que hagas con las cámaras aparecerán aquí.")); return }
     var viewing by remember { mutableStateOf<MediaItem?>(null) }
     var deleting by remember { mutableStateOf<MediaItem?>(null) }
     viewing?.let { MediaViewerDialog(it, viewModel.mediaUrl(origin, it), viewModel.sessionCookie(origin)) { viewing = null } }
     deleting?.let { doomed ->
         AlertDialog(
             onDismissRequest = { deleting = null }, containerColor = ArmorColors.SurfaceRaised,
-            title = { Text("¿Borrar la grabación?") }, text = { Text("Se borra del servidor y no se puede deshacer.") },
-            confirmButton = { TextButton(onClick = { viewModel.deleteMedia(origin, doomed); deleting = null }) { Text("Borrar", color = ArmorColors.Alert) } },
-            dismissButton = { TextButton(onClick = { deleting = null }) { Text("Cancelar") } },
+            title = { Text(tr("¿Borrar la grabación?")) }, text = { Text(tr("Se borra del servidor y no se puede deshacer.")) },
+            confirmButton = { TextButton(onClick = { viewModel.deleteMedia(origin, doomed); deleting = null }) { Text(tr("Borrar"), color = ArmorColors.Alert) } },
+            dismissButton = { TextButton(onClick = { deleting = null }) { Text(tr("Cancelar")) } },
         )
     }
     LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
@@ -124,10 +124,10 @@ fun EvidenceScreen(items: List<MediaItem>, cameras: List<CameraView>, origin: St
                     IconBadge(if (item.kind == "snapshot") Icons.Filled.PhotoCamera else Icons.Filled.Movie, size = 40.dp)
                     Column(Modifier.weight(1f)) {
                         Text(name, fontWeight = FontWeight.SemiBold)
-                        Text("${if (item.kind == "snapshot") "Foto" else "Vídeo"} · ${Friendly.dayAndClock(item.createdAt)}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                        Text("${if (item.kind == "snapshot") tr("Foto") else tr("Vídeo")} · ${Friendly.dayAndClock(item.createdAt)}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                     }
-                    IconButton(onClick = { viewing = item }) { Icon(Icons.Filled.PlayArrow, contentDescription = "Ver", tint = ArmorColors.Cyan) }
-                    IconButton(onClick = { deleting = item }) { Icon(Icons.Filled.Delete, contentDescription = "Borrar", tint = ArmorColors.Alert) }
+                    IconButton(onClick = { viewing = item }) { Icon(Icons.Filled.PlayArrow, contentDescription = tr("Ver"), tint = ArmorColors.Cyan) }
+                    IconButton(onClick = { deleting = item }) { Icon(Icons.Filled.Delete, contentDescription = tr("Borrar"), tint = ArmorColors.Alert) }
                 }
             }
         }
@@ -151,28 +151,28 @@ fun UpdateScreen(state: AppUpdateState, onCheck: () -> Unit, onDownload: (es.ele
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Panel(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Versión instalada: ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium, color = ArmorColors.Muted)
+                Text(trf("Versión instalada: %s", BuildConfig.VERSION_NAME), style = MaterialTheme.typography.bodyMedium, color = ArmorColors.Muted)
                 when (state) {
                     is AppUpdateState.Idle, is AppUpdateState.UpToDate -> {
-                        if (state is AppUpdateState.UpToDate) Text("Ya tienes la última versión.", color = ArmorColors.Ok, fontWeight = FontWeight.SemiBold)
-                        Button(onClick = onCheck, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Filled.Refresh, null); Spacer(Modifier.width(8.dp)); Text("Buscar actualizaciones") }
+                        if (state is AppUpdateState.UpToDate) Text(tr("Ya tienes la última versión."), color = ArmorColors.Ok, fontWeight = FontWeight.SemiBold)
+                        Button(onClick = onCheck, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Filled.Refresh, null); Spacer(Modifier.width(8.dp)); Text(tr("Buscar actualizaciones")) }
                     }
                     is AppUpdateState.Checking -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp); Text("Buscando en GitHub…")
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp); Text(tr("Buscando en GitHub…"))
                     }
                     is AppUpdateState.Available -> UpdateAvailableContent(state.update, onDownload = { onDownload(state.update) })
                     is AppUpdateState.Downloading -> Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Descargando… ${state.progress ?: 0}%")
+                        Text(trf("Descargando… %s%%", state.progress ?: 0))
                         if (state.progress != null) LinearProgressIndicator(progress = { state.progress / 100f }, modifier = Modifier.fillMaxWidth()) else LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     }
                     is AppUpdateState.InstallPermissionRequired -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("Para instalar la actualización, Android necesita tu permiso para instalar aplicaciones desde esta app.")
-                        Button(onClick = onOpenInstallSettings, modifier = Modifier.fillMaxWidth()) { Text("Conceder permiso") }
+                        Text(tr("Para instalar la actualización, Android necesita tu permiso para instalar aplicaciones desde esta app."))
+                        Button(onClick = onOpenInstallSettings, modifier = Modifier.fillMaxWidth()) { Text(tr("Conceder permiso")) }
                     }
-                    is AppUpdateState.Installing -> Text("Abriendo el instalador de Android…")
+                    is AppUpdateState.Installing -> Text(tr("Abriendo el instalador de Android…"))
                     is AppUpdateState.Failed -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(state.message, color = ArmorColors.Alert)
-                        Button(onClick = onCheck, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Filled.Refresh, null); Spacer(Modifier.width(8.dp)); Text("Buscar actualizaciones") }
+                        Button(onClick = onCheck, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Filled.Refresh, null); Spacer(Modifier.width(8.dp)); Text(tr("Buscar actualizaciones")) }
                     }
                 }
             }
@@ -187,10 +187,10 @@ fun UpdateAvailableContent(update: es.electrohobby3d.armor.update.AvailableUpdat
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             IconBadge(Icons.Filled.SystemUpdate, ArmorColors.Cyan, size = 40.dp)
-            Text("Nueva versión disponible: ${update.version}", fontWeight = FontWeight.SemiBold, color = ArmorColors.Cyan)
+            Text(trf("Nueva versión disponible: %s", update.version), fontWeight = FontWeight.SemiBold, color = ArmorColors.Cyan)
         }
-        if (update.notes.isNotBlank()) OutlinedButton(onClick = { showReleaseNotes = true }, modifier = Modifier.fillMaxWidth()) { Text("Ver novedades") }
-        Button(onClick = onDownload, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Filled.Download, null); Spacer(Modifier.width(8.dp)); Text("Descargar e instalar") }
+        if (update.notes.isNotBlank()) OutlinedButton(onClick = { showReleaseNotes = true }, modifier = Modifier.fillMaxWidth()) { Text(tr("Ver novedades")) }
+        Button(onClick = onDownload, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Filled.Download, null); Spacer(Modifier.width(8.dp)); Text(tr("Descargar e instalar")) }
     }
 }
 
@@ -201,7 +201,7 @@ private fun ReleaseNotesDialog(update: es.electrohobby3d.armor.update.AvailableU
         containerColor = ArmorColors.SurfaceRaised,
         title = { Text(update.releaseName.ifBlank { update.version.toString() }) },
         text = { Text(update.notes, modifier = Modifier.verticalScroll(rememberScrollState())) },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Cerrar") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Cerrar")) } },
     )
 }
 
@@ -216,30 +216,46 @@ fun SettingsScreen(
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Panel(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) { Icon(Icons.Filled.Dns, null, tint = ArmorColors.Cyan); Text("Servidor", fontWeight = FontWeight.SemiBold) }
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) { Icon(Icons.Filled.Dns, null, tint = ArmorColors.Cyan); Text(tr("Servidor"), fontWeight = FontWeight.SemiBold) }
                 OutlinedTextField(
-                    value = draft, onValueChange = { draft = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("Dirección") },
-                    isError = draft.isNotBlank() && !valid, supportingText = { Text(if (draft.isBlank() || valid) "Por ejemplo http://192.168.0.50:8080" else "La dirección no es válida") },
+                    value = draft, onValueChange = { draft = it }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text(tr("Dirección")) },
+                    isError = draft.isNotBlank() && !valid, supportingText = { Text(if (draft.isBlank() || valid) tr("Por ejemplo http://192.168.0.50:8080") else tr("La dirección no es válida")) },
                 )
-                Button(onClick = { onConnect(draft) }, enabled = valid, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Filled.Refresh, null); Spacer(Modifier.width(8.dp)); Text("Conectar") }
+                Button(onClick = { onConnect(draft) }, enabled = valid, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Filled.Refresh, null); Spacer(Modifier.width(8.dp)); Text(tr("Conectar")) }
             }
         }
         val soundContext = androidx.compose.ui.platform.LocalContext.current
         var speak by rememberSaveable { mutableStateOf(AlarmNotifier.speaksAlarms(soundContext)) }
         Panel(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("Sonidos y voz de las alarmas", fontWeight = FontWeight.SemiBold)
-                Text("Las alarmas críticas suenan como una alarma, las altas como un aviso fuerte y los avisos como una notificación. Cada gravedad tiene su propio canal: puedes elegir su sonido, su vibración o silenciarla en los ajustes del móvil.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                Text(tr("Sonidos y voz de las alarmas"), fontWeight = FontWeight.SemiBold)
+                Text(tr("Las alarmas críticas suenan como una alarma, las altas como un aviso fuerte y los avisos como una notificación. Cada gravedad tiene su propio canal: puedes elegir su sonido, su vibración o silenciarla en los ajustes del móvil."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                 Button(onClick = {
                     AlarmNotifier.ensureChannels(soundContext)
                     soundContext.startActivity(android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, soundContext.packageName).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
-                }, modifier = Modifier.fillMaxWidth()) { Text("Elegir el sonido de cada gravedad") }
+                }, modifier = Modifier.fillMaxWidth()) { Text(tr("Elegir el sonido de cada gravedad")) }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Column(Modifier.weight(1f)) {
-                        Text("Decir la alarma en voz alta")
-                        Text("Con la voz del móvil, para las críticas y las altas.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                        Text(tr("Decir la alarma en voz alta"))
+                        Text(tr("Con la voz del móvil, para las críticas y las altas."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                     }
                     Switch(checked = speak, onCheckedChange = { speak = it; AlarmNotifier.setSpeaksAlarms(soundContext, it) })
+                }
+            }
+        }
+
+        Panel(Modifier.fillMaxWidth()) {
+            val languageContext = androidx.compose.ui.platform.LocalContext.current
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(tr("Idioma"), fontWeight = FontWeight.SemiBold)
+                Text(tr("El idioma de la app. Si no eliges uno, usa el del móvil cuando es uno de estos ocho."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                Tr.languages.chunked(2).forEach { pair ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        pair.forEach { (code, name) ->
+                            if (Tr.language == code) Button(onClick = {}, modifier = Modifier.weight(1f)) { Text(name) }
+                            else androidx.compose.material3.OutlinedButton(onClick = { Tr.choose(languageContext, code) }, modifier = Modifier.weight(1f)) { Text(name) }
+                        }
+                    }
                 }
             }
         }
@@ -247,8 +263,8 @@ fun SettingsScreen(
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 IconBadge(Icons.Filled.NotificationsActive, size = 44.dp)
                 Column(Modifier.weight(1f)) {
-                    Text("Avisos con la app cerrada", fontWeight = FontWeight.SemiBold)
-                    Text("Te avisa de alertas altas, cámaras sin señal y alarmas siempre; de nodos caídos o en silencio, solo con el sistema armado.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                    Text(tr("Avisos con la app cerrada"), fontWeight = FontWeight.SemiBold)
+                    Text(tr("Te avisa de alertas altas, cámaras sin señal y alarmas siempre; de nodos caídos o en silencio, solo con el sistema armado."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                 }
                 Switch(checked = watching, onCheckedChange = onWatching, enabled = authenticated)
             }

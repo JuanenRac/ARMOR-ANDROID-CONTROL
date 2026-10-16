@@ -2,6 +2,8 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor.update
 
+import es.electrohobby3d.armor.tr
+import es.electrohobby3d.armor.trf
 import es.electrohobby3d.armor.model.optStr
 import org.json.JSONObject
 
@@ -34,26 +36,26 @@ object ReleaseMetadataParser {
             return UpdateCheckResult.UpToDate
         }
         val remoteVersion = SemanticVersion.parseStable(release.optStr("tag_name"))
-            ?: return UpdateCheckResult.Failed("La última versión publicada en GitHub no tiene una etiqueta estable MAYOR.MENOR.PARCHE.")
+            ?: return UpdateCheckResult.Failed(tr("La última versión publicada en GitHub no tiene una etiqueta estable MAYOR.MENOR.PARCHE."))
         val localVersion = SemanticVersion.parseStable(installedVersionName)
-            ?: return UpdateCheckResult.Failed("La versión instalada no es un número de versión estable.")
+            ?: return UpdateCheckResult.Failed(tr("La versión instalada no es un número de versión estable."))
         if (remoteVersion <= localVersion) return UpdateCheckResult.UpToDate
 
         val assets = release.optJSONArray("assets")
-            ?: return UpdateCheckResult.Failed("La versión v$remoteVersion no tiene el archivo $REQUIRED_ASSET_NAME.")
+            ?: return UpdateCheckResult.Failed(trf("La versión v%s no tiene el archivo %s.", remoteVersion, REQUIRED_ASSET_NAME))
         val asset = (0 until assets.length())
             .asSequence()
             .map { assets.optJSONObject(it) }
             .firstOrNull { it?.optStr("name") == REQUIRED_ASSET_NAME }
-            ?: return UpdateCheckResult.Failed("La versión v$remoteVersion no tiene el archivo $REQUIRED_ASSET_NAME.")
+            ?: return UpdateCheckResult.Failed(trf("La versión v%s no tiene el archivo %s.", remoteVersion, REQUIRED_ASSET_NAME))
         val assetUrl = asset.optStr("browser_download_url")
         if (!assetUrl.startsWith("https://")) {
-            return UpdateCheckResult.Failed("El enlace del APK de la versión no usa HTTPS.")
+            return UpdateCheckResult.Failed(tr("El enlace del APK de la versión no usa HTTPS."))
         }
         return UpdateCheckResult.Available(
             AvailableUpdate(
                 version = remoteVersion,
-                releaseName = release.optStr("name", "A.R.M.O.R. v$remoteVersion"),
+                releaseName = release.optStr("name", "A.R.M.O.R. v${remoteVersion}"),
                 notes = release.optStr("body").trim(),
                 assetUrl = assetUrl,
             ),

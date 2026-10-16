@@ -40,7 +40,7 @@ import java.net.URL
 fun MediaViewerDialog(item: MediaItem, url: String, cookie: Pair<String, String>?, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss, containerColor = ArmorColors.SurfaceRaised,
-        title = { Text(if (item.kind == "snapshot") "Foto" else "Vídeo") },
+        title = { Text(if (item.kind == "snapshot") tr("Foto") else tr("Vídeo")) },
         text = {
             Box(Modifier.fillMaxWidth().height(300.dp).clip(RoundedCornerShape(12.dp)).background(Color.Black), contentAlignment = Alignment.Center) {
                 if (item.kind == "snapshot") StillPicture(url, cookie)
@@ -57,7 +57,7 @@ fun MediaViewerDialog(item: MediaItem, url: String, cookie: Pair<String, String>
                 )
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Cerrar") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Cerrar")) } },
     )
 }
 
@@ -74,7 +74,7 @@ private fun StillPicture(url: String, cookie: Pair<String, String>?) {
                     cookie?.let { connection.setRequestProperty("Cookie", "${it.first}=${it.second}") }
                     if (connection.responseCode != 200) error("HTTP ${connection.responseCode}")
                     val bytes = connection.inputStream.use { it.readNBytes(MAX_PICTURE_BYTES) }
-                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: error("La imagen no se pudo leer")
+                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: error(tr("La imagen no se pudo leer"))
                 } finally { connection.disconnect() }
             }
         }
@@ -83,7 +83,7 @@ private fun StillPicture(url: String, cookie: Pair<String, String>?) {
         null -> CircularProgressIndicator()
         else -> shown.fold(
             onSuccess = { Image(it.asImageBitmap(), null, Modifier.fillMaxSize(), contentScale = ContentScale.Fit) },
-            onFailure = { Text(it.message ?: "No se pudo abrir", color = MaterialTheme.colorScheme.error) },
+            onFailure = { Text(it.message ?: tr("No se pudo abrir"), color = MaterialTheme.colorScheme.error) },
         )
     }
 }

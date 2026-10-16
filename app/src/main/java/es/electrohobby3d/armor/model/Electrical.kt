@@ -2,6 +2,8 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor.model
 
+import es.electrohobby3d.armor.tr
+import es.electrohobby3d.armor.trf
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Locale
@@ -89,20 +91,20 @@ object ElectricalText {
 
     /** Which way the power goes on the grid input: drawing, feeding the network, or nothing. */
     fun gridFlow(watts: Double?): String = when {
-        watts == null -> "Sin dato"
-        Math.abs(watts) < 5 -> "Sin consumo de red"
-        watts > 0 -> "Consume ${watts(watts)} de la red"
-        else -> "Cede ${watts(-watts)} a la red"
+        watts == null -> tr("Sin dato")
+        Math.abs(watts) < 5 -> tr("Sin consumo de red")
+        watts > 0 -> trf("Consume %s de la red", watts(watts))
+        else -> trf("Cede %s a la red", watts(-watts))
     }
 
-    fun switchState(state: String?): String? = when (state) { "closed" -> "Cerrado"; "open" -> "Abierto"; "unknown" -> "Sin confirmar"; else -> null }
+    fun switchState(state: String?): String? = when (state) { "closed" -> tr("Cerrado"); "open" -> tr("Abierto"); "unknown" -> tr("Sin confirmar"); else -> null }
 
     fun switchSource(switchItem: es.electrohobby3d.armor.model.ElectricalSwitch): String = when (switchItem.selected) {
-        "a" -> "Fuente A" + (switchItem.sourceA?.let { " ($it)" } ?: "")
-        "b" -> "Fuente B" + (switchItem.sourceB?.let { " ($it)" } ?: "")
-        else -> "Ninguna fuente"
+        "a" -> tr("Fuente A") + (switchItem.sourceA?.let { " (${it})" } ?: "")
+        "b" -> tr("Fuente B") + (switchItem.sourceB?.let { " (${it})" } ?: "")
+        else -> tr("Ninguna fuente")
     }
     fun switchFault(fault: String): String? = when (fault) {
-        "did_not_close" -> "No cerró"; "did_not_open" -> "No abrió"; "both_closed" -> "Las dos fuentes cerradas"; "disabled" -> "Maniobra desactivada"; else -> null
+        "did_not_close" -> tr("No cerró"); "did_not_open" -> tr("No abrió"); "both_closed" -> tr("Las dos fuentes cerradas"); "disabled" -> tr("Maniobra desactivada"); else -> null
     }
 }

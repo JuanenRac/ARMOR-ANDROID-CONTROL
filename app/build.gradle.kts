@@ -1,7 +1,7 @@
 plugins { id("com.android.application"); id("org.jetbrains.kotlin.plugin.compose") }
 
 android { namespace = "es.electrohobby3d.armor"; compileSdk = 37
-    defaultConfig { applicationId = "es.electrohobby3d.armor"; minSdk = 26; targetSdk = 37; versionCode = 36; versionName = "0.5.4" }
+    defaultConfig { applicationId = "es.electrohobby3d.armor"; minSdk = 26; targetSdk = 37; versionCode = 37; versionName = "0.5.5" }
     buildFeatures { compose = true; buildConfig = true }
 }
 // The version lives in two places the Android tools need (here, and the manifest every other tool reads); a build stops when they differ,

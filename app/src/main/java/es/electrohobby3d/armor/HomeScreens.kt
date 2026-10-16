@@ -64,45 +64,45 @@ fun StatusScreen(
     val attention = devices.count { DeviceText.problem(it) != null }
     val nodesOnline = nodes.count { it.online }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        ScreenTitle(Icons.Filled.Shield, "Estado", if (updated.isBlank()) "Esperando datos" else "Actualizado a las ${Friendly.clock(updated)}") {
-            IconButton(onClick = onRefresh, enabled = enabled) { Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", tint = ArmorColors.Cyan) }
+        ScreenTitle(Icons.Filled.Shield, tr("Estado"), if (updated.isBlank()) tr("Esperando datos") else trf("Actualizado a las %s", Friendly.clock(updated))) {
+            IconButton(onClick = onRefresh, enabled = enabled) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
         }
         Panel(Modifier.fillMaxWidth(), tint = if (armed) ArmorColors.Ok else ArmorColors.Amber) {
             Row(Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 IconBadge(if (armed) Icons.Filled.Shield else Icons.Filled.LockOpen, if (armed) ArmorColors.Ok else ArmorColors.Amber, size = 64.dp)
                 Column(Modifier.weight(1f)) {
-                    Text(if (armed) "Armado" else "Desarmado", style = MaterialTheme.typography.headlineSmall)
-                    Text(if (armed) "Puertas, ventanas y movimiento vigilados." else "Solo humo, gas, agua y pánico avisan.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                    Text(if (armed) tr("Armado") else tr("Desarmado"), style = MaterialTheme.typography.headlineSmall)
+                    Text(if (armed) tr("Puertas, ventanas y movimiento vigilados.") else tr("Solo humo, gas, agua y pánico avisan."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                 }
                 FilledIconButton(
                     onClick = onMode, enabled = enabled, modifier = Modifier.size(56.dp),
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = if (armed) ArmorColors.Amber else ArmorColors.Ok, contentColor = Color(0xFF041014)),
-                ) { Icon(Icons.Filled.PowerSettingsNew, contentDescription = if (armed) "Desarmar" else "Armar", modifier = Modifier.size(30.dp)) }
+                ) { Icon(Icons.Filled.PowerSettingsNew, contentDescription = if (armed) tr("Desarmar") else tr("Armar"), modifier = Modifier.size(30.dp)) }
             }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            StatTile(Icons.Filled.NotificationsActive, if (pendingAlarms == 0) "0" else pendingAlarms.toString(), if (pendingAlarms == 0) "Sin alarmas" else "Alarmas", if (pendingAlarms > 0) ArmorColors.Alert else ArmorColors.Ok, Modifier.weight(1f), onAlarms)
-            StatTile(Icons.Filled.Videocam, cameras.toString(), if (camerasDown > 0) "$camerasDown sin señal" else "Cámaras", if (camerasDown > 0) ArmorColors.Amber else ArmorColors.Cyan, Modifier.weight(1f), onCameras)
+            StatTile(Icons.Filled.NotificationsActive, if (pendingAlarms == 0) "0" else pendingAlarms.toString(), if (pendingAlarms == 0) tr("Sin alarmas") else tr("Alarmas"), if (pendingAlarms > 0) ArmorColors.Alert else ArmorColors.Ok, Modifier.weight(1f), onAlarms)
+            StatTile(Icons.Filled.Videocam, cameras.toString(), if (camerasDown > 0) trf("%s sin señal", camerasDown) else tr("Cámaras"), if (camerasDown > 0) ArmorColors.Amber else ArmorColors.Cyan, Modifier.weight(1f), onCameras)
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            StatTile(Icons.Filled.Sensors, devices.size.toString(), if (attention > 0) "$attention con aviso" else "Dispositivos", if (attention > 0) ArmorColors.Amber else ArmorColors.Cyan, Modifier.weight(1f), onDevices)
-            StatTile(Icons.Filled.Radar, "$nodesOnline/${nodes.size}", "Nodos en línea", if (nodes.isNotEmpty() && nodesOnline < nodes.size) ArmorColors.Amber else ArmorColors.Cyan, Modifier.weight(1f), onRadar)
+            StatTile(Icons.Filled.Sensors, devices.size.toString(), if (attention > 0) trf("%s con aviso", attention) else tr("Dispositivos"), if (attention > 0) ArmorColors.Amber else ArmorColors.Cyan, Modifier.weight(1f), onDevices)
+            StatTile(Icons.Filled.Radar, "${nodesOnline}/${nodes.size}", tr("Nodos en línea"), if (nodes.isNotEmpty() && nodesOnline < nodes.size) ArmorColors.Amber else ArmorColors.Cyan, Modifier.weight(1f), onRadar)
         }
         if (solar != null && !solar.isEmpty) Panel(Modifier.fillMaxWidth(), tint = if (solar.totals.stale > 0) ArmorColors.Amber else null, onClick = onSolar) {
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 IconBadge(Icons.Filled.WbSunny, if (solar.totals.stale > 0) ArmorColors.Amber else ArmorColors.Cyan, size = 40.dp)
                 Column(Modifier.weight(1f)) {
-                    Text("Solar", fontWeight = FontWeight.SemiBold)
-                    Text(if (solar.devices.isEmpty()) "Esperando datos" else solarSummary(solar.totals), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(tr("Solar"), fontWeight = FontWeight.SemiBold)
+                    Text(if (solar.devices.isEmpty()) tr("Esperando datos") else solarSummary(solar.totals), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
-                solar.totals.socPercent?.let { Text("$it %", fontSize = 22.sp, fontWeight = FontWeight.Bold) }
+                solar.totals.socPercent?.let { Text("${it} %", fontSize = 22.sp, fontWeight = FontWeight.Bold) }
             }
         }
         if (electrical != null && !electrical.isEmpty) Panel(Modifier.fillMaxWidth(), tint = if (electrical.totals.alarms > 0) ArmorColors.Alert else if (electrical.totals.stale > 0) ArmorColors.Amber else null, onClick = onElectrical) {
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 IconBadge(Icons.Filled.ElectricBolt, if (electrical.totals.alarms > 0) ArmorColors.Alert else if (electrical.totals.stale > 0) ArmorColors.Amber else ArmorColors.Cyan, size = 40.dp)
                 Column(Modifier.weight(1f)) {
-                    Text("Eléctrica", fontWeight = FontWeight.SemiBold)
+                    Text(tr("Eléctrica"), fontWeight = FontWeight.SemiBold)
                     Text(electricalSummary(electrical.totals), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
@@ -114,14 +114,14 @@ fun StatusScreen(
                 Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     IconBadge(Icons.Filled.Router, networkTint ?: ArmorColors.Cyan, size = 40.dp)
                     Column(Modifier.weight(1f)) {
-                        Text("Red", fontWeight = FontWeight.SemiBold)
+                        Text(tr("Red"), fontWeight = FontWeight.SemiBold)
                         Text(es.electrohobby3d.armor.model.NetworkText.summary(network), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 }
             }
         }
         if (nodes.isNotEmpty()) {
-            Text("Radares", style = MaterialTheme.typography.titleMedium, color = ArmorColors.Muted)
+            Text(tr("Radares"), style = MaterialTheme.typography.titleMedium, color = ArmorColors.Muted)
             nodes.forEach { node -> NodeRow(node) }
         }
     }
@@ -148,12 +148,12 @@ private fun NodeRow(node: FieldNode) {
                 Text(node.id, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     StatusDot(if (node.online) ArmorColors.Ok else ArmorColors.Muted, 8.dp)
-                    Text(if (node.online) "En línea" else "Sin señal", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                    Text(if (node.online) tr("En línea") else tr("Sin señal"), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                 }
             }
             if (node.online) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Icon(Icons.AutoMirrored.Filled.DirectionsWalk, contentDescription = "Detectados", tint = if (node.tracks > 0) ArmorColors.Amber else ArmorColors.Muted, modifier = Modifier.size(20.dp))
+                    Icon(Icons.AutoMirrored.Filled.DirectionsWalk, contentDescription = tr("Detectados"), tint = if (node.tracks > 0) ArmorColors.Amber else ArmorColors.Muted, modifier = Modifier.size(20.dp))
                     Text(node.tracks.toString(), fontWeight = FontWeight.Bold)
                 }
                 Icon(if (high) Icons.Filled.Warning else Icons.Filled.CheckCircle, contentDescription = null, tint = if (high) ArmorColors.Alert else ArmorColors.Ok)
@@ -172,16 +172,16 @@ fun AlarmsScreen(active: List<Alarm>, closed: List<Alarm>, devices: List<SiteDev
     var showClosed by rememberSaveable { mutableStateOf(false) }
     LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
         item {
-            ScreenTitle(Icons.Filled.NotificationsActive, "Alarmas", if (pending == 0) "Todo en calma" else if (pending == 1) "1 necesita atención" else "$pending necesitan atención") {
-                if (pending > 1) IconButton(onClick = onAcknowledgeAll, enabled = enabled) { Icon(Icons.Filled.DoneAll, contentDescription = "Confirmar todas", tint = ArmorColors.Cyan) }
+            ScreenTitle(Icons.Filled.NotificationsActive, tr("Alarmas"), if (pending == 0) tr("Todo en calma") else if (pending == 1) tr("1 necesita atención") else trf("%s necesitan atención", pending)) {
+                if (pending > 1) IconButton(onClick = onAcknowledgeAll, enabled = enabled) { Icon(Icons.Filled.DoneAll, contentDescription = tr("Confirmar todas"), tint = ArmorColors.Cyan) }
             }
         }
         if (active.isEmpty()) item {
             Panel(Modifier.fillMaxWidth(), tint = ArmorColors.Ok) {
                 Column(Modifier.fillMaxWidth().padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     IconBadge(Icons.Filled.CheckCircle, ArmorColors.Ok, size = 64.dp)
-                    Text("Sin alarmas", style = MaterialTheme.typography.titleMedium)
-                    Text("Cuando algo necesite tu atención aparecerá aquí.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, textAlign = TextAlign.Center)
+                    Text(tr("Sin alarmas"), style = MaterialTheme.typography.titleMedium)
+                    Text(tr("Cuando algo necesite tu atención aparecerá aquí."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, textAlign = TextAlign.Center)
                 }
             }
         }
@@ -194,11 +194,11 @@ fun AlarmsScreen(active: List<Alarm>, closed: List<Alarm>, devices: List<SiteDev
                         Text(DeviceText.alarmText(alarm.code), fontWeight = FontWeight.SemiBold)
                         Text("${alarmSourceName(alarm, devices, cameraNames, solarNames)} · ${Friendly.dayAndClock(alarm.raisedAt)}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                         Text(
-                            if (alarm.acknowledged) "Vista por ${alarm.acknowledgedBy}${if (alarm.cleared) "" else " · sigue activa"}" else if (alarm.cleared) "Ya terminó · falta confirmarla" else "Activa ahora",
+                            if (alarm.acknowledged) trf("Vista por %s%s", alarm.acknowledgedBy, if (alarm.cleared) "" else " · sigue activa") else if (alarm.cleared) tr("Ya terminó · falta confirmarla") else tr("Activa ahora"),
                             style = MaterialTheme.typography.labelSmall, color = if (alarm.acknowledged) ArmorColors.Muted else tint,
                         )
                     }
-                    if (!alarm.acknowledged) FilledIconButton(onClick = { onAcknowledge(alarm) }, enabled = enabled) { Icon(Icons.Filled.Done, contentDescription = "Confirmar") }
+                    if (!alarm.acknowledged) FilledIconButton(onClick = { onAcknowledge(alarm) }, enabled = enabled) { Icon(Icons.Filled.Done, contentDescription = tr("Confirmar")) }
                 }
             }
         }
@@ -206,7 +206,7 @@ fun AlarmsScreen(active: List<Alarm>, closed: List<Alarm>, devices: List<SiteDev
             TextButton(onClick = { showClosed = !showClosed }) {
                 Icon(Icons.Filled.History, null)
                 Spacer(Modifier.width(8.dp))
-                Text(if (showClosed) "Ocultar cerradas (${closed.size})" else "Ver cerradas (${closed.size})")
+                Text(if (showClosed) trf("Ocultar cerradas (%s)", closed.size) else trf("Ver cerradas (%s)", closed.size))
             }
         }
         if (showClosed) items(closed.take(30), key = { "c-" + it.id }) { alarm ->
@@ -229,8 +229,9 @@ internal fun kindIcon(kind: String): ImageVector = when (kind) {
     else -> Icons.Filled.Sensors
 }
 
-private enum class DeviceFilter(val icon: ImageVector, val label: String) {
-    All(Icons.Filled.GridView, "Todos"), Sensors(Icons.Filled.Sensors, "Sensores"), Actuators(Icons.Filled.Power, "Control"), Problems(Icons.Filled.Warning, "Avisos")
+private enum class DeviceFilter(val icon: ImageVector, private val key: String) {
+    All(Icons.Filled.GridView, "Todos"), Sensors(Icons.Filled.Sensors, "Sensores"), Actuators(Icons.Filled.Power, "Control"), Problems(Icons.Filled.Warning, "Avisos");
+    val label: String get() = tr(key)
 }
 
 @Composable
@@ -240,7 +241,7 @@ fun DevicesScreen(devices: List<SiteDevice>, onCommand: (SiteDevice, String) -> 
         when (filter) { DeviceFilter.All -> true; DeviceFilter.Sensors -> !it.actuator; DeviceFilter.Actuators -> it.actuator; DeviceFilter.Problems -> DeviceText.problem(it) != null }
     }
     LazyVerticalGrid(GridCells.Fixed(2), Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        item(span = { GridItemSpan(2) }) { ScreenTitle(Icons.Filled.Sensors, "Dispositivos", "${devices.size} en total") }
+        item(span = { GridItemSpan(2) }) { ScreenTitle(Icons.Filled.Sensors, tr("Dispositivos"), trf("%s en total", devices.size)) }
         item(span = { GridItemSpan(2) }) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 DeviceFilter.entries.forEach { item ->
@@ -252,8 +253,8 @@ fun DevicesScreen(devices: List<SiteDevice>, onCommand: (SiteDevice, String) -> 
             Panel(Modifier.fillMaxWidth()) {
                 Column(Modifier.fillMaxWidth().padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     IconBadge(Icons.Filled.Sensors, ArmorColors.Muted, size = 64.dp)
-                    Text(if (devices.isEmpty()) "Aún no hay dispositivos" else "Nada con este filtro", style = MaterialTheme.typography.titleMedium)
-                    if (devices.isEmpty()) Text("Se añaden desde Studio, en el ordenador.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, textAlign = TextAlign.Center)
+                    Text(if (devices.isEmpty()) tr("Aún no hay dispositivos") else tr("Nada con este filtro"), style = MaterialTheme.typography.titleMedium)
+                    if (devices.isEmpty()) Text(tr("Se añaden desde Studio, en el ordenador."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, textAlign = TextAlign.Center)
                 }
             }
         }
@@ -264,7 +265,7 @@ fun DevicesScreen(devices: List<SiteDevice>, onCommand: (SiteDevice, String) -> 
 @Composable
 private fun DeviceTile(device: SiteDevice, onCommand: (SiteDevice, String) -> Unit, enabled: Boolean) {
     val problem = DeviceText.problem(device)
-    val danger = problem == "activado" || problem == "manipulado"
+    val danger = problem == tr("activado") || problem == tr("manipulado")
     val main = DeviceText.mainField[device.kind]
     val isOn = main != null && device.state[main] == true
     val tint = if (danger) ArmorColors.Alert else if (problem != null) ArmorColors.Amber else if (isOn && device.actuator) ArmorColors.Cyan else ArmorColors.Muted
@@ -277,7 +278,7 @@ private fun DeviceTile(device: SiteDevice, onCommand: (SiteDevice, String) -> Un
             }
             Text(device.name, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
             val state = DeviceText.describeState(device)
-            Text(if (state.isEmpty()) "sin datos" else state.first(), style = MaterialTheme.typography.bodyMedium, color = if (danger) ArmorColors.Alert else ArmorColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(if (state.isEmpty()) tr("sin datos") else state.first(), style = MaterialTheme.typography.bodyMedium, color = if (danger) ArmorColors.Alert else ArmorColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (problem != null && !danger) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 Icon(Icons.Filled.Warning, null, tint = ArmorColors.Amber, modifier = Modifier.size(16.dp)); Text(problem, style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
             }

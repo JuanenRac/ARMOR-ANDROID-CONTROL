@@ -42,11 +42,11 @@ fun ServicesScreen(overview: ServicesOverview?, nowMs: Long) {
     LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
         item {
             Text(
-                if (overview == null) "Buscando servicios…" else ServicesText.summary(data),
+                if (overview == null) tr("Buscando servicios…") else ServicesText.summary(data),
                 style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted,
             )
         }
-        if (overview != null && !data.systemd) item { Text("Esta máquina no usa systemd: los programas aparecen como desconocidos; los nodos de campo sí se leen.", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted) }
+        if (overview != null && !data.systemd) item { Text(tr("Esta máquina no usa systemd: los programas aparecen como desconocidos; los nodos de campo sí se leen."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted) }
         ServicesText.familyOrder.forEach { family ->
             val shown = data.services.filter { it.family == family }
             if (shown.isNotEmpty()) {
@@ -59,7 +59,7 @@ fun ServicesScreen(overview: ServicesOverview?, nowMs: Long) {
             item { Text(other.first().family, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) }
             items(other, key = { it.id }) { ServiceRow(it, nowMs) }
         }
-        if (overview != null && data.services.isEmpty()) item { Text("No se ha leído ningún servicio.", style = MaterialTheme.typography.bodyMedium, color = ArmorColors.Muted) }
+        if (overview != null && data.services.isEmpty()) item { Text(tr("No se ha leído ningún servicio."), style = MaterialTheme.typography.bodyMedium, color = ArmorColors.Muted) }
     }
 }
 
@@ -75,12 +75,12 @@ private fun ServiceRow(service: ServiceInfo, nowMs: Long) {
             Text(service.description, style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
             Text(
                 buildString {
-                    append(if (service.kind == "field-node") "Última vez: ${ServicesText.since(service.sinceMs, nowMs)}" else "En marcha ${ServicesText.since(service.sinceMs, nowMs)}")
+                    append(if (service.kind == "field-node") trf("Última vez: %s", ServicesText.since(service.sinceMs, nowMs)) else trf("En marcha %s", ServicesText.since(service.sinceMs, nowMs)))
                     if (service.pid != null) append(" · PID ${service.pid}")
-                    if (service.port != null) append(" · puerto ${service.port}")
+                    if (service.port != null) append(trf(" · puerto %s", service.port))
                     if (service.memoryBytes != null) append(" · ${ServicesText.memory(service.memoryBytes)}")
-                    if ((service.restarts ?: 0) > 0) append(" · ${service.restarts} reinicios")
-                    if (service.enabled == true) append(" · arranca solo")
+                    if ((service.restarts ?: 0) > 0) append(trf(" · %s reinicios", service.restarts))
+                    if (service.enabled == true) append(tr(" · arranca solo"))
                 },
                 style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted,
             )

@@ -59,7 +59,7 @@ import java.io.File
 /** The address of a node's panel, checked: an IPv4 address of the local network, with its port when it is not the usual one. */
 object NodeAddress {
     private const val OCTET = """(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)"""   // no leading zero: "010" is not an address, and a program may read it as octal
-    private val Private = Regex("^(?:10\\.$OCTET\\.$OCTET\\.$OCTET|192\\.168\\.$OCTET\\.$OCTET|172\\.(?:1[6-9]|2\\d|3[01])\\.$OCTET\\.$OCTET)$")
+    private val Private = Regex("^(?:10\\.${OCTET}\\.${OCTET}\\.${OCTET}|192\\.168\\.${OCTET}\\.${OCTET}|172\\.(?:1[6-9]|2\\d|3[01])\\.${OCTET}\\.${OCTET})$")
 
     /** `http://address[:port]/`, or null when [text] is not an address of the local network (a name, a public address, anything with a path or a login in it). */
     fun parse(text: String): String? {
@@ -67,7 +67,7 @@ object NodeAddress {
         val host = typed.substringBefore(':')
         val port = if (':' in typed) typed.substringAfter(':').toIntOrNull() ?: return null else 80
         if (!Private.matches(host) || port !in 1..65535) return null
-        return "http://$host${if (port == 80) "" else ":$port"}/"
+        return "http://${host}${if (port == 80) "" else ":${port}"}/"
     }
 }
 
@@ -80,33 +80,33 @@ fun NodesScreen(network: NetworkOverview?, recent: List<String>, onOpen: (String
     LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             Text(
-                "Abre el configurador de un nodo (radar, solar, eléctrico) dentro de la app: es su propia página, con todos sus menús y parámetros. Tu móvil tiene que estar en la misma red que el nodo.",
+                tr("Abre el configurador de un nodo (radar, solar, eléctrico) dentro de la app: es su propia página, con todos sus menús y parámetros. Tu móvil tiene que estar en la misma red que el nodo."),
                 style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted,
             )
         }
         item {
             Panel(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Dirección del nodo", fontWeight = FontWeight.SemiBold)
+                    Text(tr("Dirección del nodo"), fontWeight = FontWeight.SemiBold)
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                         OutlinedTextField(typed, { typed = it.take(24) }, Modifier.weight(1f), singleLine = true, placeholder = { Text("192.168.0.235") }, isError = problem)
-                        Button(onClick = { NodeAddress.parse(typed)?.let(onOpen) }, enabled = NodeAddress.parse(typed) != null) { Text("Abrir") }
+                        Button(onClick = { NodeAddress.parse(typed)?.let(onOpen) }, enabled = NodeAddress.parse(typed) != null) { Text(tr("Abrir")) }
                     }
-                    if (problem) Text("Escribe una dirección de tu red, como 192.168.0.235.", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
+                    if (problem) Text(tr("Escribe una dirección de tu red, como 192.168.0.235."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
                     recent.forEach { address -> TextButton(onClick = { onOpen(address) }) { Text(address.removePrefix("http://").trimEnd('/')) } }
                 }
             }
         }
-        item { Text("Encontrados en la red", fontWeight = FontWeight.SemiBold) }
-        if (found.isEmpty()) item { Text("El nodo de red no ha encontrado ninguno todavía. Escribe la dirección arriba.", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted) }
+        item { Text(tr("Encontrados en la red"), fontWeight = FontWeight.SemiBold) }
+        if (found.isEmpty()) item { Text(tr("El nodo de red no ha encontrado ninguno todavía. Escribe la dirección arriba."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted) }
         items(found) { node ->
             Panel(Modifier.fillMaxWidth(), onClick = { NodeAddress.parse(node.ip)?.let(onOpen) }) {
                 Row(Modifier.fillMaxWidth().padding(14.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text(node.nodeId ?: node.hostname ?: node.ip, fontWeight = FontWeight.Medium)
-                        Text(listOfNotNull(node.ip, node.mac, node.vendor, if (!node.online) "no responde ahora" else null).joinToString(" · "), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+                        Text(listOfNotNull(node.ip, node.mac, node.vendor, if (!node.online) tr("no responde ahora") else null).joinToString(" · "), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
                     }
-                    Text("Configurar", color = ArmorColors.Cyan)
+                    Text(tr("Configurar"), color = ArmorColors.Cyan)
                 }
             }
         }
@@ -122,7 +122,7 @@ private class SaveBridge(private val context: Context, private val token: String
         val safeName = name.replace(Regex("[^A-Za-z0-9._-]"), "_").take(80).ifBlank { "armor-node.json" }
         val bytes = runCatching { Base64.decode(base64, Base64.DEFAULT) }.getOrNull()
         val saved = if (bytes == null || bytes.size > 5 * 1024 * 1024) null else runCatching { write(safeName, mime.ifBlank { "application/octet-stream" }, bytes) }.getOrNull()
-        android.os.Handler(android.os.Looper.getMainLooper()).post { Toast.makeText(context, if (saved != null) "Guardado en Descargas: $safeName" else "No se pudo guardar el archivo", Toast.LENGTH_LONG).show() }
+        android.os.Handler(android.os.Looper.getMainLooper()).post { Toast.makeText(context, if (saved != null) trf("Guardado en Descargas: %s", safeName) else tr("No se pudo guardar el archivo"), Toast.LENGTH_LONG).show() }
     }
 
     private fun write(name: String, mime: String, bytes: ByteArray): Boolean {
@@ -160,8 +160,8 @@ fun NodePanelView(address: String, onClose: () -> Unit) {
     }
     Column(Modifier.fillMaxSize()) {
         if (failed) Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("No se pudo abrir el nodo en $host. Comprueba que el móvil está en la misma red y que el nodo está encendido.", color = ArmorColors.Amber, style = MaterialTheme.typography.bodySmall)
-            Button(onClick = { failed = false; webView?.reload() }) { Text("Reintentar") }
+            Text(trf("No se pudo abrir el nodo en %s. Comprueba que el móvil está en la misma red y que el nodo está encendido.", host), color = ArmorColors.Amber, style = MaterialTheme.typography.bodySmall)
+            Button(onClick = { failed = false; webView?.reload() }) { Text(tr("Reintentar")) }
         }
         AndroidView(
             modifier = Modifier.fillMaxSize(),

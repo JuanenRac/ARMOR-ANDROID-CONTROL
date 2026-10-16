@@ -32,11 +32,11 @@ fun NodeFinderPanel(network: NetworkOverview?, knownIds: Collection<String>, onS
     Panel(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("Buscar nodos en la red", fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                Button(onClick = onScan, enabled = hasWatcher && !scanning) { Text(if (scanning) "Buscando…" else "Buscar ahora") }
+                Text(tr("Buscar nodos en la red"), fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                Button(onClick = onScan, enabled = hasWatcher && !scanning) { Text(if (scanning) tr("Buscando…") else tr("Buscar ahora")) }
             }
-            if (!hasWatcher) Text("El nodo de red no informa, así que no hay con qué buscar.", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
-            else if (candidates.isEmpty()) Text("No se ha encontrado ningún nodo nuevo.", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+            if (!hasWatcher) Text(tr("El nodo de red no informa, así que no hay con qué buscar."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+            else if (candidates.isEmpty()) Text(tr("No se ha encontrado ningún nodo nuevo."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
             candidates.forEach { candidate -> CandidateRow(candidate, context) }
         }
     }
@@ -48,10 +48,10 @@ private fun CandidateRow(candidate: NodeCandidate, context: android.content.Cont
         Column {
             Text(candidate.nodeId ?: candidate.hostname ?: candidate.ip, fontWeight = FontWeight.Medium)
             Text(
-                listOfNotNull(candidate.ip, candidate.mac, candidate.vendor, if (!candidate.online) "no responde ahora" else null).joinToString(" · "),
+                listOfNotNull(candidate.ip, candidate.mac, candidate.vendor, if (!candidate.online) tr("no responde ahora") else null).joinToString(" · "),
                 style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted,
             )
         }
-        TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("http://${candidate.ip}/"))) }) { Text("Panel") }
+        TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("http://${candidate.ip}/"))) }) { Text(tr("Panel")) }
     }
 }

@@ -2,6 +2,8 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor.model
 
+import es.electrohobby3d.armor.tr
+import es.electrohobby3d.armor.trf
 import org.json.JSONObject
 
 /** One alarm of the server's alarm centre: raised, then acknowledged by a person, then cleared when its cause ends. */
@@ -79,16 +81,16 @@ object DeviceText {
     private val alarmKinds = setOf("smoke", "co", "gas", "water_leak", "panic_button", "door", "window", "motion", "glass_break", "vibration")
 
     fun kindLabel(kind: String) = when (kind) {
-        "smoke" -> "Detector de humo"; "co" -> "Detector de CO"; "gas" -> "Detector de gas"; "water_leak" -> "Detector de inundación"; "panic_button" -> "Botón de pánico"
-        "door" -> "Contacto de puerta"; "window" -> "Contacto de ventana"; "motion" -> "Sensor de movimiento"; "glass_break" -> "Rotura de cristal"; "vibration" -> "Sensor de vibración"
-        "climate" -> "Temperatura y humedad"; "temperature" -> "Temperatura"; "humidity" -> "Humedad"; "light_level" -> "Nivel de luz"
-        "smart_plug" -> "Enchufe inteligente"; "smart_light" -> "Luz inteligente"; "smart_switch" -> "Interruptor"; "smart_breaker" -> "Automático inteligente"; "energy_meter" -> "Medidor de energía"; "siren" -> "Sirena"; "lock" -> "Cerradura"; "valve" -> "Válvula"
-        "shutter" -> "Persiana motorizada"; "gate_motor" -> "Motor de puerta o cancela"; "garage_motor" -> "Motor de puerta de garaje"; "water_heater" -> "Calentador de agua"
+        "smoke" -> tr("Detector de humo"); "co" -> tr("Detector de CO"); "gas" -> tr("Detector de gas"); "water_leak" -> tr("Detector de inundación"); "panic_button" -> tr("Botón de pánico")
+        "door" -> tr("Contacto de puerta"); "window" -> tr("Contacto de ventana"); "motion" -> tr("Sensor de movimiento"); "glass_break" -> tr("Rotura de cristal"); "vibration" -> tr("Sensor de vibración")
+        "climate" -> tr("Temperatura y humedad"); "temperature" -> tr("Temperatura"); "humidity" -> tr("Humedad"); "light_level" -> tr("Nivel de luz")
+        "smart_plug" -> tr("Enchufe inteligente"); "smart_light" -> tr("Luz inteligente"); "smart_switch" -> tr("Interruptor"); "smart_breaker" -> tr("Automático inteligente"); "energy_meter" -> tr("Medidor de energía"); "siren" -> tr("Sirena"); "lock" -> tr("Cerradura"); "valve" -> tr("Válvula")
+        "shutter" -> tr("Persiana motorizada"); "gate_motor" -> tr("Motor de puerta o cancela"); "garage_motor" -> tr("Motor de puerta de garaje"); "water_heater" -> tr("Calentador de agua")
         else -> kind
     }
 
     fun protocolLabel(protocol: String) = when (protocol) {
-        "wifi" -> "Wi-Fi"; "bluetooth" -> "Bluetooth"; "zigbee" -> "Zigbee"; "zwave" -> "Z-Wave"; "thread" -> "Thread"; "lora" -> "LoRa"; "rf433" -> "433 MHz"; "wired" -> "Cable"; else -> protocol
+        "wifi" -> "Wi-Fi"; "bluetooth" -> "Bluetooth"; "zigbee" -> "Zigbee"; "zwave" -> "Z-Wave"; "thread" -> "Thread"; "lora" -> "LoRa"; "rf433" -> "433 MHz"; "wired" -> tr("Cable"); else -> protocol
     }
 
     private fun flag(state: Map<String, Any>, key: String) = state[key] == true
@@ -100,65 +102,65 @@ object DeviceText {
         if (main != null && device.state.containsKey(main)) {
             val on = flag(device.state, main)
             add(when (main) {
-                "triggered" -> if (on) "ACTIVADO" else "en reposo"
-                "open" -> if (on) "abierto" else "cerrado"
-                "locked" -> if (on) "cerrada con llave" else "abierta"
-                else -> if (on) "encendido" else "apagado"
+                "triggered" -> if (on) tr("ACTIVADO") else tr("en reposo")
+                "open" -> if (on) tr("abierto") else tr("cerrado")
+                "locked" -> if (on) tr("cerrada con llave") else tr("abierta")
+                else -> if (on) tr("encendido") else tr("apagado")
             })
         }
         number(device.state, "temperature")?.let { add("%.1f °C".format(java.util.Locale.US, it)) }
         number(device.state, "humidity")?.let { add("${it.toInt()} %") }
         number(device.state, "lux")?.let { add("${it.toInt()} lx") }
-        number(device.state, "brightness")?.let { add("brillo ${it.toInt()} %") }
+        number(device.state, "brightness")?.let { add(trf("brillo %s %%", it.toInt())) }
         number(device.state, "power_w")?.let { add("%.1f W".format(java.util.Locale.US, it)) }
         number(device.state, "voltage_v")?.let { add("%.1f V".format(java.util.Locale.US, it)) }
         number(device.state, "current_a")?.let { add("%.2f A".format(java.util.Locale.US, it)) }
         number(device.state, "energy_kwh")?.let { add("%.2f kWh".format(java.util.Locale.US, it)) }
         number(device.state, "co_ppm")?.let { add("${it.toInt()} ppm") }
-        number(device.state, "battery")?.let { add("batería ${it.toInt()} %") }
-        if (flag(device.state, "tamper")) add("manipulado")
+        number(device.state, "battery")?.let { add(trf("batería %s %%", it.toInt())) }
+        if (flag(device.state, "tamper")) add(tr("manipulado"))
     }
 
     /** Why a device needs a person: triggered, tampered with, low battery or silent; null when all is well. */
     fun problem(device: SiteDevice): String? {
         val main = mainField[device.kind]
-        if (device.kind in alarmKinds && main != null && flag(device.state, main)) return "activado"
-        if (flag(device.state, "tamper")) return "manipulado"
-        if ((number(device.state, "battery") ?: 100.0) < 15.0) return "batería baja"
-        if (!device.online && device.expectedIntervalS > 0) return "sin respuesta"
+        if (device.kind in alarmKinds && main != null && flag(device.state, main)) return tr("activado")
+        if (flag(device.state, "tamper")) return tr("manipulado")
+        if ((number(device.state, "battery") ?: 100.0) < 15.0) return tr("batería baja")
+        if (!device.online && device.expectedIntervalS > 0) return tr("sin respuesta")
         return null
     }
 
     fun alarmText(code: String) = when (code) {
-        "intrusion" -> "Intrusión detectada por los radares"; "node_down" -> "Un nodo de campo no responde"; "camera_motion" -> "Una cámara ha visto movimiento"; "camera_down" -> "Una cámara no responde"
-        "smoke" -> "Humo detectado"; "co" -> "Monóxido de carbono detectado"; "gas" -> "Gas detectado"; "water_leak" -> "Inundación detectada"; "panic" -> "Botón de pánico pulsado"
-        "door_open" -> "Puerta abierta con el sistema armado"; "window_open" -> "Ventana abierta con el sistema armado"; "motion" -> "Movimiento con el sistema armado"
-        "glass_break" -> "Rotura de cristal con el sistema armado"; "vibration" -> "Vibración con el sistema armado"; "tamper" -> "Un dispositivo ha sido manipulado"
-        "low_battery" -> "Batería baja"; "device_offline" -> "Un dispositivo ha dejado de responder"; "triggered" -> "Un dispositivo se ha activado"
-        "solar_fault" -> "Avería en un inversor solar"; "solar_battery_low" -> "Batería solar baja"; "solar_battery_alarm" -> "Una batería solar avisa de un problema"
-        "solar_offline" -> "Un equipo solar ha dejado de responder"; "solar_cells_unbalanced" -> "Las celdas de una batería están desequilibradas"
-        "solar_battery_hot" -> "Una batería está demasiado caliente"; "solar_battery_cold" -> "Una batería se está cargando con demasiado frío"; "solar_battery_worn" -> "Una batería está muy desgastada"
-        "solar_inverter_hot" -> "Un inversor está demasiado caliente"
-        "electrical_alarm" -> "Un contador de la red eléctrica avisa de una alarma"; "electrical_voltage" -> "La tensión de red está fuera de rango"
-        "electrical_grid_lost" -> "Se ha perdido el suministro de la red"; "electrical_offline" -> "Un nodo eléctrico ha dejado de responder"
-        "electrical_switch_fault" -> "Un conmutador de fuentes de la red eléctrica tiene una avería y queda abierto"
-        "network_internet_down" -> "No hay internet y el router sigue respondiendo: es cosa del operador"; "network_lan_down" -> "La red local está caída: el router no responde"
-        "network_degraded" -> "Internet va lento o pierde paquetes"; "network_new_device" -> "Un dispositivo que nunca se había visto se ha unido a la red"
-        "network_arp_conflict" -> "Dos máquinas responden por una misma dirección de la red"; "network_port_opened" -> "Un dispositivo de la red ha abierto un puerto"
-        "network_offline" -> "Un nodo de red ha dejado de informar"; "network_watched_online" -> "Un dispositivo que pediste vigilar ha vuelto a la red"
-        "alarm_sounding" -> "¡La alarma está sonando!"; "alarm_tamper" -> "Una zona de la alarma indica sabotaje (cable cortado o en cortocircuito)"
-        "alarm_locked_out" -> "La central de alarma está bloqueada tras PIN erróneos"; "alarm_offline" -> "Un nodo de alarma ha dejado de responder"
-        "duress_disarm" -> "El sistema se desarmó con el PIN de coacción: puede que alguien esté siendo obligado"
+        "intrusion" -> tr("Intrusión detectada por los radares"); "node_down" -> tr("Un nodo de campo no responde"); "camera_motion" -> tr("Una cámara ha visto movimiento"); "camera_down" -> tr("Una cámara no responde")
+        "smoke" -> tr("Humo detectado"); "co" -> tr("Monóxido de carbono detectado"); "gas" -> tr("Gas detectado"); "water_leak" -> tr("Inundación detectada"); "panic" -> tr("Botón de pánico pulsado")
+        "door_open" -> tr("Puerta abierta con el sistema armado"); "window_open" -> tr("Ventana abierta con el sistema armado"); "motion" -> tr("Movimiento con el sistema armado")
+        "glass_break" -> tr("Rotura de cristal con el sistema armado"); "vibration" -> tr("Vibración con el sistema armado"); "tamper" -> tr("Un dispositivo ha sido manipulado")
+        "low_battery" -> tr("Batería baja"); "device_offline" -> tr("Un dispositivo ha dejado de responder"); "triggered" -> tr("Un dispositivo se ha activado")
+        "solar_fault" -> tr("Avería en un inversor solar"); "solar_battery_low" -> tr("Batería solar baja"); "solar_battery_alarm" -> tr("Una batería solar avisa de un problema")
+        "solar_offline" -> tr("Un equipo solar ha dejado de responder"); "solar_cells_unbalanced" -> tr("Las celdas de una batería están desequilibradas")
+        "solar_battery_hot" -> tr("Una batería está demasiado caliente"); "solar_battery_cold" -> tr("Una batería se está cargando con demasiado frío"); "solar_battery_worn" -> tr("Una batería está muy desgastada")
+        "solar_inverter_hot" -> tr("Un inversor está demasiado caliente")
+        "electrical_alarm" -> tr("Un contador de la red eléctrica avisa de una alarma"); "electrical_voltage" -> tr("La tensión de red está fuera de rango")
+        "electrical_grid_lost" -> tr("Se ha perdido el suministro de la red"); "electrical_offline" -> tr("Un nodo eléctrico ha dejado de responder")
+        "electrical_switch_fault" -> tr("Un conmutador de fuentes de la red eléctrica tiene una avería y queda abierto")
+        "network_internet_down" -> tr("No hay internet y el router sigue respondiendo: es cosa del operador"); "network_lan_down" -> tr("La red local está caída: el router no responde")
+        "network_degraded" -> tr("Internet va lento o pierde paquetes"); "network_new_device" -> tr("Un dispositivo que nunca se había visto se ha unido a la red")
+        "network_arp_conflict" -> tr("Dos máquinas responden por una misma dirección de la red"); "network_port_opened" -> tr("Un dispositivo de la red ha abierto un puerto")
+        "network_offline" -> tr("Un nodo de red ha dejado de informar"); "network_watched_online" -> tr("Un dispositivo que pediste vigilar ha vuelto a la red")
+        "alarm_sounding" -> tr("¡La alarma está sonando!"); "alarm_tamper" -> tr("Una zona de la alarma indica sabotaje (cable cortado o en cortocircuito)")
+        "alarm_locked_out" -> tr("La central de alarma está bloqueada tras PIN erróneos"); "alarm_offline" -> tr("Un nodo de alarma ha dejado de responder")
+        "duress_disarm" -> tr("El sistema se desarmó con el PIN de coacción: puede que alguien esté siendo obligado")
         else -> code
     }
 
     /** What to ask before a command to a device of that risk (null: nothing, a click is enough). */
     fun confirmQuestion(device: SiteDevice, command: String): String? = when (device.risk) {
-        "circuit" -> "«${device.name}» es un circuito del cuadro eléctrico. ¿Seguro que quieres ${commandVerb(command)} su alimentación?"
-        "critical" -> "«${device.name}» es crítico (un congelador, una bomba, la alarma...). Solo un administrador puede ordenarlo. ¿Seguro que quieres ${commandVerb(command)} su alimentación?"
+        "circuit" -> trf("«%s» es un circuito del cuadro eléctrico. ¿Seguro que quieres %s su alimentación?", device.name, commandVerb(command))
+        "critical" -> trf("«%s» es crítico (un congelador, una bomba, la alarma...). Solo un administrador puede ordenarlo. ¿Seguro que quieres %s su alimentación?", device.name, commandVerb(command))
         else -> null
     }
-    private fun commandVerb(command: String) = when (command) { "on" -> "conectar"; "off" -> "cortar"; else -> "cambiar" }
+    private fun commandVerb(command: String) = when (command) { "on" -> tr("conectar"); "off" -> tr("cortar"); else -> tr("cambiar") }
 
-    fun severityLabel(severity: String) = when (severity) { "critical" -> "CRÍTICA"; "high" -> "ALTA"; else -> "AVISO" }
+    fun severityLabel(severity: String) = when (severity) { "critical" -> tr("CRÍTICA"); "high" -> tr("ALTA"); else -> tr("AVISO") }
 }

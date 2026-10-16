@@ -2,6 +2,8 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor.model
 
+import es.electrohobby3d.armor.tr
+import es.electrohobby3d.armor.trf
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -69,51 +71,51 @@ object AlarmPanelsParser {
 /** The wording of the alarm panels, in plain Spanish. */
 object AlarmPanelText {
     fun phase(phase: String): String = when (phase) {
-        "disarmed" -> "Desarmada"; "exit_delay" -> "Saliendo: retardo de salida"; "armed" -> "Armada"; "entry_delay" -> "Retardo de entrada: desarma ya"; "alarm" -> "¡ALARMA!"; else -> phase
+        "disarmed" -> tr("Desarmada"); "exit_delay" -> tr("Saliendo: retardo de salida"); "armed" -> tr("Armada"); "entry_delay" -> tr("Retardo de entrada: desarma ya"); "alarm" -> tr("¡ALARMA!"); else -> phase
     }
-    fun mode(mode: String): String = when (mode) { "away" -> "Fuera"; "stay" -> "En casa"; else -> "Sin armar" }
-    fun zoneKind(kind: String): String = when (kind) { "instant" -> "instantánea"; "entry" -> "de entrada"; "interior" -> "interior"; "always" -> "siempre"; else -> kind }
-    fun zoneState(state: String): String = when (state) { "normal" -> "cerrada"; "triggered" -> "abierta"; "tamper" -> "sabotaje"; else -> state }
+    fun mode(mode: String): String = when (mode) { "away" -> tr("Fuera"); "stay" -> tr("En casa"); else -> tr("Sin armar") }
+    fun zoneKind(kind: String): String = when (kind) { "instant" -> tr("instantánea"); "entry" -> tr("de entrada"); "interior" -> "interior"; "always" -> tr("siempre"); else -> kind }
+    fun zoneState(state: String): String = when (state) { "normal" -> tr("cerrada"); "triggered" -> tr("abierta"); "tamper" -> tr("sabotaje"); else -> state }
 
     fun event(kind: String): String = when (kind) {
-        "armed" -> "armada"; "exit_delay_started" -> "empezó el retardo de salida"; "entry_delay_started" -> "empezó el retardo de entrada"; "alarm" -> "alarma"
-        "siren_timed_out" -> "la sirena se paró sola"; "disarmed" -> "desarmada"; "bad_pin" -> "PIN erróneo"; "locked_out" -> "bloqueada"; "zone_bypassed" -> "excluyó una zona"; else -> kind
+        "armed" -> tr("armada"); "exit_delay_started" -> tr("empezó el retardo de salida"); "entry_delay_started" -> tr("empezó el retardo de entrada"); "alarm" -> tr("alarma")
+        "siren_timed_out" -> tr("la sirena se paró sola"); "disarmed" -> tr("desarmada"); "bad_pin" -> tr("PIN erróneo"); "locked_out" -> tr("bloqueada"); "zone_bypassed" -> tr("excluyó una zona"); else -> kind
     }
 
     /** "hace 12 s", "hace 3 min", "hace 2 h". */
     fun ago(seconds: Long): String = when {
-        seconds < 90 -> "hace $seconds s"
-        seconds < 5400 -> "hace ${Math.round(seconds / 60.0)} min"
-        else -> "hace ${Math.round(seconds / 3600.0)} h"
+        seconds < 90 -> trf("hace %s s", seconds)
+        seconds < 5400 -> trf("hace %s min", Math.round(seconds / 60.0))
+        else -> trf("hace %s h", Math.round(seconds / 3600.0))
     }
 
     /** Why a command was not accepted (or what the node did), in plain Spanish. */
     fun refusal(refusal: String): String = when (refusal) {
-        "none" -> "aceptada"; "not_disarmed" -> "ya estaba armada"; "zones_open" -> "hay una zona abierta que importa"; "not_armed" -> "no estaba armada"
-        "bad_pin" -> "PIN erróneo"; "locked_out" -> "bloqueada"; "timeout" -> "el nodo no respondió"; else -> refusal
+        "none" -> tr("aceptada"); "not_disarmed" -> tr("ya estaba armada"); "zones_open" -> tr("hay una zona abierta que importa"); "not_armed" -> tr("no estaba armada")
+        "bad_pin" -> tr("PIN erróneo"); "locked_out" -> tr("bloqueada"); "timeout" -> tr("el nodo no respondió"); else -> refusal
     }
 
     /** What the server answered when it refused to send a command (its machine-readable code). */
     fun error(code: String): String = when (code) {
-        "commands_disabled" -> "Armar desde aquí está apagado en el servidor"
-        "unknown_node" -> "El servidor no conoce ese nodo"
-        "node_unavailable" -> "El nodo no ha informado últimamente"
-        "node_commands_off" -> "El nodo no acepta órdenes del servidor"
-        "busy" -> "Otra orden a este nodo aún espera su respuesta"
-        "mqtt_unavailable" -> "El servidor no está conectado al broker"
-        "wrong_pin" -> "El PIN no es correcto"
-        "pin_locked" -> "Demasiados PIN erróneos: espera un poco"
-        "pin_not_set" -> "Este usuario no tiene PIN: lo pone un administrador"
-        else -> "No se pudo enviar la orden"
+        "commands_disabled" -> tr("Armar desde aquí está apagado en el servidor")
+        "unknown_node" -> tr("El servidor no conoce ese nodo")
+        "node_unavailable" -> tr("El nodo no ha informado últimamente")
+        "node_commands_off" -> tr("El nodo no acepta órdenes del servidor")
+        "busy" -> tr("Otra orden a este nodo aún espera su respuesta")
+        "mqtt_unavailable" -> tr("El servidor no está conectado al broker")
+        "wrong_pin" -> tr("El PIN no es correcto")
+        "pin_locked" -> tr("Demasiados PIN erróneos: espera un poco")
+        "pin_not_set" -> tr("Este usuario no tiene PIN: lo pone un administrador")
+        else -> tr("No se pudo enviar la orden")
     }
 
     /** The line the Status screen shows under the alarm panels tile. */
     fun summary(totals: AlarmTotals): String = when {
-        totals.nodes == 0 -> "Sin centrales de alarma"
-        totals.sounding > 0 -> if (totals.sounding == 1) "¡Una central está en alarma!" else "¡${totals.sounding} centrales están en alarma!"
-        totals.armed > 0 -> if (totals.armed == 1) "Una central vigilando" else "${totals.armed} centrales vigilando"
-        else -> "Centrales desarmadas"
+        totals.nodes == 0 -> tr("Sin centrales de alarma")
+        totals.sounding > 0 -> if (totals.sounding == 1) tr("¡Una central está en alarma!") else trf("¡%s centrales están en alarma!", totals.sounding)
+        totals.armed > 0 -> if (totals.armed == 1) tr("Una central vigilando") else trf("%s centrales vigilando", totals.armed)
+        else -> tr("Centrales desarmadas")
     }
 
-    fun confirmDisarm(node: String): String = "¿Desarmar «$node» desde el servidor? No lleva PIN: el nodo, el broker y el servidor lo permiten."
+    fun confirmDisarm(node: String): String = trf("¿Desarmar «%s» desde el servidor? No lleva PIN: el nodo, el broker y el servidor lo permiten.", node)
 }

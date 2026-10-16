@@ -96,11 +96,11 @@ class NodeSetupViewModel(application: Application) : AndroidViewModel(applicatio
     private var checkJob: kotlinx.coroutines.Job? = null
 
     fun scan() {
-        if (!client.bluetoothOn) { mutable.update { it.copy(message = "El Bluetooth del teléfono está apagado.") }; return }
+        if (!client.bluetoothOn) { mutable.update { it.copy(message = tr("El Bluetooth del teléfono está apagado.")) }; return }
         // Android refuses a scan that is started more than five times in thirty seconds (and says nothing): ask the person to wait instead of failing silently.
         val now = System.currentTimeMillis()
         while (scanStarts.isNotEmpty() && now - scanStarts.first() > 30_000) scanStarts.removeFirst()
-        if (scanStarts.size >= 4) { mutable.update { it.copy(message = "Espera unos segundos antes de buscar otra vez.") }; return }
+        if (scanStarts.size >= 4) { mutable.update { it.copy(message = tr("Espera unos segundos antes de buscar otra vez.")) }; return }
         scanStarts.addLast(now)
         mutable.update { it.copy(scanning = true, found = emptyList(), message = "") }
         // A search does not go on for ever (it uses the battery): after half a minute it stops by itself.
@@ -109,16 +109,16 @@ class NodeSetupViewModel(application: Application) : AndroidViewModel(applicatio
         val ok = client.startScan { node ->
             mutable.update { s -> s.copy(found = (s.found.filter { it.address != node.address } + node).sortedByDescending { it.rssi }) }
         }
-        if (!ok) mutable.update { it.copy(scanning = false, message = "No se pudo empezar la búsqueda.") }
+        if (!ok) mutable.update { it.copy(scanning = false, message = tr("No se pudo empezar la búsqueda.")) }
     }
 
     fun stopScan() { scanTimeout?.cancel(); client.stopScan(); mutable.update { it.copy(scanning = false) } }
 
     fun connect(node: FoundNode) {
         stopScan()
-        mutable.update { it.copy(step = NodeStep.Connecting, message = "Conectando con ${node.name}… (Android puede pedir emparejar)") }
+        mutable.update { it.copy(step = NodeStep.Connecting, message = trf("Conectando con %s… (Android puede pedir emparejar)", node.name)) }
         viewModelScope.launch {
-            if (!client.connect(node)) { mutable.update { it.copy(step = NodeStep.Search, message = "No se pudo conectar con ${node.name}.") }; return@launch }
+            if (!client.connect(node)) { mutable.update { it.copy(step = NodeStep.Search, message = trf("No se pudo conectar con %s.", node.name)) }; return@launch }
             val reply = client.request("hello")
             if (!reply.ok) { client.disconnect(); mutable.update { it.copy(step = NodeStep.Search, message = NodeProtocol.errorText(reply.error)) }; return@launch }
             val hello = NodeHello.from(reply.data)
@@ -144,11 +144,11 @@ class NodeSetupViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun searchNetworks() {
-        mutable.update { it.copy(busy = true, message = "Buscando redes Wi-Fi… (unos segundos)") }
+        mutable.update { it.copy(busy = true, message = tr("Buscando redes Wi-Fi… (unos segundos)")) }
         viewModelScope.launch {
             val reply = client.request("wifi.scan", timeoutMs = 40_000)
             mutable.update {
-                if (reply.ok) it.copy(busy = false, networks = WifiNetwork.list(reply.data), message = if (WifiNetwork.list(reply.data).isEmpty()) "No se oyó ninguna red." else "")
+                if (reply.ok) it.copy(busy = false, networks = WifiNetwork.list(reply.data), message = if (WifiNetwork.list(reply.data).isEmpty()) tr("No se oyó ninguna red.") else "")
                 else it.copy(busy = false, message = NodeProtocol.errorText(reply.error))
             }
         }
@@ -161,7 +161,7 @@ class NodeSetupViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             val reply = client.request("config.put", JSONObject().put("config", NodeSettingsPatch.build(form)))
             mutable.update {
-                if (reply.ok) it.copy(busy = false, saved = true, message = "Guardado. Reinicia el nodo para aplicarlo.")
+                if (reply.ok) it.copy(busy = false, saved = true, message = tr("Guardado. Reinicia el nodo para aplicarlo."))
                 else it.copy(busy = false, message = NodeProtocol.errorText(reply.error), problems = reply.problems())
             }
         }
@@ -180,7 +180,7 @@ class NodeSetupViewModel(application: Application) : AndroidViewModel(applicatio
     /** Looks for the node again over Bluetooth (it keeps advertising while it has no address) and reads what it did with its connection. */
     fun check(firstWaitMs: Long = 0) {
         val target = mutable.value.target ?: return
-        mutable.update { it.copy(step = NodeStep.Verify, busy = true, checking = true, outcome = null, saved = false, message = "El nodo se reinicia. Comprobando su conexión…") }
+        mutable.update { it.copy(step = NodeStep.Verify, busy = true, checking = true, outcome = null, saved = false, message = tr("El nodo se reinicia. Comprobando su conexión…")) }
         checkJob?.cancel()
         checkJob = viewModelScope.launch {
             if (firstWaitMs > 0) delay(firstWaitMs)
@@ -201,12 +201,12 @@ class NodeSetupViewModel(application: Application) : AndroidViewModel(applicatio
                         if (last is NodeOutcome.Failed && ++failures >= 2) break   // the second time the same reason is not a coincidence
                     }
                 }
-                mutable.update { it.copy(message = "Comprobando la conexión… (intento $attempt de 12)") }
+                mutable.update { it.copy(message = trf("Comprobando la conexión… (intento %s de 12)", attempt)) }
                 delay(6_000)
             }
             mutable.update {
                 it.copy(busy = false, checking = false, outcome = last,
-                    message = if (seen) "" else "No se volvió a ver el nodo por Bluetooth. Con cable Ethernet, búscalo en tu red o en Studio. Sin cable y sin Wi-Fi guardado, a los 90 s de arrancar abre su Wi-Fi ARMOR-SETUP-… (la contraseña es su código de configuración).")
+                    message = if (seen) "" else tr("No se volvió a ver el nodo por Bluetooth. Con cable Ethernet, búscalo en tu red o en Studio. Sin cable y sin Wi-Fi guardado, a los 90 s de arrancar abre su Wi-Fi ARMOR-SETUP-… (la contraseña es su código de configuración)."))
             }
         }
     }
@@ -242,13 +242,13 @@ fun NodeSetupScreen(onClose: () -> Unit, model: NodeSetupViewModel = viewModel()
     androidx.activity.compose.BackHandler { if (state.step == NodeStep.Search) { model.close(); onClose() } else model.close() }
     Column(Modifier.fillMaxSize().padding(12.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Configurar nodo por Bluetooth", style = MaterialTheme.typography.headlineSmall)
-            TextButton(onClick = { model.close(); onClose() }) { Text("Cerrar") }
+            Text(tr("Configurar nodo por Bluetooth"), style = MaterialTheme.typography.headlineSmall)
+            TextButton(onClick = { model.close(); onClose() }) { Text(tr("Cerrar")) }
         }
         if (state.message.isNotBlank()) Text(state.message, color = if (state.saved) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
         when (state.step) {
             NodeStep.Search -> SearchStep(state, granted, onSearch = { if (granted) model.scan() else permission.launch(blePermissions()) }, onStop = model::stopScan, onPick = model::connect)
-            NodeStep.Connecting -> Text("Conectando… Si Android pregunta por emparejar, acepta.")
+            NodeStep.Connecting -> Text(tr("Conectando… Si Android pregunta por emparejar, acepta y escribe el PIN que muestra el nodo en su consola USB."))
             NodeStep.SignIn -> SignInStep(state, onSignIn = model::signIn, onBack = { model.close() })
             NodeStep.Configure -> ConfigureStep(state, onScanWifi = model::searchNetworks, onApply = model::apply, onReboot = model::reboot)
             NodeStep.Verify -> VerifyStep(state, onAgain = { model.check() }, onReconfigure = { state.target?.let(model::connect) }, onDone = { model.close(); onClose() })
@@ -258,15 +258,15 @@ fun NodeSetupScreen(onClose: () -> Unit, model: NodeSetupViewModel = viewModel()
 
 @Composable
 private fun SearchStep(state: NodeSetupState, granted: Boolean, onSearch: () -> Unit, onStop: () -> Unit, onPick: (FoundNode) -> Unit) {
-    Text("Para un nodo sin cable Ethernet o sin dirección todavía. El nodo tiene que estar encendido y con el Bluetooth activo (un nodo nuevo lo tiene mientras no tenga usuarios).", style = MaterialTheme.typography.bodySmall)
-    if (!granted) Text("La app necesita el permiso de Bluetooth cercano para buscar nodos.", style = MaterialTheme.typography.bodySmall)
-    Button(onClick = if (state.scanning) onStop else onSearch, modifier = Modifier.fillMaxWidth()) { Text(if (state.scanning) "Parar la búsqueda" else "Buscar nodos") }
+    Text(tr("Para un nodo sin cable Ethernet o sin dirección todavía. El nodo tiene que estar encendido y con el Bluetooth activo (un nodo nuevo lo tiene mientras no tenga usuarios)."), style = MaterialTheme.typography.bodySmall)
+    if (!granted) Text(tr("La app necesita el permiso de Bluetooth cercano para buscar nodos."), style = MaterialTheme.typography.bodySmall)
+    Button(onClick = if (state.scanning) onStop else onSearch, modifier = Modifier.fillMaxWidth()) { Text(if (state.scanning) tr("Parar la búsqueda") else tr("Buscar nodos")) }
     state.found.forEach { node ->
         Card(Modifier.fillMaxWidth().clickable { onPick(node) }) {
             Row(Modifier.padding(12.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text(node.name); Text("${node.rssi} dBm", style = MaterialTheme.typography.labelMedium) }
         }
     }
-    if (state.scanning && state.found.isEmpty()) Text("Buscando…")
+    if (state.scanning && state.found.isEmpty()) Text(tr("Buscando…"))
 }
 
 @Composable
@@ -280,22 +280,22 @@ private fun SignInStep(state: NodeSetupState, onSignIn: (String, String, String,
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(hello.name.ifBlank { hello.nodeId }, style = MaterialTheme.typography.titleMedium)
             Text(hello.kind.label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
-            Text("MAC ${hello.mac} · firmware ${hello.firmware}", style = MaterialTheme.typography.bodySmall)
-            Text(if (hello.hasIp) "Red: ${hello.ip}" else "Sin dirección de red todavía", style = MaterialTheme.typography.bodySmall)
+            Text(trf("MAC %s · firmware %s", hello.mac, hello.firmware), style = MaterialTheme.typography.bodySmall)
+            Text(if (hello.hasIp) trf("Red: %s", hello.ip) else tr("Sin dirección de red todavía"), style = MaterialTheme.typography.bodySmall)
             if (hello.staConnected) Text("Wi-Fi: ${hello.staSsid}", style = MaterialTheme.typography.bodySmall)
         }
     }
     if (hello.setup) {
-        Text("Este nodo no tiene usuarios. Escribe el código de configuración (el que muestra por su consola USB, o el de la flota) y elige el administrador.", style = MaterialTheme.typography.bodySmall)
-        OutlinedTextField(code, { code = it }, label = { Text("Código de configuración") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        PasswordField(secret, { secret = it }, "…o el secreto de la flota (calcula el código desde la MAC)", modifier = Modifier.fillMaxWidth())
-    } else Text("Inicia sesión con un usuario del nodo.", style = MaterialTheme.typography.bodySmall)
-    OutlinedTextField(user, { user = it }, label = { Text("Usuario") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-    PasswordField(password, { password = it }, if (hello.setup) "Contraseña nueva (8 caracteres o más)" else "Contraseña", modifier = Modifier.fillMaxWidth())
+        Text(tr("Este nodo no tiene usuarios. Escribe el código de configuración (el que muestra por su consola USB, o el de la flota) y elige el administrador."), style = MaterialTheme.typography.bodySmall)
+        OutlinedTextField(code, { code = it }, label = { Text(tr("Código de configuración")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        PasswordField(secret, { secret = it }, tr("…o el secreto de la flota (calcula el código desde la MAC)"), modifier = Modifier.fillMaxWidth())
+    } else Text(tr("Inicia sesión con un usuario del nodo."), style = MaterialTheme.typography.bodySmall)
+    OutlinedTextField(user, { user = it }, label = { Text(tr("Usuario")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+    PasswordField(password, { password = it }, if (hello.setup) tr("Contraseña nueva (8 caracteres o más)") else tr("Contraseña"), modifier = Modifier.fillMaxWidth())
     Button(onClick = { onSignIn(code, secret, user, password) }, enabled = !state.busy && user.isNotBlank() && password.isNotEmpty() && (!hello.setup || code.isNotBlank() || secret.isNotBlank()), modifier = Modifier.fillMaxWidth()) {
-        Text(if (hello.setup) "Crear administrador" else "Entrar")
+        Text(if (hello.setup) tr("Crear administrador") else tr("Entrar"))
     }
-    OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text("Elegir otro nodo") }
+    OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text(tr("Elegir otro nodo")) }
 }
 
 /** A password field with an eye that shows or hides it while held down... no, while toggled: tap it to see what was typed, tap again to hide it. */
@@ -307,7 +307,7 @@ private fun PasswordField(value: String, onValueChange: (String) -> Unit, label:
         visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
         trailingIcon = {
             IconButton(onClick = { visible = !visible }) {
-                Icon(if (visible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, contentDescription = if (visible) "Ocultar contraseña" else "Mostrar contraseña")
+                Icon(if (visible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, contentDescription = if (visible) tr("Ocultar contraseña") else tr("Mostrar contraseña"))
             }
         },
     )
@@ -330,75 +330,75 @@ private fun ConfigureStep(state: NodeSetupState, onScanWifi: () -> Unit, onApply
     var bluetooth by remember { mutableStateOf("") }
     val form = NodeSettingsPatch.Form(name, useWifi, ssid, wifiPassword, fixed, address, netmask, gateway, dns, brokerUri, brokerUser, brokerPassword, bluetooth)
     val formProblems = NodeSettingsPatch.problems(form)
-    if (!state.admin) { Text("Este usuario sólo puede mirar: para cambiar la configuración hace falta un administrador."); return }
+    if (!state.admin) { Text(tr("Este usuario sólo puede mirar: para cambiar la configuración hace falta un administrador.")); return }
 
     state.hello?.let { Text(it.kind.label + " · " + it.nodeId, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary) }
-    Text("Nombre y conexión", style = MaterialTheme.typography.titleMedium)
-    OutlinedTextField(name, { name = it }, label = { Text("Nombre del nodo") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) { Switch(useWifi, { useWifi = it }); Text(if (useWifi) "Conexión por Wi-Fi (router o punto de acceso)" else "Conexión por cable Ethernet") }
+    Text(tr("Nombre y conexión"), style = MaterialTheme.typography.titleMedium)
+    OutlinedTextField(name, { name = it }, label = { Text(tr("Nombre del nodo")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) { Switch(useWifi, { useWifi = it }); Text(if (useWifi) tr("Conexión por Wi-Fi (router o punto de acceso)") else tr("Conexión por cable Ethernet")) }
     if (useWifi) {
-        Button(onClick = onScanWifi, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text("Buscar redes Wi-Fi") }
+        Button(onClick = onScanWifi, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text(tr("Buscar redes Wi-Fi")) }
         state.networks.forEach { network ->
             Card(Modifier.fillMaxWidth().clickable { ssid = network.ssid }) {
-                Row(Modifier.padding(10.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text(network.ssid); Text("${network.rssi} dBm · canal ${network.channel} · ${network.security}", style = MaterialTheme.typography.labelSmall) }
+                Row(Modifier.padding(10.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text(network.ssid); Text(trf("%s dBm · canal %s · %s", network.rssi, network.channel, network.security), style = MaterialTheme.typography.labelSmall) }
             }
         }
-        OutlinedTextField(ssid, { ssid = it }, label = { Text("Nombre de la red (SSID)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        PasswordField(wifiPassword, { wifiPassword = it }, "Contraseña del Wi-Fi", modifier = Modifier.fillMaxWidth())
-        Text("El nodo sólo usa redes de 2,4 GHz. Al reiniciar, la app vuelve a buscarlo por Bluetooth y te dice si se ha conectado o por qué no.", style = MaterialTheme.typography.bodySmall)
+        OutlinedTextField(ssid, { ssid = it }, label = { Text(tr("Nombre de la red (SSID)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        PasswordField(wifiPassword, { wifiPassword = it }, tr("Contraseña del Wi-Fi"), modifier = Modifier.fillMaxWidth())
+        Text(tr("El nodo sólo usa redes de 2,4 GHz. Al reiniciar, la app vuelve a buscarlo por Bluetooth y te dice si se ha conectado o por qué no."), style = MaterialTheme.typography.bodySmall)
     }
-    Text("Dirección de red", style = MaterialTheme.typography.titleMedium)
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) { Switch(fixed, { fixed = it }); Text(if (fixed) "Dirección fija" else "Automática (DHCP)") }
+    Text(tr("Dirección de red"), style = MaterialTheme.typography.titleMedium)
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) { Switch(fixed, { fixed = it }); Text(if (fixed) tr("Dirección fija") else tr("Automática (DHCP)")) }
     if (fixed) {
-        OutlinedTextField(address, { address = it }, label = { Text("Dirección IP (por ejemplo 192.168.0.60)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(netmask, { netmask = it }, label = { Text("Máscara de subred") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(gateway, { gateway = it }, label = { Text("Puerta de enlace (el router)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(dns, { dns = it }, label = { Text("DNS (vacío: la puerta de enlace)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(address, { address = it }, label = { Text(tr("Dirección IP (por ejemplo 192.168.0.60)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(netmask, { netmask = it }, label = { Text(tr("Máscara de subred")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(gateway, { gateway = it }, label = { Text(tr("Puerta de enlace (el router)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(dns, { dns = it }, label = { Text(tr("DNS (vacío: la puerta de enlace)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
     }
     HorizontalDivider()
-    Text("Broker (opcional)", style = MaterialTheme.typography.titleMedium)
-    OutlinedTextField(brokerUri, { brokerUri = it }, label = { Text("Dirección del broker (mqtt://host:puerto)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-    OutlinedTextField(brokerUser, { brokerUser = it }, label = { Text("Usuario del broker") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-    PasswordField(brokerPassword, { brokerPassword = it }, "Contraseña del broker", modifier = Modifier.fillMaxWidth())
+    Text(tr("Broker (opcional)"), style = MaterialTheme.typography.titleMedium)
+    OutlinedTextField(brokerUri, { brokerUri = it }, label = { Text(tr("Dirección del broker (mqtt://host:puerto)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+    OutlinedTextField(brokerUser, { brokerUser = it }, label = { Text(tr("Usuario del broker")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+    PasswordField(brokerPassword, { brokerPassword = it }, tr("Contraseña del broker"), modifier = Modifier.fillMaxWidth())
     HorizontalDivider()
-    Text("Bluetooth después del reinicio", style = MaterialTheme.typography.titleMedium)
-    listOf("" to "no cambiar", "setup" to "sólo mientras el nodo no tenga usuarios", "always" to "siempre (hace falta iniciar sesión)", "off" to "apagado").forEach { (value, label) ->
+    Text(tr("Bluetooth después del reinicio"), style = MaterialTheme.typography.titleMedium)
+    listOf("" to tr("no cambiar"), "setup" to tr("sólo mientras el nodo no tenga usuarios"), "always" to tr("siempre (hace falta iniciar sesión)"), "off" to tr("apagado")).forEach { (value, label) ->
         Row(Modifier.clickable { bluetooth = value }, verticalAlignment = Alignment.CenterVertically) { RadioButton(selected = bluetooth == value, onClick = { bluetooth = value }); Text(label) }
     }
-    if (state.problems.isNotEmpty()) Text("Valores que el nodo no acepta: " + state.problems.joinToString("; "), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+    if (state.problems.isNotEmpty()) Text(tr("Valores que el nodo no acepta: ") + state.problems.joinToString("; "), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
     if (formProblems.isNotEmpty()) formProblems.forEach { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
-    Button(onClick = { onApply(form) }, enabled = !state.busy && formProblems.isEmpty(), modifier = Modifier.fillMaxWidth()) { Text("Guardar en el nodo") }
-    if (state.saved) OutlinedButton(onClick = onReboot, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text("Reiniciar el nodo y comprobar la conexión") }
+    Button(onClick = { onApply(form) }, enabled = !state.busy && formProblems.isEmpty(), modifier = Modifier.fillMaxWidth()) { Text(tr("Guardar en el nodo")) }
+    if (state.saved) OutlinedButton(onClick = onReboot, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text(tr("Reiniciar el nodo y comprobar la conexión")) }
 }
 
 @Composable
 private fun VerifyStep(state: NodeSetupState, onAgain: () -> Unit, onReconfigure: () -> Unit, onDone: () -> Unit) {
     if (state.checking) {
         LinearProgressIndicator(Modifier.fillMaxWidth())
-        Text("Esto tarda hasta un par de minutos: el nodo se reinicia y se conecta.", style = MaterialTheme.typography.bodySmall)
+        Text(tr("Esto tarda hasta un par de minutos: el nodo se reinicia y se conecta."), style = MaterialTheme.typography.bodySmall)
     }
     when (val outcome = state.outcome) {
         is NodeOutcome.Online -> Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("El nodo está en la red", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-                Text("Dirección: ${outcome.ip}")
+                Text(tr("El nodo está en la red"), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                Text(trf("Dirección: %s", outcome.ip))
                 if (outcome.ssid.isNotBlank()) Text("Wi-Fi: ${outcome.ssid}")
-                Text("Ya puedes abrir su panel en http://${outcome.ip}/ o añadirlo en Studio.", style = MaterialTheme.typography.bodySmall)
+                Text(trf("Ya puedes abrir su panel en http://%s/ o añadirlo en Studio.", outcome.ip), style = MaterialTheme.typography.bodySmall)
             }
         }
         is NodeOutcome.Failed -> Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("El nodo no se ha conectado", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.error)
+                Text(tr("El nodo no se ha conectado"), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.error)
                 Text(outcome.reason)
-                Text("Sigue con el Bluetooth encendido mientras no tenga red: puedes corregir el Wi-Fi y probar otra vez.", style = MaterialTheme.typography.bodySmall)
+                Text(tr("Sigue con el Bluetooth encendido mientras no tenga red: puedes corregir el Wi-Fi y probar otra vez."), style = MaterialTheme.typography.bodySmall)
             }
         }
         else -> if (!state.checking && state.message.isNotBlank()) Text(state.message, color = MaterialTheme.colorScheme.error)
     }
     if (state.checking && state.message.isNotBlank()) Text(state.message)
     if (!state.checking) {
-        OutlinedButton(onClick = onAgain, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text("Volver a comprobar") }
-        if (state.outcome is NodeOutcome.Failed) Button(onClick = onReconfigure, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text("Cambiar la configuración") }
-        TextButton(onClick = onDone, modifier = Modifier.fillMaxWidth()) { Text("Terminar") }
+        OutlinedButton(onClick = onAgain, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text(tr("Volver a comprobar")) }
+        if (state.outcome is NodeOutcome.Failed) Button(onClick = onReconfigure, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text(tr("Cambiar la configuración")) }
+        TextButton(onClick = onDone, modifier = Modifier.fillMaxWidth()) { Text(tr("Terminar")) }
     }
 }

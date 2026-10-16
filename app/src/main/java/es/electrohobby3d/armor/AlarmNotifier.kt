@@ -34,16 +34,16 @@ object AlarmNotifier {
 
     fun ensureChannels(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java)
-        manager.createNotificationChannel(NotificationChannel(ALARM_CHANNEL, "Alarmas de A.R.M.O.R.", NotificationManager.IMPORTANCE_HIGH).apply { description = "Alertas altas, cámaras sin respuesta y nodos caídos" })
+        manager.createNotificationChannel(NotificationChannel(ALARM_CHANNEL, tr("Alarmas de A.R.M.O.R."), NotificationManager.IMPORTANCE_HIGH).apply { description = tr("Alertas altas, cámaras sin respuesta y nodos caídos") })
         // One channel per severity, so each can have its own sound, vibration and priority in the phone's own settings (a critical one uses the alarm sound and the alarm volume).
-        manager.createNotificationChannel(NotificationChannel(CRITICAL_CHANNEL, "Alarmas críticas", NotificationManager.IMPORTANCE_HIGH).apply {
-            description = "Humo, gas, agua, pánico y lo más grave: suena como una alarma."
+        manager.createNotificationChannel(NotificationChannel(CRITICAL_CHANNEL, tr("Alarmas críticas"), NotificationManager.IMPORTANCE_HIGH).apply {
+            description = tr("Humo, gas, agua, pánico y lo más grave: suena como una alarma.")
             setSound(android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_ALARM), android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_ALARM).setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION).build())
             enableVibration(true); vibrationPattern = longArrayOf(0, 600, 300, 600, 300, 900)
             setBypassDnd(true)
         })
-        manager.createNotificationChannel(NotificationChannel(WARNING_CHANNEL, "Avisos", NotificationManager.IMPORTANCE_DEFAULT).apply { description = "Avisos menos graves: batería baja, un dispositivo sin respuesta." })
-        manager.createNotificationChannel(NotificationChannel(WATCH_CHANNEL, "Vigilancia en segundo plano", NotificationManager.IMPORTANCE_LOW).apply { description = "Aviso permanente mientras la vigilancia está activa" })
+        manager.createNotificationChannel(NotificationChannel(WARNING_CHANNEL, tr("Avisos"), NotificationManager.IMPORTANCE_DEFAULT).apply { description = tr("Avisos menos graves: batería baja, un dispositivo sin respuesta.") })
+        manager.createNotificationChannel(NotificationChannel(WATCH_CHANNEL, tr("Vigilancia en segundo plano"), NotificationManager.IMPORTANCE_LOW).apply { description = tr("Aviso permanente mientras la vigilancia está activa") })
     }
 
     /** From Android 13 a notification needs the user's permission; without it nothing is shown. */
@@ -74,7 +74,7 @@ object AlarmNotifier {
         ensureChannels(context)
         return Notification.Builder(context, WATCH_CHANNEL)
             .setSmallIcon(android.R.drawable.ic_lock_idle_lock)
-            .setContentTitle("A.R.M.O.R. vigilando").setContentText(text)
+            .setContentTitle(tr("A.R.M.O.R. vigilando")).setContentText(text)
             .setOngoing(true).setContentIntent(openApp(context))
             .build()
     }

@@ -34,7 +34,8 @@ class AlarmWatcherService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val notification = AlarmNotifier.watchNotification(this, "Comprobando eventos cada ${INTERVAL_MS / 1000} s")
+        Tr.init(this)
+        val notification = AlarmNotifier.watchNotification(this, trf("Comprobando eventos cada %s s", INTERVAL_MS / 1000))
         // From Android 14 the watch is a "special use" service, which Android 15 does not stop after six hours as it does a data-sync one.
         when {
             Build.VERSION.SDK_INT >= 34 -> startForeground(AlarmNotifier.WATCH_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
@@ -48,7 +49,7 @@ class AlarmWatcherService : Service() {
 
     private suspend fun watch() {
         val origin = getSharedPreferences("armor-control", Context.MODE_PRIVATE).getString("origin", "").orEmpty()
-        if (ServerEndpoint.parse(origin) == null) { stopWith("Configura el servidor en la app."); return }
+        if (ServerEndpoint.parse(origin) == null) { stopWith(tr("Configura el servidor en la app.")); return }
         val client = ArmorApiClient()
         // The phone may have closed the app's process: the watcher carries the session kept by the app.
         SessionVault(PreferencesStore(getSharedPreferences("armor-session", Context.MODE_PRIVATE)), KeystoreBox()).load(origin)?.let { client.restoreSessionCookie(origin, it.name, it.value) }
@@ -60,7 +61,7 @@ class AlarmWatcherService : Service() {
                 failures = 0
                 firstFailureAt = 0L
             } catch (error: ArmorApiException) {
-                if (error.code == 401) { stopWith("La sesión ha caducado: abre la app e inicia sesión."); return }
+                if (error.code == 401) { stopWith(tr("La sesión ha caducado: abre la app e inicia sesión.")); return }
                 failures += 1
                 if (failures == 1) firstFailureAt = System.currentTimeMillis()
             } catch (error: Exception) {
@@ -68,7 +69,7 @@ class AlarmWatcherService : Service() {
                 if (failures == 1) firstFailureAt = System.currentTimeMillis()
             }
             // A server that stays unreachable is itself worth knowing about, once.
-            if (failures == UNREACHABLE_AFTER) AlarmNotifier.post(this, AlarmNotice(System.currentTimeMillis() % 1_000_000, "Servidor sin respuesta", "ARMOR-SERVER no responde desde hace ${(System.currentTimeMillis() - firstFailureAt) / 1000} s"))
+            if (failures == UNREACHABLE_AFTER) AlarmNotifier.post(this, AlarmNotice(System.currentTimeMillis() % 1_000_000, tr("Servidor sin respuesta"), trf("ARMOR-SERVER no responde desde hace %s s", (System.currentTimeMillis() - firstFailureAt) / 1000)))
             delay(nextDelayMs(failures))
         }
     }
@@ -81,13 +82,13 @@ class AlarmWatcherService : Service() {
     }
 
     private fun stopWith(reason: String) {
-        AlarmNotifier.post(this, AlarmNotice(System.currentTimeMillis() % 1_000_000, "Vigilancia detenida", reason))
+        AlarmNotifier.post(this, AlarmNotice(System.currentTimeMillis() % 1_000_000, tr("Vigilancia detenida"), reason))
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 
     /** Android 15 ends a data-sync foreground service after a few hours; tell the operator instead of dying silently. */
-    override fun onTimeout(startId: Int, fgsType: Int) { stopWith("Android detuvo la vigilancia en segundo plano; vuelve a activarla en la app.") }
+    override fun onTimeout(startId: Int, fgsType: Int) { stopWith(tr("Android detuvo la vigilancia en segundo plano; vuelve a activarla en la app.")) }
 
     override fun onDestroy() { scope.cancel(); super.onDestroy() }
 

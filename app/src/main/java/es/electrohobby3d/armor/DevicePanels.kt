@@ -10,7 +10,7 @@ internal val openingKinds = setOf("valve", "shutter", "gate_motor", "garage_moto
 
 /** The words of the two buttons that command an actuator: a lock is locked by "on", a valve, a shutter or a gate motor is opened by "on". */
 internal fun commandLabels(kind: String): Pair<String, String> = when (kind) {
-    "lock" -> "Cerrar" to "Abrir"; in openingKinds -> "Abrir" to "Cerrar"; "siren" -> "Sonar" to "Silenciar"; else -> "Encender" to "Apagar"
+    "lock" -> tr("Cerrar") to tr("Abrir"); in openingKinds -> tr("Abrir") to tr("Cerrar"); "siren" -> tr("Sonar") to tr("Silenciar"); else -> tr("Encender") to tr("Apagar")
 }
 
 /** Where an alarm came from, in words: the device's own name when it is one. */

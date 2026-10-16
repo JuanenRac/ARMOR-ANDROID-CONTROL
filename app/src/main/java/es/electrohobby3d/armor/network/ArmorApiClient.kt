@@ -40,8 +40,8 @@ class ArmorApiClient {
 
     /** The newest events first; [before] is an event id (only older events are returned). With [after] the events that came after that id, oldest first (a client that polls misses none). */
     fun history(origin: String, limit: Int = 50, before: Long? = null, after: Long? = null): List<ArmorEvent> {
-        val query = "?limit=$limit" + (before?.let { "&before=$it" } ?: "") + (after?.let { "&after=$it" } ?: "")
-        return getJson(origin, "/api/v1/history$query").optJSONArray("events").asObjects().mapNotNull(EventParser::parse)
+        val query = "?limit=${limit}" + (before?.let { "&before=${it}" } ?: "") + (after?.let { "&after=${it}" } ?: "")
+        return getJson(origin, "/api/v1/history${query}").optJSONArray("events").asObjects().mapNotNull(EventParser::parse)
     }
 
     /** What would leave the perimeter blind or noisy, asked before arming. */
@@ -119,7 +119,7 @@ class ArmorApiClient {
     }
 
     fun openOperatorSession(origin: String, token: String) {
-        request(origin, "/api/v1/operator/session", "POST", mapOf("Authorization" to "Bearer $token"), null, setOf(201)).disconnect()
+        request(origin, "/api/v1/operator/session", "POST", mapOf("Authorization" to "Bearer ${token}"), null, setOf(201)).disconnect()
     }
 
     /** The server's session cookie as it stands now (it is renewed while in use), to keep between launches; null when there is none. */
@@ -174,13 +174,13 @@ class ArmorApiClient {
     }
     fun deleteMedia(origin: String, item: MediaItem) {
         val kind = if (item.kind == "snapshot") "snapshots" else "recordings"
-        request(origin, "/api/v1/media/${part(item.cameraId)}/$kind/${part(item.file)}", "DELETE", emptyMap(), null, setOf(204)).disconnect()
+        request(origin, "/api/v1/media/${part(item.cameraId)}/${kind}/${part(item.file)}", "DELETE", emptyMap(), null, setOf(204)).disconnect()
     }
     fun mediaUrl(origin: String, item: MediaItem): String {
         val kind = if (item.kind == "snapshot") "snapshots" else "recordings"
-        return "$origin/api/v1/media/${part(item.cameraId)}/$kind/${part(item.file)}"
+        return "${origin}/api/v1/media/${part(item.cameraId)}/${kind}/${part(item.file)}"
     }
-    fun mjpegUrl(origin: String, id: String): String = "$origin/api/v1/cameras/${part(id)}/mjpeg"
+    fun mjpegUrl(origin: String, id: String): String = "${origin}/api/v1/cameras/${part(id)}/mjpeg"
 
     /** Whether this install has the voice gateway, so written and spoken commands work. */
     fun voiceAvailable(origin: String): Boolean = getJson(origin, "/api/v1/voice/status").optBoolean("available")
@@ -207,7 +207,7 @@ class ArmorApiClient {
             val stream = connection.errorStream
             val detail = stream?.bufferedReader()?.use { it.readText() }?.take(180).orEmpty()
             connection.disconnect()
-            throw ArmorApiException("Server operation failed (HTTP ${connection.responseCode})${if (detail.isBlank()) "" else ": $detail"}", connection.responseCode)
+            throw ArmorApiException("Server operation failed (HTTP ${connection.responseCode})${if (detail.isBlank()) "" else ": ${detail}"}", connection.responseCode)
         }
         return connection
     }

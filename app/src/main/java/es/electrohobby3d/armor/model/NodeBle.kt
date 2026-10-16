@@ -2,6 +2,8 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor.model
 
+import es.electrohobby3d.armor.tr
+import es.electrohobby3d.armor.trf
 import org.json.JSONArray
 import org.json.JSONObject
 import javax.crypto.Mac
@@ -59,9 +61,9 @@ class BleAssembler {
 /** An answer of the node: [ok] with its [data], or an [error] code (see the protocol's list) and perhaps [data]. */
 data class NodeReply(val id: Long, val ok: Boolean, val error: String, val data: JSONObject) {
     private fun problemText(path: String, code: String): String = when {
-        path == "uplink" && code == "not_available" -> "uplink: este nodo no tiene puerto Ethernet, usa el Wi-Fi"
-        path == "sta.enabled" && code == "required" -> "sta.enabled: sin Wi-Fi ni punto de acceso el nodo quedaría inalcanzable"
-        else -> "$path: $code"
+        path == "uplink" && code == "not_available" -> tr("uplink: este nodo no tiene puerto Ethernet, usa el Wi-Fi")
+        path == "sta.enabled" && code == "required" -> tr("sta.enabled: sin Wi-Fi ni punto de acceso el nodo quedaría inalcanzable")
+        else -> "${path}: ${code}"
     }
 
     /** The fields the node found wrong in a settings document, as "path: code". */
@@ -85,30 +87,30 @@ object NodeProtocol {
 
     /** Why a node could not join the Wi-Fi network it was given, in Spanish. */
     fun staErrorText(code: String): String = when (code) {
-        "network_not_found" -> "El nodo no encuentra esa red Wi-Fi: revisa el nombre, que esté al alcance y que sea de 2,4 GHz (el nodo no usa 5 GHz)."
-        "wrong_password" -> "La contraseña del Wi-Fi no es correcta (o el router no acepta la conexión)."
-        else -> "El nodo no consiguió conectarse al Wi-Fi."
+        "network_not_found" -> tr("El nodo no encuentra esa red Wi-Fi: revisa el nombre, que esté al alcance y que sea de 2,4 GHz (el nodo no usa 5 GHz).")
+        "wrong_password" -> tr("La contraseña del Wi-Fi no es correcta (o el router no acepta la conexión).")
+        else -> tr("El nodo no consiguió conectarse al Wi-Fi.")
     }
 
     /** The Spanish words for an error code of the node. */
     fun errorText(code: String): String = when (code) {
-        "wrong_code" -> "El código de configuración no es correcto."
-        "wrong_credentials" -> "Usuario o contraseña incorrectos."
-        "too_many_attempts" -> "Demasiados intentos: espera un momento."
-        "invalid_name" -> "El nombre de usuario no es válido (3 a 32 caracteres: a-z, 0-9, . _ -)."
-        "weak_password" -> "La contraseña debe tener de 8 a 64 caracteres."
-        "unauthorized" -> "Hay que iniciar sesión."
-        "forbidden" -> "No tienes permiso para eso."
-        "setup_required" -> "El nodo aún no tiene usuarios: crea el administrador."
-        "invalid" -> "Algunos valores no son válidos."
-        "storage" -> "El nodo no pudo escribir en su memoria."
-        "wifi_busy" -> "La radio del nodo está ocupada: inténtalo de nuevo."
-        "scan_failed" -> "La búsqueda de redes ha fallado."
-        "wifi_unavailable" -> "No se pudo arrancar el Wi-Fi del nodo."
-        "timeout" -> "El nodo no respondió a tiempo."
+        "wrong_code" -> tr("El código de configuración no es correcto.")
+        "wrong_credentials" -> tr("Usuario o contraseña incorrectos.")
+        "too_many_attempts" -> tr("Demasiados intentos: espera un momento.")
+        "invalid_name" -> tr("El nombre de usuario no es válido (3 a 32 caracteres: a-z, 0-9, . _ -).")
+        "weak_password" -> tr("La contraseña debe tener de 8 a 64 caracteres.")
+        "unauthorized" -> tr("Hay que iniciar sesión.")
+        "forbidden" -> tr("No tienes permiso para eso.")
+        "setup_required" -> tr("El nodo aún no tiene usuarios: crea el administrador.")
+        "invalid" -> tr("Algunos valores no son válidos.")
+        "storage" -> tr("El nodo no pudo escribir en su memoria.")
+        "wifi_busy" -> tr("La radio del nodo está ocupada: inténtalo de nuevo.")
+        "scan_failed" -> tr("La búsqueda de redes ha fallado.")
+        "wifi_unavailable" -> tr("No se pudo arrancar el Wi-Fi del nodo.")
+        "timeout" -> tr("El nodo no respondió a tiempo.")
         "network_not_found" -> staErrorText(code)
-        "disconnected" -> "Se perdió la conexión con el nodo."
-        else -> "El nodo respondió con un error ($code)."
+        "disconnected" -> tr("Se perdió la conexión con el nodo.")
+        else -> trf("El nodo respondió con un error (%s).", code)
     }
 }
 
@@ -141,8 +143,9 @@ data class WifiNetwork(val ssid: String, val rssi: Int, val channel: Int, val se
 }
 
 /** The kinds of field node that answer on the configuration channel; they all speak the same protocol, so the app configures each of them the same way. */
-enum class NodeKind(val label: String) {
+enum class NodeKind(private val key: String) {
     Radar("Nodo radar"), Solar("Nodo solar"), Electrical("Nodo eléctrico"), Unknown("Nodo ARMOR");
+    val label: String get() = tr(key)
 
     companion object {
         /** From the `kind` a node declares in its `hello`; a node that predates it is told by its identifier when that says so, and is otherwise just an ARMOR node. */
@@ -210,19 +213,19 @@ object NodeSettingsPatch {
     fun problems(form: Form): List<String> {
         val found = mutableListOf<String>()
         if (form.useWifi) {
-            if (form.wifiSsid.isBlank()) found += "Falta el nombre de la red Wi-Fi."
-            if (form.wifiPassword.isNotEmpty() && form.wifiPassword.length !in 8..63) found += "La contraseña del Wi-Fi tiene de 8 a 63 caracteres."
+            if (form.wifiSsid.isBlank()) found += tr("Falta el nombre de la red Wi-Fi.")
+            if (form.wifiPassword.isNotEmpty() && form.wifiPassword.length !in 8..63) found += tr("La contraseña del Wi-Fi tiene de 8 a 63 caracteres.")
         }
         if (form.fixedAddress) {
             val address = octets(form.address); val mask = octets(form.netmask); val gateway = octets(form.gateway)
-            if (address == null) found += "La dirección IP no es válida (por ejemplo 192.168.0.60)."
-            if (mask == null) found += "La máscara no es válida (por ejemplo 255.255.255.0)."
-            if (gateway == null) found += "La puerta de enlace no es válida (por ejemplo 192.168.0.1)."
-            if (form.dns.isNotBlank() && octets(form.dns) == null) found += "El DNS no es válido."
+            if (address == null) found += tr("La dirección IP no es válida (por ejemplo 192.168.0.60).")
+            if (mask == null) found += tr("La máscara no es válida (por ejemplo 255.255.255.0).")
+            if (gateway == null) found += tr("La puerta de enlace no es válida (por ejemplo 192.168.0.1).")
+            if (form.dns.isNotBlank() && octets(form.dns) == null) found += tr("El DNS no es válido.")
             if (address != null && mask != null && gateway != null) {
                 val m = asInt(mask)
-                if ((asInt(address) and m) != (asInt(gateway) and m)) found += "La puerta de enlace tiene que estar en la misma red que la dirección."
-                if (asInt(address) == asInt(gateway)) found += "La dirección del nodo y la puerta de enlace no pueden ser la misma."
+                if ((asInt(address) and m) != (asInt(gateway) and m)) found += tr("La puerta de enlace tiene que estar en la misma red que la dirección.")
+                if (asInt(address) == asInt(gateway)) found += tr("La dirección del nodo y la puerta de enlace no pueden ser la misma.")
             }
         }
         return found

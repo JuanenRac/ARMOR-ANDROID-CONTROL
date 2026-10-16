@@ -62,32 +62,32 @@ fun RadarScreen(design: SiteDesign?, loaded: Boolean, nodes: List<FieldNode>, on
     val counted = targets.count { it.counted }
     val online = nodes.count { it.online && !it.stale }
     Column(Modifier.fillMaxSize()) {
-        ScreenTitle(Icons.Filled.Radar, "Radar", if (design?.hasRadar == true) "En directo" else null) {
-            IconButton(onClick = { threeD = false }) { Icon(Icons.Filled.Map, contentDescription = "Vista 2D", tint = if (!threeD) ArmorColors.Cyan else ArmorColors.Muted) }
-            IconButton(onClick = { threeD = true }) { Icon(Icons.Filled.ViewInAr, contentDescription = "Vista 3D", tint = if (threeD) ArmorColors.Cyan else ArmorColors.Muted) }
-            IconButton(onClick = onReload) { Icon(Icons.Filled.Refresh, contentDescription = "Recargar el diseño", tint = ArmorColors.Muted) }
+        ScreenTitle(Icons.Filled.Radar, tr("Radar"), if (design?.hasRadar == true) tr("En directo") else null) {
+            IconButton(onClick = { threeD = false }) { Icon(Icons.Filled.Map, contentDescription = tr("Vista 2D"), tint = if (!threeD) ArmorColors.Cyan else ArmorColors.Muted) }
+            IconButton(onClick = { threeD = true }) { Icon(Icons.Filled.ViewInAr, contentDescription = tr("Vista 3D"), tint = if (threeD) ArmorColors.Cyan else ArmorColors.Muted) }
+            IconButton(onClick = onReload) { Icon(Icons.Filled.Refresh, contentDescription = tr("Recargar el diseño"), tint = ArmorColors.Muted) }
         }
         when {
             !loaded -> Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
             design == null || !design.hasRadar -> Panel(Modifier.fillMaxWidth().padding(top = 12.dp)) {
                 Column(Modifier.fillMaxWidth().padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     IconBadge(Icons.Filled.Radar, ArmorColors.Muted, size = 64.dp)
-                    Text("Aún no hay un radar diseñado", style = MaterialTheme.typography.titleMedium)
-                    Text("Coloca tus radares en el Diseñador de sitio de Studio y aparecerán aquí, con las personas que detectan.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, textAlign = TextAlign.Center)
+                    Text(tr("Aún no hay un radar diseñado"), style = MaterialTheme.typography.titleMedium)
+                    Text(tr("Coloca tus radares en el Diseñador de sitio de Studio y aparecerán aquí, con las personas que detectan."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, textAlign = TextAlign.Center)
                 }
             }
             else -> {
                 Box(Modifier.fillMaxWidth().weight(1f).clip(RoundedCornerShape(18.dp)).background(Color(0xFF060D11))) {
                     if (threeD) Site3D(design, targets, Modifier.fillMaxSize()) else Site2D(design, targets, Modifier.fillMaxSize())
                     Row(Modifier.align(Alignment.TopStart).padding(10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Chip(Icons.AutoMirrored.Filled.DirectionsWalk, if (counted == 1) "1 persona" else "$counted personas", if (counted > 0) TargetColour else ArmorColors.Muted)
-                        Chip(Icons.Filled.Sensors, "$online/${nodes.size} nodos", if (nodes.isNotEmpty() && online == nodes.size) ArmorColors.Ok else ArmorColors.Amber)
+                        Chip(Icons.AutoMirrored.Filled.DirectionsWalk, if (counted == 1) tr("1 persona") else "${counted} personas", if (counted > 0) TargetColour else ArmorColors.Muted)
+                        Chip(Icons.Filled.Sensors, trf("%s/%s nodos", online, nodes.size), if (nodes.isNotEmpty() && online == nodes.size) ArmorColors.Ok else ArmorColors.Amber)
                     }
-                    Text(if (threeD) "Arrastra para girar · pellizca para acercar" else "Arrastra y pellizca · doble toque para centrar", Modifier.align(Alignment.BottomCenter).padding(8.dp), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+                    Text(if (threeD) tr("Arrastra para girar · pellizca para acercar") else tr("Arrastra y pellizca · doble toque para centrar"), Modifier.align(Alignment.BottomCenter).padding(8.dp), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
                 }
                 if (unplaced > 0) Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Icon(Icons.Filled.Warning, null, tint = ArmorColors.Amber, modifier = Modifier.size(18.dp))
-                    Text("Hay detecciones de un nodo que no está enlazado a un radar del diseño.", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Amber)
+                    Text(tr("Hay detecciones de un nodo que no está enlazado a un radar del diseño."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Amber)
                 }
                 Spacer(Modifier.height(4.dp))
             }
