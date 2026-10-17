@@ -4,18 +4,18 @@ All notable changes to this project are documented here.
 
 ## [0.6.3] - A zone in trouble is shown, and the app is signed with its own release key
 
-A zone that the alarm node cannot read is shown as cannot be read (in the amber of a warning) in the alarm panels, and the warning that the server raises for it has its text in the eight languages.
-The app is signed with the owner's own release key, kept outside the repository, instead of the key of a development computer. Android treats it as a different publisher: the first update from an older version asks to uninstall the app and install this one once; after that, updates install over it.
+- A zone that the alarm node cannot read is shown as cannot be read (in the amber of a warning) in the alarm panels, and the warning that the server raises for it has its text in the eight languages.
+- The app is signed with the owner's own release key, kept outside the repository, instead of the key of a development computer. Android treats it as a different publisher: the first update from an older version asks to uninstall the app and install this one once; after that, updates install over it.
 
 ## [0.6.2] - Signing in from outside the house is explained, and the status screen shows the whole system
 
 **Signing in from outside the house:** typing a public address (or a name) without https:// used to leave the Enter button disabled with no explanation. The sign-in now says why, offers a one-tap "Use https", and a guide (VPN or public address with https) explains every step, in the eight languages.
 **The status screen shows more:** the alarm panels (how many, armed, sounding, without signal), the services of the system (running and failed), the cameras that are recording, and the security and remote access (second factor, VPN, sessions from outside); each card opens its screen.
-The status screen refreshes the new cards every ten seconds while it is open.
+- The status screen refreshes the new cards every ten seconds while it is open.
 
 ## [0.6.1] - The Security screen scrolls
 
-The Security screen (second factor, open sessions, remote access) now scrolls, so every card below the first can be reached on a phone screen.
+- The Security screen (second factor, open sessions, remote access) now scrolls, so every card below the first can be reached on a phone screen.
 
 ## [0.6.0] - Security: second factor, open sessions and the VPN and the dynamic DNS name from the phone
 
