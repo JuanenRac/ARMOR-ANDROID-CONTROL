@@ -27,14 +27,22 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import es.electrohobby3d.armor.model.CameraView
+import androidx.compose.runtime.saveable.rememberSaveable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+/** The stop of a held key goes out from here, not from the scope of the screen: that one is cancelled with the screen. */
+private val stopScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default)
 
 @Composable
 fun CamerasScreen(
     cameras: List<CameraView>, grid: Int, onGrid: (Int) -> Unit, origin: String, viewModel: ArmorViewModel, authenticated: Boolean,
-    recordingIds: Set<String>, health: Map<String, String>, onExpand: (CameraView) -> Unit,
+    recordingIds: Set<String>, health: Map<String, String>, onExpand: (CameraView) -> Unit, readOnly: Boolean = false,
 ) {
+    // [grid] is how many cameras a page shows (each page opens that many live pictures, no more); the arrows go through the rest
+    var page by rememberSaveable { mutableIntStateOf(0) }
+    val pages = if (cameras.isEmpty()) 1 else (cameras.size + grid - 1) / grid
+    if (page >= pages) page = pages - 1
     Column(Modifier.fillMaxSize()) {
         ScreenTitle(Icons.Filled.Videocam, tr("Cámaras"), if (cameras.isEmpty()) null else trf("%s en el servidor", cameras.size)) { GridPicker(grid, onGrid) }
         if (origin.isBlank() || cameras.isEmpty()) {
@@ -49,7 +57,14 @@ fun CamerasScreen(
             columns = GridCells.Fixed(if (grid <= 1) 1 else 2), modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            items(cameras.take(grid), key = { it.id }) { camera -> CameraTile(camera, origin, viewModel, authenticated, recordingIds.contains(camera.id), health[camera.id], onExpand) }
+            items(cameras.drop(page * grid).take(grid), key = { it.id }) { camera -> CameraTile(camera, origin, viewModel, authenticated && !readOnly, recordingIds.contains(camera.id), health[camera.id], onExpand) }
+            if (pages > 1) item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { page = (page - 1).coerceAtLeast(0) }, enabled = page > 0) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Anterior"), tint = ArmorColors.Cyan) }
+                    Text(trf("Página %s de %s", page + 1, pages), style = MaterialTheme.typography.bodyMedium)
+                    IconButton(onClick = { page = (page + 1).coerceAtMost(pages - 1) }, enabled = page < pages - 1) { Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = tr("Siguiente"), tint = ArmorColors.Cyan) }
+                }
+            }
         }
     }
 }
@@ -78,7 +93,7 @@ private fun CameraTile(camera: CameraView, origin: String, viewModel: ArmorViewM
         Box(Modifier.weight(1f).fillMaxWidth().background(Color.Black)) {
             when {
                 health == "offline" -> CameraMessage(Icons.Filled.VideocamOff, tr("Sin señal"))
-                camera.configured && camera.liveVideoAvailable -> MjpegFeed(viewModel.mjpegUrl(origin, camera), Modifier.fillMaxSize().clickable { expand(camera) }, sampleSize = 2)
+                camera.configured && camera.liveVideoAvailable -> MjpegFeed(viewModel.mjpegUrl(origin, camera), Modifier.fillMaxSize().clickable { expand(camera) }, sampleSize = 2, resolve = { viewModel.streamUrl(origin, camera) })
                 else -> CameraMessage(Icons.Filled.VideocamOff, if (camera.configured) tr("Sin vídeo") else tr("Sin configurar"))
             }
             if (recording) Icon(Icons.Filled.FiberManualRecord, null, tint = ArmorColors.Alert, modifier = Modifier.align(Alignment.TopStart).padding(8.dp).size(14.dp))
@@ -110,7 +125,7 @@ fun FullscreenCamera(camera: CameraView, origin: String, viewModel: ArmorViewMod
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(Modifier.fillMaxWidth().height(260.dp).clip(RoundedCornerShape(12.dp)).background(Color.Black)) {
-                    if (camera.liveVideoAvailable) MjpegFeed(viewModel.mjpegUrl(origin, camera), Modifier.fillMaxSize()) else CameraMessage(Icons.Filled.VideocamOff, tr("Sin vídeo"))
+                    if (camera.liveVideoAvailable) MjpegFeed(viewModel.mjpegUrl(origin, camera), Modifier.fillMaxSize(), resolve = { viewModel.streamUrl(origin, camera) }) else CameraMessage(Icons.Filled.VideocamOff, tr("Sin vídeo"))
                 }
                 PtzPad(enabled = unlocked, action = { viewModel.ptz(origin, camera, it) })
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -144,11 +159,9 @@ private fun HoldKey(icon: ImageVector, description: String, command: String, ena
                     val repeat = scope.launch { while (true) { current(command); delay(1_000) } }
                     try { tryAwaitRelease() } finally {
                         repeat.cancel()
-                        scope.launch {
-                            val wait = 300 - (System.currentTimeMillis() - started)
-                            if (wait > 0) delay(wait)
-                            current("stop")
-                        }
+                        // a stop must go out even when the screen is gone (a dialog closed with the finger down): it is not launched in the scope of the screen
+                        val wait = 300 - (System.currentTimeMillis() - started)
+                        stopScope.launch { if (wait > 0) delay(wait); current("stop") }
                     }
                 })
             },

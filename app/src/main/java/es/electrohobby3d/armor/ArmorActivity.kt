@@ -195,6 +195,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
 
     fun logout() {
         vault.clear()
+        Push.forget(context)   // the token is dropped at Firebase too: if the server could not be told, its next message to this phone finds no one and the server forgets it
         AlarmWatcherService.stop(context)
         viewModel.logout(currentOrigin)
         profile = false; confirmLogout = false; section = Section.Status; moreTab = null
@@ -264,7 +265,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                             Section.Devices -> DevicesScreen(state.devices, onCommand = { device, command -> if (es.electrohobby3d.armor.model.DeviceText.confirmQuestion(device, command) == null) viewModel.command(currentOrigin, device, command) else confirmCommand = device to command }, enabled = validOrigin && !state.loading && !state.readOnly)
                             Section.Cameras -> CamerasScreen(
                                 state.cameras, grid, onGrid = { grid = it }, origin = currentOrigin, viewModel = viewModel, authenticated = state.authenticated,
-                                recordingIds = state.media.activeCameraIds, health = state.cameraHealth, onExpand = { expanded = it },
+                                recordingIds = state.media.activeCameraIds, health = state.cameraHealth, onExpand = { expanded = it }, readOnly = state.readOnly,
                             )
                             Section.More -> when (moreTab) {
                                 null -> MoreMenu(
@@ -282,7 +283,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                     IconButton(onClick = { viewModel.reloadAlarmPanels(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
                                 }) {
                                     AlarmPanelsScreen(
-                                        state.alarmPanels, state.alarmCommands, canCommand = state.authenticated && !state.readOnly, network = state.network, onScanNetwork = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading,
+                                        state.alarmPanels, state.alarmCommands, canCommand = state.authenticated && state.isAdmin, network = state.network, onScanNetwork = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading,
                                         onArm = { panel, mode, force -> viewModel.alarmCommand(currentOrigin, panel.nodeId, mode, force) }, onDisarm = { panel, pin -> viewModel.alarmCommand(currentOrigin, panel.nodeId, null, pin = pin) },
                                     )
                                 }
@@ -330,7 +331,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 MoreTab.Settings -> SubScreen(Icons.Filled.Settings, tr("Ajustes"), onBack = { moreTab = null }) {
                                     SettingsScreen(
                                         origin, state.authenticated,
-                                        onConnect = { typed -> ServerEndpoint.parse(typed)?.let { endpoint -> origin = endpoint.origin; preferences.edit().putString("origin", endpoint.origin).apply(); viewModel.refresh(endpoint.origin) } },
+                                        onConnect = { typed -> ServerEndpoint.parse(typed)?.let { endpoint -> if (state.authenticated && endpoint.origin != currentOrigin) logout(); origin = endpoint.origin; preferences.edit().putString("origin", endpoint.origin).apply(); viewModel.refresh(endpoint.origin) } },
                                         watching = watching, onWatching = { on -> watching = on; setWatching(context, preferences, on) { notificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS) } },
                                     )
                                 }
@@ -401,7 +402,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                     onWatching = { on -> watching = on; setWatching(context, preferences, on) { notificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS) } },
                     onLogout = { profile = false; confirmLogout = true }, onDismiss = { profile = false },
                 )
-                expanded?.let { camera -> FullscreenCamera(camera, currentOrigin, viewModel, state.authenticated, state.media.activeCameraIds.contains(camera.id), onDismiss = { expanded = null }) }
+                expanded?.let { camera -> FullscreenCamera(camera, currentOrigin, viewModel, state.authenticated && !state.readOnly, state.media.activeCameraIds.contains(camera.id), onDismiss = { expanded = null }) }
                 // Startup checks only fetch release metadata from GitHub. The
                 // actual APK transfer and Android's own installer are both
                 // started explicitly by the operator, from this prompt or

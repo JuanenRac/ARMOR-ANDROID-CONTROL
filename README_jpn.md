@@ -22,14 +22,14 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
-  <img src="https://img.shields.io/badge/Tests-123%20passing-2ea44f.svg" alt="Tests">
-  <img src="https://img.shields.io/badge/Version-0.5.8-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Tests-125%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Version-0.5.9-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
 ---
 
-**正直さのチェック - 今日動いているもの:** アドレスの安全性、警報の判断、警報ウォッチャー、翻訳、読み取り専用ロールのルールは 123 件のユニットテストでカバーされ、アプリはビルドできます（`gradlew testDebugUnitTest assembleRelease`）。実際のスマートフォンで CM5 テストベンチに対して動作し、サインイン、カメラモニター、警戒と警報、レーダー、Bluetooth でのノード設定、GitHub からのアップデートが使われています。**まだ**証明されていないもの：実機でのソーラー・電気・警報盤の画面（存在するのはレーダーノードのみ）、Firebase 経由のプッシュ（独自の Firebase プロジェクトが必要で、アプリにはまだありません）、各メーカーのバッテリー規則下でのバックグラウンド警報監視。
+**正直さのチェック - 今日動いているもの:** アドレスの安全性、警報の判断、警報ウォッチャー、翻訳、読み取り専用ロールのルールは 125 件のユニットテストでカバーされ、アプリはビルドできます（`gradlew testDebugUnitTest assembleDebug`）。実際のスマートフォンで CM5 テストベンチに対して動作し、サインイン、カメラモニター、警戒と警報、レーダー、Bluetooth でのノード設定、GitHub からのアップデートが使われています。**まだ**証明されていないもの：実機でのソーラー・電気・警報盤の画面（存在するのはレーダーノードのみ）、Firebase 経由のプッシュ（アプリには入っており、独自の Firebase プロジェクトが必要です。実機ではまだ試していません）、各メーカーのバッテリー規則下でのバックグラウンド警報監視。
 
 ---
 
@@ -37,9 +37,9 @@
 
 | | |
 |---|---|
-| バージョン | `0.5.8` |
+| バージョン | `0.5.9` |
 | 成熟度 | 確立 |
-| テスト | 123 (`gradlew testDebugUnitTest`) |
+| テスト | 125 (`gradlew testDebugUnitTest`) |
 | 技術 | Kotlin / Jetpack Compose |
 | 実機での確認 | 実際のスマートフォンで CM5 テストベンチに対して使用。ソーラー・電気・警報盤の画面は実ノードを待っています |
 
@@ -81,14 +81,14 @@ ARMOR-ANDROID-CONTROL/
 
 ## 🛠️ 開発環境
 
-**必要なもの:** JDK 17+, the Android SDK (compile SDK 36), an Android 8.0+ phone (minSdk 26)
+**必要なもの:** JDK 17+, the Android SDK (compile SDK 37), an Android 8.0+ phone (minSdk 26)
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleRelease   # 123 tests, then the release APK
-adb install -r app\build\outputs\apk\release\app-release.apk
+.\gradlew.bat testDebugUnitTest assembleDebug   # 125 tests, then the debug APK
+adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
-リリースビルドは管理者の鍵で署名されて GitHub で公開され、アプリ自身がそこから更新を確認します。[クライアントの境界](docs/CLIENT_BOUNDARY.md)を参照してください。
+リリースは GitHub で公開され、アプリ自身がそこから更新を確認します。現在 APK は管理者の Android デバッグ証明書で署名されており、リリース用の鍵ではありません。[クライアントの境界](docs/CLIENT_BOUNDARY.md)を参照してください。
 
 ## 🔗 関連プロジェクト
 

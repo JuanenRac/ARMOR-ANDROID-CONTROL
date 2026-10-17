@@ -17,6 +17,8 @@ object AlarmNotifier {
     const val ALARM_CHANNEL = "armor_alarm"
     const val CRITICAL_CHANNEL = "armor_alarm_critical"
     const val WARNING_CHANNEL = "armor_alarm_warning"
+    private const val SERVER_CRITICAL_CHANNEL = "armor_critical"
+    private const val SERVER_WARNING_CHANNEL = "armor_warning"
     const val WATCH_CHANNEL = "armor_watch"
     private const val SPEAK = "speak_alarms"
     private const val PREFERENCES = "armor-control"
@@ -36,13 +38,15 @@ object AlarmNotifier {
         val manager = context.getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(NotificationChannel(ALARM_CHANNEL, tr("Alarmas de A.R.M.O.R."), NotificationManager.IMPORTANCE_HIGH).apply { description = tr("Alertas altas, cámaras sin respuesta y nodos caídos") })
         // One channel per severity, so each can have its own sound, vibration and priority in the phone's own settings (a critical one uses the alarm sound and the alarm volume).
-        manager.createNotificationChannel(NotificationChannel(CRITICAL_CHANNEL, tr("Alarmas críticas"), NotificationManager.IMPORTANCE_HIGH).apply {
+        // The channels of the server's push messages: if an older server names its own ("armor_critical", "armor_warning") they exist here with the same sound, so a critical alarm that
+        // arrives with the app closed still sounds like an alarm.
+        for (id in listOf(CRITICAL_CHANNEL, SERVER_CRITICAL_CHANNEL)) manager.createNotificationChannel(NotificationChannel(id, tr("Alarmas críticas"), NotificationManager.IMPORTANCE_HIGH).apply {
             description = tr("Humo, gas, agua, pánico y lo más grave: suena como una alarma.")
             setSound(android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_ALARM), android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_ALARM).setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION).build())
             enableVibration(true); vibrationPattern = longArrayOf(0, 600, 300, 600, 300, 900)
             setBypassDnd(true)
         })
-        manager.createNotificationChannel(NotificationChannel(WARNING_CHANNEL, tr("Avisos"), NotificationManager.IMPORTANCE_DEFAULT).apply { description = tr("Avisos menos graves: batería baja, un dispositivo sin respuesta.") })
+        for (id in listOf(WARNING_CHANNEL, SERVER_WARNING_CHANNEL)) manager.createNotificationChannel(NotificationChannel(id, tr("Avisos"), NotificationManager.IMPORTANCE_DEFAULT).apply { description = tr("Avisos menos graves: batería baja, un dispositivo sin respuesta.") })
         manager.createNotificationChannel(NotificationChannel(WATCH_CHANNEL, tr("Vigilancia en segundo plano"), NotificationManager.IMPORTANCE_LOW).apply { description = tr("Aviso permanente mientras la vigilancia está activa") })
     }
 

@@ -83,6 +83,8 @@ class NodeBleTest {
         assertEquals(NodeKind.Radar, hello("""{"kind":"radar","node_id":"armor-a1b2c3"}""").kind)
         assertEquals(NodeKind.Solar, hello("""{"kind":"solar","node_id":"casa-solar"}""").kind)
         assertEquals(NodeKind.Electrical, hello("""{"kind":"electrical","node_id":"cuadro"}""").kind)
+        assertEquals(NodeKind.Alarm, hello("""{"kind":"alarm","node_id":"alarma-1"}""").kind)
+        assertEquals(NodeKind.Hmi, hello("""{"kind":"hmi","node_id":"panel-1"}""").kind)
         // a node that predates the field: told by its identifier when it says so, otherwise an ARMOR node
         assertEquals(NodeKind.Solar, hello("""{"node_id":"solar-a1b2c3"}""").kind)
         assertEquals(NodeKind.Electrical, hello("""{"node_id":"electrical-a1b2c3"}""").kind)

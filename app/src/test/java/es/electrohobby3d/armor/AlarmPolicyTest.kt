@@ -20,6 +20,23 @@ class AlarmPolicyTest {
         assertEquals(listOf(2L, 4L), AlarmPolicy.notices(events, armed = false).map { it.id })
     }
 
+    @Test fun theAlarmOfADuressPinIsNeverAnnouncedOrKeptInTheHistory() {
+        // the person forced to disarm types the duress PIN: the phone must not sound, speak or list it, whoever is looking over their shoulder
+        val duress = """{"id":7,"at":"2026-10-17T10:00:00Z","type":"alarm","source":"duress","source_type":"alarm","severity":"critical","code":"duress_disarm","state":"raised"}"""
+        assertNull(EventParser.parse(JSONObject(duress)))
+        assertTrue(AlarmPolicy.isSilent("duress_disarm") && !AlarmPolicy.isSilent("smoke") && !AlarmPolicy.isSilent(null))
+        val smoke = ArmorEvent(8, "t", "alarm", "d1", null, "raised", null, null, severity = "critical", code = "smoke", sourceType = "device")
+        val forced = ArmorEvent(9, "t", "alarm", "duress", null, "raised", null, null, severity = "critical", code = "duress_disarm", sourceType = "alarm")
+        assertEquals(listOf(8L), AlarmPolicy.notices(listOf(smoke, forced), armed = true).map { it.id })
+    }
+
+    @Test fun anEmptyPageEndsTheSearchForMissedEvents() {
+        var asked = 0
+        val result = freshEvents(10, listOf(alert(50, "review", "high")), { asked++; emptyList() })
+        assertEquals(1, asked)
+        assertEquals(listOf(50L), result.map { it.id })
+    }
+
     @Test fun silentAndOfflineNodesMatterOnlyWhileArmed() {
         val events = listOf(node(1, "stale"), node(2, "offline"), node(3, "online"))
         assertTrue(AlarmPolicy.notices(events, armed = false).isEmpty())

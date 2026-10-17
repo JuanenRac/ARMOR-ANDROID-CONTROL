@@ -22,7 +22,7 @@ object Tr {
     /** Read by the screens, so changing it redraws them. */
     var language by mutableStateOf("es")
         private set
-    private val tables = HashMap<String, Map<String, String>>()
+    private val tables = java.util.concurrent.ConcurrentHashMap<String, Map<String, String>>()   // read by the screens and by the background service
 
     /** The language the person chose, else the one of the phone when it is one of the eight, else English. Called at the start of the app and of every service that shows text. */
     fun init(context: Context) {

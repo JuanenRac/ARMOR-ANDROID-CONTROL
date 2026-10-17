@@ -44,10 +44,10 @@ class NodeBleClient(private val context: Context) {
     private var tx: BluetoothGattCharacteristic? = null
     private val assembler = BleAssembler()
     private val waiting = ConcurrentHashMap<Long, CompletableDeferred<NodeReply>>()
-    private var nextId = 1L
+    @Volatile private var nextId = 1L
     private var mtu = 23
-    private var stepDone: CompletableDeferred<Int>? = null   // the result of the GATT operation in progress (0 = success)
-    private var connected: CompletableDeferred<Boolean>? = null
+    @Volatile private var stepDone: CompletableDeferred<Int>? = null   // the result of the GATT operation in progress (0 = success)
+    @Volatile private var connected: CompletableDeferred<Boolean>? = null
 
     val bluetoothOn: Boolean get() = adapter?.isEnabled == true
 

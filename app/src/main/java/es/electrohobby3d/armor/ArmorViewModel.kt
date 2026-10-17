@@ -68,7 +68,9 @@ data class MonitorUiState(
     val authenticated: Boolean = false,
     val message: String? = null,
 ) {
-    val readOnly: Boolean get() = role == "viewer"
+    val readOnly: Boolean get() = role == "viewer" || role == "panel"   // the role of a wall panel may read, arm, disarm and acknowledge, and nothing else: not what this app is for
+    /** Only an administrator may arm and disarm the alarm panels from the server. */
+    val isAdmin: Boolean get() = role == "admin"
 }
 
 class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), private val weatherClient: WeatherApiClient = WeatherApiClient()) : ViewModel() {
@@ -291,13 +293,13 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
         _state.update { it.copy(media = client.media(origin)) }
     }
 
-    fun snapshot(origin: String, camera: CameraView) = action(origin, "Snapshot saved: ${camera.name}") {
+    fun snapshot(origin: String, camera: CameraView) = mutating(origin, "Snapshot saved: ${camera.name}") {
         require(_state.value.authenticated) { "Sign in first" }
         client.snapshot(origin, camera.id)
         _state.update { it.copy(media = client.media(origin)) }
     }
 
-    fun toggleRecording(origin: String, camera: CameraView) = action(origin, if (_state.value.media.activeCameraIds.contains(camera.id)) "Recording finalized: ${camera.name}" else "Recording started: ${camera.name}") {
+    fun toggleRecording(origin: String, camera: CameraView) = mutating(origin, if (_state.value.media.activeCameraIds.contains(camera.id)) "Recording finalized: ${camera.name}" else "Recording started: ${camera.name}") {
         require(_state.value.authenticated) { "Sign in first" }
         val start = !_state.value.media.activeCameraIds.contains(camera.id)
         client.recording(origin, camera.id, start)
@@ -314,7 +316,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
         viewModelScope.launch {
             ptzLock.withLock {
                 runCatching { withContext(Dispatchers.IO) { client.ptz(origin, camera.id, command) } }
-                    .onFailure { _state.update { it.copy(message = it.message ?: "PTZ command failed") } }
+                    .onFailure { error -> _state.update { it.copy(message = error.message ?: "PTZ command failed") } }
             }
         }
     }
@@ -388,6 +390,12 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
     }
 
     fun mjpegUrl(origin: String, camera: CameraView) = client.mjpegUrl(origin, camera.id)
+
+    /**
+     * The address to watch a camera at: a stream ticket (the server gives one to every role, and a viewer cannot watch without it), or the plain address when the server cannot give one
+     * (an older server, which takes the session cookie).
+     */
+    suspend fun streamUrl(origin: String, camera: CameraView): String = withContext(Dispatchers.IO) { runCatching { client.streamTicket(origin, camera.id) }.getOrNull() ?: client.mjpegUrl(origin, camera.id) }
     fun mediaUrl(origin: String, item: es.electrohobby3d.armor.model.MediaItem) = client.mediaUrl(origin, item)
 
     private fun action(origin: String, success: String, operation: suspend () -> Unit) {
@@ -396,7 +404,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
             _state.update { it.copy(loading = true, message = null) }
             runCatching { withContext(Dispatchers.IO) { operation() } }
                 .onSuccess { _state.update { it.copy(loading = false, message = success) } }
-                .onFailure { _state.update { it.copy(loading = false, message = it.message ?: "Server operation failed") } }
+                .onFailure { error -> _state.update { it.copy(loading = false, message = error.message ?: "Server operation failed") } }   // the error, not the (empty) message of the state: a wrong PIN, a lock and a refusal are told as they are
         }
     }
 

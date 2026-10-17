@@ -55,6 +55,7 @@ fun AlarmPanelsScreen(
                 style = MaterialTheme.typography.bodySmall, color = if (data.totals.sounding > 0) ArmorColors.Alert else ArmorColors.Muted,
             )
         }
+        if (!canCommand) item { Text(tr("Solo un administrador puede armar las centrales."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber) }
         if (canCommand && !commands.enabled) item { Text(tr("Armar desde aquí está apagado en el servidor (ARMOR_ALARM_COMMANDS)."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber) }
         if (data.isEmpty) item { EmptyAlarmPanels() }
         items(data.nodes, key = { it.nodeId }) { panel ->

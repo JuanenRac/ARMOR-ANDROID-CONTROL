@@ -74,7 +74,7 @@ object AlarmPanelText {
         "disarmed" -> tr("Desarmada"); "exit_delay" -> tr("Saliendo: retardo de salida"); "armed" -> tr("Armada"); "entry_delay" -> tr("Retardo de entrada: desarma ya"); "alarm" -> tr("¡ALARMA!"); else -> phase
     }
     fun mode(mode: String): String = when (mode) { "away" -> tr("Fuera"); "stay" -> tr("En casa"); else -> tr("Sin armar") }
-    fun zoneKind(kind: String): String = when (kind) { "instant" -> tr("instantánea"); "entry" -> tr("de entrada"); "interior" -> "interior"; "always" -> tr("siempre"); else -> kind }
+    fun zoneKind(kind: String): String = when (kind) { "instant" -> tr("instantánea"); "entry" -> tr("de entrada"); "interior" -> tr("interior"); "always" -> tr("siempre"); else -> kind }
     fun zoneState(state: String): String = when (state) { "normal" -> tr("cerrada"); "triggered" -> tr("abierta"); "tamper" -> tr("sabotaje"); else -> state }
 
     fun event(kind: String): String = when (kind) {
@@ -117,5 +117,5 @@ object AlarmPanelText {
         else -> tr("Centrales desarmadas")
     }
 
-    fun confirmDisarm(node: String): String = trf("¿Desarmar «%s» desde el servidor? No lleva PIN: el nodo, el broker y el servidor lo permiten.", node)
+    fun confirmDisarm(node: String): String = trf("¿Desarmar «%s» desde el servidor? Escribe tu PIN: el servidor lo comprueba y nunca lo envía al nodo.", node)
 }

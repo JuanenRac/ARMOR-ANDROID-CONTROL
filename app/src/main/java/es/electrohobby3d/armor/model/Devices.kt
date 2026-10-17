@@ -41,6 +41,7 @@ object DeviceParser {
         val id = json.optStr("id")
         val source = json.optJSONObject("source") ?: return null
         if (id.isBlank() || source.optStr("id").isBlank()) return null
+        if (es.electrohobby3d.armor.AlarmPolicy.isSilent(json.optStr("code"))) return null   // the alarm of a duress PIN is not listed nor counted on a phone
         return Alarm(
             id = id, sourceType = source.optStr("type"), sourceId = source.optStr("id"),
             severity = json.optStr("severity", "warning"), code = json.optStr("code"), raisedAt = json.optStr("raised_at"),

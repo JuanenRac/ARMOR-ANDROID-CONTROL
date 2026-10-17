@@ -144,7 +144,7 @@ data class WifiNetwork(val ssid: String, val rssi: Int, val channel: Int, val se
 
 /** The kinds of field node that answer on the configuration channel; they all speak the same protocol, so the app configures each of them the same way. */
 enum class NodeKind(private val key: String) {
-    Radar("Nodo radar"), Solar("Nodo solar"), Electrical("Nodo eléctrico"), Unknown("Nodo ARMOR");
+    Radar("Nodo radar"), Solar("Nodo solar"), Electrical("Nodo eléctrico"), Alarm("Nodo de alarma"), Hmi("Panel táctil"), Unknown("Nodo ARMOR");
     val label: String get() = tr(key)
 
     companion object {
@@ -153,6 +153,8 @@ enum class NodeKind(private val key: String) {
             declared.equals("radar", true) -> Radar
             declared.equals("solar", true) -> Solar
             declared.equals("electrical", true) -> Electrical
+            declared.equals("alarm", true) -> Alarm
+            declared.equals("hmi", true) -> Hmi
             declared.isBlank() && nodeId.startsWith("solar-", true) -> Solar
             declared.isBlank() && nodeId.startsWith("electrical-", true) -> Electrical
             else -> Unknown

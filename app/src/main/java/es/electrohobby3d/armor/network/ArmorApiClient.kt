@@ -51,8 +51,8 @@ class ArmorApiClient {
     fun cameraStatus(origin: String): List<CameraHealth> = getJson(origin, "/api/v1/camera-status").optJSONArray("cameras").asObjects()
         .map { CameraHealth(it.optStr("id"), it.optStr("status", "unknown")) }.filter { it.id.isNotBlank() }
 
-    fun cameraViews(origin: String): List<CameraView> = getJson(origin, "/api/v1/camera-views").optJSONArray("cameras").asObjects().map { camera ->
-        CameraView(camera.getString("id"), camera.optStr("name", camera.getString("id")), camera.optStr("host"), camera.optStr("snapshotUrl"), camera.optStr("rtspPath"), camera.optInt("onvifPort", 80), camera.optInt("rtspPort", 554), camera.optBoolean("hasCredentials"), camera.optBoolean("liveVideoAvailable"))
+    fun cameraViews(origin: String): List<CameraView> = getJson(origin, "/api/v1/camera-views").optJSONArray("cameras").asObjects().filter { it.optStr("id").isNotBlank() }.map { camera ->
+        CameraView(camera.optStr("id"), camera.optStr("name", camera.optStr("id")), camera.optStr("host"), camera.optStr("snapshotUrl"), camera.optStr("rtspPath"), camera.optInt("onvifPort", 80), camera.optInt("rtspPort", 554), camera.optBoolean("hasCredentials"), camera.optBoolean("liveVideoAvailable"))
     }
 
     /** Arm or disarm the system; the server audits it with the signed-in user's name. Disarming carries the PIN of the user when there is one to type. */
@@ -118,10 +118,6 @@ class ArmorApiClient {
         request(origin, "/api/v1/devices/${part(id)}/command", "POST", mapOf("Content-Type" to "application/json"), body.toString(), setOf(200)).disconnect()
     }
 
-    fun openOperatorSession(origin: String, token: String) {
-        request(origin, "/api/v1/operator/session", "POST", mapOf("Authorization" to "Bearer ${token}"), null, setOf(201)).disconnect()
-    }
-
     /** The server's session cookie as it stands now (it is renewed while in use), to keep between launches; null when there is none. */
     fun sessionCookie(origin: String): Pair<String, String>? {
         val manager = CookieHandler.getDefault() as? CookieManager ?: return null
@@ -182,7 +178,9 @@ class ArmorApiClient {
         request(origin, "/api/v1/cameras/${part(cameraId)}/ptz", "POST", mapOf("Content-Type" to "application/json"), JSONObject(mapOf("command" to command)).toString(), setOf(200)).disconnect()
     }
     fun media(origin: String): MediaCatalogue = getJson(origin, "/api/v1/media").let { root ->
-        val items = root.optJSONArray("items").asObjects().map { item -> MediaItem(item.getString("id"), item.getString("cameraId"), item.getString("kind"), item.getString("file"), item.getString("createdAt"), item.optLong("bytes")) }
+        // one item with a field missing is left out, not the whole library
+        val items = root.optJSONArray("items").asObjects().filter { it.optStr("id").isNotBlank() && it.optStr("cameraId").isNotBlank() && it.optStr("kind").isNotBlank() && it.optStr("file").isNotBlank() }
+            .map { item -> MediaItem(item.optStr("id"), item.optStr("cameraId"), item.optStr("kind"), item.optStr("file"), item.optStr("createdAt"), item.optLong("bytes")) }
         MediaCatalogue(items, root.optJSONArray("activeCameraIds").asStrings().toSet())
     }
     fun deleteMedia(origin: String, item: MediaItem) {
@@ -194,6 +192,14 @@ class ArmorApiClient {
         return "${origin}/api/v1/media/${part(item.cameraId)}/${kind}/${part(item.file)}"
     }
     fun mjpegUrl(origin: String, id: String): String = "${origin}/api/v1/cameras/${part(id)}/mjpeg"
+
+    /** A ticket to watch one camera (every role may ask for it); the address to open is the origin plus the path the server gives. */
+    fun streamTicket(origin: String, cameraId: String): String {
+        val connection = request(origin, "/api/v1/cameras/${part(cameraId)}/stream-ticket", "POST", mapOf("Accept" to "application/json"), null, setOf(200, 201))
+        val path = try { JSONObject(connection.inputStream.bufferedReader().use { it.readText() }).optString("path") } finally { connection.disconnect() }
+        require(path.startsWith("/api/v1/cameras/")) { "The server gave no stream ticket" }
+        return origin.trimEnd('/') + path
+    }
 
     /** Whether this install has the voice gateway, so written and spoken commands work. */
     fun voiceAvailable(origin: String): Boolean = getJson(origin, "/api/v1/voice/status").optBoolean("available")
@@ -216,11 +222,12 @@ class ArmorApiClient {
             headers.forEach { (key, value) -> setRequestProperty(key, value) }
             if (body != null) { doOutput = true; outputStream.use { it.write(body.toByteArray(StandardCharsets.UTF_8)) } }
         }
-        if (connection.responseCode !in expected) {
-            val stream = connection.errorStream
-            val detail = stream?.bufferedReader()?.use { it.readText() }?.take(180).orEmpty()
+        // the connection is closed whatever goes wrong (a refused connection, a timeout), and the status is read once
+        val code = try { connection.responseCode } catch (error: java.io.IOException) { connection.disconnect(); throw error }
+        if (code !in expected) {
+            val detail = try { connection.errorStream?.bufferedReader()?.use { it.readText() }?.take(180).orEmpty() } catch (_: java.io.IOException) { "" }
             connection.disconnect()
-            throw ArmorApiException("Server operation failed (HTTP ${connection.responseCode})${if (detail.isBlank()) "" else ": ${detail}"}", connection.responseCode)
+            throw ArmorApiException("Server operation failed (HTTP ${code})${if (detail.isBlank()) "" else ": ${detail}"}", code)
         }
         return connection
     }

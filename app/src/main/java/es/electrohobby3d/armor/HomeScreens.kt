@@ -194,7 +194,7 @@ fun AlarmsScreen(active: List<Alarm>, closed: List<Alarm>, devices: List<SiteDev
                         Text(DeviceText.alarmText(alarm.code), fontWeight = FontWeight.SemiBold)
                         Text("${alarmSourceName(alarm, devices, cameraNames, solarNames)} · ${Friendly.dayAndClock(alarm.raisedAt)}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                         Text(
-                            if (alarm.acknowledged) trf("Vista por %s%s", alarm.acknowledgedBy, if (alarm.cleared) "" else " · sigue activa") else if (alarm.cleared) tr("Ya terminó · falta confirmarla") else tr("Activa ahora"),
+                            if (alarm.acknowledged) (if (alarm.cleared) trf("Vista por %s", alarm.acknowledgedBy) else trf("Vista por %s · sigue activa", alarm.acknowledgedBy)) else if (alarm.cleared) tr("Ya terminó · falta confirmarla") else tr("Activa ahora"),
                             style = MaterialTheme.typography.labelSmall, color = if (alarm.acknowledged) ArmorColors.Muted else tint,
                         )
                     }

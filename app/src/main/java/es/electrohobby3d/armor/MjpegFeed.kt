@@ -25,17 +25,19 @@ private sealed interface MjpegState { data object Loading : MjpegState; data cla
 
 @Composable
 /** [sampleSize] 2 or 4 decodes a picture at half or a quarter of its size: a grid of sixteen tiles does not need sixteen full-size pictures at once. */
-fun MjpegFeed(url: String, modifier: Modifier = Modifier, sampleSize: Int = 1) {
+fun MjpegFeed(url: String, modifier: Modifier = Modifier, sampleSize: Int = 1, resolve: (suspend (String) -> String)? = null) {
     val feed by produceState<MjpegState>(MjpegState.Loading, url) {
         value = MjpegState.Loading
+        // [resolve] turns the plain address into one with a stream ticket (a viewer cannot watch without it)
+        val target = runCatching { resolve?.invoke(url) }.getOrNull() ?: url
         withContext(Dispatchers.IO) {
             var connection: HttpURLConnection? = null
             try {
-                connection = URL(url).openConnection() as HttpURLConnection
+                connection = URL(target).openConnection() as HttpURLConnection
                 connection.connectTimeout = 8_000
                 connection.readTimeout = 20_000
                 connection.setRequestProperty("Accept", "multipart/x-mixed-replace")
-                if (connection.responseCode != 200) throw IllegalStateException("HTTP ${connection.responseCode}")
+                if (connection.responseCode != 200) throw IllegalStateException(trf("El servidor respondió HTTP %s", connection.responseCode))
                 connection.inputStream.use { raw ->
                     val input = BufferedInputStream(raw, 64 * 1024)
                     while (isActive) {
@@ -43,9 +45,9 @@ fun MjpegFeed(url: String, modifier: Modifier = Modifier, sampleSize: Int = 1) {
                         val options = BitmapFactory.Options().apply { inSampleSize = sampleSize.coerceIn(1, 8) }
                         BitmapFactory.decodeByteArray(frame, 0, frame.size, options)?.let { value = MjpegState.Frame(it) }
                     }
-                    if (value is MjpegState.Loading) value = MjpegState.Failure("No video frames received")
+                    if (value is MjpegState.Loading) value = MjpegState.Failure(tr("No llegan imágenes"))
                 }
-            } catch (error: Exception) { value = MjpegState.Failure(error.message ?: "Camera stream unavailable")
+            } catch (error: Exception) { value = MjpegState.Failure(Friendly.message(error.message) ?: tr("Vídeo no disponible"))
             } finally { connection?.disconnect() }   // whatever happened (a cancelled screen, a lost connection), the socket is closed
         }
     }

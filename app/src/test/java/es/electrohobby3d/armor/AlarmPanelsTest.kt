@@ -77,7 +77,8 @@ class AlarmPanelsTest {
         assertEquals("hace 12 s", AlarmPanelText.ago(12))
         assertEquals("hace 3 min", AlarmPanelText.ago(180))
         assertEquals("hace 2 h", AlarmPanelText.ago(7200))
-        assertTrue(AlarmPanelText.confirmDisarm("alarm-1").contains("no lleva PIN") || AlarmPanelText.confirmDisarm("alarm-1").contains("No lleva PIN"))
+        // the dialog has a field for the PIN, and it says so (the server checks it)
+        assertTrue(AlarmPanelText.confirmDisarm("alarm-1").contains("Escribe tu PIN") && !AlarmPanelText.confirmDisarm("alarm-1").contains("No lleva PIN"))
     }
 
     @Test fun theSummaryTellsWhatMattersMost() {

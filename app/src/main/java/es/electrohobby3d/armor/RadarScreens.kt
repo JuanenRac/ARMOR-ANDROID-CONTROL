@@ -80,7 +80,7 @@ fun RadarScreen(design: SiteDesign?, loaded: Boolean, nodes: List<FieldNode>, on
                 Box(Modifier.fillMaxWidth().weight(1f).clip(RoundedCornerShape(18.dp)).background(Color(0xFF060D11))) {
                     if (threeD) Site3D(design, targets, Modifier.fillMaxSize()) else Site2D(design, targets, Modifier.fillMaxSize())
                     Row(Modifier.align(Alignment.TopStart).padding(10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Chip(Icons.AutoMirrored.Filled.DirectionsWalk, if (counted == 1) tr("1 persona") else "${counted} personas", if (counted > 0) TargetColour else ArmorColors.Muted)
+                        Chip(Icons.AutoMirrored.Filled.DirectionsWalk, if (counted == 1) tr("1 persona") else trf("%s personas", counted), if (counted > 0) TargetColour else ArmorColors.Muted)
                         Chip(Icons.Filled.Sensors, trf("%s/%s nodos", online, nodes.size), if (nodes.isNotEmpty() && online == nodes.size) ArmorColors.Ok else ArmorColors.Amber)
                     }
                     Text(if (threeD) tr("Arrastra para girar · pellizca para acercar") else tr("Arrastra y pellizca · doble toque para centrar"), Modifier.align(Alignment.BottomCenter).padding(8.dp), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)

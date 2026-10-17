@@ -11,7 +11,8 @@ import com.google.firebase.messaging.FirebaseMessagingService
 /**
  * Push is on only when the build was made with the installation's own google-services.json (see docs/PUSH_NOTIFICATIONS.md): the build then holds the four values Firebase needs, and
  * the app starts Firebase itself from them. Without them [available] is false and nothing here does anything. The server sends the line of an alarm as a notification message on the
- * channel of its severity, which Android shows by itself while the app is closed; while the app is open the watch of the alarms already tells the person, so nothing is shown twice.
+ * channel of its severity, which Android shows by itself whenever the app is not on screen; the watch of the alarms (if the person turned it on) may say the same alarm too, and the server's older channel
+ * names are created here as well so that a critical message sounds like an alarm.
  */
 object Push {
     private const val PREFERENCES = "armor-control"
@@ -34,6 +35,12 @@ object Push {
     fun token(context: Context, whenKnown: (String) -> Unit) {
         if (!start(context)) return
         runCatching { FirebaseMessaging.getInstance().token.addOnSuccessListener { token -> if (!token.isNullOrBlank()) { keep(context, token); whenKnown(token) } } }
+    }
+
+    /** The phone signs out: its token is dropped at Firebase and here, so the server's messages to it find no one (and the server forgets it). */
+    fun forget(context: Context) {
+        context.applicationContext.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit().remove(TOKEN).apply()
+        if (available && start(context)) runCatching { FirebaseMessaging.getInstance().deleteToken() }
     }
 
     fun stored(context: Context): String? = context.applicationContext.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getString(TOKEN, null)

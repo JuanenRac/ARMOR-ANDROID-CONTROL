@@ -38,7 +38,7 @@ class PreferencesStore(private val preferences: SharedPreferences) : KeyValueSto
 
 /** AES-GCM with a key made inside the Android Keystore the first time it is needed. */
 class KeystoreBox(private val alias: String = "armor-session") : SecretBox {
-    private fun key(): SecretKey {
+    @Synchronized private fun key(): SecretKey {   // the app and its service may ask for it at the same moment, the first time
         val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
         (store.getKey(alias, null) as? SecretKey)?.let { return it }
         val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")

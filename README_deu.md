@@ -22,14 +22,14 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
-  <img src="https://img.shields.io/badge/Tests-123%20passing-2ea44f.svg" alt="Tests">
-  <img src="https://img.shields.io/badge/Version-0.5.8-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Tests-125%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Version-0.5.9-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
 ---
 
-**Ehrlichkeitsprüfung - was heute läuft:** Die Regeln für Adresssicherheit, Alarmentscheidung, Alarmwächter, Übersetzung und die Nur-Lese-Rolle sind von 123 Unit-Tests abgedeckt, und die App baut (`gradlew testDebugUnitTest assembleRelease`). Sie läuft auf einem echten Telefon gegen den CM5-Testaufbau: Anmeldung, Kameramonitor, Scharfschalten und Alarme, Radar, die Einrichtung eines Knotens per Bluetooth und die Updates von GitHub sind im Einsatz. **Noch nicht** bewiesen: die Solar-, Elektro- und Alarmzentralen-Bildschirme mit echten Geräten (es gibt nur einen Radarknoten), Push über Firebase (es braucht ein eigenes Firebase-Projekt und ist noch nicht in der App) und die Alarmüberwachung im Hintergrund unter den Akkuregeln jedes Herstellers.
+**Ehrlichkeitsprüfung - was heute läuft:** Die Regeln für Adresssicherheit, Alarmentscheidung, Alarmwächter, Übersetzung und die Nur-Lese-Rolle sind von 125 Unit-Tests abgedeckt, und die App baut (`gradlew testDebugUnitTest assembleDebug`). Sie läuft auf einem echten Telefon gegen den CM5-Testaufbau: Anmeldung, Kameramonitor, Scharfschalten und Alarme, Radar, die Einrichtung eines Knotens per Bluetooth und die Updates von GitHub sind im Einsatz. **Noch nicht** bewiesen: die Solar-, Elektro- und Alarmzentralen-Bildschirme mit echten Geräten (es gibt nur einen Radarknoten), Push über Firebase (es ist in der App und braucht ein eigenes Firebase-Projekt; es wurde noch nicht auf einem Handy erprobt) und die Alarmüberwachung im Hintergrund unter den Akkuregeln jedes Herstellers.
 
 ---
 
@@ -37,9 +37,9 @@
 
 | | |
 |---|---|
-| Version | `0.5.8` |
+| Version | `0.5.9` |
 | Reifegrad | Etabliert |
-| Tests | 123 (`gradlew testDebugUnitTest`) |
+| Tests | 125 (`gradlew testDebugUnitTest`) |
 | Technik | Kotlin / Jetpack Compose |
 | Auf echter Hardware | Auf einem echten Telefon gegen den CM5-Testaufbau im Einsatz; die Solar-, Elektro- und Alarmzentralen-Bildschirme warten auf echte Knoten |
 
@@ -81,14 +81,14 @@ ARMOR-ANDROID-CONTROL/
 
 ## 🛠️ Entwicklungsumgebung
 
-**Voraussetzungen:** JDK 17+, the Android SDK (compile SDK 36), an Android 8.0+ phone (minSdk 26)
+**Voraussetzungen:** JDK 17+, the Android SDK (compile SDK 37), an Android 8.0+ phone (minSdk 26)
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleRelease   # 123 tests, then the release APK
-adb install -r app\build\outputs\apk\release\app-release.apk
+.\gradlew.bat testDebugUnitTest assembleDebug   # 125 tests, then the debug APK
+adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
-Release-Builds werden mit einem Schlüssel des Betreuers signiert und auf GitHub veröffentlicht, von wo die App selbst nach Updates sucht. Siehe die [Client-Grenze](docs/CLIENT_BOUNDARY.md).
+Die Versionen werden auf GitHub veröffentlicht, von wo die App selbst nach Updates sucht; heute ist die APK mit dem Android-Debug-Zertifikat des Betreuers signiert, nicht mit einem Release-Schlüssel. Siehe die [Client-Grenze](docs/CLIENT_BOUNDARY.md).
 
 ## 🔗 Verwandte Projekte
 

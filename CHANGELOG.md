@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here.
 
+## [0.5.9] - The real error of an action reaches the person, a duress alarm stays silent and every role sees what it may
+
+- **The error of an action is told as it is.** A wrong PIN, a locked PIN, a wrong password, a refused order and the rest were all shown as *the server could not do it*: the message of the error was lost to a name clash in the code. They show now, which also stops a person from trying a locked PIN again and again.
+- **The alarm of a duress PIN is silent on the phone:** it is not notified, spoken, listed in the alarms or the history, or counted (the server tells the people who must know in silence; a phone that sounded in front of whoever forced the person to disarm would defeat it).
+- **Cameras for every role:** a viewer could not watch any camera (the server asks for a stream ticket from that role); the app now asks for one, for everyone, and falls back to the plain address with a server that has none. The *views* picker is now how many cameras a page shows, with arrows for the rest: before, the cameras after the first few were not shown at all.
+- **Roles:** only an administrator is offered the arming of the alarm panels (the server refuses anybody else), a viewer or wall-panel user no longer has the photo and recording buttons, and the dialog for disarming a panel says to type your PIN (it said there was none).
+- **Notifications:** the channels an older server names for its push messages exist here too, with the sound of an alarm, so that a critical alarm that arrives with the app closed still sounds; signing out drops the phone's Firebase token, so a phone that could not tell the server (a viewer, a server that is down) stops receiving alarms.
+- **Changing the server in Settings signs the person out of the previous one** (before, the next refresh failed with *the session expired*).
+- The spoken alarms use the language of the app and try again when the voice engine failed once; the stop of a held camera key goes out even when the screen closed with the finger down; the search for missed alarms stops at an empty page.
+- Texts that were not translated now are: the errors of the video, *N people*, *N units*, *fault*, *seen by ... still active*, the kind *interior* and the geocoding language of the weather; a node that is an alarm panel or a touch panel is named as such in the node set-up.
+- Robustness: a media item or a camera with a missing field no longer fails the whole list, a failed connection is closed, and the tables of texts and the key of the session are safe to use from the service and the screen at once. The page of the weather radar no longer interprets a place name as HTML.
+- **HTTPS with the installation's own authority:** the app trusts the certificate authorities the person installed on the phone as well as the system's (a network security configuration), so the TLS profile of ARMOR-DEVOPS, whose authority is made locally, can be used; plain HTTP is still limited by the app to a private address.
+- The documents say what the app does today: the sign-in with a Studio user and its roles, the stream tickets, the duress alarm, the Bluetooth pairing with its PIN and the five kinds of node, and that the APK is signed with the maintainer's Android debug certificate until a release key is made (the README no longer says otherwise).
+- Tests: 125 unit tests; new ones cover the silent duress alarm (event and alarm parsers, the notices), the end of the search for missed events and the kinds of node.
+
 ## [0.5.8] - Push alarms through the installation's own Firebase project
 
 **Push when the app is closed:** the phone registers its Firebase token with the server once signed in and takes it back at sign-out; the server's alarms then reach it as notifications on the channel of their severity (critical ones sound like an alarm), whether or not the app is open.

@@ -1,4 +1,4 @@
-// ARMOR-ANDROID-CONTROL - says an alarm aloud with the phone's own voice (Android's text to speech), in Spanish, when the person asked for it.
+// ARMOR-ANDROID-CONTROL - says an alarm aloud with the phone's own voice (Android's text to speech), in the language of the app, when the person asked for it.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor
 
@@ -21,11 +21,11 @@ object AlarmSpeaker {
                         if (ready) {
                             engine?.language = Locale.forLanguageTag(Tr.language)
                             while (waiting.isNotEmpty()) engine?.speak(waiting.removeFirst(), TextToSpeech.QUEUE_ADD, null, "armor-alarm")
-                        } else waiting.clear()
+                        } else { waiting.clear(); engine?.shutdown(); engine = null }   // the next alarm tries again (the voice engine may have been missing or updating)
                     }
                 }
             }
-            if (ready) engine?.speak(text.take(240), TextToSpeech.QUEUE_ADD, null, "armor-alarm") else if (waiting.size < 5) waiting.addLast(text.take(240))
+            if (ready) { engine?.language = Locale.forLanguageTag(Tr.language); engine?.speak(text.take(240), TextToSpeech.QUEUE_ADD, null, "armor-alarm") } else if (waiting.size < 5) waiting.addLast(text.take(240))
         }
     }
 }

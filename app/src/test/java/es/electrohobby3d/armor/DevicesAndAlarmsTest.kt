@@ -89,6 +89,8 @@ class DevicesAndAlarmsTest {
         assertEquals("admin", done.acknowledgedBy)
         assertTrue(done.cleared)
         assertNull(DeviceParser.alarm(JSONObject("""{"id":"alm-3","code":"smoke"}""")))
+        // the alarm of a duress PIN is not listed nor counted on a phone
+        assertNull(DeviceParser.alarm(JSONObject("""{"id":"alm-4","source":{"type":"alarm","id":"duress"},"severity":"critical","code":"duress_disarm","raised_at":"x"}""")))
     }
 
     private fun device(json: String) = DeviceParser.device(JSONObject(json))!!

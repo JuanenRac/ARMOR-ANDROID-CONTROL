@@ -32,7 +32,7 @@ class TrTest {
 
     @Test fun everyPhraseOfTheSourceIsInEverySpanishTable() {
         val all = tables()
-        val phrases = usedPhrases() + listOf("Estado", "Radar", "Alarmas", "Dispositivos", "Cámaras", "Más", "Todos", "Sensores", "Control", "Avisos", "Nodo radar", "Nodo solar", "Nodo eléctrico", "Nodo ARMOR")
+        val phrases = usedPhrases() + listOf("Estado", "Radar", "Alarmas", "Dispositivos", "Cámaras", "Más", "Todos", "Sensores", "Control", "Avisos", "Nodo radar", "Nodo solar", "Nodo eléctrico", "Nodo de alarma", "Panel táctil", "Nodo ARMOR")
         assertTrue("the source has phrases", phrases.size > 500)
         val missing = mutableListOf<String>()
         for (phrase in phrases) for ((code, table) in all) if (!table.has(phrase) || table.getString(phrase).isBlank()) missing += "$code: $phrase"

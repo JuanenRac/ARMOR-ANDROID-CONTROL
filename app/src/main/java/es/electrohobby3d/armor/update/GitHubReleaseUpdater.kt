@@ -77,10 +77,9 @@ class GitHubReleaseUpdater(private val context: Context) {
                 // stable github.com link that 302-redirects to a short-lived,
                 // signed objects.githubusercontent.com URL - a different host,
                 // which HttpURLConnection's own `instanceFollowRedirects` does
-                // not reliably follow while keeping this request's headers
-                // (unlike okhttp, which HYDRA-UMC-ANDROID-CONTROL's own
-                // updater uses instead). Followed by hand here so a header
-                // this app actually needs is never silently dropped partway.
+                // not reliably follow while keeping this request's headers.
+                // Followed by hand here so a header this app actually needs is
+                // never silently dropped partway.
                 val connection = openFollowingRedirects(update.assetUrl)
                 try {
                     if (connection.responseCode !in 200..299) {

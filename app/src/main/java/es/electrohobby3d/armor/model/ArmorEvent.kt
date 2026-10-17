@@ -35,6 +35,7 @@ object EventParser {
         val id = json.optLong("id", -1)
         val type = json.optStr("type")
         if (id < 1 || type !in KNOWN) return null
+        if (type == "alarm" && es.electrohobby3d.armor.AlarmPolicy.isSilent(json.optStr("code"))) return null   // the alarm of a duress PIN is not part of the history of a phone
         val subject = when (type) {
             "node", "alert" -> json.optStr("node_id")
             "camera" -> json.optStr("camera_id")

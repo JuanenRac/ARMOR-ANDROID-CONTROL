@@ -44,7 +44,7 @@ class WeatherApiClient {
     fun search(query: String): List<Place> {
         if (query.trim().length < 2) return emptyList()
         val encoded = URLEncoder.encode(query.trim().take(80), "UTF-8")
-        val url = "${GEOCODING_API}/v1/search?name=${encoded}&count=8&language=es&format=json"
+        val url = "${GEOCODING_API}/v1/search?name=${encoded}&count=8&language=${es.electrohobby3d.armor.Tr.language}&format=json"
         return WeatherParser.places(getJson(url))
     }
 }

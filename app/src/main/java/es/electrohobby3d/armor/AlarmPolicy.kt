@@ -9,6 +9,9 @@ import es.electrohobby3d.armor.model.DeviceText
 data class AlarmNotice(val id: Long, val title: String, val text: String, val severity: String = "high")
 
 object AlarmPolicy {
+    /** Alarms a phone never announces, shows or counts (the server tells the people who must know in silence). */
+    fun isSilent(code: String?): Boolean = code == "duress_disarm"
+
     /**
      * The events worth a notification, oldest first: a node reaching HIGH, a camera that stops
      * answering, and (only while the system is armed) a node that goes offline or silent, because
@@ -19,6 +22,7 @@ object AlarmPolicy {
      */
     fun notices(events: List<ArmorEvent>, armed: Boolean): List<AlarmNotice> = events.sortedBy { it.id }.mapNotNull { event ->
         when {
+            isSilent(event.code) -> null   // the alarm of a duress PIN is never announced on a phone: whoever forced the person to disarm may be looking at it
             event.type == "alert" && event.to == "high" -> AlarmNotice(event.id, tr("ALERTA ALTA"), trf("%s: %s objetivos", event.subject, event.targets ?: 0))
             event.type == "camera" && event.to == "offline" -> AlarmNotice(event.id, tr("Cámara sin respuesta"), event.subject)
             event.type == "node" && armed && event.to == "offline" -> AlarmNotice(event.id, tr("Nodo fuera de línea"), event.subject)
@@ -97,9 +101,9 @@ fun freshEvents(last: Long, newest: List<ArmorEvent>, after: (Long) -> List<Armo
     if (bottom <= last + 1) return newest
     val gap = ArrayList<ArmorEvent>()
     var cursor = last
-    repeat(maxPages) {
+    for (round in 1..maxPages) {
         val page = after(cursor)
-        if (page.isEmpty()) return@repeat
+        if (page.isEmpty()) break   // nothing more: asking again for the same page would give the same nothing
         gap += page
         cursor = page.maxOf { it.id }
         if (cursor >= bottom - 1) return (gap + newest).distinctBy { it.id }
