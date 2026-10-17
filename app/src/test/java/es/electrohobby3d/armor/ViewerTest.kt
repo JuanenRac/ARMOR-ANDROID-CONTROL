@@ -18,12 +18,12 @@ class ViewerTest {
 
     @Test fun theNetworkNodeTellsThePublicAddress() {
         val node = """{"node_id":"net-1","stale":false,"interface":{"name":"eth0","ip":"192.168.0.10","cidr":"192.168.0.0/24"},"internet":{"state":"up"},"devices":[],
-            "public":{"ip":"203.0.113.9","city":"Exampletown","region":"Murcia","country":"ES","org":"AS12430 VODAFONE ESPANA S.A.U.","timezone":"Europe/Madrid","checked_ms":1}}"""
+            "public":{"ip":"203.0.113.9","city":"Exampleville","region":"Examplestate","country":"ES","org":"AS64500 EXAMPLE NETWORK","timezone":"Europe/Madrid","checked_ms":1}}"""
         val info = NetworkParser.overview(JSONObject("""{"nodes":[$node],"totals":{},"events":[],"outages":[]}""")).nodes.single().publicInfo!!
         assertEquals("203.0.113.9", info.ip)
-        assertEquals("Exampletown", info.city)
+        assertEquals("Exampleville", info.city)
         assertEquals("ES", info.country)
-        assertEquals("AS12430 VODAFONE ESPANA S.A.U.", info.org)
+        assertEquals("AS64500 EXAMPLE NETWORK", info.org)
         val without = node.replace(Regex(""",\s*"public":\{.*\}\}\s*$""", RegexOption.DOT_MATCHES_ALL), "}")
         assertNull(NetworkParser.overview(JSONObject("""{"nodes":[$without],"totals":{},"events":[],"outages":[]}""")).nodes.single().publicInfo)
     }
