@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here.
 
+## [0.6.1] - The Security screen scrolls
+
+The Security screen (second factor, open sessions, remote access) now scrolls, so every card below the first can be reached on a phone screen.
+
 ## [0.6.0] - Security: second factor, open sessions and the VPN and the dynamic DNS name from the phone
 
 - **Two-step sign-in:** when the account has the second factor on, the sign-in asks for the six-digit code of the authenticator app (or a recovery code) as a second step, and says why when the server asks for it from outside the house and it has not been set up.

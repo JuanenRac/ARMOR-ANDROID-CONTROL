@@ -6,6 +6,8 @@
 package es.electrohobby3d.armor
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -100,7 +102,7 @@ fun SecurityScreen(
     val uri = LocalUriHandler.current
     var password by remember { mutableStateOf("") }
     var code by remember { mutableStateOf("") }
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.verticalScroll(rememberScrollState()).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SectionCard(tr("Segundo factor (aplicación autenticadora)"), tr("Con él, una contraseña robada no basta para entrar: la aplicación del móvil da un código de seis cifras que cambia cada treinta segundos. Sirve Google Authenticator, Aegis, Authy o cualquier similar.")) {
             state.totp?.let { totp ->
                 Text(
