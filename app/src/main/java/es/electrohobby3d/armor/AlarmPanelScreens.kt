@@ -104,7 +104,7 @@ private fun AlarmPanelCard(panel: AlarmPanelView, allowed: Boolean, recent: List
                     Text(AlarmPanelText.zoneKind(zone.kind), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
                     Text(
                         AlarmPanelText.zoneState(zone.state) + if (zone.bypassed) tr(" · excluida") else "", style = MaterialTheme.typography.labelMedium,
-                        color = when (zone.state) { "tamper" -> ArmorColors.Alert; "triggered" -> ArmorColors.Amber; else -> ArmorColors.Ok },
+                        color = when (zone.state) { "tamper" -> ArmorColors.Alert; "triggered", "trouble" -> ArmorColors.Amber; else -> ArmorColors.Ok },
                     )
                 }
             }

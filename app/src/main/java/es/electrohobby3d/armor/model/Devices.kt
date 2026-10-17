@@ -150,6 +150,7 @@ object DeviceText {
         "network_arp_conflict" -> tr("Dos máquinas responden por una misma dirección de la red"); "network_port_opened" -> tr("Un dispositivo de la red ha abierto un puerto")
         "network_offline" -> tr("Un nodo de red ha dejado de informar"); "network_watched_online" -> tr("Un dispositivo que pediste vigilar ha vuelto a la red")
         "alarm_sounding" -> tr("¡La alarma está sonando!"); "alarm_tamper" -> tr("Una zona de la alarma indica sabotaje (cable cortado o en cortocircuito)")
+        "alarm_zone_trouble" -> tr("Una zona de la alarma no se puede leer: no está vigilando")
         "alarm_locked_out" -> tr("La central de alarma está bloqueada tras PIN erróneos"); "alarm_offline" -> tr("Un nodo de alarma ha dejado de responder")
         "duress_disarm" -> tr("El sistema se desarmó con el PIN de coacción: puede que alguien esté siendo obligado")
         else -> code

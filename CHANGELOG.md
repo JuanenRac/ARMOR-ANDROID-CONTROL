@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [0.6.3] - A zone in trouble is shown, and the app is signed with its own release key
+
+A zone that the alarm node cannot read is shown as cannot be read (in the amber of a warning) in the alarm panels, and the warning that the server raises for it has its text in the eight languages.
+The app is signed with the owner's own release key, kept outside the repository, instead of the key of a development computer. Android treats it as a different publisher: the first update from an older version asks to uninstall the app and install this one once; after that, updates install over it.
+
 ## [0.6.2] - Signing in from outside the house is explained, and the status screen shows the whole system
 
 **Signing in from outside the house:** typing a public address (or a name) without https:// used to leave the Enter button disabled with no explanation. The sign-in now says why, offers a one-tap "Use https", and a guide (VPN or public address with https) explains every step, in the eight languages.

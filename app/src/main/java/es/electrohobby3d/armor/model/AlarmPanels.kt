@@ -75,7 +75,7 @@ object AlarmPanelText {
     }
     fun mode(mode: String): String = when (mode) { "away" -> tr("Fuera"); "stay" -> tr("En casa"); else -> tr("Sin armar") }
     fun zoneKind(kind: String): String = when (kind) { "instant" -> tr("instantánea"); "entry" -> tr("de entrada"); "interior" -> tr("interior"); "always" -> tr("siempre"); else -> kind }
-    fun zoneState(state: String): String = when (state) { "normal" -> tr("cerrada"); "triggered" -> tr("abierta"); "tamper" -> tr("sabotaje"); else -> state }
+    fun zoneState(state: String): String = when (state) { "normal" -> tr("cerrada"); "triggered" -> tr("abierta"); "tamper" -> tr("sabotaje"); "trouble" -> tr("no se puede leer"); else -> state }
 
     fun event(kind: String): String = when (kind) {
         "armed" -> tr("armada"); "exit_delay_started" -> tr("empezó el retardo de salida"); "entry_delay_started" -> tr("empezó el retardo de entrada"); "alarm" -> tr("alarma")
