@@ -74,6 +74,8 @@ fun LoginScreen(
     host: String, port: String, username: String, password: String, busy: Boolean, message: String?,
     onHost: (String) -> Unit, onPort: (String) -> Unit, onUsername: (String) -> Unit, onPassword: (String) -> Unit,
     onLogin: () -> Unit, canLogin: Boolean, onNodeSetup: () -> Unit, onAbout: () -> Unit,
+    /** When the account has the second factor on, the sign-in waits for the code: the code step replaces the fields. */
+    challenge: Boolean = false, code: String = "", onCode: (String) -> Unit = {}, onSubmitCode: () -> Unit = {}, onCancelCode: () -> Unit = {},
 ) {
     var visible by rememberSaveable { mutableStateOf(false) }
     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF0A2A33), ArmorColors.Background, ArmorColors.Background)))) {
@@ -91,6 +93,7 @@ fun LoginScreen(
             Spacer(Modifier.height(28.dp))
             Panel(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    if (challenge) { SignInCodeStep(code, onCode, busy, Friendly.message(message), onSubmitCode, onCancelCode); return@Column }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         OutlinedTextField(
                             value = host, onValueChange = onHost, modifier = Modifier.weight(1f), singleLine = true,

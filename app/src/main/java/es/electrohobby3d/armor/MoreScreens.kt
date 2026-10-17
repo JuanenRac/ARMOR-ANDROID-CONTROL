@@ -28,7 +28,7 @@ import es.electrohobby3d.armor.model.MediaItem
 import es.electrohobby3d.armor.update.AppUpdateState
 
 /** What the "More" tab can show; null is the menu itself. */
-enum class MoreTab { Nodes, Voice, Weather, Solar, Electrical, AlarmPanels, Network, Services, Evidence, History, Updates, Settings }
+enum class MoreTab { Nodes, Voice, Weather, Solar, Electrical, AlarmPanels, Network, Services, Evidence, History, Security, Updates, Settings }
 
 @Composable
 fun MoreMenu(onOpen: (MoreTab) -> Unit, onNodeSetup: () -> Unit, onAbout: () -> Unit, onLogout: () -> Unit, updateAvailable: Boolean = false) {
@@ -44,6 +44,7 @@ fun MoreMenu(onOpen: (MoreTab) -> Unit, onNodeSetup: () -> Unit, onAbout: () -> 
         MenuRow(Icons.Filled.Dns, tr("Servicios"), tr("Programas del sistema y nodos de campo, activos o no")) { onOpen(MoreTab.Services) }
         MenuRow(Icons.Filled.VideoLibrary, tr("Grabaciones"), tr("Fotos y vídeos guardados")) { onOpen(MoreTab.Evidence) }
         MenuRow(Icons.Filled.History, tr("Historial"), tr("Todo lo que ha pasado")) { onOpen(MoreTab.History) }
+        MenuRow(Icons.Filled.Lock, tr("Seguridad"), tr("Segundo factor, sesiones abiertas y acceso desde fuera de casa.")) { onOpen(MoreTab.Security) }
         MenuRow(Icons.Filled.Bluetooth, tr("Configurar un nodo"), tr("Prepara un nodo nuevo por Bluetooth"), onClick = onNodeSetup)
         MenuRow(Icons.Filled.SystemUpdate, tr("Actualizaciones"), if (updateAvailable) tr("Hay una versión nueva") else tr("Buscar una versión nueva en GitHub"), tint = if (updateAvailable) ArmorColors.Cyan else ArmorColors.Cyan) { onOpen(MoreTab.Updates) }
         MenuRow(Icons.Filled.Settings, tr("Ajustes"), tr("Servidor y avisos")) { onOpen(MoreTab.Settings) }
@@ -102,7 +103,7 @@ private fun eventIcon(type: String): ImageVector = when (type) {
 }
 
 @Composable
-fun EvidenceScreen(items: List<MediaItem>, cameras: List<CameraView>, origin: String, viewModel: ArmorViewModel, unlocked: Boolean) {
+fun EvidenceScreen(items: List<MediaItem>, cameras: List<CameraView>, origin: String, viewModel: ArmorViewModel, unlocked: Boolean, canDelete: Boolean = true) {
     if (!unlocked) { EmptyNote(Icons.Filled.Lock, tr("Inicia sesión"), tr("Las grabaciones se ven con la sesión abierta.")); return }
     if (items.isEmpty()) { EmptyNote(Icons.Filled.VideoLibrary, tr("No hay grabaciones"), tr("Las fotos y vídeos que hagas con las cámaras aparecerán aquí.")); return }
     var viewing by remember { mutableStateOf<MediaItem?>(null) }
@@ -127,7 +128,8 @@ fun EvidenceScreen(items: List<MediaItem>, cameras: List<CameraView>, origin: St
                         Text("${if (item.kind == "snapshot") tr("Foto") else tr("Vídeo")} · ${Friendly.dayAndClock(item.createdAt)}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                     }
                     IconButton(onClick = { viewing = item }) { Icon(Icons.Filled.PlayArrow, contentDescription = tr("Ver"), tint = ArmorColors.Cyan) }
-                    IconButton(onClick = { deleting = item }) { Icon(Icons.Filled.Delete, contentDescription = tr("Borrar"), tint = ArmorColors.Alert) }
+                    // somebody who may only look is not offered the button (the server would refuse it anyway)
+                    if (canDelete) IconButton(onClick = { deleting = item }) { Icon(Icons.Filled.Delete, contentDescription = tr("Borrar"), tint = ArmorColors.Alert) }
                 }
             }
         }

@@ -86,6 +86,8 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     var nodeSetup by rememberSaveable { mutableStateOf(false) }   // configuring a field node over Bluetooth, with or without a server
     val state by viewModel.state.collectAsStateWithLifecycle()
     val voiceState by viewModel.voice.collectAsStateWithLifecycle()
+    val securityState by viewModel.security.collectAsStateWithLifecycle()
+    var loginCode by rememberSaveable { mutableStateOf("") }
     // The panel of a node that is open (null: the list), and the addresses opened lately.
     var nodePanel by rememberSaveable { mutableStateOf<String?>(null) }
     var recentNodes by remember { mutableStateOf((preferences.getString("recent_nodes", "") ?: "").split(",").mapNotNull { NodeAddress.parse(it) }) }
@@ -219,6 +221,9 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                     } },
                     canLogin = loginEndpoint != null && username.isNotBlank() && password.isNotBlank(),
                     onNodeSetup = { nodeSetup = true }, onAbout = { about = true },
+                    challenge = securityState.loginChallenge != null, code = loginCode, onCode = { loginCode = it },
+                    onSubmitCode = { loginEndpoint?.let { endpoint -> viewModel.submitCode(endpoint.origin, loginCode); loginCode = "" } },
+                    onCancelCode = { loginCode = ""; viewModel.cancelCode() },
                 )
             } else {
                 Scaffold(
@@ -269,10 +274,28 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                             )
                             Section.More -> when (moreTab) {
                                 null -> MoreMenu(
-                                    onOpen = { tab -> moreTab = tab; if (tab == MoreTab.Evidence) viewModel.loadMedia(currentOrigin); if (tab == MoreTab.Voice) viewModel.checkVoice(currentOrigin) },
+                                    onOpen = { tab -> moreTab = tab; if (tab == MoreTab.Evidence) viewModel.loadMedia(currentOrigin); if (tab == MoreTab.Voice) viewModel.checkVoice(currentOrigin); if (tab == MoreTab.Security) viewModel.loadSecurity(currentOrigin) },
                                     onNodeSetup = { nodeSetup = true }, onAbout = { about = true }, onLogout = { confirmLogout = true },
                                     updateAvailable = updateState is AppUpdateState.Available,
                                 )
+                                MoreTab.Security -> SubScreen(Icons.Filled.Lock, tr("Seguridad"), onBack = { moreTab = null }, actions = {
+                                    IconButton(onClick = { viewModel.loadSecurity(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
+                                }) {
+                                    SecurityScreen(
+                                        securityState, onStart = { viewModel.startSecondFactor(currentOrigin, it) }, onEnable = { viewModel.enableSecondFactor(currentOrigin, it) }, onDisable = { viewModel.disableSecondFactor(currentOrigin, it) },
+                                        onEndSession = { viewModel.endSession(currentOrigin, it) }, onEndOthers = { viewModel.endOtherSessions(currentOrigin) }, onCheck = { viewModel.checkRemote(currentOrigin) },
+                                        remoteActions = RemoteSetupActions(
+                                            onVpnSetup = { endpoint, port, lan, route -> viewModel.setupVpn(currentOrigin, endpoint, port, lan, route) },
+                                            onAddPeer = { name, full -> viewModel.addVpnDevice(currentOrigin, name, full) },
+                                            onShowPeer = { viewModel.showVpnDevice(currentOrigin, it.name) },
+                                            onRemovePeer = { viewModel.removeVpnDevice(currentOrigin, it.name) },
+                                            onDdnsSetup = { provider, domain, token, zone, record, url -> viewModel.setupDdns(currentOrigin, provider, domain, token, zone, record, url) },
+                                            onDdnsUpdate = { viewModel.updateDdns(currentOrigin) },
+                                            onDdnsStop = { viewModel.stopDdns(currentOrigin) },
+                                            onCloseConfig = { viewModel.closeVpnConfig() },
+                                        ),
+                                    )
+                                }
                                 MoreTab.Solar -> SubScreen(Icons.Filled.WbSunny, tr("Solar"), onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.reloadSolar(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
                                 }) { SolarScreen(state.solar, state.network, onScanNetwork = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading) }
@@ -326,7 +349,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 }
                                 MoreTab.Evidence -> SubScreen(Icons.Filled.VideoLibrary, tr("Grabaciones"), onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.loadMedia(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
-                                }) { EvidenceScreen(state.media.items, state.cameras, currentOrigin, viewModel, state.authenticated) }
+                                }) { EvidenceScreen(state.media.items, state.cameras, currentOrigin, viewModel, state.authenticated, canDelete = !state.readOnly) }
                                 MoreTab.History -> SubScreen(Icons.Filled.History, tr("Historial"), onBack = { moreTab = null }) { HistoryScreen(state.events, onMore = { viewModel.loadOlderEvents(currentOrigin) }) }
                                 MoreTab.Settings -> SubScreen(Icons.Filled.Settings, tr("Ajustes"), onBack = { moreTab = null }) {
                                     SettingsScreen(
@@ -420,6 +443,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                     )
                 }
             }
+            if (securityState.elevationNeeded && state.authenticated) ElevationDialog(securityState.elevationError, securityState.busy, onConfirm = { password, code -> viewModel.elevate(currentOrigin, password, code) }, onDismiss = { viewModel.dismissElevation() })
             if (about) AboutDialog(onDismiss = { about = false })
         }
     }

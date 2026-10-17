@@ -14,7 +14,16 @@ import java.net.URL
 import java.nio.charset.StandardCharsets
 
 /** [code] is the HTTP status when the server answered, so a caller can tell an expired session (401) from an outage. */
-class ArmorApiException(message: String, val code: Int? = null) : IllegalStateException(message)
+open class ArmorApiException(message: String, val code: Int? = null) : IllegalStateException(message)
+
+/** The server refused a critical action because the session came from outside the house and has not proved itself again: the app asks for the password and tries again. */
+class ElevationRequiredException : ArmorApiException("elevation_required", 403)
+
+/** The first step of the sign-in: the session is open, or the account has the second factor on and the code is asked for. */
+sealed class SignIn {
+    object Done : SignIn()
+    class NeedsCode(val challenge: String) : SignIn()
+}
 
 class ArmorApiClient {
     init {
@@ -149,6 +158,62 @@ class ArmorApiClient {
         ).disconnect()
     }
 
+    /** Like [openStudioSession] but tells when the second factor is asked. */
+    fun signIn(origin: String, username: String, password: String): SignIn {
+        val connection = request(origin, "/api/v1/studio/session", "POST", mapOf("Content-Type" to "application/json", "Accept" to "application/json"), JSONObject(mapOf("username" to username, "password" to password)).toString(), setOf(200, 201))
+        return try {
+            val body = runCatching { JSONObject(connection.inputStream.bufferedReader().use { it.readText() }) }.getOrDefault(JSONObject())
+            if (body.optBoolean("totp_required") && body.optString("challenge").isNotBlank()) SignIn.NeedsCode(body.optString("challenge")) else SignIn.Done
+        } finally { connection.disconnect() }
+    }
+
+    /** The second step: the challenge of the first and the code of the app (or a recovery code). */
+    fun completeSignIn(origin: String, challenge: String, code: String) {
+        request(origin, "/api/v1/studio/session/totp", "POST", mapOf("Content-Type" to "application/json"), JSONObject(mapOf("challenge" to challenge, "code" to code)).toString(), setOf(201)).disconnect()
+    }
+
+    fun mySessions(origin: String): List<SessionInfo> = SecurityParser.sessions(getJson(origin, "/api/v1/studio/sessions"))
+    fun endSession(origin: String, id: String) { request(origin, "/api/v1/studio/sessions/${part(id)}", "DELETE", emptyMap(), null, setOf(204)).disconnect() }
+    fun endOtherSessions(origin: String) { request(origin, "/api/v1/studio/sessions/end-others", "POST", emptyMap(), null, setOf(204)).disconnect() }
+    fun totpState(origin: String): TotpInfo = SecurityParser.totp(getJson(origin, "/api/v1/studio/totp"))
+    fun totpSetup(origin: String, password: String): Pair<String, String> {
+        val connection = request(origin, "/api/v1/studio/totp/setup", "POST", mapOf("Content-Type" to "application/json", "Accept" to "application/json"), JSONObject(mapOf("password" to password)).toString(), setOf(200))
+        return try { JSONObject(connection.inputStream.bufferedReader().use { it.readText() }).let { it.optString("secret") to it.optString("uri") } } finally { connection.disconnect() }
+    }
+    fun totpEnable(origin: String, code: String): List<String> {
+        val connection = request(origin, "/api/v1/studio/totp/enable", "POST", mapOf("Content-Type" to "application/json", "Accept" to "application/json"), JSONObject(mapOf("code" to code)).toString(), setOf(200))
+        return try { SecurityParser.codes(JSONObject(connection.inputStream.bufferedReader().use { it.readText() })) } finally { connection.disconnect() }
+    }
+    fun totpDisable(origin: String, password: String) {
+        request(origin, "/api/v1/studio/totp", "DELETE", mapOf("Content-Type" to "application/json"), JSONObject(mapOf("password" to password)).toString(), setOf(204)).disconnect()
+    }
+    /** A new proof of identity (the password, or a code of the app), good for a few minutes for the critical actions. */
+    fun elevate(origin: String, password: String, code: String) {
+        val body = JSONObject().apply { if (code.isNotBlank()) put("code", code) else put("password", password) }
+        request(origin, "/api/v1/studio/elevate", "POST", mapOf("Content-Type" to "application/json"), body.toString(), setOf(200)).disconnect()
+    }
+    fun remoteCheck(origin: String): RemoteInfo = SecurityParser.remote(getJson(origin, "/api/v1/remote/check"))
+
+    // ---- the way in from outside the house, set up from the phone (administrators): the VPN and the dynamic DNS name ----
+    fun remoteSetup(origin: String): RemoteSetup = SecurityParser.remoteSetup(getJson(origin, "/api/v1/admin/remote"))
+    fun vpnSetup(origin: String, endpoint: String, port: Int, lan: String, routeLan: String): RemoteSetup {
+        val body = JSONObject().put("endpoint", endpoint).put("port", port)
+        if (lan.isNotBlank()) body.put("lan", lan)
+        if (routeLan.isNotBlank()) body.put("route_lan", routeLan)
+        return SecurityParser.remoteSetup(sendJson(origin, "/api/v1/admin/remote/wireguard/setup", "POST", body, setOf(200)))
+    }
+    fun vpnAddPeer(origin: String, name: String, fullTunnel: Boolean): PeerConfig =
+        SecurityParser.peerConfig(sendJson(origin, "/api/v1/admin/remote/wireguard/peers", "POST", JSONObject().put("name", name).put("full_tunnel", fullTunnel), setOf(201)))
+    fun vpnShowPeer(origin: String, name: String): PeerConfig = SecurityParser.peerConfig(getJson(origin, "/api/v1/admin/remote/wireguard/peers/${part(name)}"))
+    fun vpnRemovePeer(origin: String, name: String) { sendJson(origin, "/api/v1/admin/remote/wireguard/peers/${part(name)}", "DELETE", null, setOf(200)) }
+    fun ddnsSetup(origin: String, provider: String, domain: String, token: String, zone: String, record: String, url: String): RemoteSetup {
+        val body = JSONObject().put("provider", provider)
+        mapOf("domain" to domain, "token" to token, "zone" to zone, "record_name" to record, "url" to url).forEach { (key, value) -> if (value.isNotBlank()) body.put(key, value) }
+        return SecurityParser.remoteSetup(sendJson(origin, "/api/v1/admin/remote/ddns/setup", "POST", body, setOf(200)))
+    }
+    fun ddnsUpdate(origin: String): RemoteSetup = SecurityParser.remoteSetup(sendJson(origin, "/api/v1/admin/remote/ddns/update", "POST", JSONObject(), setOf(200)))
+    fun ddnsRemove(origin: String): RemoteSetup = SecurityParser.remoteSetup(sendJson(origin, "/api/v1/admin/remote/ddns/remove", "POST", JSONObject(), setOf(200)))
+
     /** Forgets the session cookie held here, whatever the server says (a logout with the server down). */
     fun forgetSession(origin: String) {
         val manager = CookieHandler.getDefault() as? CookieManager ?: return
@@ -212,6 +277,13 @@ class ArmorApiClient {
         return try { VoiceParser.parse(JSONObject(connection.inputStream.bufferedReader().use { it.readText() })) } finally { connection.disconnect() }
     }
 
+    /** A request with a JSON body (or none) whose answer is a JSON object (or nothing). */
+    private fun sendJson(origin: String, path: String, method: String, body: JSONObject?, expected: Set<Int>): JSONObject {
+        val headers = mapOf("Accept" to "application/json") + if (body != null) mapOf("Content-Type" to "application/json") else emptyMap()
+        val connection = request(origin, path, method, headers, body?.toString(), expected)
+        return try { JSONObject(connection.inputStream.bufferedReader().use { it.readText() }.ifBlank { "{}" }) } finally { connection.disconnect() }
+    }
+
     private fun getJson(origin: String, path: String): JSONObject {
         val connection = request(origin, path, "GET", mapOf("Accept" to "application/json"), null, setOf(200))
         return try { JSONObject(connection.inputStream.bufferedReader().use { it.readText() }) } finally { connection.disconnect() }
@@ -227,6 +299,7 @@ class ArmorApiClient {
         if (code !in expected) {
             val detail = try { connection.errorStream?.bufferedReader()?.use { it.readText() }?.take(180).orEmpty() } catch (_: java.io.IOException) { "" }
             connection.disconnect()
+            if (code == 403 && detail.contains("elevation_required")) throw ElevationRequiredException()
             throw ArmorApiException("Server operation failed (HTTP ${code})${if (detail.isBlank()) "" else ": ${detail}"}", code)
         }
         return connection

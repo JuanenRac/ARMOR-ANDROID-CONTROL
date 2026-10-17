@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here.
 
+## [0.6.0] - Security: second factor, open sessions and the VPN and the dynamic DNS name from the phone
+
+- **Two-step sign-in:** when the account has the second factor on, the sign-in asks for the six-digit code of the authenticator app (or a recovery code) as a second step, and says why when the server asks for it from outside the house and it has not been set up.
+- **A Security screen in More:** set up the second factor with your password (the key and a link that opens the app), confirm it with the first code, keep the ten recovery codes shown once, and turn it off; see the sessions that are open (the house or outside, address, last use) and end one or all the others; and a button that shows how the server sees this phone.
+- **A new proof for critical actions from outside:** a refused critical action opens a dialog for the password (or a code), and the action is tried again by itself.
+- **The VPN, for an administrator:** set it up (the name or address the phone will use, the port, the network of the house), add a device and copy its configuration (it holds a private key, so it is shown with a warning), show it again or remove the device; the card says which UDP port to forward on the router.
+- **A name that follows the house:** DuckDNS, Cloudflare or any address to call; the token is typed once and never shown again, and the card shows what is kept up to date and the last address told, with buttons to update it now or stop it.
+- **The panels of the nodes through the server** are registered and trusted from Studio; the card says so and where.
+- **The delete button of the library** is no longer offered to a viewer or a wall panel (the server refused it anyway).
+- **95 new phrases in the seven tables**, checked by the test that every phrase of the source is in every table.
+- **Tests:** 130 (before 125): the sessions, the second factor, the view from outside, the VPN and the DNS state are read as sent, the codes of the errors have their own phrases, and every phrase is in every language.
+
 ## [0.5.9] - The real error of an action reaches the person, a duress alarm stays silent and every role sees what it may
 
 - **The error of an action is told as it is.** A wrong PIN, a locked PIN, a wrong password, a refused order and the rest were all shown as *the server could not do it*: the message of the error was lost to a name clash in the code. They show now, which also stops a person from trying a locked PIN again and again.

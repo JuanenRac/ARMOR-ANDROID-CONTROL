@@ -20,6 +20,10 @@ import es.electrohobby3d.armor.model.VoiceMessage
 import es.electrohobby3d.armor.model.VoiceParser
 import es.electrohobby3d.armor.model.VoiceUiState
 import es.electrohobby3d.armor.network.ArmorApiException
+import es.electrohobby3d.armor.network.ElevationRequiredException
+import es.electrohobby3d.armor.network.SignIn
+import es.electrohobby3d.armor.model.SecurityParser
+import es.electrohobby3d.armor.model.SessionInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -233,10 +237,109 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
 
     fun login(origin: String, username: String, password: String) = action(origin, "Session established") {
         require(username.isNotBlank() && password.isNotBlank()) { "Enter username and password" }
-        client.openStudioSession(origin, username.trim(), password)
+        try {
+            when (val step = client.signIn(origin, username.trim(), password)) {
+                is SignIn.NeedsCode -> { _security.update { it.copy(loginChallenge = step.challenge, message = null) }; return@action }
+                SignIn.Done -> Unit
+            }
+        } catch (error: ArmorApiException) {
+            val code = SecurityParser.errorCode(error.message)
+            if (code == "totp_setup_required") throw ArmorApiException(securityError(code), error.code)
+            throw error
+        }
         _state.update { it.copy(authenticated = true, role = runCatching { client.studioRole(origin) }.getOrDefault("")) }
         refreshInternal(origin, loadMedia = true)
     }
+
+    // ---- security: the second step of the sign-in, the second factor, the sessions, the proof for critical actions ----
+    private val _security = MutableStateFlow(SecurityUiState())
+    val security: StateFlow<SecurityUiState> = _security.asStateFlow()
+    @Volatile private var retryAfterElevation: (suspend () -> Unit)? = null
+
+    fun cancelCode() { _security.update { it.copy(loginChallenge = null, message = null) } }
+
+    fun submitCode(origin: String, code: String) {
+        val challenge = _security.value.loginChallenge ?: return
+        viewModelScope.launch {
+            _state.update { it.copy(loading = true, message = null) }
+            runCatching {
+                withContext(Dispatchers.IO) {
+                    client.completeSignIn(origin, challenge, code.trim())
+                    _state.update { it.copy(authenticated = true, role = runCatching { client.studioRole(origin) }.getOrDefault("")) }
+                    refreshInternal(origin, loadMedia = true)
+                }
+            }.onSuccess { _security.update { it.copy(loginChallenge = null) }; _state.update { it.copy(loading = false, message = "Session established") } }
+                .onFailure { error ->
+                    val failure = SecurityParser.errorCode((error as? ArmorApiException)?.message)
+                    if (failure == "challenge_expired") _security.update { it.copy(loginChallenge = null) }
+                    _state.update { it.copy(loading = false, message = securityError(failure)) }
+                }
+        }
+    }
+
+    private fun securityCall(origin: String, block: suspend () -> Unit) {
+        viewModelScope.launch {
+            _security.update { it.copy(busy = true, message = null) }
+            runCatching { withContext(Dispatchers.IO) { block() } }
+                .onFailure { error ->
+                    if (error is ElevationRequiredException) { retryAfterElevation = { block() }; _security.update { it.copy(busy = false, elevationNeeded = true, elevationError = null) } }
+                    else _security.update { it.copy(busy = false, message = securityError(SecurityParser.errorCode((error as? ArmorApiException)?.message))) }
+                }
+                .onSuccess { _security.update { it.copy(busy = false) } }
+        }
+    }
+
+    fun loadSecurity(origin: String) = securityCall(origin) {
+        val totp = client.totpState(origin)
+        val sessions = client.mySessions(origin)
+        _security.update { it.copy(totp = totp, sessions = sessions) }
+        // only an administrator is answered; for anybody else the cards of the VPN simply are not there
+        _security.update { it.copy(setup = runCatching { client.remoteSetup(origin) }.getOrNull(), peerConfig = null) }
+    }
+    fun addVpnDevice(origin: String, name: String, fullTunnel: Boolean) = securityCall(origin) {
+        val config = client.vpnAddPeer(origin, name, fullTunnel)
+        _security.update { it.copy(peerConfig = config, setup = client.remoteSetup(origin)) }
+    }
+    fun showVpnDevice(origin: String, name: String) = securityCall(origin) { _security.update { it.copy(peerConfig = client.vpnShowPeer(origin, name)) } }
+    fun removeVpnDevice(origin: String, name: String) = securityCall(origin) {
+        client.vpnRemovePeer(origin, name)
+        _security.update { it.copy(peerConfig = it.peerConfig?.takeUnless { shown -> shown.name == name }, setup = client.remoteSetup(origin)) }
+    }
+    fun setupVpn(origin: String, endpoint: String, port: Int, lan: String, routeLan: String) = securityCall(origin) { _security.update { it.copy(setup = client.vpnSetup(origin, endpoint, port, lan, routeLan)) } }
+    fun closeVpnConfig() { _security.update { it.copy(peerConfig = null) } }
+    fun setupDdns(origin: String, provider: String, domain: String, token: String, zone: String, record: String, url: String) = securityCall(origin) { _security.update { it.copy(setup = client.ddnsSetup(origin, provider, domain, token, zone, record, url)) } }
+    fun updateDdns(origin: String) = securityCall(origin) { _security.update { it.copy(setup = client.ddnsUpdate(origin)) } }
+    fun stopDdns(origin: String) = securityCall(origin) { _security.update { it.copy(setup = client.ddnsRemove(origin)) } }
+    fun startSecondFactor(origin: String, password: String) = securityCall(origin) {
+        val (secret, uri) = client.totpSetup(origin, password)
+        _security.update { it.copy(setupSecret = secret, setupUri = uri, recoveryCodes = emptyList()) }
+    }
+    fun enableSecondFactor(origin: String, code: String) = securityCall(origin) {
+        val codes = client.totpEnable(origin, code)
+        _security.update { it.copy(setupSecret = null, setupUri = null, recoveryCodes = codes, totp = client.totpState(origin), sessions = client.mySessions(origin)) }
+    }
+    fun disableSecondFactor(origin: String, password: String) = securityCall(origin) {
+        client.totpDisable(origin, password)
+        _security.update { it.copy(recoveryCodes = emptyList(), setupSecret = null, setupUri = null, totp = client.totpState(origin), sessions = client.mySessions(origin)) }
+    }
+    fun endSession(origin: String, session: SessionInfo) = securityCall(origin) { client.endSession(origin, session.id); _security.update { it.copy(sessions = client.mySessions(origin)) } }
+    fun endOtherSessions(origin: String) = securityCall(origin) { client.endOtherSessions(origin); _security.update { it.copy(sessions = client.mySessions(origin)) } }
+    fun checkRemote(origin: String) = securityCall(origin) { _security.update { it.copy(remote = client.remoteCheck(origin)) } }
+
+    /** The password (or a code) for the critical action that was refused; when it is right, the action is tried again by itself. */
+    fun elevate(origin: String, password: String, code: String) {
+        viewModelScope.launch {
+            _security.update { it.copy(busy = true, elevationError = null) }
+            runCatching { withContext(Dispatchers.IO) { client.elevate(origin, password, code) } }
+                .onFailure { error -> _security.update { it.copy(busy = false, elevationError = securityError(SecurityParser.errorCode((error as? ArmorApiException)?.message))) } }
+                .onSuccess {
+                    _security.update { it.copy(busy = false, elevationNeeded = false) }
+                    val retry = retryAfterElevation; retryAfterElevation = null
+                    if (retry != null) action(origin, "Done") { retry() }
+                }
+        }
+    }
+    fun dismissElevation() { retryAfterElevation = null; _security.update { it.copy(elevationNeeded = false, elevationError = null) } }
 
     @Volatile private var pushToken: String? = null
 
@@ -404,7 +507,13 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
             _state.update { it.copy(loading = true, message = null) }
             runCatching { withContext(Dispatchers.IO) { operation() } }
                 .onSuccess { _state.update { it.copy(loading = false, message = success) } }
-                .onFailure { error -> _state.update { it.copy(loading = false, message = error.message ?: "Server operation failed") } }   // the error, not the (empty) message of the state: a wrong PIN, a lock and a refusal are told as they are
+                .onFailure { error ->
+                    if (error is ElevationRequiredException) {   // from outside the house: the password again, then the same action by itself
+                        retryAfterElevation = operation
+                        _security.update { it.copy(elevationNeeded = true, elevationError = null) }
+                        _state.update { it.copy(loading = false) }
+                    } else _state.update { it.copy(loading = false, message = error.message ?: "Server operation failed") }
+                }   // the error, not the (empty) message of the state: a wrong PIN, a lock and a refusal are told as they are
         }
     }
 
