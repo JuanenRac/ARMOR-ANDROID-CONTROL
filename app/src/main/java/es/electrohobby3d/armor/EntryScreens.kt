@@ -76,8 +76,12 @@ fun LoginScreen(
     onLogin: () -> Unit, canLogin: Boolean, onNodeSetup: () -> Unit, onAbout: () -> Unit,
     /** When the account has the second factor on, the sign-in waits for the code: the code step replaces the fields. */
     challenge: Boolean = false, code: String = "", onCode: (String) -> Unit = {}, onSubmitCode: () -> Unit = {}, onCancelCode: () -> Unit = {},
+    /** The address typed is outside the home network and has no https://: the sign-in says why it cannot go on and how to get in from outside. */
+    needsSecure: Boolean = false, onUseHttps: () -> Unit = {},
 ) {
     var visible by rememberSaveable { mutableStateOf(false) }
+    var outsideHelp by rememberSaveable { mutableStateOf(false) }
+    if (outsideHelp) OutsideHomeDialog(onDismiss = { outsideHelp = false })
     Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF0A2A33), ArmorColors.Background, ArmorColors.Background)))) {
         IconButton(onClick = onAbout, Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(8.dp)) {
             Icon(Icons.Filled.Info, contentDescription = tr("Acerca de"), tint = ArmorColors.Muted)
@@ -116,6 +120,15 @@ fun LoginScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         trailingIcon = { IconButton(onClick = { visible = !visible }) { Icon(if (visible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, contentDescription = if (visible) tr("Ocultar") else tr("Mostrar")) } },
                     )
+                    if (needsSecure) {
+                        Text(tr("Esa dirección está fuera de tu red: sin una conexión cifrada la app no envía tu contraseña. Escribe https:// delante, o entra primero por la VPN de la casa y usa la dirección privada."), color = ArmorColors.Alert, style = MaterialTheme.typography.bodySmall)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(onClick = onUseHttps) { Text(tr("Usar https")) }
+                            TextButton(onClick = { outsideHelp = true }) { Text(tr("¿Cómo entro desde fuera?")) }
+                        }
+                    } else {
+                        TextButton(onClick = { outsideHelp = true }, Modifier.align(Alignment.CenterHorizontally)) { Text(tr("¿Cómo entro desde fuera de casa?")) }
+                    }
                     Button(onClick = onLogin, enabled = canLogin && !busy, modifier = Modifier.fillMaxWidth().height(52.dp), shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp)) {
                         if (busy) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
                         else Icon(Icons.AutoMirrored.Filled.Login, null)
@@ -140,6 +153,27 @@ fun LoginScreen(
             Text(tr("Tu contraseña no se guarda en el móvil. La sesión sí, cifrada, y se renueva mientras uses la app: no tendrás que volver a entrar salvo que caduque o la cierres."), color = ArmorColors.Muted, fontSize = 12.sp, textAlign = TextAlign.Center)
         }
     }
+}
+
+/** How to reach the server from outside the home network; the sign-in offers it, because from a phone on 4G the home addresses do not work. */
+@Composable
+fun OutsideHomeDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = ArmorColors.SurfaceRaised,
+        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Cerrar")) } },
+        title = { Text(tr("Entrar desde fuera de casa")) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(tr("Con los datos del móvil las direcciones de casa (192.168…, 10…) no existen. Hay dos formas seguras de llegar al servidor; la contraseña nunca viaja en claro por internet."), style = MaterialTheme.typography.bodyMedium)
+                Text(tr("Opción A - VPN (la más segura)"), fontWeight = FontWeight.Bold, color = ArmorColors.Cyan)
+                Text(tr("1. En ARMOR Studio, Seguridad, Acceso remoto: crea la VPN y añade este móvil. 2. Instala WireGuard en el móvil, importa la configuración (código QR o fichero) y actívala. 3. Con la VPN activa, vuelve aquí y entra con la dirección privada de la casa, por ejemplo 192.168.0.180."), style = MaterialTheme.typography.bodyMedium)
+                Text(tr("Opción B - Dirección pública con https"), fontWeight = FontWeight.Bold, color = ArmorColors.Cyan)
+                Text(tr("1. En ARMOR Studio, Seguridad, Acceso remoto: configura el nombre que se actualiza solo (DNS dinámico). 2. Abre en el router el puerto del servidor hacia la casa. 3. Aquí escribe https://tu-nombre y el puerto. La conexión debe ser cifrada: con http:// la app no te deja entrar."), style = MaterialTheme.typography.bodyMedium)
+                Text(tr("Si ya hiciste lo de arriba y no entra, comprueba en Studio que el acceso remoto está activo y que el servidor responde dentro de casa."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+            }
+        },
+    )
 }
 
 @Composable

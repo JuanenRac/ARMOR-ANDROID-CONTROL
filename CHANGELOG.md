@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## [0.6.2] - Signing in from outside the house is explained, and the status screen shows the whole system
+
+**Signing in from outside the house:** typing a public address (or a name) without https:// used to leave the Enter button disabled with no explanation. The sign-in now says why, offers a one-tap "Use https", and a guide (VPN or public address with https) explains every step, in the eight languages.
+**The status screen shows more:** the alarm panels (how many, armed, sounding, without signal), the services of the system (running and failed), the cameras that are recording, and the security and remote access (second factor, VPN, sessions from outside); each card opens its screen.
+The status screen refreshes the new cards every ten seconds while it is open.
+
 ## [0.6.1] - The Security screen scrolls
 
 The Security screen (second factor, open sessions, remote access) now scrolls, so every card below the first can be reached on a phone screen.

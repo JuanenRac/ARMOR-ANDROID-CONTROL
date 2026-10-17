@@ -16,7 +16,7 @@ val firebase: Map<String, String> = run {
 }
 
 android { namespace = "es.electrohobby3d.armor"; compileSdk = 37
-    defaultConfig { applicationId = "es.electrohobby3d.armor"; minSdk = 26; targetSdk = 37; versionCode = 43; versionName = "0.6.1"
+    defaultConfig { applicationId = "es.electrohobby3d.armor"; minSdk = 26; targetSdk = 37; versionCode = 44; versionName = "0.6.2"
         buildConfigField("String", "FCM_PROJECT_ID", "\"${firebase["project"] ?: ""}\"")
         buildConfigField("String", "FCM_SENDER_ID", "\"${firebase["sender"] ?: ""}\"")
         buildConfigField("String", "FCM_APP_ID", "\"${firebase["app"] ?: ""}\"")

@@ -60,6 +60,10 @@ fun StatusScreen(
     solar: es.electrohobby3d.armor.model.SolarOverview? = null, onSolar: () -> Unit = {},
     electrical: es.electrohobby3d.armor.model.ElectricalOverview? = null, onElectrical: () -> Unit = {},
     network: es.electrohobby3d.armor.model.NetworkOverview? = null, onNetwork: () -> Unit = {},
+    alarmPanels: es.electrohobby3d.armor.model.AlarmPanelsOverview? = null, onAlarmPanels: () -> Unit = {},
+    services: es.electrohobby3d.armor.model.ServicesOverview? = null, onServices: () -> Unit = {},
+    recording: Int = 0, onRecordings: () -> Unit = {},
+    security: SecurityUiState = SecurityUiState(), onSecurity: () -> Unit = {},
 ) {
     val attention = devices.count { DeviceText.problem(it) != null }
     val nodesOnline = nodes.count { it.online }
@@ -120,9 +124,40 @@ fun StatusScreen(
                 }
             }
         }
+        if (alarmPanels != null && !alarmPanels.isEmpty) {
+            val totals = alarmPanels.totals
+            val panelTint = if (totals.sounding > 0) ArmorColors.Alert else if (totals.stale > 0) ArmorColors.Amber else null
+            StatusLink(Icons.Filled.Shield, tr("Centrales de alarma"), trf("%s centrales · %s armadas", totals.nodes, totals.armed) + (if (totals.sounding > 0) " · " + trf("%s sonando", totals.sounding) else "") + (if (totals.stale > 0) " · " + trf("%s sin señal", totals.stale) else ""), panelTint, onAlarmPanels)
+        }
+        if (services != null && services.services.isNotEmpty()) {
+            val running = services.services.count { it.state == "running" || it.state == "online" }
+            val failed = services.services.count { it.state == "failed" }
+            StatusLink(Icons.Filled.Dns, tr("Servicios"), trf("%s de %s servicios en marcha", running, services.services.size) + (if (failed > 0) " · " + trf("%s con fallo", failed) else ""), if (failed > 0) ArmorColors.Alert else null, onServices)
+        }
+        if (recording > 0) StatusLink(Icons.Filled.VideoLibrary, tr("Grabaciones"), trf("Grabando %s cámaras", recording), null, onRecordings)
+        security.totp?.let { totp ->
+            val setup = security.setup
+            val vpn = if (setup == null) null else if (!setup.vpnConfigured) tr("VPN sin configurar") else if (setup.vpnRunning) tr("VPN activa") else tr("VPN parada")
+            val summary = listOfNotNull(if (totp.enabled) tr("Segundo factor activado") else tr("Segundo factor desactivado"), vpn, security.sessions.count { it.remote }.takeIf { it > 0 }?.let { trf("%s sesiones desde fuera", it) }).joinToString(" · ")
+            StatusLink(Icons.Filled.Lock, tr("Seguridad y acceso remoto"), summary, if (!totp.enabled || (setup != null && setup.vpnConfigured && !setup.vpnRunning)) ArmorColors.Amber else null, onSecurity)
+        }
         if (nodes.isNotEmpty()) {
             Text(tr("Radares"), style = MaterialTheme.typography.titleMedium, color = ArmorColors.Muted)
             nodes.forEach { node -> NodeRow(node) }
+        }
+    }
+}
+
+/** A one-line card of the status screen that opens the screen it summarises. */
+@Composable
+private fun StatusLink(icon: ImageVector, title: String, summary: String, tint: Color?, onClick: () -> Unit) {
+    Panel(Modifier.fillMaxWidth(), tint = tint, onClick = onClick) {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            IconBadge(icon, tint ?: ArmorColors.Cyan, size = 40.dp)
+            Column(Modifier.weight(1f)) {
+                Text(title, fontWeight = FontWeight.SemiBold)
+                Text(summary, style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
         }
     }
 }

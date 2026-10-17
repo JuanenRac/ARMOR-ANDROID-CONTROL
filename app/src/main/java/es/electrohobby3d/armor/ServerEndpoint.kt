@@ -15,6 +15,17 @@ data class ServerEndpoint(val origin: String) {
             return parse("${scheme}://${host}:${port}")
         }
 
+        /**
+         * True when what the person typed names a place outside the home network but does not ask for a secure connection: a public address or a name without "https://".
+         * The app refuses to send the password that way, and the sign-in explains it instead of just staying disabled.
+         */
+        fun needsSecureConnection(hostInput: String): Boolean {
+            val source = hostInput.trim()
+            if (source.isEmpty() || source.startsWith("https://", ignoreCase = true)) return false
+            val host = source.removePrefix("http://").substringBefore('/').substringBefore(':')
+            return host.isNotEmpty() && !isPrivateLanHost(host)
+        }
+
         // No leading zeros: some resolvers read "010.0.0.1" as octal, i.e. the public address 8.0.0.1.
         private val IPV4 = Regex("""^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$""")
 

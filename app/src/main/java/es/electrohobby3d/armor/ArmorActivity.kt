@@ -148,6 +148,14 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
             lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { while (true) { viewModel.pollRadar(currentOrigin); delay(1_500) } }
         }
     }
+    // The status screen summarises the alarm panels, the services and the security: they are asked every ten seconds while it is open and the app is on screen.
+    LaunchedEffect(section, state.authenticated, currentOrigin) {
+        if (state.authenticated && currentOrigin.isNotBlank() && section == Section.Status) {
+            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (true) { viewModel.pollAlarmPanels(currentOrigin); viewModel.pollServices(currentOrigin); viewModel.loadSecurity(currentOrigin); delay(10_000) }
+            }
+        }
+    }
     // The Electrical screen (in the More menu): the meters every five seconds while it is open and the app is on screen.
     LaunchedEffect(section, moreTab, state.authenticated, currentOrigin) {
         if (state.authenticated && currentOrigin.isNotBlank() && section == Section.More && moreTab == MoreTab.Electrical) {
@@ -224,6 +232,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                     challenge = securityState.loginChallenge != null, code = loginCode, onCode = { loginCode = it },
                     onSubmitCode = { loginEndpoint?.let { endpoint -> viewModel.submitCode(endpoint.origin, loginCode); loginCode = "" } },
                     onCancelCode = { loginCode = ""; viewModel.cancelCode() },
+                    needsSecure = ServerEndpoint.needsSecureConnection(serverHost), onUseHttps = { serverHost = "https://" + serverHost.removePrefix("http://") },
                 )
             } else {
                 Scaffold(
@@ -260,6 +269,10 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 solar = state.solar, onSolar = { section = Section.More; moreTab = MoreTab.Solar },
                                 electrical = state.electrical, onElectrical = { section = Section.More; moreTab = MoreTab.Electrical },
                                 network = state.network, onNetwork = { section = Section.More; moreTab = MoreTab.Network },
+                                alarmPanels = state.alarmPanels, onAlarmPanels = { section = Section.More; moreTab = MoreTab.AlarmPanels },
+                                services = state.services, onServices = { section = Section.More; moreTab = MoreTab.Services },
+                                recording = state.media.activeCameraIds.size, onRecordings = { section = Section.More; moreTab = MoreTab.Evidence; viewModel.loadMedia(currentOrigin) },
+                                security = securityState, onSecurity = { section = Section.More; moreTab = MoreTab.Security; viewModel.loadSecurity(currentOrigin) },
                             )
                             Section.Radar -> RadarScreen(state.site, state.siteLoaded, state.snapshot.nodes, onReload = { reloadSite++ })
                             Section.Alarms -> AlarmsScreen(
