@@ -1,4 +1,4 @@
-// ARMOR-ANDROID-CONTROL - the alarm panels: whether each alarm node is guarding, its zones and its last events, and (for an administrator, when the server allows it) arming and disarming.
+// ARMOR-ANDROID-CONTROL - the alarm panels: whether each alarm node is guarding, its zones and its last events, and (for an administrator, when the server allows it) arming, disarming and, while the siren sounds, silencing it with the PIN.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor
 
@@ -39,9 +39,11 @@ import es.electrohobby3d.armor.model.NetworkOverview
 fun AlarmPanelsScreen(
     overview: AlarmPanelsOverview?, commands: AlarmCommandsStatus, canCommand: Boolean, network: NetworkOverview? = null,
     onScanNetwork: () -> Unit = {}, scanning: Boolean = false, onArm: (AlarmPanelView, String, Boolean) -> Unit = { _, _, _ -> }, onDisarm: (AlarmPanelView, String) -> Unit = { _, _ -> },
+    onSilence: (AlarmPanelView, String) -> Unit = { _, _ -> },
 ) {
     val data = overview ?: AlarmPanelsOverview()
     var confirmDisarm by remember { mutableStateOf<AlarmPanelView?>(null) }
+    var confirmSilence by remember { mutableStateOf<AlarmPanelView?>(null) }
     LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
         item { NodeFinderPanel(network, data.nodes.map { it.nodeId }, onScanNetwork, scanning) }
         item {
@@ -59,8 +61,14 @@ fun AlarmPanelsScreen(
         if (canCommand && !commands.enabled) item { Text(tr("Armar desde aquí está apagado en el servidor (ARMOR_ALARM_COMMANDS)."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber) }
         if (data.isEmpty) item { EmptyAlarmPanels() }
         items(data.nodes, key = { it.nodeId }) { panel ->
-            AlarmPanelCard(panel, allowed = canCommand && commands.enabled && !panel.stale && panel.commandsEnabled, recent = commands.recent.filter { it.nodeId == panel.nodeId }.take(3), onArm = onArm, onDisarm = { confirmDisarm = panel })
+            AlarmPanelCard(panel, allowed = canCommand && commands.enabled && !panel.stale && panel.commandsEnabled, recent = commands.recent.filter { it.nodeId == panel.nodeId }.take(3), onArm = onArm, onDisarm = { confirmDisarm = panel }, onSilence = { confirmSilence = panel })
         }
+    }
+    confirmSilence?.let { panel ->
+        PinAlertDialog(
+            title = trf("¿Silenciar la sirena de «%s»?", panel.nodeId), text = AlarmPanelText.confirmSilence(panel.nodeId),
+            confirmLabel = tr("Sí, silenciar"), onConfirm = { pin -> onSilence(panel, pin); confirmSilence = null }, onDismiss = { confirmSilence = null },
+        )
     }
     confirmDisarm?.let { panel ->
         PinAlertDialog(
@@ -82,7 +90,7 @@ private fun EmptyAlarmPanels() {
 }
 
 @Composable
-private fun AlarmPanelCard(panel: AlarmPanelView, allowed: Boolean, recent: List<es.electrohobby3d.armor.model.AlarmCommandRecord>, onArm: (AlarmPanelView, String, Boolean) -> Unit, onDisarm: () -> Unit) {
+private fun AlarmPanelCard(panel: AlarmPanelView, allowed: Boolean, recent: List<es.electrohobby3d.armor.model.AlarmCommandRecord>, onArm: (AlarmPanelView, String, Boolean) -> Unit, onDisarm: () -> Unit, onSilence: () -> Unit) {
     var force by remember { mutableStateOf(false) }
     val tint = if (panel.stale) ArmorColors.Muted else if (panel.sounding) ArmorColors.Alert else null
     Panel(Modifier.fillMaxWidth(), tint = tint) {
@@ -122,6 +130,7 @@ private fun AlarmPanelCard(panel: AlarmPanelView, allowed: Boolean, recent: List
                     Button(onClick = { onArm(panel, "stay", force) }, enabled = panel.phase == "disarmed") { Text(tr("Armar: en casa")) }
                     OutlinedButton(onClick = onDisarm, enabled = panel.phase != "disarmed") { Text(tr("Desarmar")) }
                 }
+                if (panel.siren) OutlinedButton(onClick = onSilence) { Text(tr("Silenciar sirena")) }
                 if (panel.openZones.isNotEmpty() && panel.phase == "disarmed") {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         androidx.compose.material3.Checkbox(checked = force, onCheckedChange = { force = it })

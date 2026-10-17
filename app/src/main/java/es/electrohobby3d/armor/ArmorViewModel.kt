@@ -161,6 +161,12 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
         pollAlarmPanels(origin)
     }
 
+    /** Silences the siren of a panel with the system still armed; the PIN is checked by the server. */
+    fun silenceAlarm(origin: String, node: String, pin: String? = null) = mutating(origin, trf("%s: orden de silenciar la sirena enviada", node)) {
+        client.silenceAlarmSiren(origin, node, pin)
+        pollAlarmPanels(origin)
+    }
+
     /** The electrical network, quickly, while the Electrical screen is open. A failure is ignored; the next pass tries again. */
     suspend fun pollElectrical(origin: String) = withContext(Dispatchers.IO) {
         runCatching { client.electrical(origin) }.onSuccess { value -> _state.update { it.copy(electrical = value) } }

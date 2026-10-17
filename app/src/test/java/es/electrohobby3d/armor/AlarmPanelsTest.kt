@@ -70,7 +70,7 @@ class AlarmPanelsTest {
         for (kind in listOf("instant", "entry", "always")) assertNotEquals(kind, AlarmPanelText.zoneKind(kind))
         assertEquals("interior", AlarmPanelText.zoneKind("interior"))   // the same word in Spanish
         for (state in listOf("normal", "triggered", "tamper")) assertNotEquals(state, AlarmPanelText.zoneState(state))
-        for (kind in listOf("armed", "exit_delay_started", "entry_delay_started", "alarm", "siren_timed_out", "disarmed", "bad_pin", "locked_out", "zone_bypassed")) assertNotEquals(kind, AlarmPanelText.event(kind))
+        for (kind in listOf("armed", "exit_delay_started", "entry_delay_started", "alarm", "siren_timed_out", "disarmed", "bad_pin", "locked_out", "zone_bypassed", "siren_silenced")) assertNotEquals(kind, AlarmPanelText.event(kind))
         for (refusal in listOf("none", "not_disarmed", "zones_open", "not_armed", "bad_pin", "locked_out", "timeout")) assertNotEquals(refusal, AlarmPanelText.refusal(refusal))
         for (code in listOf("commands_disabled", "unknown_node", "node_unavailable", "node_commands_off", "busy", "mqtt_unavailable")) assertNotEquals(code, AlarmPanelText.error(code))
         assertEquals("No se pudo enviar la orden", AlarmPanelText.error("something_new"))
@@ -79,6 +79,8 @@ class AlarmPanelsTest {
         assertEquals("hace 2 h", AlarmPanelText.ago(7200))
         // the dialog has a field for the PIN, and it says so (the server checks it)
         assertTrue(AlarmPanelText.confirmDisarm("alarm-1").contains("Escribe tu PIN") && !AlarmPanelText.confirmDisarm("alarm-1").contains("No lleva PIN"))
+        // silencing asks for the PIN too, names the panel and says that the system stays armed
+        assertTrue(AlarmPanelText.confirmSilence("alarm-1").let { it.contains("alarm-1") && it.contains("Escribe tu PIN") && it.contains("sigue armado") })
     }
 
     @Test fun theSummaryTellsWhatMattersMost() {

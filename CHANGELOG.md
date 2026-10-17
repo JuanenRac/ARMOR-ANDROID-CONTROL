@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [0.6.4] - Silence the siren of a panel from the phone
+
+- The alarm panel screen shows a Silence siren button while a siren sounds (administrators, when the server allows commands); it asks for the PIN, which the server checks and never sends to the node, and the system stays armed.
+- The event list names the new event siren silenced with the PIN; phrases in the seven translation tables; model tests cover the new wording.
+
 ## [0.6.3] - A zone in trouble is shown, and the app is signed with its own release key
 
 - A zone that the alarm node cannot read is shown as cannot be read (in the amber of a warning) in the alarm panels, and the warning that the server raises for it has its text in the eight languages.

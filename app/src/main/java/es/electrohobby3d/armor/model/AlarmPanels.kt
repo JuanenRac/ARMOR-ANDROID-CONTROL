@@ -79,7 +79,7 @@ object AlarmPanelText {
 
     fun event(kind: String): String = when (kind) {
         "armed" -> tr("armada"); "exit_delay_started" -> tr("empezó el retardo de salida"); "entry_delay_started" -> tr("empezó el retardo de entrada"); "alarm" -> tr("alarma")
-        "siren_timed_out" -> tr("la sirena se paró sola"); "disarmed" -> tr("desarmada"); "bad_pin" -> tr("PIN erróneo"); "locked_out" -> tr("bloqueada"); "zone_bypassed" -> tr("excluyó una zona"); else -> kind
+        "siren_timed_out" -> tr("la sirena se paró sola"); "disarmed" -> tr("desarmada"); "bad_pin" -> tr("PIN erróneo"); "locked_out" -> tr("bloqueada"); "zone_bypassed" -> tr("excluyó una zona"); "siren_silenced" -> tr("la sirena se silenció con el PIN"); else -> kind
     }
 
     /** "hace 12 s", "hace 3 min", "hace 2 h". */
@@ -116,6 +116,8 @@ object AlarmPanelText {
         totals.armed > 0 -> if (totals.armed == 1) tr("Una central vigilando") else trf("%s centrales vigilando", totals.armed)
         else -> tr("Centrales desarmadas")
     }
+
+    fun confirmSilence(node: String): String = trf("¿Silenciar la sirena de «%s» sin desarmar? Escribe tu PIN: el servidor lo comprueba y nunca lo envía al nodo. El sistema sigue armado y la alarma queda registrada.", node)
 
     fun confirmDisarm(node: String): String = trf("¿Desarmar «%s» desde el servidor? Escribe tu PIN: el servidor lo comprueba y nunca lo envía al nodo.", node)
 }

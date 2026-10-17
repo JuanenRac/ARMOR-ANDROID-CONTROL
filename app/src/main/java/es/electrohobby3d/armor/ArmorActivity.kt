@@ -320,7 +320,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 }) {
                                     AlarmPanelsScreen(
                                         state.alarmPanels, state.alarmCommands, canCommand = state.authenticated && state.isAdmin, network = state.network, onScanNetwork = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading,
-                                        onArm = { panel, mode, force -> viewModel.alarmCommand(currentOrigin, panel.nodeId, mode, force) }, onDisarm = { panel, pin -> viewModel.alarmCommand(currentOrigin, panel.nodeId, null, pin = pin) },
+                                        onArm = { panel, mode, force -> viewModel.alarmCommand(currentOrigin, panel.nodeId, mode, force) }, onDisarm = { panel, pin -> viewModel.alarmCommand(currentOrigin, panel.nodeId, null, pin = pin) }, onSilence = { panel, pin -> viewModel.silenceAlarm(currentOrigin, panel.nodeId, pin) },
                                     )
                                 }
                                 MoreTab.Network -> SubScreen(Icons.Filled.Router, tr("Red"), onBack = { moreTab = null }, actions = {

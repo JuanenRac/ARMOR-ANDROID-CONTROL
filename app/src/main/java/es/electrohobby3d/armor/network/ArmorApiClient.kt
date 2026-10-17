@@ -96,13 +96,24 @@ class ArmorApiClient {
 
     /** The alarm nodes (ARMOR-ALARM): each panel's phase and mode, its zones and its last events; an operator session is needed. */
     fun alarmPanels(origin: String): es.electrohobby3d.armor.model.AlarmPanelsOverview = es.electrohobby3d.armor.model.AlarmPanelsParser.overview(getJson(origin, "/api/v1/alarm/nodes"))
-    /** Whether the server may arm and disarm the panels at all, and what became of the latest commands. */
+    /** Whether the server may arm, disarm and silence the panels at all, and what became of the latest commands. */
     fun alarmCommands(origin: String): es.electrohobby3d.armor.model.AlarmCommandsStatus = es.electrohobby3d.armor.model.AlarmPanelsParser.commands(getJson(origin, "/api/v1/alarm/commands"))
     /** Arms a panel (mode "away" or "stay", optionally leaving out the open zones) or disarms it (mode null, with the PIN of the signed-in user when there is one). The server checks the PIN and never sends it to the node. */
     fun sendAlarmCommand(origin: String, node: String, mode: String?, force: Boolean, pin: String? = null) {
         val body = JSONObject().put("node", node).put("action", if (mode == null) "disarm" else "arm")
         if (mode != null) { body.put("mode", mode); if (force) body.put("force", true) }
         else if (!pin.isNullOrEmpty()) body.put("pin", pin)
+        postAlarmCommand(origin, body)
+    }
+
+    /** Silences the siren of a panel with the system still armed (the alarm stays latched): the PIN of the signed-in user, checked by the server like a disarm PIN and never sent to the node. */
+    fun silenceAlarmSiren(origin: String, node: String, pin: String? = null) {
+        val body = JSONObject().put("node", node).put("action", "silence")
+        if (!pin.isNullOrEmpty()) body.put("pin", pin)
+        postAlarmCommand(origin, body)
+    }
+
+    private fun postAlarmCommand(origin: String, body: JSONObject) {
         try {
             request(origin, "/api/v1/alarm/command", "POST", mapOf("Content-Type" to "application/json"), body.toString(), setOf(202)).disconnect()
         } catch (error: ArmorApiException) {
