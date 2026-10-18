@@ -79,6 +79,55 @@ fun SubScreen(icon: ImageVector, title: String, onBack: () -> Unit, actions: @Co
     }
 }
 
+/** The history with its two lists: what happened, and the devices and apps that connect to the server (reading only). */
+@Composable
+fun HistoryWithConnections(events: List<ArmorEvent>, connections: List<es.electrohobby3d.armor.model.ConnectionClient>?, onMore: () -> Unit, poll: suspend () -> Unit) {
+    var tab by rememberSaveable { mutableStateOf(0) }
+    Column(Modifier.fillMaxSize()) {
+        TabRow(selectedTabIndex = tab, containerColor = Color.Transparent) {
+            Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(tr("Eventos")) })
+            Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(tr("Conexiones")) })
+        }
+        Spacer(Modifier.height(8.dp))
+        if (tab == 0) HistoryScreen(events, onMore) else ConnectionsScreen(connections, poll)
+    }
+}
+
+/** Every device or app the server has seen, with when it was last seen and its open sessions. An administrator also gets the address; nothing secret is ever in the list. */
+@Composable
+fun ConnectionsScreen(clients: List<es.electrohobby3d.armor.model.ConnectionClient>?, poll: suspend () -> Unit) {
+    LaunchedEffect(Unit) { while (true) { poll(); kotlinx.coroutines.delay(10_000) } }
+    if (clients == null) { EmptyNote(Icons.Filled.Devices, tr("Conexiones"), tr("No se pudo leer la lista de conexiones.")); return }
+    if (clients.isEmpty()) { EmptyNote(Icons.Filled.Devices, tr("Conexiones"), tr("Ningún cliente se ha conectado todavía.")); return }
+    LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
+        item { Text(tr("Dispositivos y apps que se conectan"), style = MaterialTheme.typography.titleSmall, color = ArmorColors.Muted) }
+        items(clients, key = { it.id }) { client ->
+            Panel(Modifier.fillMaxWidth(), tint = if (client.loginsFailed > 0) ArmorColors.Amber else null) {
+                Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    IconBadge(clientIcon(client.kind), if (client.activeSessions > 0) ArmorColors.Ok else ArmorColors.Cyan, size = 36.dp)
+                    Column {
+                        Text(clientTitle(client), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                        Text(trf("Última vez: %s", Friendly.dayAndClock(client.lastSeen)), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+                        Text(
+                            listOf(trf("Sesiones abiertas: %d", client.activeSessions), trf("Inicios de sesión: %d", client.loginsOk), trf("Rechazados: %d", client.loginsFailed)).joinToString(" · "),
+                            style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted,
+                        )
+                        client.ip?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted) }
+                    }
+                }
+            }
+        }
+        if (clients.none { it.ip != null }) item { Text(tr("Las direcciones solo las ven los administradores."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted) }
+    }
+}
+
+private fun clientTitle(client: es.electrohobby3d.armor.model.ConnectionClient): String = listOfNotNull(
+    when (client.kind) { "studio" -> tr("Studio"); "android" -> tr("App Android"); "node" -> tr("Panel de nodo"); "voice" -> tr("Servicio de voz"); else -> tr("Otro cliente") },
+    client.label, client.user, client.appVersion?.let { trf("Versión %s", it) },
+).joinToString(" · ")
+
+private fun clientIcon(kind: String): ImageVector = when (kind) { "android" -> Icons.Filled.PhoneAndroid; "studio" -> Icons.Filled.Computer; "node" -> Icons.Filled.Sensors; "voice" -> Icons.Filled.Mic; else -> Icons.Filled.Devices }
+
 @Composable
 fun HistoryScreen(events: List<ArmorEvent>, onMore: () -> Unit) {
     if (events.isEmpty()) { EmptyNote(Icons.Filled.History, tr("Todavía no ha pasado nada"), tr("Aquí verás los cambios de estado, las alarmas y las órdenes.")); return }

@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## [0.6.7] - Connections in the history
+
+- The History screen has a second, read-only list: the devices and apps that connect to the server (Studio, this app, the panels of the nodes, the voice service), when each was last seen, its open sessions and its sign-ins and refusals, refreshed while it is open. The address is shown only when the signed-in user is an administrator.
+- The app says what it is and which version in every call to the server (`X-Armor-Client`), so it appears in the history of connections as itself.
+- The new phrases are in the eight languages, and a test reads the list tolerantly (unknown kinds and malformed entries are left out).
+
 ## [0.6.6] - Remember me on the sign-in
 
 - The sign-in has an optional **Remember me** box (off by default): the user and the password are sealed with a Keystore key of their own, for that server only, and filled in again when the session has ended.

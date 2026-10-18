@@ -386,7 +386,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 MoreTab.Evidence -> SubScreen(Icons.Filled.VideoLibrary, tr("Grabaciones"), onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.loadMedia(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
                                 }) { EvidenceScreen(state.media.items, state.cameras, currentOrigin, viewModel, state.authenticated, canDelete = !state.readOnly) }
-                                MoreTab.History -> SubScreen(Icons.Filled.History, tr("Historial"), onBack = { moreTab = null }) { HistoryScreen(state.events, onMore = { viewModel.loadOlderEvents(currentOrigin) }) }
+                                MoreTab.History -> SubScreen(Icons.Filled.History, tr("Historial"), onBack = { moreTab = null }) { HistoryWithConnections(state.events, state.connections, onMore = { viewModel.loadOlderEvents(currentOrigin) }, poll = { viewModel.pollConnections(currentOrigin) }) }
                                 MoreTab.Settings -> SubScreen(Icons.Filled.Settings, tr("Ajustes"), onBack = { moreTab = null }) {
                                     SettingsScreen(
                                         origin, state.authenticated,

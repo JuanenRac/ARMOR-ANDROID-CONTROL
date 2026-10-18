@@ -58,6 +58,8 @@ data class MonitorUiState(
     val alarmPanels: es.electrohobby3d.armor.model.AlarmPanelsOverview? = null,
     /** The arming modes the server keeps (Away, Home, Night, the owner's own). */
     val armProfiles: List<es.electrohobby3d.armor.model.ArmProfileView> = emptyList(),
+    /** The devices and apps that connect to the server; null until the server has answered (an older server never does). */
+    val connections: List<es.electrohobby3d.armor.model.ConnectionClient>? = null,
     /** The health of the nodes; null until the server has answered. */
     val nodeHealth: es.electrohobby3d.armor.model.NodeHealthOverview? = null,
     /** Whether the server may arm and disarm the panels, and the latest results of the commands. */
@@ -161,6 +163,11 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
     /** The health of the nodes, quickly, while its screen is open. A failure is ignored; the next pass tries again. */
     suspend fun pollNodeHealth(origin: String) = withContext(Dispatchers.IO) {
         runCatching { client.nodeHealth(origin) }.onSuccess { value -> _state.update { it.copy(nodeHealth = value) } }
+    }
+
+    /** The clients the server has seen, while the Connections list is open. A failure is ignored; the next pass tries again. */
+    suspend fun pollConnections(origin: String) = withContext(Dispatchers.IO) {
+        runCatching { client.connections(origin) }.onSuccess { value -> _state.update { it.copy(connections = value) } }
     }
 
     fun reloadNodeHealth(origin: String) { viewModelScope.launch { pollNodeHealth(origin) } }

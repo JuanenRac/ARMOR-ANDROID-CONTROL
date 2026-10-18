@@ -101,6 +101,8 @@ class ArmorApiClient {
     fun armProfiles(origin: String): List<es.electrohobby3d.armor.model.ArmProfileView> = es.electrohobby3d.armor.model.AlarmPanelsParser.profiles(getJson(origin, "/api/v1/alarm/profiles"))
 
     /** The health report of every node, with the warnings the server raised about each (an operator session is needed). */
+    /** Every device and app the server has seen (the Connections list of the history); the addresses come only for an administrator. */
+    fun connections(origin: String): List<es.electrohobby3d.armor.model.ConnectionClient> = es.electrohobby3d.armor.model.ConnectionsParser.list(getJson(origin, "/api/v1/history/connections"))
     fun nodeHealth(origin: String): es.electrohobby3d.armor.model.NodeHealthOverview = es.electrohobby3d.armor.model.NodeHealthParser.overview(getJson(origin, "/api/v1/node-health"))
 
     fun alarmCommands(origin: String): es.electrohobby3d.armor.model.AlarmCommandsStatus = es.electrohobby3d.armor.model.AlarmPanelsParser.commands(getJson(origin, "/api/v1/alarm/commands"))
@@ -308,6 +310,8 @@ class ArmorApiClient {
     private fun request(origin: String, path: String, method: String, headers: Map<String, String>, body: String?, expected: Set<Int>): HttpURLConnection {
         val connection = (URL(origin.trimEnd('/') + path).openConnection() as HttpURLConnection).apply {
             requestMethod = method; connectTimeout = 8_000; readTimeout = 12_000; instanceFollowRedirects = false
+            // what the app says it is, so that the history of connections of the server can tell it from Studio and from the other clients (only informative)
+            setRequestProperty("X-Armor-Client", "android/${es.electrohobby3d.armor.BuildConfig.VERSION_NAME}")
             headers.forEach { (key, value) -> setRequestProperty(key, value) }
             if (body != null) { doOutput = true; outputStream.use { it.write(body.toByteArray(StandardCharsets.UTF_8)) } }
         }
