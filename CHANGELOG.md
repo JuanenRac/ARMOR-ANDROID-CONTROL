@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## [0.6.5] - Node health and arming modes
+
+- A Node health screen in More: for every node its kind, firmware, uptime, why it last restarted (a crash is marked as unexpected), free memory, link and Wi-Fi signal in words, broker connections, restarts of the last day, tasks short of stack, the last error and the warnings the server raised; the nodes that need a look come first, and the nodes that sent no report are named.
+- The Alarm panels screen offers a mode picker (Away, Home, Night and the owner's own, with a summary of the chosen one) and a button that arms in it, for a panel whose firmware says it understands the modes; an older panel keeps the two buttons and says why. The card and the recent orders name the mode.
+- Eight languages for every new phrase, and unit tests for the readings and the wording.
+
 ## [0.6.4] - Silence the siren of a panel from the phone
 
 - The alarm panel screen shows a Silence siren button while a siren sounds (administrators, when the server allows commands); it asks for the PIN, which the server checks and never sends to the node, and the system stays armed.

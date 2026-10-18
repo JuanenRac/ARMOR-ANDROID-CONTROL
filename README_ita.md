@@ -23,7 +23,7 @@
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
   <img src="https://img.shields.io/badge/Tests-130%20passing-2ea44f.svg" alt="Tests">
-  <img src="https://img.shields.io/badge/Version-0.6.3-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-0.6.5-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
@@ -37,7 +37,7 @@
 
 | | |
 |---|---|
-| Versione | `0.6.3` |
+| Versione | `0.6.5` |
 | Maturità | Consolidato |
 | Test | 130 (`gradlew testDebugUnitTest`) |
 | Tecnologia | Kotlin / Jetpack Compose |
@@ -59,6 +59,7 @@
 * **Otto lingue** (inglese, spagnolo, tedesco, francese, italiano, giapponese, cinese e portoghese), scelte in *Altro > Impostazioni* o seguendo il telefono; si controlla che ogni frase sia nelle otto tabelle.
 * **Attenzione alla password:** l'HTTP in chiaro è ammesso solo verso un *letterale* IPv4 di LAN privata o loopback; un nome host che inizia soltanto come un indirizzo privato (`10.attacker.example`) o un indirizzo con zero iniziale è rifiutato. L'aspetto è fatto di icone: superfici quasi nere, accento ciano, ambra per l'attenzione.
 * **La sicurezza dal telefono:** il secondo fattore e i suoi codici di recupero, le sessioni aperte, un controllo di come il server vede il telefono, la nuova prova di identità per le azioni critiche da fuori e, per un amministratore, la VPN (dispositivi con la loro configurazione) e il nome DNS dinamico.**Tutto il sistema nella schermata di stato e l'ingresso da fuori:** la schermata di stato riassume le centrali d'allarme, i servizi, le telecamere che registrano e la sicurezza e l'accesso remoto, ogni scheda apre la sua schermata; e quando l'indirizzo scritto è fuori casa e senza https, l'accesso dice perché non può proseguire e una guida spiega le due vie sicure (VPN, o indirizzo pubblico con https).
+* **Salute dei nodi e modalità di inserimento:** una schermata Salute dei nodi in Altro (tempo acceso, motivo del riavvio, memoria, collegamento e segnale, connessioni al broker, riavvii, ultimo errore e avvisi del server per ogni nodo) e, nella schermata delle Centrali d'allarme, un selettore di modalità (Fuori casa, In casa, Notte e le tue) che inserisce una centrale nella modalità scelta quando il suo firmware le conosce. Otto lingue.
 
 ## 🧩 Ruolo in A.R.M.O.R.
 

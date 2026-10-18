@@ -56,6 +56,10 @@ data class MonitorUiState(
     val solar: es.electrohobby3d.armor.model.SolarOverview? = null,
     /** The alarm panels (ARMOR-ALARM nodes); null until the server has answered (an older server never does). */
     val alarmPanels: es.electrohobby3d.armor.model.AlarmPanelsOverview? = null,
+    /** The arming modes the server keeps (Away, Home, Night, the owner's own). */
+    val armProfiles: List<es.electrohobby3d.armor.model.ArmProfileView> = emptyList(),
+    /** The health of the nodes; null until the server has answered. */
+    val nodeHealth: es.electrohobby3d.armor.model.NodeHealthOverview? = null,
     /** Whether the server may arm and disarm the panels, and the latest results of the commands. */
     val alarmCommands: es.electrohobby3d.armor.model.AlarmCommandsStatus = es.electrohobby3d.armor.model.AlarmCommandsStatus(),
     /** The electrical nodes' meters; null until the server has answered (an older server never does). */
@@ -151,13 +155,21 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
     suspend fun pollAlarmPanels(origin: String) = withContext(Dispatchers.IO) {
         runCatching { client.alarmPanels(origin) }.onSuccess { value -> _state.update { it.copy(alarmPanels = value) } }
         runCatching { client.alarmCommands(origin) }.onSuccess { value -> _state.update { it.copy(alarmCommands = value) } }
+        runCatching { client.armProfiles(origin) }.onSuccess { value -> _state.update { it.copy(armProfiles = value) } }
     }
+
+    /** The health of the nodes, quickly, while its screen is open. A failure is ignored; the next pass tries again. */
+    suspend fun pollNodeHealth(origin: String) = withContext(Dispatchers.IO) {
+        runCatching { client.nodeHealth(origin) }.onSuccess { value -> _state.update { it.copy(nodeHealth = value) } }
+    }
+
+    fun reloadNodeHealth(origin: String) { viewModelScope.launch { pollNodeHealth(origin) } }
 
     fun reloadAlarmPanels(origin: String) { viewModelScope.launch { pollAlarmPanels(origin) } }
 
     /** Arms a panel (mode "away" or "stay") or disarms it (mode null); the node's own answer shows in the panel's card a moment later. */
-    fun alarmCommand(origin: String, node: String, mode: String?, force: Boolean = false, pin: String? = null) = mutating(origin, if (mode == null) trf("%s: orden de desarmar enviada", node) else trf("%s: orden de armar enviada", node)) {
-        client.sendAlarmCommand(origin, node, mode, force, pin)
+    fun alarmCommand(origin: String, node: String, mode: String?, force: Boolean = false, pin: String? = null, profile: String? = null) = mutating(origin, if (mode == null) trf("%s: orden de desarmar enviada", node) else trf("%s: orden de armar enviada", node)) {
+        client.sendAlarmCommand(origin, node, mode, force, pin, profile)
         pollAlarmPanels(origin)
     }
 

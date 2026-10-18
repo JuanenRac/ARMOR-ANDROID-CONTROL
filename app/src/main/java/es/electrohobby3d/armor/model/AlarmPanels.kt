@@ -19,6 +19,10 @@ data class AlarmPanelView(
     val phase: String, /** "disarmed", "away" or "stay". */ val mode: String,
     val siren: Boolean, val lockedOut: Boolean, val commandsEnabled: Boolean,
     val zones: List<AlarmZoneView>, val openZones: List<String>, val events: List<AlarmEventView>,
+    /** The node understands the arming modes (profiles) of the arm command; an older firmware does not say so and is armed away or at home only. */
+    val armProfiles: Boolean = false,
+    /** The id of the arming mode the panel is armed (or arming) with, or null. */
+    val profile: String? = null,
 ) {
     val sounding get() = phase == "alarm"
     val guarding get() = phase == "armed" || phase == "exit_delay" || phase == "entry_delay"
@@ -28,7 +32,13 @@ data class AlarmTotals(val nodes: Int = 0, val stale: Int = 0, val armed: Int = 
 data class AlarmPanelsOverview(val nodes: List<AlarmPanelView> = emptyList(), val totals: AlarmTotals = AlarmTotals()) { val isEmpty get() = nodes.isEmpty() }
 
 /** What became of a command sent from the app; `refusal` is "none" when the node accepted it and "timeout" when it never answered. */
-data class AlarmCommandRecord(val commandId: String, val nodeId: String, val action: String, val mode: String?, val accepted: Boolean, val refusal: String)
+data class AlarmCommandRecord(val commandId: String, val nodeId: String, val action: String, val mode: String?, val accepted: Boolean, val refusal: String, val profile: String? = null)
+
+/** An arming mode (Away, Home, Night or the owner's own): the server keeps the list and puts the chosen one inside the arm command. `base` is "away" or "stay". */
+data class ArmProfileView(
+    val id: String, val name: String, val base: String,
+    val exitDelaySeconds: Int?, val entryDelaySeconds: Int?, val siren: Boolean, /** "urgent" or "normal". */ val notify: String, val differingZones: Int,
+) { val stay get() = base == "stay" }
 /** Whether the server may command the panels at all (off unless the operator turned it on), and the latest results. */
 data class AlarmCommandsStatus(val enabled: Boolean = false, val recent: List<AlarmCommandRecord> = emptyList())
 
@@ -51,6 +61,7 @@ object AlarmPanelsParser {
             zones = state.optJSONArray("zones").objects().mapNotNull(::zone),
             openZones = buildList { val array = state.optJSONArray("open_zones"); if (array != null) for (i in 0 until array.length()) array.optStr(i).takeIf { it.isNotBlank() }?.let(::add) },
             events = state.optJSONArray("events").objects().map { AlarmEventView(it.optLong("ago_s"), it.optStr("kind"), it.optStr("zone").takeIf { zone -> zone.isNotBlank() }) },
+            armProfiles = state.optBoolean("arm_profiles"), profile = state.optStr("profile").takeIf { it.isNotBlank() },
         )
     }
 
@@ -60,10 +71,20 @@ object AlarmPanelsParser {
         return AlarmZoneView(id, json.optStr("name"), json.optStr("kind", "instant"), json.optStr("state", "normal"), json.optBoolean("bypassed"))
     }
 
+    /** The arming modes the server keeps ({ revision, profiles }); one that is not an object with an id, a name and a base is skipped. */
+    fun profiles(root: JSONObject): List<ArmProfileView> = root.optJSONArray("profiles").objects().mapNotNull { item ->
+        val id = item.optStr("id"); val name = item.optStr("name"); val base = item.optStr("base")
+        if (id.isBlank() || name.isBlank() || (base != "away" && base != "stay")) null
+        else ArmProfileView(
+            id, name, base, if (item.has("exit_delay_s")) item.optInt("exit_delay_s") else null, if (item.has("entry_delay_s")) item.optInt("entry_delay_s") else null,
+            item.optBoolean("siren", true), item.optStr("notify", "urgent"), item.optJSONArray("zones")?.length() ?: 0,
+        )
+    }
+
     fun commands(root: JSONObject): AlarmCommandsStatus = AlarmCommandsStatus(
         enabled = root.optBoolean("enabled"),
         recent = root.optJSONArray("recent").objects().map {
-            AlarmCommandRecord(it.optStr("command_id"), it.optStr("node_id"), it.optStr("action"), it.optStr("mode").takeIf { mode -> mode.isNotBlank() }, it.optBoolean("accepted"), it.optStr("refusal"))
+            AlarmCommandRecord(it.optStr("command_id"), it.optStr("node_id"), it.optStr("action"), it.optStr("mode").takeIf { mode -> mode.isNotBlank() }, it.optBoolean("accepted"), it.optStr("refusal"), it.optStr("profile").takeIf { profile -> profile.isNotBlank() })
         },
     )
 }
@@ -106,6 +127,8 @@ object AlarmPanelText {
         "wrong_pin" -> tr("El PIN no es correcto")
         "pin_locked" -> tr("Demasiados PIN erróneos: espera un poco")
         "pin_not_set" -> tr("Este usuario no tiene PIN: lo pone un administrador")
+        "unknown_profile" -> tr("Ese modo de armado ya no existe")
+        "profiles_unsupported" -> tr("La central no conoce los modos de armado: ármala fuera o en casa, o actualiza su firmware")
         else -> tr("No se pudo enviar la orden")
     }
 
@@ -116,6 +139,20 @@ object AlarmPanelText {
         totals.armed > 0 -> if (totals.armed == 1) tr("Una central vigilando") else trf("%s centrales vigilando", totals.armed)
         else -> tr("Centrales desarmadas")
     }
+
+    /** The name of an arming mode: the three the server starts with are shown in the language of the app until somebody renames them. */
+    fun profileName(id: String, name: String): String = when {
+        id == "away" && name == "Away" -> tr("Fuera"); id == "stay" && name == "Home" -> tr("En casa"); id == "night" && name == "Night" -> tr("Noche"); else -> name
+    }
+
+    /** What a mode does beyond its base: "como en casa · entrada 45 s · sirena silenciosa". */
+    fun profileSummary(profile: ArmProfileView): String = buildList {
+        add(if (profile.stay) tr("como en casa") else tr("como fuera"))
+        profile.exitDelaySeconds?.let { add(trf("salida %s s", it)) }
+        profile.entryDelaySeconds?.let { add(trf("entrada %s s", it)) }
+        if (!profile.siren) add(tr("sirena silenciosa"))
+        if (profile.differingZones > 0) add(trf("%s zonas distintas", profile.differingZones))
+    }.joinToString(" · ")
 
     fun confirmSilence(node: String): String = trf("¿Silenciar la sirena de «%s» sin desarmar? Escribe tu PIN: el servidor lo comprueba y nunca lo envía al nodo. El sistema sigue armado y la alarma queda registrada.", node)
 

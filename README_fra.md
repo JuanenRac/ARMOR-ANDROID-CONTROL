@@ -23,7 +23,7 @@
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
   <img src="https://img.shields.io/badge/Tests-130%20passing-2ea44f.svg" alt="Tests">
-  <img src="https://img.shields.io/badge/Version-0.6.3-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-0.6.5-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
@@ -37,7 +37,7 @@
 
 | | |
 |---|---|
-| Version | `0.6.3` |
+| Version | `0.6.5` |
 | Maturité | Établi |
 | Tests | 130 (`gradlew testDebugUnitTest`) |
 | Technologie | Kotlin / Jetpack Compose |
@@ -59,6 +59,7 @@
 * **Huit langues** (anglais, espagnol, allemand, français, italien, japonais, chinois et portugais), choisies dans *Plus > Réglages* ou suivant le téléphone ; on vérifie que chaque phrase est dans les huit tables.
 * **Prudence avec le mot de passe :** le HTTP en clair n'est permis que vers un *littéral* IPv4 de LAN privé ou de boucle locale ; un nom d'hôte qui ressemble seulement à une adresse privée (`10.attacker.example`) ou une adresse avec un zéro initial est refusé. L'apparence est faite d'icônes : surfaces quasi noires, accent cyan, ambre pour l'attention.
 * **La sécurité depuis le téléphone :** le second facteur et ses codes de récupération, les sessions ouvertes, une vérification de la façon dont le serveur voit le téléphone, la nouvelle preuve d'identité pour les actions critiques depuis l'extérieur et, pour un administrateur, le VPN (appareils avec leur configuration) et le nom DNS dynamique.**Tout le système sur l'écran d'état et l'entrée depuis l'extérieur :** l'écran d'état résume les centrales d'alarme, les services, les caméras qui enregistrent et la sécurité et l'accès à distance, chaque carte ouvrant son écran ; et quand l'adresse saisie est hors de la maison et sans https, la connexion dit pourquoi elle ne peut pas continuer et un guide explique les deux voies sûres (VPN, ou adresse publique avec https).
+* **Santé des nœuds et modes d'armement :** un écran Santé des nœuds dans Plus (durée de marche, motif du redémarrage, mémoire, liaison et signal, connexions au broker, redémarrages, dernière erreur et avertissements du serveur de chaque nœud) et, sur l'écran des Centrales d'alarme, un sélecteur de mode (Absent, Présent, Nuit et les vôtres) qui arme une centrale dans le mode choisi quand son micrologiciel les connaît. Huit langues.
 
 ## 🧩 Rôle dans A.R.M.O.R.
 

@@ -23,7 +23,7 @@
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
   <img src="https://img.shields.io/badge/Tests-130%20passing-2ea44f.svg" alt="Tests">
-  <img src="https://img.shields.io/badge/Version-0.6.3-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-0.6.5-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
@@ -37,7 +37,7 @@
 
 | | |
 |---|---|
-| Version | `0.6.3` |
+| Version | `0.6.5` |
 | Reifegrad | Etabliert |
 | Tests | 130 (`gradlew testDebugUnitTest`) |
 | Technik | Kotlin / Jetpack Compose |
@@ -59,6 +59,7 @@
 * **Acht Sprachen** (Englisch, Spanisch, Deutsch, Französisch, Italienisch, Japanisch, Chinesisch und Portugiesisch), gewählt unter *Mehr > Einstellungen* oder dem Telefon folgend; geprüft wird, dass jeder Satz in den acht Tabellen steht.
 * **Vorsicht mit dem Passwort:** Klartext-HTTP ist nur zu einem IPv4-*Literal* eines privaten LANs oder Loopbacks erlaubt; ein Hostname, der nur wie eine private Adresse beginnt (`10.attacker.example`), oder eine Adresse mit führender Null wird abgelehnt. Das Aussehen besteht aus Symbolen: fast schwarze Flächen, ein Cyan-Akzent, Bernstein für Aufmerksamkeit.
 * **Sicherheit vom Handy aus:** der zweite Faktor und seine Wiederherstellungscodes, die offenen Sitzungen, eine Prüfung, wie der Server das Handy sieht, der neue Identitätsnachweis für kritische Aktionen von außen und, für einen Administrator, das VPN (Geräte mit ihrer Konfiguration) und der dynamische DNS-Name.**Das ganze System auf dem Statusbildschirm und der Weg von außen:** der Statusbildschirm fasst Alarmzentralen, Dienste, aufzeichnende Kameras sowie Sicherheit und Fernzugriff zusammen, jede Karte öffnet ihren Bildschirm; und ist die eingegebene Adresse außerhalb des Hauses und ohne https, sagt die Anmeldung, warum sie nicht weitergeht, und eine Anleitung erklärt die zwei sicheren Wege (VPN oder öffentliche Adresse mit https).
+* **Zustand der Knoten und Scharfschaltmodi:** ein Bildschirm Zustand der Knoten unter Mehr (Laufzeit, Neustartgrund, Speicher, Verbindung und Signal, Brokerverbindungen, Neustarts, letzter Fehler und die Warnungen des Servers je Knoten) und auf dem Bildschirm der Alarmzentralen eine Modusauswahl (Abwesend, Zuhause, Nacht und eigene), die eine Zentrale im gewählten Modus scharf schaltet, wenn ihre Firmware die Modi kennt. Acht Sprachen.
 
 ## 🧩 Rolle in A.R.M.O.R.
 

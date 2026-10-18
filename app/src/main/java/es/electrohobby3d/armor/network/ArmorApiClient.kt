@@ -97,11 +97,17 @@ class ArmorApiClient {
     /** The alarm nodes (ARMOR-ALARM): each panel's phase and mode, its zones and its last events; an operator session is needed. */
     fun alarmPanels(origin: String): es.electrohobby3d.armor.model.AlarmPanelsOverview = es.electrohobby3d.armor.model.AlarmPanelsParser.overview(getJson(origin, "/api/v1/alarm/nodes"))
     /** Whether the server may arm, disarm and silence the panels at all, and what became of the latest commands. */
+    /** The arming modes (Away, Home, Night, the owner's own) the server keeps; any signed-in session may read them. */
+    fun armProfiles(origin: String): List<es.electrohobby3d.armor.model.ArmProfileView> = es.electrohobby3d.armor.model.AlarmPanelsParser.profiles(getJson(origin, "/api/v1/alarm/profiles"))
+
+    /** The health report of every node, with the warnings the server raised about each (an operator session is needed). */
+    fun nodeHealth(origin: String): es.electrohobby3d.armor.model.NodeHealthOverview = es.electrohobby3d.armor.model.NodeHealthParser.overview(getJson(origin, "/api/v1/node-health"))
+
     fun alarmCommands(origin: String): es.electrohobby3d.armor.model.AlarmCommandsStatus = es.electrohobby3d.armor.model.AlarmPanelsParser.commands(getJson(origin, "/api/v1/alarm/commands"))
     /** Arms a panel (mode "away" or "stay", optionally leaving out the open zones) or disarms it (mode null, with the PIN of the signed-in user when there is one). The server checks the PIN and never sends it to the node. */
-    fun sendAlarmCommand(origin: String, node: String, mode: String?, force: Boolean, pin: String? = null) {
+    fun sendAlarmCommand(origin: String, node: String, mode: String?, force: Boolean, pin: String? = null, profile: String? = null) {
         val body = JSONObject().put("node", node).put("action", if (mode == null) "disarm" else "arm")
-        if (mode != null) { body.put("mode", mode); if (force) body.put("force", true) }
+        if (mode != null) { body.put("mode", mode); if (profile != null) body.put("profile", profile); if (force) body.put("force", true) }
         else if (!pin.isNullOrEmpty()) body.put("pin", pin)
         postAlarmCommand(origin, body)
     }

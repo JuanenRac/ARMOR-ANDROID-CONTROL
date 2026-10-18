@@ -23,7 +23,7 @@
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
   <img src="https://img.shields.io/badge/Tests-130%20passing-2ea44f.svg" alt="Tests">
-  <img src="https://img.shields.io/badge/Version-0.6.3-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-0.6.5-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
@@ -37,7 +37,7 @@
 
 | | |
 |---|---|
-| Version | `0.6.3` |
+| Version | `0.6.5` |
 | Maturity | Established |
 | Tests | 130 (`gradlew testDebugUnitTest`) |
 | Stack | Kotlin / Jetpack Compose |
@@ -59,6 +59,7 @@
 * **Eight languages** (English, Spanish, German, French, Italian, Japanese, Chinese and Portuguese), chosen in *More > Settings* or following the phone; every phrase is checked to be in the eight tables.
 * **Careful with the password:** plain HTTP is allowed only to a private-LAN or loopback IPv4 *literal*; a host name that merely starts like a private address (`10.attacker.example`) or an address with a leading zero is refused. The look is made of icons: near-black surfaces, a cyan accent, amber for attention.
 * **Security from the phone:** the second factor and its recovery codes, the open sessions, a check of how the server sees the phone, the new proof of identity for critical actions from outside, and, for an administrator, the VPN (devices with their configuration) and the dynamic DNS name.**The whole system on the status screen, and the way in from outside:** the status screen summarises the alarm panels, the services, the cameras that are recording and the security and remote access, each card opening its screen; and when the address typed is outside the house without https, the sign-in says why it cannot go on and a guide explains the two safe ways (VPN, or a public address with https).
+* **Node health and arming modes:** a Node health screen in More (every node's uptime, why it restarted, memory, link and signal, broker connections, restarts, last error and the warnings the server raised) and, on the Alarm panels screen, a mode picker (Away, Home, Night and your own) that arms a panel in the chosen mode when its firmware knows the modes. Eight languages.
 
 ## 🧩 Role in A.R.M.O.R.
 

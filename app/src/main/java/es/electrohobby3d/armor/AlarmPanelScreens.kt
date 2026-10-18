@@ -14,6 +14,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -33,6 +35,7 @@ import es.electrohobby3d.armor.model.AlarmCommandsStatus
 import es.electrohobby3d.armor.model.AlarmPanelText
 import es.electrohobby3d.armor.model.AlarmPanelView
 import es.electrohobby3d.armor.model.AlarmPanelsOverview
+import es.electrohobby3d.armor.model.ArmProfileView
 import es.electrohobby3d.armor.model.NetworkOverview
 
 @Composable
@@ -40,6 +43,7 @@ fun AlarmPanelsScreen(
     overview: AlarmPanelsOverview?, commands: AlarmCommandsStatus, canCommand: Boolean, network: NetworkOverview? = null,
     onScanNetwork: () -> Unit = {}, scanning: Boolean = false, onArm: (AlarmPanelView, String, Boolean) -> Unit = { _, _, _ -> }, onDisarm: (AlarmPanelView, String) -> Unit = { _, _ -> },
     onSilence: (AlarmPanelView, String) -> Unit = { _, _ -> },
+    profiles: List<ArmProfileView> = emptyList(), onArmProfile: (AlarmPanelView, ArmProfileView, Boolean) -> Unit = { _, _, _ -> },
 ) {
     val data = overview ?: AlarmPanelsOverview()
     var confirmDisarm by remember { mutableStateOf<AlarmPanelView?>(null) }
@@ -61,7 +65,7 @@ fun AlarmPanelsScreen(
         if (canCommand && !commands.enabled) item { Text(tr("Armar desde aquí está apagado en el servidor (ARMOR_ALARM_COMMANDS)."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber) }
         if (data.isEmpty) item { EmptyAlarmPanels() }
         items(data.nodes, key = { it.nodeId }) { panel ->
-            AlarmPanelCard(panel, allowed = canCommand && commands.enabled && !panel.stale && panel.commandsEnabled, recent = commands.recent.filter { it.nodeId == panel.nodeId }.take(3), onArm = onArm, onDisarm = { confirmDisarm = panel }, onSilence = { confirmSilence = panel })
+            AlarmPanelCard(panel, allowed = canCommand && commands.enabled && !panel.stale && panel.commandsEnabled, recent = commands.recent.filter { it.nodeId == panel.nodeId }.take(3), profiles = profiles, onArmProfile = onArmProfile, onArm = onArm, onDisarm = { confirmDisarm = panel }, onSilence = { confirmSilence = panel })
         }
     }
     confirmSilence?.let { panel ->
@@ -90,8 +94,13 @@ private fun EmptyAlarmPanels() {
 }
 
 @Composable
-private fun AlarmPanelCard(panel: AlarmPanelView, allowed: Boolean, recent: List<es.electrohobby3d.armor.model.AlarmCommandRecord>, onArm: (AlarmPanelView, String, Boolean) -> Unit, onDisarm: () -> Unit, onSilence: () -> Unit) {
+private fun AlarmPanelCard(panel: AlarmPanelView, allowed: Boolean, recent: List<es.electrohobby3d.armor.model.AlarmCommandRecord>, profiles: List<ArmProfileView>, onArmProfile: (AlarmPanelView, ArmProfileView, Boolean) -> Unit, onArm: (AlarmPanelView, String, Boolean) -> Unit, onDisarm: () -> Unit, onSilence: () -> Unit) {
     var force by remember { mutableStateOf(false) }
+    // The arming modes are offered only for a panel whose firmware says it understands them; an older one is armed away or at home, as always.
+    val modes = if (panel.armProfiles) profiles else emptyList()
+    var chosenId by remember { mutableStateOf("") }
+    var pickerOpen by remember { mutableStateOf(false) }
+    val chosen = modes.firstOrNull { it.id == chosenId } ?: modes.firstOrNull()
     val tint = if (panel.stale) ArmorColors.Muted else if (panel.sounding) ArmorColors.Alert else null
     Panel(Modifier.fillMaxWidth(), tint = tint) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -99,7 +108,8 @@ private fun AlarmPanelCard(panel: AlarmPanelView, allowed: Boolean, recent: List
                 IconBadge(Icons.Filled.Shield, tint ?: if (panel.guarding) ArmorColors.Ok else ArmorColors.Cyan, size = 40.dp)
                 Column(Modifier.weight(1f)) {
                     Text(panel.nodeId, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(AlarmPanelText.phase(panel.phase) + if (panel.mode != "disarmed") " · ${AlarmPanelText.mode(panel.mode)}" else "", style = MaterialTheme.typography.bodySmall, color = tint ?: ArmorColors.Muted)
+                    val activeMode = panel.profile?.let { id -> profiles.firstOrNull { it.id == id }?.let { AlarmPanelText.profileName(it.id, it.name) } ?: id }
+                    Text(AlarmPanelText.phase(panel.phase) + (if (panel.mode != "disarmed") " · ${AlarmPanelText.mode(panel.mode)}" + (if (activeMode != null) " · $activeMode" else "") else ""), style = MaterialTheme.typography.bodySmall, color = tint ?: ArmorColors.Muted)
                 }
                 Text(if (panel.stale) tr("sin señal") else tr("en línea"), style = MaterialTheme.typography.labelSmall, color = if (panel.stale) ArmorColors.Amber else ArmorColors.Ok)
             }
@@ -125,11 +135,25 @@ private fun AlarmPanelCard(panel: AlarmPanelView, allowed: Boolean, recent: List
             }
             if (!panel.commandsEnabled) Text(tr("El nodo no acepta órdenes del servidor"), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
             if (allowed) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { onArm(panel, "away", force) }, enabled = panel.phase == "disarmed") { Text(tr("Armar: fuera")) }
-                    Button(onClick = { onArm(panel, "stay", force) }, enabled = panel.phase == "disarmed") { Text(tr("Armar: en casa")) }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (chosen != null) {
+                        Column {
+                            OutlinedButton(onClick = { pickerOpen = true }, enabled = panel.phase == "disarmed") { Text(AlarmPanelText.profileName(chosen.id, chosen.name)) }
+                            DropdownMenu(expanded = pickerOpen, onDismissRequest = { pickerOpen = false }) {
+                                modes.forEach { mode ->
+                                    DropdownMenuItem(text = { Column { Text(AlarmPanelText.profileName(mode.id, mode.name)); Text(AlarmPanelText.profileSummary(mode), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted) } }, onClick = { chosenId = mode.id; pickerOpen = false })
+                                }
+                            }
+                        }
+                        Button(onClick = { onArmProfile(panel, chosen, force) }, enabled = panel.phase == "disarmed") { Text(tr("Armar en este modo")) }
+                    } else {
+                        Button(onClick = { onArm(panel, "away", force) }, enabled = panel.phase == "disarmed") { Text(tr("Armar: fuera")) }
+                        Button(onClick = { onArm(panel, "stay", force) }, enabled = panel.phase == "disarmed") { Text(tr("Armar: en casa")) }
+                    }
                     OutlinedButton(onClick = onDisarm, enabled = panel.phase != "disarmed") { Text(tr("Desarmar")) }
                 }
+                if (chosen != null) Text(AlarmPanelText.profileSummary(chosen), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+                if (chosen == null && profiles.isNotEmpty() && !panel.armProfiles) Text(tr("El firmware de esta central no conoce los modos de armado: solo arma fuera o en casa."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
                 if (panel.siren) OutlinedButton(onClick = onSilence) { Text(tr("Silenciar sirena")) }
                 if (panel.openZones.isNotEmpty() && panel.phase == "disarmed") {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -139,7 +163,7 @@ private fun AlarmPanelCard(panel: AlarmPanelView, allowed: Boolean, recent: List
                 }
             }
             recent.forEach { item ->
-                Text(trf("Orden %s%s: %s", item.action, item.mode?.let { " ${AlarmPanelText.mode(it)}" } ?: "", AlarmPanelText.refusal(item.refusal)), style = MaterialTheme.typography.labelSmall, color = if (item.accepted) ArmorColors.Ok else ArmorColors.Amber)
+                Text(trf("Orden %s%s: %s", item.action, (item.mode?.let { " ${AlarmPanelText.mode(it)}" } ?: "") + (item.profile?.let { id -> " (${profiles.firstOrNull { p -> p.id == id }?.let { p -> AlarmPanelText.profileName(p.id, p.name) } ?: id})" } ?: ""), AlarmPanelText.refusal(item.refusal)), style = MaterialTheme.typography.labelSmall, color = if (item.accepted) ArmorColors.Ok else ArmorColors.Amber)
             }
         }
     }

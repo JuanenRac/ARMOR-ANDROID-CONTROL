@@ -28,7 +28,7 @@ import es.electrohobby3d.armor.model.MediaItem
 import es.electrohobby3d.armor.update.AppUpdateState
 
 /** What the "More" tab can show; null is the menu itself. */
-enum class MoreTab { Nodes, Voice, Weather, Solar, Electrical, AlarmPanels, Network, Services, Evidence, History, Security, Updates, Settings }
+enum class MoreTab { Nodes, Voice, Weather, Solar, Electrical, AlarmPanels, Network, Services, NodeHealth, Evidence, History, Security, Updates, Settings }
 
 @Composable
 fun MoreMenu(onOpen: (MoreTab) -> Unit, onNodeSetup: () -> Unit, onAbout: () -> Unit, onLogout: () -> Unit, updateAvailable: Boolean = false) {
@@ -42,6 +42,7 @@ fun MoreMenu(onOpen: (MoreTab) -> Unit, onNodeSetup: () -> Unit, onAbout: () -> 
         MenuRow(Icons.Filled.Shield, tr("Centrales de alarma"), tr("Nodos ARMOR-ALARM: zonas, estado y armado")) { onOpen(MoreTab.AlarmPanels) }
         MenuRow(Icons.Filled.Router, tr("Red"), tr("Internet, dispositivos y cambios de la red local")) { onOpen(MoreTab.Network) }
         MenuRow(Icons.Filled.Dns, tr("Servicios"), tr("Programas del sistema y nodos de campo, activos o no")) { onOpen(MoreTab.Services) }
+        MenuRow(Icons.Filled.MonitorHeart, tr("Salud de los nodos"), tr("Memoria, enlace, reinicios y errores de cada nodo")) { onOpen(MoreTab.NodeHealth) }
         MenuRow(Icons.Filled.VideoLibrary, tr("Grabaciones"), tr("Fotos y vídeos guardados")) { onOpen(MoreTab.Evidence) }
         MenuRow(Icons.Filled.History, tr("Historial"), tr("Todo lo que ha pasado")) { onOpen(MoreTab.History) }
         MenuRow(Icons.Filled.Lock, tr("Seguridad"), tr("Segundo factor, sesiones abiertas y acceso desde fuera de casa.")) { onOpen(MoreTab.Security) }

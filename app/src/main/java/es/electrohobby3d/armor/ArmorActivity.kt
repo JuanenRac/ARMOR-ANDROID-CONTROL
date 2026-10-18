@@ -186,6 +186,12 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
             lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { while (true) { viewModel.pollServices(currentOrigin); delay(8_000) } }
         }
     }
+    // The Node health screen (in the More menu): the report of every node every ten seconds while it is open and the app is on screen.
+    LaunchedEffect(section, moreTab, state.authenticated, currentOrigin) {
+        if (state.authenticated && currentOrigin.isNotBlank() && section == Section.More && moreTab == MoreTab.NodeHealth) {
+            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { while (true) { viewModel.pollNodeHealth(currentOrigin); delay(10_000) } }
+        }
+    }
     // The Weather screen (in the More menu): load the remembered place once, the first time it is opened.
     LaunchedEffect(section, moreTab) {
         if (section == Section.More && moreTab == MoreTab.Weather && !weatherRestored) {
@@ -320,7 +326,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 }) {
                                     AlarmPanelsScreen(
                                         state.alarmPanels, state.alarmCommands, canCommand = state.authenticated && state.isAdmin, network = state.network, onScanNetwork = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading,
-                                        onArm = { panel, mode, force -> viewModel.alarmCommand(currentOrigin, panel.nodeId, mode, force) }, onDisarm = { panel, pin -> viewModel.alarmCommand(currentOrigin, panel.nodeId, null, pin = pin) }, onSilence = { panel, pin -> viewModel.silenceAlarm(currentOrigin, panel.nodeId, pin) },
+                                        onArm = { panel, mode, force -> viewModel.alarmCommand(currentOrigin, panel.nodeId, mode, force) }, profiles = state.armProfiles, onArmProfile = { panel, mode, force -> viewModel.alarmCommand(currentOrigin, panel.nodeId, mode.base, force, profile = mode.id) }, onDisarm = { panel, pin -> viewModel.alarmCommand(currentOrigin, panel.nodeId, null, pin = pin) }, onSilence = { panel, pin -> viewModel.silenceAlarm(currentOrigin, panel.nodeId, pin) },
                                     )
                                 }
                                 MoreTab.Network -> SubScreen(Icons.Filled.Router, tr("Red"), onBack = { moreTab = null }, actions = {
@@ -329,6 +335,9 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 MoreTab.Services -> SubScreen(Icons.Filled.Dns, tr("Servicios"), onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.reloadServices(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
                                 }) { ServicesScreen(state.services, System.currentTimeMillis()) }
+                                MoreTab.NodeHealth -> SubScreen(Icons.Filled.MonitorHeart, tr("Salud de los nodos"), onBack = { moreTab = null }, actions = {
+                                    IconButton(onClick = { viewModel.reloadNodeHealth(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
+                                }) { NodeHealthScreen(state.nodeHealth) }
                                 MoreTab.Nodes -> SubScreen(Icons.Filled.Tune, if (nodePanel == null) tr("Configurar nodos") else nodePanel!!.removePrefix("http://").trimEnd('/'), onBack = { if (nodePanel != null) nodePanel = null else moreTab = null }) {
                                     val panel = nodePanel
                                     if (panel == null) NodesScreen(
