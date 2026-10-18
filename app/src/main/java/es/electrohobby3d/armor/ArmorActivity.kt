@@ -103,11 +103,13 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     val snackbar = remember { SnackbarHostState() }
     val updateState by updateViewModel.state.collectAsStateWithLifecycle()
 
-    // One check per cold start against GitHub's own release feed - never
+    // When the person turned it on: one check per cold start against GitHub's own release feed - never
     // automatic beyond that: download and install both need an explicit tap
     // from the operator (see MoreScreens.kt's UpdateScreen and the dialog
     // below).
-    LaunchedEffect(Unit) { updateViewModel.checkForUpdate() }
+    var checkUpdatesOnStart by remember { mutableStateOf(preferences.getBoolean("check_updates_on_start", false)) }
+    // Off unless the person turned it on: nothing asks GitHub on its own otherwise.
+    LaunchedEffect(Unit) { if (checkUpdatesOnStart) updateViewModel.checkForUpdate() }
     LaunchedEffect(state.authenticated, currentOrigin) {
         if (state.authenticated && currentOrigin.isNotBlank() && Push.available) Push.token(context.applicationContext) { viewModel.registerPush(currentOrigin, it) }
     }
@@ -400,6 +402,8 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                         onCheck = { updateViewModel.checkForUpdate() },
                                         onDownload = { update -> updateViewModel.downloadAndInstall(update) },
                                         onOpenInstallSettings = { updateViewModel.openInstallPermissionSettings() },
+                                        checkOnStart = checkUpdatesOnStart,
+                                        onCheckOnStart = { on -> checkUpdatesOnStart = on; preferences.edit().putBoolean("check_updates_on_start", on).apply() },
                                     )
                                 }
                             }

@@ -199,11 +199,18 @@ private fun EmptyNote(icon: ImageVector, title: String, text: String) {
 
 /** The signed, operator-approved GitHub Release update path: check, review notes, download and hand off to Android's installer. */
 @Composable
-fun UpdateScreen(state: AppUpdateState, onCheck: () -> Unit, onDownload: (es.electrohobby3d.armor.update.AvailableUpdate) -> Unit, onOpenInstallSettings: () -> Unit) {
+fun UpdateScreen(state: AppUpdateState, onCheck: () -> Unit, onDownload: (es.electrohobby3d.armor.update.AvailableUpdate) -> Unit, onOpenInstallSettings: () -> Unit, checkOnStart: Boolean = false, onCheckOnStart: (Boolean) -> Unit = {}) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Panel(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(trf("Versión instalada: %s", BuildConfig.VERSION_NAME), style = MaterialTheme.typography.bodyMedium, color = ArmorColors.Muted)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(Modifier.weight(1f)) {
+                        Text(tr("Buscar actualizaciones al iniciar"))
+                        Text(tr("Desactivado por defecto. La comprobación consulta GitHub; el tiempo y el radar usan servicios meteorológicos externos."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                    }
+                    Switch(checked = checkOnStart, onCheckedChange = onCheckOnStart)
+                }
                 when (state) {
                     is AppUpdateState.Idle, is AppUpdateState.UpToDate -> {
                         if (state is AppUpdateState.UpToDate) Text(tr("Ya tienes la última versión."), color = ArmorColors.Ok, fontWeight = FontWeight.SemiBold)

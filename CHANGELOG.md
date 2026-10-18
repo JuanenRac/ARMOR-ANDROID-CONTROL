@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here.
 
+## [0.7.0] - A switch for the update check at start
+
+- The update check at start is now a switch in More > Updates, off by default: nothing asks GitHub on its own unless it is turned on, and a note says that the weather and the radar use external weather services. The button "Check for updates" still works at any time. In the eight languages.
+
 ## [0.6.9] - Updates are checked against the installed key, and smaller safeguards
 
 - A downloaded update is compared with the installed app before Android's installer is opened: if it is signed with another key the app says so in plain words and drops the file, instead of leading the person through the permission screens to a refusal. A key that was rotated from the installed one still matches, and when either side cannot be read Android decides, as before.
