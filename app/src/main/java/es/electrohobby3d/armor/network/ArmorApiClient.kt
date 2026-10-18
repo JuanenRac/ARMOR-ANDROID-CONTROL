@@ -153,11 +153,14 @@ class ArmorApiClient {
         return manager.cookieStore.get(uri).firstOrNull { it.name.endsWith("armor_studio_sid") && it.value.isNotBlank() }?.let { it.name to it.value }
     }
 
-    /** Puts a kept session cookie back, so the next request carries it. */
+    /**
+     * Puts a kept session cookie back, so the next request carries it. The cookie is a plain one (version 0): a cookie made by hand is otherwise sent in the RFC 2965 form
+     * (`$Version="1"; name="value";$Path="/"`), and the server would read the value with its quotes and never find the session.
+     */
     fun restoreSessionCookie(origin: String, name: String, value: String) {
         val manager = CookieHandler.getDefault() as? CookieManager ?: return
         val uri = runCatching { java.net.URI(origin) }.getOrNull() ?: return
-        manager.cookieStore.add(uri, java.net.HttpCookie(name, value).apply { path = "/"; isHttpOnly = true; secure = uri.scheme == "https"; maxAge = 7L * 24 * 3600 })
+        manager.cookieStore.add(uri, java.net.HttpCookie(name, value).apply { version = 0; path = "/"; isHttpOnly = true; secure = uri.scheme == "https"; maxAge = 7L * 24 * 3600 })
     }
 
     fun studioSessionActive(origin: String): Boolean = getJson(origin, "/api/v1/studio/session").optBoolean("authenticated")

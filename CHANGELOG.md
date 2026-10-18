@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [0.6.8] - Restored sessions
+
+- **A kept session now really is accepted after the app is reopened:** the cookie put back from the vault was sent in the old versioned form (`$Version="1"; name="value"`), and the server read its value with the quotes and never found the session, so the sign-in was asked for again. It is now sent as a plain `name=value` cookie.
+- More tests: the HTTP client against a real local server (headers, refusals, redirects, encoded paths, tickets, sign-in steps, PIN and panel commands), the state of the screens (roles that only look, sign-in, second factor, proof for critical actions, sign-out) and every parser against answers of the wrong shape.
+
 ## [0.6.7] - Connections in the history
 
 - The History screen has a second, read-only list: the devices and apps that connect to the server (Studio, this app, the panels of the nodes, the voice service), when each was last seen, its open sessions and its sign-ins and refusals, refreshed while it is open. The address is shown only when the signed-in user is an administrator.

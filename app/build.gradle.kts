@@ -16,7 +16,7 @@ val firebase: Map<String, String> = run {
 }
 
 android { namespace = "es.electrohobby3d.armor"; compileSdk = 37
-    defaultConfig { applicationId = "es.electrohobby3d.armor"; minSdk = 26; targetSdk = 37; versionCode = 49; versionName = "0.6.7"
+    defaultConfig { applicationId = "es.electrohobby3d.armor"; minSdk = 26; targetSdk = 37; versionCode = 50; versionName = "0.6.8"
         buildConfigField("String", "FCM_PROJECT_ID", "\"${firebase["project"] ?: ""}\"")
         buildConfigField("String", "FCM_SENDER_ID", "\"${firebase["sender"] ?: ""}\"")
         buildConfigField("String", "FCM_APP_ID", "\"${firebase["app"] ?: ""}\"")
@@ -49,4 +49,6 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     // The Android stubs of org.json do nothing in local tests; the real library lets the event parser be tested.
     testImplementation("org.json:json:20250517")
+    // The state holders run their work on the main dispatcher, which a local test replaces with a test one.
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
 }
