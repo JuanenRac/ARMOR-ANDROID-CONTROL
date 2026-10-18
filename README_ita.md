@@ -45,7 +45,7 @@
 
 ## 🎯 Panoramica
 
-* **Accesso con il login del server stesso:** IP, porta, utente e password; la password crea una sessione HttpOnly e non è mai memorizzata sul telefono. Un ruolo **viewer** guarda soltanto: ogni pulsante che cambia qualcosa è spento.
+* **Accesso con il login del server stesso:** IP, porta, utente e password; la password crea una sessione HttpOnly; viene memorizzata sul telefono solo se spunti **Ricordami** (disattivato per impostazione predefinita: utente e password sigillati con una chiave propria del Keystore, solo per quel server, dimenticati appena togli la spunta). Un ruolo **viewer** guarda soltanto: ogni pulsante che cambia qualcosa è spento.
 * **Monitor delle telecamere:** da 1 a 16 riquadri, una vista ingrandita, MJPEG dal vivo che mantiene il rapporto dell'immagine, una pulsantiera PTZ limitata, istantanee e registrazioni, con visualizzatore e conferma di cancellazione delle registrazioni.
 * **Inserire e disinserire,** dopo un **controllo prima di inserire** (cosa è aperto, muto o fermo) e con il PIN per disinserire; **allarmi** da riconoscere, con un badge per quelli in attesa; **dispositivi** (fumo, gas, allagamento, porta, finestra, movimento, clima, prese, luci, sirene, serrature, tapparelle, motori di cancello e garage, scaldabagni) con il loro stato e Accendi / Spegni / Alterna.
 * **Allarmi che ti raggiungono:** un suono per ogni gravità, un **allarme parlato** facoltativo, notifiche per un nodo che arriva ad ALTO, una telecamera muta, un allarme di dispositivo e (a impianto inserito) un nodo offline, e **una centrale che suona sveglia il telefono**; la sorveglianza in background sopravvive a un riavvio e rallenta quando il server è fermo.

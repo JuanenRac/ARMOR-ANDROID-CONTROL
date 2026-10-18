@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [0.6.6] - Remember me on the sign-in
+
+- The sign-in has an optional **Remember me** box (off by default): the user and the password are sealed with a Keystore key of their own, for that server only, and filled in again when the session has ended.
+- Unticking the box forgets the saved user and password at once, and they are only kept after the server accepted the sign-in.
+- The note under the sign-in says which of the two is true (password not kept, or kept encrypted), in the eight languages.
+- Tests cover the vault: the right server, a different key, line breaks, nothing readable on disk, and clearing.
+
 ## [0.6.5] - Node health and arming modes
 
 - A Node health screen in More: for every node its kind, firmware, uptime, why it last restarted (a crash is marked as unexpected), free memory, link and Wi-Fi signal in words, broker connections, restarts of the last day, tasks short of stack, the last error and the warnings the server raised; the nodes that need a look come first, and the nodes that sent no report are named.

@@ -5,6 +5,7 @@ package es.electrohobby3d.armor
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -78,6 +79,8 @@ fun LoginScreen(
     challenge: Boolean = false, code: String = "", onCode: (String) -> Unit = {}, onSubmitCode: () -> Unit = {}, onCancelCode: () -> Unit = {},
     /** The address typed is outside the home network and has no https://: the sign-in says why it cannot go on and how to get in from outside. */
     needsSecure: Boolean = false, onUseHttps: () -> Unit = {},
+    /** "Remember me" (off by default): keeps the user and the password sealed on this phone. */
+    remember: Boolean = false, onRemember: (Boolean) -> Unit = {},
 ) {
     var visible by rememberSaveable { mutableStateOf(false) }
     var outsideHelp by rememberSaveable { mutableStateOf(false) }
@@ -120,6 +123,11 @@ fun LoginScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         trailingIcon = { IconButton(onClick = { visible = !visible }) { Icon(if (visible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, contentDescription = if (visible) tr("Ocultar") else tr("Mostrar")) } },
                     )
+                    Row(Modifier.fillMaxWidth().clickable(role = androidx.compose.ui.semantics.Role.Checkbox) { onRemember(!remember) }, verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = remember, onCheckedChange = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(tr("Recordarme en este móvil"))
+                    }
                     if (needsSecure) {
                         Text(tr("Esa dirección está fuera de tu red: sin una conexión cifrada la app no envía tu contraseña. Escribe https:// delante, o entra primero por la VPN de la casa y usa la dirección privada."), color = ArmorColors.Alert, style = MaterialTheme.typography.bodySmall)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -150,7 +158,11 @@ fun LoginScreen(
                 Text(tr("Configurar un nodo"))
             }
             Spacer(Modifier.height(10.dp))
-            Text(tr("Tu contraseña no se guarda en el móvil. La sesión sí, cifrada, y se renueva mientras uses la app: no tendrás que volver a entrar salvo que caduque o la cierres."), color = ArmorColors.Muted, fontSize = 12.sp, textAlign = TextAlign.Center)
+            Text(
+                if (remember) tr("Con «Recordarme» el usuario y la contraseña se guardan cifrados en este móvil, solo para este servidor. Quita la marca para olvidarlos al momento.")
+                else tr("Tu contraseña no se guarda en el móvil. La sesión sí, cifrada, y se renueva mientras uses la app: no tendrás que volver a entrar salvo que caduque o la cierres."),
+                color = ArmorColors.Muted, fontSize = 12.sp, textAlign = TextAlign.Center,
+            )
         }
     }
 }

@@ -4,7 +4,7 @@ ARMOR-ANDROID-CONTROL consumes ARMOR-SERVER's API. It does not connect to camera
 
 ## The current flow
 
-1. The person enters an HTTPS origin, or an HTTP origin limited to a private LAN address (`10/8`, `172.16/12`, `192.168/16`, loopback), and signs in with the user and password Studio uses (`POST /api/v1/studio/session`). The server answers with an HttpOnly session cookie, which the app keeps sealed with a key of the Android Keystore; the password is never kept.
+1. The person enters an HTTPS origin, or an HTTP origin limited to a private LAN address (`10/8`, `172.16/12`, `192.168/16`, loopback), and signs in with the user and password Studio uses (`POST /api/v1/studio/session`). The server answers with an HttpOnly session cookie, which the app keeps sealed with a key of the Android Keystore; the password is kept only if the person ticks "Remember me" on the sign-in (off by default): then the user and the password are sealed with a separate Keystore key, for that one server, and forgotten the moment the box is unticked.
 2. The role of the user decides what the app offers: an administrator may do everything (arm, disarm and silence the siren of the alarm panels included), an operator may change devices, cameras and alarms, and a viewer (or the wall-panel role) only looks. The server enforces the same roles; the app just does not offer what would be refused.
 3. The client reads `status`, `camera-views`, the alarms, the devices and the rest, read-only. PTZ, snapshots, recording and the evidence catalogue need an operator.
 4. Video uses ARMOR-SERVER's MJPEG relay, opened with a stream ticket the server gives to every role (a viewer cannot watch without one). The phone never builds an RTSP URL and so it cannot reveal a camera password.

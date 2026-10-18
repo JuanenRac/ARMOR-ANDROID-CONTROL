@@ -58,6 +58,10 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     val preferences = remember { context.getSharedPreferences("armor-control", Context.MODE_PRIVATE) }
     // The server's session is kept (sealed in the Keystore) so the app opens signed in; the password never is.
     val vault = remember { SessionVault(PreferencesStore(context.getSharedPreferences("armor-session", Context.MODE_PRIVATE)), KeystoreBox()) }
+    // "Remember me" is off until the person turns it on: then the user and the password are sealed in the Keystore with a key of their own, for this server only.
+    val credentials = remember { CredentialVault(PreferencesStore(context.getSharedPreferences("armor-credentials", Context.MODE_PRIVATE)), KeystoreBox("armor-credentials")) }
+    var rememberMe by rememberSaveable { mutableStateOf(credentials.has()) }
+    var pendingRemember by remember { mutableStateOf<StoredCredentials?>(null) }   // typed with the box on; kept only once the server has accepted the sign-in
     var origin by rememberSaveable { mutableStateOf(preferences.getString("origin", "") ?: "") }
     val savedUri = remember(origin) { runCatching { URI(origin) }.getOrNull() }
     var serverHost by rememberSaveable { mutableStateOf(savedUri?.host.orEmpty()) }
@@ -206,6 +210,14 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
         val text = Friendly.message(state.message)
         if (text != null && state.authenticated) { snackbar.showSnackbar(text, duration = SnackbarDuration.Short); viewModel.dismissMessage() }
     }
+    // A sign-in the server accepted with the box on is kept; and while the sign-in is shown, what was kept is filled in.
+    LaunchedEffect(state.authenticated) {
+        val pending = pendingRemember
+        if (state.authenticated && pending != null) { credentials.save(pending.origin, pending.username, pending.password); pendingRemember = null }
+    }
+    LaunchedEffect(state.authenticated, currentOrigin, rememberMe) {
+        if (!state.authenticated && rememberMe && currentOrigin.isNotBlank()) credentials.load(currentOrigin)?.let { username = it.username; password = it.password }
+    }
     // The back button goes up one level instead of leaving the app.
     BackHandler(enabled = state.authenticated && (moreTab != null || section != Section.Status)) { if (moreTab != null) moreTab = null else section = Section.Status }
 
@@ -230,6 +242,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                     onLogin = { loginEndpoint?.let { endpoint ->
                         origin = endpoint.origin
                         preferences.edit().putString("origin", endpoint.origin).putString("user", username.trim()).apply()
+                        pendingRemember = if (rememberMe) StoredCredentials(endpoint.origin, username.trim(), password) else null
                         viewModel.login(endpoint.origin, username, password)
                         password = ""
                     } },
@@ -239,6 +252,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                     onSubmitCode = { loginEndpoint?.let { endpoint -> viewModel.submitCode(endpoint.origin, loginCode); loginCode = "" } },
                     onCancelCode = { loginCode = ""; viewModel.cancelCode() },
                     needsSecure = ServerEndpoint.needsSecureConnection(serverHost), onUseHttps = { serverHost = "https://" + serverHost.removePrefix("http://") },
+                    remember = rememberMe, onRemember = { on -> rememberMe = on; if (!on) { credentials.clear(); pendingRemember = null } },
                 )
             } else {
                 Scaffold(
