@@ -9,6 +9,12 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ViewerTest {
+    @Test fun aRoleThatIsNotAnOperatorOrAnAdministratorOnlyLooks() {
+        assertTrue(MonitorUiState(role = "panel").readOnly)
+        assertTrue(MonitorUiState(role = "guest").readOnly)   // a role this version of the app has never heard of must not get the buttons
+        assertTrue(MonitorUiState(role = "Viewer").readOnly)
+    }
+
     @Test fun onlyAViewerIsReadOnly() {
         assertTrue(MonitorUiState(role = "viewer").readOnly)
         assertFalse(MonitorUiState(role = "operator").readOnly)

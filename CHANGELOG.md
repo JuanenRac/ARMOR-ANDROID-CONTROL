@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## [0.6.9] - Updates are checked against the installed key, and smaller safeguards
+
+- A downloaded update is compared with the installed app before Android's installer is opened: if it is signed with another key the app says so in plain words and drops the file, instead of leading the person through the permission screens to a refusal. A key that was rotated from the installed one still matches, and when either side cannot be read Android decides, as before.
+- A role the app does not know only looks: besides the viewer and the wall-panel roles, any other role the server might name later gets no arm, disarm or camera buttons (the server refuses what is not allowed anyway). An empty role, not told yet, is unchanged.
+- After too many wrong PINs the message says how long to wait ("try again in 45 s", "in 3 min") when the server tells it, and keeps the old sentence when it does not.
+- The sign-in notes when the server address is a public IP address: it works until the provider changes it, so the app suggests a name that follows the house (dynamic DNS). A name or an address of the house shows nothing.
+- Nothing of the app is taken in a backup or a transfer to another phone, also by the rules Android 12 and later read (the saved address, the sealed sign-in and the push token stay on the phone).
+- A test reads every text of the screens and fails when one has words of its own outside the translation, so a new text cannot stay in Spanish in the other languages; a file that only held an unused helper was removed.
+- The new phrases are in the eight languages, and the tests cover the comparison of keys, the roles, the wait, the address and the translation of the texts.
+
 ## [0.6.8] - Restored sessions
 
 - **A kept session now really is accepted after the app is reopened:** the cookie put back from the vault was sent in the old versioned form (`$Version="1"; name="value"`), and the server read its value with the quotes and never found the session, so the sign-in was asked for again. It is now sent as a plain `name=value` cookie.

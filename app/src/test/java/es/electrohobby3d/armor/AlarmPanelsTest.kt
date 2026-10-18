@@ -83,6 +83,16 @@ class AlarmPanelsTest {
         assertTrue(AlarmPanelText.confirmSilence("alarm-1").let { it.contains("alarm-1") && it.contains("Escribe tu PIN") && it.contains("sigue armado") })
     }
 
+    @Test fun aLockedPinSaysHowLongToWaitWhenTheServerToldIt() {
+        val locked = """{"error":"too many wrong PINs; try again later","code":"pin_locked","retry_after_s":45}"""
+        assertEquals("Demasiados PIN erróneos: vuelve a intentarlo en 45 s", AlarmPanelText.pinRefusal("pin_locked", locked))
+        assertEquals("Demasiados PIN erróneos: vuelve a intentarlo en 3 min", AlarmPanelText.pinRefusal("pin_locked", locked.replace("45", "150")))
+        assertEquals("Demasiados PIN erróneos: vuelve a intentarlo en 2 min", AlarmPanelText.pinRefusal("pin_locked", locked.replace("45", "90")))
+        assertEquals("Demasiados PIN erróneos: espera un poco", AlarmPanelText.pinRefusal("pin_locked", """{"code":"pin_locked"}"""))
+        assertEquals("Demasiados PIN erróneos: espera un poco", AlarmPanelText.pinRefusal("pin_locked", locked.replace("45", "0")))
+        assertEquals("El PIN no es correcto", AlarmPanelText.pinRefusal("wrong_pin", locked))
+    }
+
     @Test fun theSummaryTellsWhatMattersMost() {
         assertEquals("Sin centrales de alarma", AlarmPanelText.summary(AlarmTotals()))
         assertEquals("Centrales desarmadas", AlarmPanelText.summary(AlarmTotals(2, 0, 0, 0)))

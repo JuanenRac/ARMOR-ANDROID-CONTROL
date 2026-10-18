@@ -251,7 +251,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                     challenge = securityState.loginChallenge != null, code = loginCode, onCode = { loginCode = it },
                     onSubmitCode = { loginEndpoint?.let { endpoint -> viewModel.submitCode(endpoint.origin, loginCode); loginCode = "" } },
                     onCancelCode = { loginCode = ""; viewModel.cancelCode() },
-                    needsSecure = ServerEndpoint.needsSecureConnection(serverHost), onUseHttps = { serverHost = "https://" + serverHost.removePrefix("http://") },
+                    needsSecure = ServerEndpoint.needsSecureConnection(serverHost), publicIpNote = ServerEndpoint.usesPublicIpAddress(serverHost), onUseHttps = { serverHost = "https://" + serverHost.removePrefix("http://") },
                     remember = rememberMe, onRemember = { on -> rememberMe = on; if (!on) { credentials.clear(); pendingRemember = null } },
                 )
             } else {

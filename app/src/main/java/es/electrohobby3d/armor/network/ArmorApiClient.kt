@@ -79,8 +79,9 @@ class ArmorApiClient {
 
     /** The refusal of a PIN (wrong, locked, none set) in words; null for any other failure. */
     private fun pinFailure(error: ArmorApiException): ArmorApiException? {
-        val code = Regex("\"code\"\\s*:\\s*\"([a-z_]+)\"").find(error.message.orEmpty())?.groupValues?.get(1).orEmpty()
-        return if (code == "wrong_pin" || code == "pin_locked" || code == "pin_not_set") ArmorApiException(es.electrohobby3d.armor.model.AlarmPanelText.error(code), error.code) else null
+        val body = error.message.orEmpty()
+        val code = Regex("\"code\"\\s*:\\s*\"([a-z_]+)\"").find(body)?.groupValues?.get(1).orEmpty()
+        return if (code == "wrong_pin" || code == "pin_locked" || code == "pin_not_set") ArmorApiException(es.electrohobby3d.armor.model.AlarmPanelText.pinRefusal(code, body), error.code) else null
     }
 
     /** Active alarms first (raised and not yet cleared, or cleared but waiting for a person), then the closed record. */

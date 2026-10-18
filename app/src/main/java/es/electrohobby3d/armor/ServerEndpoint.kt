@@ -26,6 +26,17 @@ data class ServerEndpoint(val origin: String) {
             return host.isNotEmpty() && !isPrivateLanHost(host)
         }
 
+        /**
+         * True when what the person typed is a public IPv4 address (not a name, not an address of the house): such an address stops working the day the operator changes it, and the sign-in says so
+         * and suggests a name that follows the house (dynamic DNS).
+         */
+        fun usesPublicIpAddress(hostInput: String): Boolean {
+            val source = hostInput.trim()
+            if (source.isEmpty()) return false
+            val host = source.removePrefix("http://").removePrefix("https://").substringBefore('/').substringBefore(':')
+            return IPV4.matches(host) && !isPrivateLanHost(host)
+        }
+
         // No leading zeros: some resolvers read "010.0.0.1" as octal, i.e. the public address 8.0.0.1.
         private val IPV4 = Regex("""^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$""")
 

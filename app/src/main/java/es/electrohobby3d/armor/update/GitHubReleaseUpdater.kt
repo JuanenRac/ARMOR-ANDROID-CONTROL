@@ -129,6 +129,10 @@ class GitHubReleaseUpdater(private val context: Context) {
                         apk.delete()
                         return@withContext UpdateDownloadResult.Failed(tr("El APK descargado no es más nuevo que la aplicación instalada."))
                     }
+                    if (signedByAnotherKey(packageInfo)) {
+                        apk.delete()
+                        return@withContext UpdateDownloadResult.Failed(tr("El APK descargado no está firmado con la misma clave que la aplicación instalada: Android no lo instalaría."))
+                    }
                     UpdateDownloadResult.ReadyToInstall(apk)
                 } finally {
                     connection.disconnect()
@@ -209,6 +213,7 @@ class GitHubReleaseUpdater(private val context: Context) {
         if (!apk.isFile) return null
         val packageInfo = packageArchiveInfo(apk) ?: return null
         if (packageInfo.packageName != context.packageName) return null
+        if (signedByAnotherKey(packageInfo)) return null
         return apk.takeIf { packageVersionCode(packageInfo) > installedVersionCode() }
     }
 
@@ -217,28 +222,50 @@ class GitHubReleaseUpdater(private val context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context.packageManager.getPackageArchiveInfo(
                 apk.absolutePath,
-                android.content.pm.PackageManager.PackageInfoFlags.of(0),
+                android.content.pm.PackageManager.PackageInfoFlags.of(signatureFlags().toLong()),
             )
         } else {
-            context.packageManager.getPackageArchiveInfo(apk.absolutePath, 0)
+            context.packageManager.getPackageArchiveInfo(apk.absolutePath, signatureFlags())
         }
+
+    /** What to ask the package manager for so that the certificates come with the package. */
+    @Suppress("DEPRECATION")
+    private fun signatureFlags(): Int =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES else android.content.pm.PackageManager.GET_SIGNATURES
+
+    /** The SHA-256 of every certificate in the signing history of a package; empty when the package manager did not give them. */
+    @Suppress("DEPRECATION")
+    private fun signerDigests(info: PackageInfo): Set<String> {
+        val signatures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val signing = info.signingInfo ?: return emptySet()
+            if (signing.hasMultipleSigners()) signing.apkContentsSigners else signing.signingCertificateHistory
+        } else info.signatures
+        return signatures.orEmpty().map { SignerCheck.digest(it.toByteArray()) }.toSet()
+    }
+
+    /**
+     * True when the downloaded package and the installed app are both known to be signed and share no certificate: Android would refuse the update, so it is not offered.
+     * When either side cannot be read the decision is left to Android's installer, which makes the same check.
+     */
+    private fun signedByAnotherKey(candidate: PackageInfo): Boolean =
+        runCatching { SignerCheck.mismatch(signerDigests(installedPackageInfo()), signerDigests(candidate)) }.getOrDefault(false)
 
     @Suppress("DEPRECATION")
     private fun packageVersionCode(packageInfo: PackageInfo): Long =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) packageInfo.longVersionCode else packageInfo.versionCode.toLong()
 
     @Suppress("DEPRECATION")
-    private fun installedVersionCode(): Long {
-        val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    private fun installedPackageInfo(): PackageInfo =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context.packageManager.getPackageInfo(
                 context.packageName,
-                android.content.pm.PackageManager.PackageInfoFlags.of(0),
+                android.content.pm.PackageManager.PackageInfoFlags.of(signatureFlags().toLong()),
             )
         } else {
-            context.packageManager.getPackageInfo(context.packageName, 0)
+            context.packageManager.getPackageInfo(context.packageName, signatureFlags())
         }
-        return packageVersionCode(packageInfo)
-    }
+
+    private fun installedVersionCode(): Long = packageVersionCode(installedPackageInfo())
 
     private companion object {
         const val REPOSITORY = "JuanenRac/ARMOR-ANDROID-CONTROL"

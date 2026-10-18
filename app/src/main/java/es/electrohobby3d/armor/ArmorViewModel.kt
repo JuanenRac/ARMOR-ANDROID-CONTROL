@@ -78,7 +78,7 @@ data class MonitorUiState(
     val authenticated: Boolean = false,
     val message: String? = null,
 ) {
-    val readOnly: Boolean get() = role == "viewer" || role == "panel"   // the role of a wall panel may read, arm, disarm and acknowledge, and nothing else: not what this app is for
+    val readOnly: Boolean get() = role.isNotEmpty() && role != "admin" && role != "operator"   // a viewer and a wall panel (which may read, arm, disarm and acknowledge, and nothing else) only look, and so does any role this app does not know; an empty role is "not told yet"
     /** Only an administrator may arm and disarm the alarm panels from the server. */
     val isAdmin: Boolean get() = role == "admin"
 }

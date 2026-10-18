@@ -79,6 +79,8 @@ fun LoginScreen(
     challenge: Boolean = false, code: String = "", onCode: (String) -> Unit = {}, onSubmitCode: () -> Unit = {}, onCancelCode: () -> Unit = {},
     /** The address typed is outside the home network and has no https://: the sign-in says why it cannot go on and how to get in from outside. */
     needsSecure: Boolean = false, onUseHttps: () -> Unit = {},
+    /** The address typed is a public IP address: it works until the operator changes it, so the sign-in suggests a name. */
+    publicIpNote: Boolean = false,
     /** "Remember me" (off by default): keeps the user and the password sealed on this phone. */
     remember: Boolean = false, onRemember: (Boolean) -> Unit = {},
 ) {
@@ -135,6 +137,7 @@ fun LoginScreen(
                             TextButton(onClick = { outsideHelp = true }) { Text(tr("¿Cómo entro desde fuera?")) }
                         }
                     } else {
+                        if (publicIpNote) Text(tr("Esa es una IP pública: si tu operador la cambia, la app dejará de conectar. Usa un nombre de DNS dinámico (por ejemplo https://casa.duckdns.org)."), color = ArmorColors.Muted, style = MaterialTheme.typography.bodySmall)
                         TextButton(onClick = { outsideHelp = true }, Modifier.align(Alignment.CenterHorizontally)) { Text(tr("¿Cómo entro desde fuera de casa?")) }
                     }
                     Button(onClick = onLogin, enabled = canLogin && !busy, modifier = Modifier.fillMaxWidth().height(52.dp), shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp)) {

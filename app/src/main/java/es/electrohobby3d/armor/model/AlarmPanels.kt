@@ -116,6 +116,15 @@ object AlarmPanelText {
         "bad_pin" -> tr("PIN erróneo"); "locked_out" -> tr("bloqueada"); "timeout" -> tr("el nodo no respondió"); else -> refusal
     }
 
+    /** The refusal of a PIN in words; a lock says how long to wait when the server told it (`retry_after_s` in the answer). */
+    fun pinRefusal(code: String, body: String): String {
+        val seconds = Regex("\"retry_after_s\"\\s*:\\s*(\\d{1,6})").find(body)?.groupValues?.get(1)?.toIntOrNull()
+        return if (code == "pin_locked" && seconds != null && seconds > 0) trf("Demasiados PIN erróneos: vuelve a intentarlo en %s", waitText(seconds)) else error(code)
+    }
+
+    /** A wait in the unit that reads best: seconds up to a minute and a half, then whole minutes (rounded up, so it never promises less than it takes). */
+    fun waitText(seconds: Int): String = if (seconds < 90) trf("%s s", seconds) else trf("%s min", (seconds + 59) / 60)
+
     /** What the server answered when it refused to send a command (its machine-readable code). */
     fun error(code: String): String = when (code) {
         "commands_disabled" -> tr("Armar desde aquí está apagado en el servidor")

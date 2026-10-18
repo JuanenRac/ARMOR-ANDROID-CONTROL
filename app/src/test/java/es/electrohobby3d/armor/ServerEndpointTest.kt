@@ -52,6 +52,18 @@ class ServerEndpointTest {
         assertNull(ServerEndpoint.parse(""))
     }
 
+    // An address of the house is stable; a public one lasts until the operator changes it, so the sign-in suggests a name.
+    @Test fun aPublicIpAddressIsToldFromANameAndFromTheHouse() {
+        assertTrue(ServerEndpoint.usesPublicIpAddress("203.0.113.9"))
+        assertTrue(ServerEndpoint.usesPublicIpAddress("https://203.0.113.9:8443/"))
+        assertFalse(ServerEndpoint.usesPublicIpAddress("192.168.0.180"))
+        assertFalse(ServerEndpoint.usesPublicIpAddress("http://10.0.0.5"))
+        assertFalse(ServerEndpoint.usesPublicIpAddress("casa.duckdns.org"))
+        assertFalse(ServerEndpoint.usesPublicIpAddress("https://casa.duckdns.org"))
+        assertFalse(ServerEndpoint.usesPublicIpAddress("999.1.1.1"))
+        assertFalse(ServerEndpoint.usesPublicIpAddress("  "))
+    }
+
     @Test fun normalisesTheOriginItKeeps() {
         assertEquals("http://192.168.0.5:18080", ServerEndpoint.parse("  http://192.168.0.5:18080/  ")?.origin)
         assertEquals("https://armor.example", ServerEndpoint.parse("https://armor.example")?.origin)
