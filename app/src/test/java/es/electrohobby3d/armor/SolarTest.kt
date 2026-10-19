@@ -142,3 +142,27 @@ class SolarDayCellsTest {
         assertTrue(text, text.startsWith("3.312 V (celda 5, "))
     }
 }
+
+/** The life counters of a battery module. */
+class SolarCountersTest {
+    private val answer = """
+    {"devices":[{"node_id":"casa","device":"us3000-1","kind":"battery","received_at":"x","stale":false,"example":false,
+      "reading":{"kind":"battery","node_id":"casa","device":"us3000-1","timestamp_ms":2,"modules":1,"stack":[
+        {"n":1,"present":true,"cells_v":[3.3,3.31],"counters":{"bat_ov_times":755,"coc_times":0,"data_items":2411,"bad":-4,"dsg_cap":149287073}},{"n":2,"present":true}]}}],
+     "waiting":[],"totals":{},"catalog":{}}
+    """
+    @Test fun theCountersAreReadAndTheOnesBelowZeroAreLeftOut() {
+        val stack = SolarParser.overview(JSONObject(answer)).devices.single().battery!!.stack
+        assertEquals(755L, stack[0].counters["bat_ov_times"])
+        assertNull(stack[0].counters["bad"])
+        assertTrue(stack[1].counters.isEmpty())
+    }
+
+    @Test fun onlyTheRaisedProtectionCountersAreShownWithTheConsolesNames() {
+        val counters = SolarParser.overview(JSONObject(answer)).devices.single().battery!!.stack[0].counters
+        assertEquals("Bat OV Times 755", SolarText.raisedCounters(counters))
+        assertEquals("", SolarText.raisedCounters(mapOf("data_items" to 5L, "coc_times" to 0L)))
+        assertEquals("COC Times 1 · Dot Times 2".replace("Dot", "DOT"), SolarText.raisedCounters(mapOf("dot_times" to 2L, "coc_times" to 1L)))
+        assertEquals("HT Half C Cnt", SolarText.counterLabel("ht_half_c_cnt"))
+    }
+}

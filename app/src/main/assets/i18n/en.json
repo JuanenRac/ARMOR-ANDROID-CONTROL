@@ -1064,5 +1064,8 @@
  "✓ Todo listo: los nodos responden y no hay zonas abiertas.": "✓ All ready: the nodes answer and no zone is open.",
  "Celdas hoy": "Cells today",
  "celda": "cell",
- "Mayor diferencia hoy (banco)": "Widest gap today (bank)"
+ "Mayor diferencia hoy (banco)": "Widest gap today (bank)",
+ "Contadores de protección": "Protection counters",
+ "Nombres de la consola de la batería; su significado no es oficial.": "Names from the battery's console; their meaning is not official.",
+ "Ha subido un contador de protección de un módulo de batería": "A protection counter of a battery module went up"
 }

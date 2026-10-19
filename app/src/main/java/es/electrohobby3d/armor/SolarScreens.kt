@@ -236,6 +236,10 @@ private fun BatteryCard(device: SolarDevice, r: SolarBatteryReading) {
                 if (showCells) r.stack.filter { it.cellsV.isNotEmpty() }.forEach { module ->
                     if (r.stack.size > 1) Text(trf("Módulo %s", module.number), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
                     val low = module.cellsV.min(); val high = module.cellsV.max()
+                    SolarText.raisedCounters(module.counters).takeIf { it.isNotEmpty() }?.let { raised ->
+                        Text(tr("Contadores de protección") + ": " + raised, style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
+                        Text(tr("Nombres de la consola de la batería; su significado no es oficial."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+                    }
                     device.dayCells?.modules?.firstOrNull { it.number == module.number }?.let { today ->
                         Text(tr("Celdas hoy") + ": " + SolarText.reach(today.minV, today.minCell, today.minAt, tr("celda")) + " – " + SolarText.reach(today.maxV, today.maxCell, today.maxAt, tr("celda")) + " · Δ " + Math.round(today.deltaV * 1000) + " mV", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
                     }

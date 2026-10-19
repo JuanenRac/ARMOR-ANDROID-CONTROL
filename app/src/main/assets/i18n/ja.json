@@ -1064,5 +1064,8 @@
  "✓ Todo listo: los nodos responden y no hay zonas abiertas.": "✓ 準備完了：ノードは応答し、開いたゾーンはありません。",
  "Celdas hoy": "本日のセル",
  "celda": "セル",
- "Mayor diferencia hoy (banco)": "本日の最大差（バンク）"
+ "Mayor diferencia hoy (banco)": "本日の最大差（バンク）",
+ "Contadores de protección": "保護カウンター",
+ "Nombres de la consola de la batería; su significado no es oficial.": "バッテリーのコンソールの名前です。意味は公式のものではありません。",
+ "Ha subido un contador de protección de un módulo de batería": "バッテリーモジュールの保護カウンターが増えました"
 }

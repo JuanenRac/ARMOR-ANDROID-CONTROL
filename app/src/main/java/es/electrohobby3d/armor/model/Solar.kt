@@ -41,6 +41,8 @@ data class SolarUnit(val unit: Int, val mode: String, val serial: String, val fa
 data class SolarModule(
     val number: Int, val present: Boolean, val voltageV: Double?, val currentA: Double?, val temperatureC: Double?, val socPercent: Int?, val state: String,
     val cellsV: List<Double>, val temperaturesC: List<Double>, val capacityAh: Double?, val fullCapacityAh: Double?, val cycles: Int?, val healthPercent: Int? = null,
+    /** The counters of the module's life by the console's own name (bat_ov_times ...); what they mean is not official. */
+    val counters: Map<String, Long> = emptyMap(),
 )
 
 data class SolarBatteryReading(
@@ -139,6 +141,7 @@ object SolarParser {
         number = m.optInt("n"), present = m.optBoolean("present"), voltageV = m.number("voltage_v"), currentA = m.number("current_a"), temperatureC = m.number("temperature_c"),
         socPercent = m.whole("soc_percent"), state = m.optStr("state"), cellsV = m.optJSONArray("cells_v").numbers(), temperaturesC = m.optJSONArray("temperatures_c").numbers(),
         capacityAh = m.number("capacity_ah"), fullCapacityAh = m.number("full_capacity_ah"), cycles = m.whole("cycles"), healthPercent = m.whole("health_percent"),
+        counters = m.optJSONObject("counters")?.let { c -> c.keys().asSequence().mapNotNull { k -> c.optLong(k, -1L).takeIf { v -> v >= 0 }?.let { v -> k to v } }.toMap() } ?: emptyMap(),
     )
 
     private fun battery(r: JSONObject) = SolarBatteryReading(
@@ -151,6 +154,20 @@ object SolarParser {
 
 /** The wording of solar equipment, in plain Spanish. */
 object SolarText {
+    /** The counters of protections and errors: above zero they are worth a look (the same list the server tells a rise of). */
+    val severeCounters: Set<String> = setOf(
+        "lifealarm_times", "bat_ov_times", "bat_hv_times", "bat_uv_times", "input_ov_times", "pwr_ov_times", "pwr_hv_times", "pwr_uv_times", "coc_times", "coc2_times", "doc_times", "doc2_times",
+        "sc_times", "cot_times", "dot_times", "bmicerr_times", "system_error_times",
+    )
+    private val acronyms = setOf("ov", "hv", "lv", "uv", "coc", "coc2", "doc", "doc2", "sc", "coca", "doca", "cot", "cut", "dot", "dut", "cht", "clt", "dht", "dlt", "ht", "lt", "slp", "rv", "bmicerr")
+
+    /** "bat_ov_times" -> "Bat OV Times": the name as the battery's console prints it. */
+    fun counterLabel(key: String): String = key.split("_").joinToString(" ") { word -> if (word in acronyms) word.uppercase() else word.replaceFirstChar { it.uppercase() } }
+
+    /** The protection counters of a module that are above zero, as "Bat OV Times 755 · COC Times 1"; empty when there are none. */
+    fun raisedCounters(counters: Map<String, Long>): String =
+        counters.filter { it.key in severeCounters && it.value > 0 }.toSortedMap().entries.joinToString(" · ") { counterLabel(it.key) + " " + it.value }
+
     /** "3.312 V (celda 5, 14:02)": a cell extreme of the day as a line; the time is the phone's own clock. */
     fun reach(volts: Double, cell: Int, atMs: Long, cellWord: String): String =
         String.format(java.util.Locale.US, "%.3f V (%s %d, %s)", volts, cellWord, cell, java.text.SimpleDateFormat("HH:mm", java.util.Locale.US).format(java.util.Date(atMs)))

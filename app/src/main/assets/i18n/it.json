@@ -1064,5 +1064,8 @@
  "✓ Todo listo: los nodos responden y no hay zonas abiertas.": "✓ Tutto pronto: i nodi rispondono e nessuna zona è aperta.",
  "Celdas hoy": "Celle oggi",
  "celda": "cella",
- "Mayor diferencia hoy (banco)": "Maggiore differenza oggi (banco)"
+ "Mayor diferencia hoy (banco)": "Maggiore differenza oggi (banco)",
+ "Contadores de protección": "Contatori di protezione",
+ "Nombres de la consola de la batería; su significado no es oficial.": "Nomi della console della batteria; il loro significato non è ufficiale.",
+ "Ha subido un contador de protección de un módulo de batería": "È salito un contatore di protezione di un modulo batteria"
 }

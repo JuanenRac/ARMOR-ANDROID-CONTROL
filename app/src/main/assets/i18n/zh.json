@@ -1064,5 +1064,8 @@
  "✓ Todo listo: los nodos responden y no hay zonas abiertas.": "✓ 一切就绪：节点均有响应，没有打开的分区。",
  "Celdas hoy": "今日的电芯",
  "celda": "电芯",
- "Mayor diferencia hoy (banco)": "今日最大压差（电池组）"
+ "Mayor diferencia hoy (banco)": "今日最大压差（电池组）",
+ "Contadores de protección": "保护计数器",
+ "Nombres de la consola de la batería; su significado no es oficial.": "电池控制台中的名称；其含义并非官方说明。",
+ "Ha subido un contador de protección de un módulo de batería": "电池模块的保护计数器增加了"
 }
