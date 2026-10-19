@@ -199,6 +199,43 @@ class ArmorViewModel(private val client: ArmorApi = ArmorApiClient(), private va
     fun openBattery(operation: es.electrohobby3d.armor.model.BatteryOperationView) { _battery.update { it.copy(active = operation, message = null) } }
     fun newBatteryOperation() { _battery.update { it.copy(active = null, message = null) } }
 
+    // ---- node control (administrators): restart, pause, standby, identify, diagnostics and maintenance of one node or of all ----
+    private val _control = MutableStateFlow(NodeControlUiState())
+    val control: StateFlow<NodeControlUiState> = _control.asStateFlow()
+
+    private fun controlCall(block: suspend () -> Unit) {
+        viewModelScope.launch {
+            _control.update { it.copy(busy = true, message = null) }
+            runCatching { withContext(Dispatchers.IO) { block() } }
+                .onFailure { error ->
+                    if (error is ElevationRequiredException) {   // a new proof of identity, always for this: then the same order by itself
+                        retryAfterElevation = { block() }
+                        _security.update { it.copy(elevationNeeded = true, elevationError = null) }
+                        _control.update { it.copy(busy = false) }
+                    } else _control.update { it.copy(busy = false, message = controlErrorText(error)) }
+                }
+                .onSuccess { _control.update { it.copy(busy = false) } }
+        }
+    }
+
+    /** The orders on their way and the list, while the screen is open. A failure is ignored; the next pass tries again. */
+    suspend fun pollControl(origin: String) = withContext(Dispatchers.IO) {
+        val current = _control.value.active
+        if (current != null && current.active) runCatching { client.nodeControlOperation(origin, current.id) }.onSuccess { value -> _control.update { it.copy(active = value) } }
+        runCatching { client.nodeControlOperations(origin) }.onSuccess { value -> _control.update { it.copy(operations = value) } }
+    }
+
+    fun orderNode(origin: String, nodeId: String, operation: String, confirm: String?, durationS: Int?) = controlCall {
+        val started = client.nodeControl(origin, nodeId, operation, confirm, durationS)
+        _control.update { it.copy(active = started) }
+    }
+    fun orderAllNodes(origin: String, operation: String, mode: String, confirm: String?, durationS: Int?) = controlCall {
+        val started = client.nodesControl(origin, operation, mode, confirm, durationS)
+        _control.update { it.copy(active = started) }
+    }
+    fun openControl(operation: es.electrohobby3d.armor.model.ControlOperationView) { _control.update { it.copy(active = operation, message = null) } }
+    fun closeControl() { _control.update { it.copy(active = null, message = null) } }
+
     /** The alarm panels and the status of their commands, quickly, while the Alarm panels screen is open. A failure is ignored; the next pass tries again. */
     suspend fun pollAlarmPanels(origin: String) = withContext(Dispatchers.IO) {
         runCatching { client.alarmPanels(origin) }.onSuccess { value -> _state.update { it.copy(alarmPanels = value) } }

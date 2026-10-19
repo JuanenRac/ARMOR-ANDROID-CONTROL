@@ -39,7 +39,7 @@
 |---|---|
 | Version | `0.7.3` |
 | Maturity | Established |
-| Tests | 228 (`gradlew testDebugUnitTest`) |
+| Tests | 240 (`gradlew testDebugUnitTest`) |
 | Stack | Kotlin / Jetpack Compose |
 | On real hardware | Used on a real phone against the CM5 test bench; the solar, electrical and alarm-panel screens wait for real nodes |
 
@@ -62,6 +62,7 @@
 * **Node health and arming modes:** a Node health screen in More (every node's uptime, why it restarted, memory, link and signal, broker connections, restarts, last error and the warnings the server raised) and, on the Alarm panels screen, a mode picker (Away, Home, Night and your own) that arms a panel in the chosen mode when its firmware knows the modes. Eight languages.
 * **Connections in the history:** the History screen has a second list, read-only, with the devices and apps that connect to the server (Studio, this app, the panels of the nodes, the voice service), when each was last seen, its open sessions and its sign-ins and refusals; the app now says what it is to the server so it appears as itself. Addresses are shown to administrators only.
 * **Battery maintenance (administrators):** the simple operations on a Pylontech battery - clock, counters and logs, restart, capacity, MOSFET test, fuse fault, outputs - in the same two steps as Studio (the server has the node read the battery, the screen shows exactly what will be done, then "Do it now" with the serial number typed again), with the result and what changed; limits, firmware and the expert console stay in Studio.
+* **Control of the nodes (administrators):** More > Node control gives the same operations as Studio - restart, pause, resume, standby (work off, still connected), identify, diagnostics and maintenance on or off - to one node or to all of them, asking for the node's name (or the word RESTART, PAUSE or STANDBY for all) typed again and for the fresh proof of identity, showing how far each node went, and warning that an alarm panel or a radar paused or on standby leaves the house unprotected. There is no factory reset, no erase and no deep sleep.
 
 ## 🧩 Role in A.R.M.O.R.
 
@@ -73,7 +74,7 @@ ARMOR-ANDROID-CONTROL is the phone's window on the same [ARMOR-SERVER](https://g
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/
 │   ├── ArmorActivity.kt (the shell), EntryScreens.kt, HomeScreens.kt, CameraScreens.kt, RadarScreens.kt, DevicePanels.kt, MoreScreens.kt
-│   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
+│   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, NodeControlScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
 │   ├── NodeBleClient.kt, NodeSetupScreen.kt, NodeFinderScreens.kt, NodePanel.kt   configure a node over Bluetooth (the protocol is in model/NodeBle.kt)
 │   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
 │   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, PinDialog.kt, MjpegFeed.kt

@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here.
 
+## [Unreleased]
+
+- **Node control (More menu, administrators only):** restart, pause, resume, standby ("work off, still connected"), identify, diagnostics and maintenance on or off for one node or for all of them, the same eight operations as Studio. Nothing in it erases settings or credentials, resets a node to the factory or puts it to deep sleep.
+- **Typed confirmation:** a restart, a pause and a standby ask for the node's name typed again, or for the word RESTART, PAUSE or STANDBY when they go to all nodes; the new proof of identity the server asks for is asked by the same dialog as for the other critical actions, and the order then goes by itself.
+- **Warnings before the order:** a restart leaves a node out of service for about a minute (all at once is not recommended; the rolling mode puts the alarm panel last), a pause ends by itself, a standby does not (it stays across a restart and is ended with Resume) and is never described as a power-off, maintenance only stops the "node is silent" alerts, and an alarm panel or a radar paused or on standby leaves the house NOT protected.
+- **Progress of each node:** the order under way is followed every two seconds (sent, acknowledged, offline, back, applied, refused, no answer) with the state the node is left in, the time it has left, the diagnostics it gave and the reason when it refuses (an update, an upload, a slot copy or a battery operation under way, a repeated restart); the latest orders are listed.
+- **The node list shows** whether a node is paused, on standby or in maintenance, from its health report.
+- **Eight languages** for every text of the screen and its refusals.
+
 ## [0.7.3] - Battery maintenance for administrators
 
 - **Battery maintenance (More menu, administrators only):** the simple operations on a Pylontech battery through its gateway node - set the clock, clear the statistics counters or the log, restart or shut the battery down, write the total capacity the maker gives for the model, switch the MOSFET-failure test on, clear a fuse fault and switch an output (charge or discharge MOSFET, buzzer, heater) on or off. The limits, the protections, the serial number, the memory, the firmware and the expert console stay in Studio.

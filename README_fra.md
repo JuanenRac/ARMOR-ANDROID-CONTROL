@@ -39,7 +39,7 @@
 |---|---|
 | Version | `0.7.3` |
 | Maturité | Établi |
-| Tests | 228 (`gradlew testDebugUnitTest`) |
+| Tests | 240 (`gradlew testDebugUnitTest`) |
 | Technologie | Kotlin / Jetpack Compose |
 | Sur matériel réel | Utilisée sur un vrai téléphone contre le banc de test CM5 ; les écrans solaire, électrique et centrales d'alarme attendent de vrais nœuds |
 
@@ -62,6 +62,7 @@
 * **Santé des nœuds et modes d'armement :** un écran Santé des nœuds dans Plus (durée de marche, motif du redémarrage, mémoire, liaison et signal, connexions au broker, redémarrages, dernière erreur et avertissements du serveur de chaque nœud) et, sur l'écran des Centrales d'alarme, un sélecteur de mode (Absent, Présent, Nuit et les vôtres) qui arme une centrale dans le mode choisi quand son micrologiciel les connaît. Huit langues.
 * **Connexions dans l'historique :** l'écran Historique a une seconde liste, en lecture seule, avec les appareils et applications qui se connectent au serveur (Studio, cette appli, les panneaux des nœuds, le service vocal), la dernière fois que chacun a été vu, ses sessions ouvertes, ses connexions et ses refus ; l'appli dit maintenant au serveur ce qu'elle est pour apparaître sous son nom. Les adresses ne sont visibles que des administrateurs.
 * **Maintenance des batteries (administrateurs) :** les opérations simples sur une batterie Pylontech - horloge, compteurs et journaux, redémarrage, capacité, test MOSFET, défaut de fusible, sorties - en deux étapes comme dans Studio (le serveur fait lire la batterie par le nœud, l'écran montre exactement ce qui sera fait, puis "Le faire maintenant" avec le numéro de série saisi de nouveau), avec le résultat et ce qui a changé ; les limites, le firmware et la console expert restent dans Studio.
+* **Commande des nœuds (administrateurs) :** Plus > Contrôle des nœuds offre les mêmes opérations que Studio - redémarrer, mettre en pause, reprendre, mettre en veille (travail arrêté, reste connecté), identifier, diagnostic et maintenance activée ou désactivée - à un nœud ou à tous, en demandant de saisir de nouveau le nom du nœud (ou le mot RESTART, PAUSE ou STANDBY pour tous) et la nouvelle preuve d'identité, en montrant où en est chaque nœud et en avertissant qu'une centrale d'alarme ou un radar en pause ou en veille laisse la maison sans protection. Il n'existe ni réinitialisation d'usine, ni effacement, ni sommeil profond.
 
 ## 🧩 Rôle dans A.R.M.O.R.
 
@@ -73,7 +74,7 @@ ARMOR-ANDROID-CONTROL est la fenêtre du téléphone sur le même [ARMOR-SERVER]
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/
 │   ├── ArmorActivity.kt (the shell), EntryScreens.kt, HomeScreens.kt, CameraScreens.kt, RadarScreens.kt, DevicePanels.kt, MoreScreens.kt
-│   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
+│   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, NodeControlScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
 │   ├── NodeBleClient.kt, NodeSetupScreen.kt, NodeFinderScreens.kt, NodePanel.kt   configure a node over Bluetooth (the protocol is in model/NodeBle.kt)
 │   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
 │   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, PinDialog.kt, MjpegFeed.kt

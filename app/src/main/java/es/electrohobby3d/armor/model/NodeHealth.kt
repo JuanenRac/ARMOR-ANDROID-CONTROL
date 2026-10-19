@@ -22,6 +22,8 @@ data class NodeHealthView(
     /** "wifi", "ethernet" or "none". */ val link: String, val linkUp: Boolean, val rssiDbm: Int?,
     val brokerConnections: Long, val lowStackTasks: Int, val lastError: String?,
     val restarts24h: Int, val warnings: List<NodeHealthWarning>,
+    /** What the control of the node says: "running", "paused" or "standby" (empty when the server says nothing), and whether maintenance is on. */
+    val controlState: String = "", val maintenance: Boolean = false,
 ) {
     val needsLook get() = status == "warning"
     val silent get() = status == "stale"
@@ -55,6 +57,7 @@ object NodeHealthParser {
             link = report.optStr("link", "none"), linkUp = report.optBoolean("link_up"), rssiDbm = if (report.has("rssi_dbm")) report.optInt("rssi_dbm") else null,
             brokerConnections = report.optLong("broker_reconnects"), lowStackTasks = report.optInt("low_stack_tasks"), lastError = report.optStr("last_error").takeIf { it.isNotBlank() },
             restarts24h = json.optInt("restarts_24h"), warnings = json.optJSONArray("warnings").objects().map { NodeHealthWarning(it.optStr("code")) },
+            controlState = json.optJSONObject("control")?.optStr("state").orEmpty(), maintenance = json.optJSONObject("control")?.optBoolean("maintenance") ?: false,
         )
     }
 }

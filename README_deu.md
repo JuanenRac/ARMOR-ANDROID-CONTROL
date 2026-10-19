@@ -39,7 +39,7 @@
 |---|---|
 | Version | `0.7.3` |
 | Reifegrad | Etabliert |
-| Tests | 228 (`gradlew testDebugUnitTest`) |
+| Tests | 240 (`gradlew testDebugUnitTest`) |
 | Technik | Kotlin / Jetpack Compose |
 | Auf echter Hardware | Auf einem echten Telefon gegen den CM5-Testaufbau im Einsatz; die Solar-, Elektro- und Alarmzentralen-Bildschirme warten auf echte Knoten |
 
@@ -62,6 +62,7 @@
 * **Zustand der Knoten und Scharfschaltmodi:** ein Bildschirm Zustand der Knoten unter Mehr (Laufzeit, Neustartgrund, Speicher, Verbindung und Signal, Brokerverbindungen, Neustarts, letzter Fehler und die Warnungen des Servers je Knoten) und auf dem Bildschirm der Alarmzentralen eine Modusauswahl (Abwesend, Zuhause, Nacht und eigene), die eine Zentrale im gewählten Modus scharf schaltet, wenn ihre Firmware die Modi kennt. Acht Sprachen.
 * **Verbindungen im Verlauf:** Der Verlaufsbildschirm hat eine zweite Liste, nur lesend, mit den Geräten und Apps, die sich mit dem Server verbinden (Studio, diese App, die Panels der Knoten, der Sprachdienst), wann jedes zuletzt gesehen wurde, seinen offenen Sitzungen sowie Anmeldungen und Ablehnungen; die App sagt dem Server jetzt, was sie ist, und erscheint so als sie selbst. Adressen sehen nur Administratoren.
 * **Batteriewartung (Administratoren):** die einfachen Operationen an einer Pylontech-Batterie - Uhr, Zähler und Protokolle, Neustart, Kapazität, MOSFET-Test, Sicherungsfehler, Ausgänge - in denselben zwei Schritten wie in Studio (der Server lässt den Knoten die Batterie lesen, der Bildschirm zeigt genau, was getan wird, dann "Jetzt ausführen" mit nochmals eingetippter Seriennummer), mit Ergebnis und Änderungen; Grenzwerte, Firmware und Expertenkonsole bleiben in Studio.
+* **Steuerung der Knoten (Administratoren):** Mehr > Knotensteuerung bietet dieselben Operationen wie Studio - Neustart, Pause, Fortsetzen, Standby (Arbeit aus, bleibt verbunden), Identifizieren, Diagnose und Wartung ein oder aus - für einen Knoten oder alle, verlangt die erneute Eingabe des Knotennamens (oder des Wortes RESTART, PAUSE oder STANDBY für alle) und den frischen Identitätsnachweis, zeigt, wie weit jeder Knoten ist, und warnt, dass eine pausierte oder im Standby befindliche Alarmzentrale oder ein Radar das Haus ungeschützt lässt. Es gibt kein Zurücksetzen auf Werkseinstellungen, kein Löschen und keinen Tiefschlaf.
 
 ## 🧩 Rolle in A.R.M.O.R.
 
@@ -73,7 +74,7 @@ ARMOR-ANDROID-CONTROL ist das Fenster des Telefons auf denselben [ARMOR-SERVER](
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/
 │   ├── ArmorActivity.kt (the shell), EntryScreens.kt, HomeScreens.kt, CameraScreens.kt, RadarScreens.kt, DevicePanels.kt, MoreScreens.kt
-│   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
+│   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, NodeControlScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
 │   ├── NodeBleClient.kt, NodeSetupScreen.kt, NodeFinderScreens.kt, NodePanel.kt   configure a node over Bluetooth (the protocol is in model/NodeBle.kt)
 │   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
 │   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, PinDialog.kt, MjpegFeed.kt

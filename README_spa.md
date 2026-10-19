@@ -39,7 +39,7 @@
 |---|---|
 | Versión | `0.7.3` |
 | Madurez | Establecido |
-| Tests | 228 (`gradlew testDebugUnitTest`) |
+| Tests | 240 (`gradlew testDebugUnitTest`) |
 | Tecnología | Kotlin / Jetpack Compose |
 | En hardware real | Usada en un móvil real contra el banco de pruebas de la CM5; las pantallas solar, eléctrica y de centrales de alarma esperan nodos reales |
 
@@ -62,6 +62,7 @@
 * **Salud de los nodos y modos de armado:** una pantalla Salud de los nodos en Más (tiempo encendido, motivo del reinicio, memoria, enlace y señal, conexiones al broker, reinicios, último error y los avisos del servidor de cada nodo) y, en la pantalla de Centrales de alarma, un selector de modo (Fuera, En casa, Noche y los tuyos) que arma una central en el modo elegido cuando su firmware los conoce. Ocho idiomas.
 * **Conexiones en el historial:** la pantalla Historial tiene una segunda lista, solo de lectura, con los dispositivos y apps que se conectan al servidor (Studio, esta app, los paneles de los nodos, el servicio de voz), cuándo se vio cada uno por última vez, sus sesiones abiertas y sus inicios de sesión y rechazos; la app ahora le dice al servidor qué es para aparecer como ella misma. Las direcciones solo las ven los administradores.
 * **Mantenimiento de baterías (administradores):** las operaciones sencillas en una batería Pylontech - reloj, contadores y registros, reinicio, capacidad, prueba de MOSFET, fallo de fusible, salidas - en los mismos dos pasos que Studio (el servidor hace que el nodo lea la batería, la pantalla muestra exactamente lo que se hará y luego "Hacerlo ahora" con el número de serie escrito otra vez), con el resultado y lo que cambió; los límites, el firmware y la consola de experto se quedan en Studio.
+* **Control de los nodos (administradores):** Más > Control de nodos da las mismas operaciones que Studio - reiniciar, pausar, reanudar, poner en espera (trabajo apagado, sigue conectado), identificar, diagnóstico y mantenimiento activado o desactivado - a un nodo o a todos, pidiendo que se escriba de nuevo el nombre del nodo (o la palabra RESTART, PAUSE o STANDBY para todos) y la prueba de identidad nueva, mostrando hasta dónde llegó cada nodo y avisando de que una central de alarma o un radar en pausa o en espera dejan la casa sin proteger. No existe restablecimiento de fábrica, borrado ni sueño profundo.
 
 ## 🧩 Papel en A.R.M.O.R.
 
@@ -73,7 +74,7 @@ ARMOR-ANDROID-CONTROL es la ventana del móvil al mismo [ARMOR-SERVER](https://g
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/
 │   ├── ArmorActivity.kt (the shell), EntryScreens.kt, HomeScreens.kt, CameraScreens.kt, RadarScreens.kt, DevicePanels.kt, MoreScreens.kt
-│   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
+│   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, NodeControlScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
 │   ├── NodeBleClient.kt, NodeSetupScreen.kt, NodeFinderScreens.kt, NodePanel.kt   configure a node over Bluetooth (the protocol is in model/NodeBle.kt)
 │   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
 │   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, PinDialog.kt, MjpegFeed.kt

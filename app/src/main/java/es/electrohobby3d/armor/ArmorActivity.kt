@@ -92,6 +92,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     val voiceState by viewModel.voice.collectAsStateWithLifecycle()
     val securityState by viewModel.security.collectAsStateWithLifecycle()
     val batteryState by viewModel.battery.collectAsStateWithLifecycle()
+    val controlState by viewModel.control.collectAsStateWithLifecycle()
     var loginCode by rememberSaveable { mutableStateOf("") }
     // The panel of a node that is open (null: the list), and the addresses opened lately.
     var nodePanel by rememberSaveable { mutableStateOf<String?>(null) }
@@ -192,6 +193,12 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
         if (state.authenticated && currentOrigin.isNotBlank() && section == Section.More && moreTab == MoreTab.Batteries) {
             viewModel.loadBattery(currentOrigin)
             lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { while (true) { viewModel.pollBattery(currentOrigin); delay(2_000) } }
+        }
+    }
+    // The Node control screen (in the More menu): the nodes, the order under way and the list every two seconds while it is open and the app is on screen.
+    LaunchedEffect(section, moreTab, state.authenticated, currentOrigin) {
+        if (state.authenticated && currentOrigin.isNotBlank() && section == Section.More && moreTab == MoreTab.NodeControl) {
+            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { while (true) { viewModel.pollNodeHealth(currentOrigin); viewModel.pollControl(currentOrigin); delay(2_000) } }
         }
     }
     // The Services screen (in the More menu): every service every eight seconds while it is open and the app is on screen.
@@ -350,6 +357,16 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                         onArm = { node, port, op, output, onOff, serial -> viewModel.armBattery(currentOrigin, node, port, op, output, onOff, serial) },
                                         onExecute = { serial -> viewModel.executeBattery(currentOrigin, serial) }, onCancel = { viewModel.cancelBattery(currentOrigin) },
                                         onNew = { viewModel.newBatteryOperation() }, onOpen = { viewModel.openBattery(it) },
+                                    )
+                                }
+                                MoreTab.NodeControl -> SubScreen(Icons.Filled.SettingsPower, tr("Control de nodos"), onBack = { moreTab = null }, actions = {
+                                    IconButton(onClick = { viewModel.reloadNodeHealth(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
+                                }) {
+                                    NodeControlScreen(
+                                        controlState, state.nodeHealth?.nodes.orEmpty(), state.role == "admin",
+                                        onOrderNode = { node, operation, confirm, seconds -> viewModel.orderNode(currentOrigin, node, operation, confirm, seconds) },
+                                        onOrderAll = { operation, mode, confirm, seconds -> viewModel.orderAllNodes(currentOrigin, operation, mode, confirm, seconds) },
+                                        onClose = { viewModel.closeControl() }, onOpen = { viewModel.openControl(it) },
                                     )
                                 }
                                 MoreTab.Electrical -> SubScreen(Icons.Filled.ElectricBolt, tr("Eléctrica"), onBack = { moreTab = null }, actions = {

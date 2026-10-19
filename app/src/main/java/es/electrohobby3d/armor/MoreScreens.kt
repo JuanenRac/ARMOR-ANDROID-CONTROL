@@ -28,7 +28,7 @@ import es.electrohobby3d.armor.model.MediaItem
 import es.electrohobby3d.armor.update.AppUpdateState
 
 /** What the "More" tab can show; null is the menu itself. */
-enum class MoreTab { Nodes, Voice, Weather, Solar, Batteries, Electrical, AlarmPanels, Network, Services, NodeHealth, Evidence, History, Security, Updates, Settings }
+enum class MoreTab { Nodes, Voice, Weather, Solar, Batteries, NodeControl, Electrical, AlarmPanels, Network, Services, NodeHealth, Evidence, History, Security, Updates, Settings }
 
 @Composable
 fun MoreMenu(onOpen: (MoreTab) -> Unit, onNodeSetup: () -> Unit, onAbout: () -> Unit, onLogout: () -> Unit, updateAvailable: Boolean = false, isAdmin: Boolean = false) {
@@ -39,6 +39,7 @@ fun MoreMenu(onOpen: (MoreTab) -> Unit, onNodeSetup: () -> Unit, onAbout: () -> 
         MenuRow(Icons.Filled.Cloud, tr("Meteorología"), tr("El tiempo del lugar que elijas: ahora, por horas, diez días, aire y polen")) { onOpen(MoreTab.Weather) }
         MenuRow(Icons.Filled.WbSunny, tr("Solar"), tr("Inversores y baterías")) { onOpen(MoreTab.Solar) }
         if (isAdmin) MenuRow(Icons.Filled.BatteryChargingFull, tr("Mantenimiento de baterías"), tr("Reloj, contadores, reinicio, capacidad y salidas de una batería Pylontech")) { onOpen(MoreTab.Batteries) }
+        if (isAdmin) MenuRow(Icons.Filled.SettingsPower, tr("Control de nodos"), tr("Reiniciar, pausar, poner en espera, identificar, diagnosticar y mantenimiento de un nodo o de todos")) { onOpen(MoreTab.NodeControl) }
         MenuRow(Icons.Filled.ElectricBolt, tr("Eléctrica"), tr("Red, circuitos y buses de continua")) { onOpen(MoreTab.Electrical) }
         MenuRow(Icons.Filled.Shield, tr("Centrales de alarma"), tr("Nodos ARMOR-ALARM: zonas, estado y armado")) { onOpen(MoreTab.AlarmPanels) }
         MenuRow(Icons.Filled.Router, tr("Red"), tr("Internet, dispositivos y cambios de la red local")) { onOpen(MoreTab.Network) }

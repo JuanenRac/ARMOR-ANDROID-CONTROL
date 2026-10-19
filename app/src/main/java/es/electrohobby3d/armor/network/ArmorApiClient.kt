@@ -126,6 +126,23 @@ class ArmorApiClient : ArmorApi {
     override fun batteryCancel(origin: String, id: String): es.electrohobby3d.armor.model.BatteryOperationView =
         es.electrohobby3d.armor.model.BatteryParser.operation(sendJson(origin, "/api/v1/solar/battery-ops/" + java.net.URLEncoder.encode(id, "UTF-8") + "/cancel", "POST", JSONObject(), setOf(202)))
 
+    override fun nodeControl(origin: String, nodeId: String, operation: String, confirm: String?, durationS: Int?): es.electrohobby3d.armor.model.ControlOperationView {
+        val body = JSONObject().put("operation", operation)
+        if (confirm != null) body.put("confirm", confirm)
+        if (durationS != null) body.put("duration_s", durationS)
+        return es.electrohobby3d.armor.model.NodeControlParser.operation(sendJson(origin, "/api/v1/nodes/" + java.net.URLEncoder.encode(nodeId, "UTF-8") + "/control", "POST", body, setOf(202)))
+    }
+    override fun nodesControl(origin: String, operation: String, mode: String, confirm: String?, durationS: Int?): es.electrohobby3d.armor.model.ControlOperationView {
+        val body = JSONObject().put("operation", operation).put("mode", mode)
+        if (confirm != null) body.put("confirm", confirm)
+        if (durationS != null) body.put("duration_s", durationS)
+        return es.electrohobby3d.armor.model.NodeControlParser.operation(sendJson(origin, "/api/v1/nodes/control", "POST", body, setOf(202)))
+    }
+    override fun nodeControlOperations(origin: String): List<es.electrohobby3d.armor.model.ControlOperationView> =
+        es.electrohobby3d.armor.model.NodeControlParser.list(getJson(origin, "/api/v1/nodes/control/operations"))
+    override fun nodeControlOperation(origin: String, id: String): es.electrohobby3d.armor.model.ControlOperationView =
+        es.electrohobby3d.armor.model.NodeControlParser.operation(getJson(origin, "/api/v1/nodes/control/operations/" + java.net.URLEncoder.encode(id, "UTF-8")))
+
     /** The alarm nodes (ARMOR-ALARM): each panel's phase and mode, its zones and its last events; an operator session is needed. */
     override fun alarmPanels(origin: String): es.electrohobby3d.armor.model.AlarmPanelsOverview = es.electrohobby3d.armor.model.AlarmPanelsParser.overview(getJson(origin, "/api/v1/alarm/nodes"))
     /** Whether the server may arm, disarm and silence the panels at all, and what became of the latest commands. */

@@ -38,6 +38,13 @@ interface ArmorApi {
     /** Every device and app the server has seen (the Connections list of the history); the addresses come only for an administrator. */
     fun connections(origin: String): List<es.electrohobby3d.armor.model.ConnectionClient>
     fun nodeHealth(origin: String): es.electrohobby3d.armor.model.NodeHealthOverview
+    /** Gives one order (restart, pause, resume, standby, identify, diagnostics, maintenance_on, maintenance_off) to one node; an administrator who proved themselves a moment ago. [confirm] is the node's name where it is asked. */
+    fun nodeControl(origin: String, nodeId: String, operation: String, confirm: String?, durationS: Int?): es.electrohobby3d.armor.model.ControlOperationView
+    /** The same order to every node that reports; [mode] is "now" or "rolling" (only a restart can be rolling); [confirm] is the word RESTART, PAUSE or STANDBY where it is asked. */
+    fun nodesControl(origin: String, operation: String, mode: String, confirm: String?, durationS: Int?): es.electrohobby3d.armor.model.ControlOperationView
+    /** The orders of the last weeks with a line per node; never a token. */
+    fun nodeControlOperations(origin: String): List<es.electrohobby3d.armor.model.ControlOperationView>
+    fun nodeControlOperation(origin: String, id: String): es.electrohobby3d.armor.model.ControlOperationView
     fun alarmCommands(origin: String): es.electrohobby3d.armor.model.AlarmCommandsStatus
     /** Arms a panel (mode "away" or "stay", optionally leaving out the open zones) or disarms it (mode null, with the PIN of the signed-in user when there is one). The server checks the PIN and never sends it to the node. */
     fun sendAlarmCommand(origin: String, node: String, mode: String?, force: Boolean, pin: String? = null, profile: String? = null)

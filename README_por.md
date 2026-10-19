@@ -39,7 +39,7 @@
 |---|---|
 | Versão | `0.7.3` |
 | Maturidade | Estabelecido |
-| Testes | 228 (`gradlew testDebugUnitTest`) |
+| Testes | 240 (`gradlew testDebugUnitTest`) |
 | Tecnologia | Kotlin / Jetpack Compose |
 | Em hardware real | Usada num telemóvel real contra a bancada de testes do CM5; os ecrãs solar, elétrico e de centrais de alarme esperam nós reais |
 
@@ -62,6 +62,7 @@
 * **Saúde dos nós e modos de armar:** um ecrã Saúde dos nós em Mais (tempo ligado, motivo do reinício, memória, ligação e sinal, ligações ao broker, reinícios, último erro e os avisos do servidor de cada nó) e, no ecrã das Centrais de alarme, um seletor de modo (Ausente, Em casa, Noite e os seus) que arma uma central no modo escolhido quando o seu firmware os conhece. Oito idiomas.
 * **Ligações no histórico:** o ecrã Histórico tem uma segunda lista, só de leitura, com os dispositivos e aplicações que se ligam ao servidor (o Studio, esta app, os painéis dos nós, o serviço de voz), quando cada um foi visto pela última vez, as suas sessões abertas e os seus inícios de sessão e recusas; a app diz agora ao servidor o que é, para aparecer como ela própria. Os endereços só os veem os administradores.
 * **Manutenção de baterias (administradores):** as operações simples numa bateria Pylontech - relógio, contadores e registos, reinício, capacidade, teste de MOSFET, falha de fusível, saídas - nos mesmos dois passos do Studio (o servidor faz o nó ler a bateria, o ecrã mostra exatamente o que será feito e depois "Fazer agora" com o número de série escrito outra vez), com o resultado e o que mudou; os limites, o firmware e a consola de especialista ficam no Studio.
+* **Controlo dos nós (administradores):** Mais > Controlo dos nós dá as mesmas operações do Studio - reiniciar, pausar, retomar, pôr em espera (trabalho desligado, continua ligado), identificar, diagnóstico e manutenção ligada ou desligada - a um nó ou a todos, pedindo que se escreva de novo o nome do nó (ou a palavra RESTART, PAUSE ou STANDBY para todos) e a nova prova de identidade, mostrando até onde chegou cada nó e avisando que uma central de alarme ou um radar em pausa ou em espera deixa a casa sem proteção. Não existe reposição de fábrica, apagamento nem sono profundo.
 
 ## 🧩 Papel no A.R.M.O.R.
 
@@ -73,7 +74,7 @@ O ARMOR-ANDROID-CONTROL é a janela do telemóvel para o mesmo [ARMOR-SERVER](ht
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/
 │   ├── ArmorActivity.kt (the shell), EntryScreens.kt, HomeScreens.kt, CameraScreens.kt, RadarScreens.kt, DevicePanels.kt, MoreScreens.kt
-│   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
+│   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, NodeControlScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
 │   ├── NodeBleClient.kt, NodeSetupScreen.kt, NodeFinderScreens.kt, NodePanel.kt   configure a node over Bluetooth (the protocol is in model/NodeBle.kt)
 │   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
 │   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, PinDialog.kt, MjpegFeed.kt

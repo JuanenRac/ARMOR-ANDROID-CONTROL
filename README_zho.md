@@ -39,7 +39,7 @@
 |---|---|
 | 版本 | `0.7.3` |
 | 成熟度 | 成熟 |
-| 测试 | 228 (`gradlew testDebugUnitTest`) |
+| 测试 | 240 (`gradlew testDebugUnitTest`) |
 | 技术栈 | Kotlin / Jetpack Compose |
 | 真实硬件 | 在真实手机上对照 CM5 测试台使用；太阳能、电气和报警主机界面在等待真实节点 |
 
@@ -62,6 +62,7 @@
 * **节点健康与布防模式：** “更多”中有节点健康画面（每个节点的运行时间、重启原因、内存、连接与信号、代理连接、重启、最后错误以及服务器发出的警告），报警主机画面有模式选择（离家、在家、夜间和自定义），主机固件支持时按所选模式布防。支持八种语言。
 * **历史中的连接：** 历史页面新增了第二个只读列表，列出连接服务器的设备和应用（Studio、本应用、节点面板、语音服务），以及各自最后出现的时间、已打开的会话、登录与被拒次数；应用现在会向服务器表明自己的身份，因此会以自己的名义显示。地址只显示给管理员。
 * **电池维护（管理员）：** 对 Pylontech 电池的简单操作——时钟、计数器和日志、重启、容量、MOSFET 测试、保险丝故障、输出——与 Studio 相同的两步（服务器让节点读取电池，界面准确显示将要执行的内容，再输入序列号点击“立即执行”），并显示结果和变化；限值、固件和专家控制台仍在 Studio 中操作。
+* **节点控制（管理员）：** 更多 > 节点控制提供与 Studio 相同的操作——重启、暂停、恢复、待机（停止工作，保持连接）、识别、诊断以及开启或关闭维护——可用于一个节点或全部节点；需要再次输入节点名称（对所有节点则输入单词 RESTART、PAUSE 或 STANDBY）并重新验证身份，显示每个节点进行到哪一步，并警告报警主机或雷达处于暂停或待机时家中将失去保护。没有恢复出厂设置、擦除或深度睡眠。
 
 ## 🧩 在 A.R.M.O.R. 中的角色
 
@@ -73,7 +74,7 @@ ARMOR-ANDROID-CONTROL 是手机上通往 [ARMOR-STUDIO](https://github.com/Juane
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/
 │   ├── ArmorActivity.kt (the shell), EntryScreens.kt, HomeScreens.kt, CameraScreens.kt, RadarScreens.kt, DevicePanels.kt, MoreScreens.kt
-│   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
+│   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, NodeControlScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
 │   ├── NodeBleClient.kt, NodeSetupScreen.kt, NodeFinderScreens.kt, NodePanel.kt   configure a node over Bluetooth (the protocol is in model/NodeBle.kt)
 │   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
 │   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, PinDialog.kt, MjpegFeed.kt
