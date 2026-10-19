@@ -22,14 +22,14 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
-  <img src="https://img.shields.io/badge/Tests-207%20passing-2ea44f.svg" alt="Tests">
-  <img src="https://img.shields.io/badge/Version-0.7.2-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Tests-228%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Version-0.7.3-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
 ---
 
-**诚实性检查 - 今天真正能运行的部分:** 地址安全、报警决策、报警监视器、翻译和只读角色的规则由 207 个单元测试覆盖，应用可以构建（`gradlew testDebugUnitTest assembleDebug`）。它在真实手机上对照 CM5 测试台运行：登录、摄像头监视器、布防和报警、雷达、通过蓝牙设置节点以及从 GitHub 更新都在使用中。**尚未**证明的是：使用真实设备的太阳能、电气和报警主机界面（目前只有雷达节点）、通过 Firebase 的推送（应用中已包含，需要自己的 Firebase 项目；尚未在手机上试过），以及在各手机厂商电池规则下的后台报警监视。
+**诚实性检查 - 今天真正能运行的部分:** 地址安全、报警决策、报警监视器、翻译和只读角色的规则由 228 个单元测试覆盖，应用可以构建（`gradlew testDebugUnitTest assembleDebug`）。它在真实手机上对照 CM5 测试台运行：登录、摄像头监视器、布防和报警、雷达、通过蓝牙设置节点以及从 GitHub 更新都在使用中。**尚未**证明的是：使用真实设备的太阳能、电气和报警主机界面（目前只有雷达节点）、通过 Firebase 的推送（应用中已包含，需要自己的 Firebase 项目；尚未在手机上试过），以及在各手机厂商电池规则下的后台报警监视。
 
 ---
 
@@ -37,9 +37,9 @@
 
 | | |
 |---|---|
-| 版本 | `0.7.2` |
+| 版本 | `0.7.3` |
 | 成熟度 | 成熟 |
-| 测试 | 207 (`gradlew testDebugUnitTest`) |
+| 测试 | 228 (`gradlew testDebugUnitTest`) |
 | 技术栈 | Kotlin / Jetpack Compose |
 | 真实硬件 | 在真实手机上对照 CM5 测试台使用；太阳能、电气和报警主机界面在等待真实节点 |
 
@@ -61,6 +61,7 @@
 * **在手机上管理安全：**第二重验证及其恢复码、已打开的会话、检查服务器如何看待手机、从外部执行关键操作时的重新身份验证，以及面向管理员的 VPN（带配置的设备）和动态 DNS 名称。**状态屏幕展示整个系统，以及从外部进入的方式：** 状态屏幕汇总报警主机、服务、正在录像的摄像头以及安全与远程访问，每张卡片都会打开对应屏幕；当输入的地址在家外且没有 https 时，登录会说明为何无法继续，并由向导讲解两种安全方式（VPN，或带 https 的公网地址）。
 * **节点健康与布防模式：** “更多”中有节点健康画面（每个节点的运行时间、重启原因、内存、连接与信号、代理连接、重启、最后错误以及服务器发出的警告），报警主机画面有模式选择（离家、在家、夜间和自定义），主机固件支持时按所选模式布防。支持八种语言。
 * **历史中的连接：** 历史页面新增了第二个只读列表，列出连接服务器的设备和应用（Studio、本应用、节点面板、语音服务），以及各自最后出现的时间、已打开的会话、登录与被拒次数；应用现在会向服务器表明自己的身份，因此会以自己的名义显示。地址只显示给管理员。
+* **电池维护（管理员）：** 对 Pylontech 电池的简单操作——时钟、计数器和日志、重启、容量、MOSFET 测试、保险丝故障、输出——与 Studio 相同的两步（服务器让节点读取电池，界面准确显示将要执行的内容，再输入序列号点击“立即执行”），并显示结果和变化；限值、固件和专家控制台仍在 Studio 中操作。
 
 ## 🧩 在 A.R.M.O.R. 中的角色
 

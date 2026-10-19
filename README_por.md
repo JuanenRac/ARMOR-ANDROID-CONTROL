@@ -22,14 +22,14 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
-  <img src="https://img.shields.io/badge/Tests-207%20passing-2ea44f.svg" alt="Tests">
-  <img src="https://img.shields.io/badge/Version-0.7.2-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Tests-228%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Version-0.7.3-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
 ---
 
-**Verificação de honestidade - o que funciona hoje:** As regras de segurança do endereço, de decisão de alarmes, do vigia de alarmes, de tradução e do papel só de leitura estão cobertas por 207 testes unitários e a aplicação compila (`gradlew testDebugUnitTest assembleDebug`). Funciona num telemóvel real contra a bancada de testes do CM5: o acesso, o monitor de câmaras, o armar e os alarmes, o radar, a configuração de um nó por Bluetooth e as atualizações a partir do GitHub estão em uso. O que **ainda não** está provado: os ecrãs solar, elétrico e de centrais de alarme com equipamentos reais (só existe um nó radar), o push por Firebase (está na aplicação e precisa de um projeto Firebase próprio; ainda não foi experimentado num telemóvel) e a vigilância de alarmes em segundo plano sob as regras de bateria de cada fabricante.
+**Verificação de honestidade - o que funciona hoje:** As regras de segurança do endereço, de decisão de alarmes, do vigia de alarmes, de tradução e do papel só de leitura estão cobertas por 228 testes unitários e a aplicação compila (`gradlew testDebugUnitTest assembleDebug`). Funciona num telemóvel real contra a bancada de testes do CM5: o acesso, o monitor de câmaras, o armar e os alarmes, o radar, a configuração de um nó por Bluetooth e as atualizações a partir do GitHub estão em uso. O que **ainda não** está provado: os ecrãs solar, elétrico e de centrais de alarme com equipamentos reais (só existe um nó radar), o push por Firebase (está na aplicação e precisa de um projeto Firebase próprio; ainda não foi experimentado num telemóvel) e a vigilância de alarmes em segundo plano sob as regras de bateria de cada fabricante.
 
 ---
 
@@ -37,9 +37,9 @@
 
 | | |
 |---|---|
-| Versão | `0.7.2` |
+| Versão | `0.7.3` |
 | Maturidade | Estabelecido |
-| Testes | 207 (`gradlew testDebugUnitTest`) |
+| Testes | 228 (`gradlew testDebugUnitTest`) |
 | Tecnologia | Kotlin / Jetpack Compose |
 | Em hardware real | Usada num telemóvel real contra a bancada de testes do CM5; os ecrãs solar, elétrico e de centrais de alarme esperam nós reais |
 
@@ -61,6 +61,7 @@
 * **Segurança a partir do telemóvel:** o segundo fator e os seus códigos de recuperação, as sessões abertas, uma verificação de como o servidor vê o telemóvel, a nova prova de identidade para ações críticas de fora e, para um administrador, a VPN (dispositivos com a sua configuração) e o nome de DNS dinâmico.**Todo o sistema no ecrã de estado e a entrada a partir de fora:** o ecrã de estado resume as centrais de alarme, os serviços, as câmaras que gravam e a segurança e o acesso remoto, e cada cartão abre o seu ecrã; e quando o endereço escrito está fora de casa e sem https, o início de sessão diz porque não pode continuar e um guia explica as duas vias seguras (VPN, ou endereço público com https).
 * **Saúde dos nós e modos de armar:** um ecrã Saúde dos nós em Mais (tempo ligado, motivo do reinício, memória, ligação e sinal, ligações ao broker, reinícios, último erro e os avisos do servidor de cada nó) e, no ecrã das Centrais de alarme, um seletor de modo (Ausente, Em casa, Noite e os seus) que arma uma central no modo escolhido quando o seu firmware os conhece. Oito idiomas.
 * **Ligações no histórico:** o ecrã Histórico tem uma segunda lista, só de leitura, com os dispositivos e aplicações que se ligam ao servidor (o Studio, esta app, os painéis dos nós, o serviço de voz), quando cada um foi visto pela última vez, as suas sessões abertas e os seus inícios de sessão e recusas; a app diz agora ao servidor o que é, para aparecer como ela própria. Os endereços só os veem os administradores.
+* **Manutenção de baterias (administradores):** as operações simples numa bateria Pylontech - relógio, contadores e registos, reinício, capacidade, teste de MOSFET, falha de fusível, saídas - nos mesmos dois passos do Studio (o servidor faz o nó ler a bateria, o ecrã mostra exatamente o que será feito e depois "Fazer agora" com o número de série escrito outra vez), com o resultado e o que mudou; os limites, o firmware e a consola de especialista ficam no Studio.
 
 ## 🧩 Papel no A.R.M.O.R.
 

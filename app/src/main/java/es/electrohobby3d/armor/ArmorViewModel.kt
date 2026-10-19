@@ -154,6 +154,51 @@ class ArmorViewModel(private val client: ArmorApi = ArmorApiClient(), private va
 
     fun reloadSolar(origin: String) { viewModelScope.launch { pollSolar(origin) } }
 
+    // ---- battery maintenance (administrators): the operations on a Pylontech battery through its gateway node ----
+    private val _battery = MutableStateFlow(BatteryUiState())
+    val battery: StateFlow<BatteryUiState> = _battery.asStateFlow()
+
+    private fun batteryCall(block: suspend () -> Unit) {
+        viewModelScope.launch {
+            _battery.update { it.copy(busy = true, message = null) }
+            runCatching { withContext(Dispatchers.IO) { block() } }
+                .onFailure { error ->
+                    if (error is ElevationRequiredException) {   // a new proof of identity, always for this: then the same action by itself
+                        retryAfterElevation = { block() }
+                        _security.update { it.copy(elevationNeeded = true, elevationError = null) }
+                        _battery.update { it.copy(busy = false) }
+                    } else _battery.update { it.copy(busy = false, message = batteryErrorText(error)) }
+                }
+                .onSuccess { _battery.update { it.copy(busy = false) } }
+        }
+    }
+
+    fun loadBattery(origin: String) = batteryCall { val value = client.batteryOperations(origin); _battery.update { it.copy(overview = value) } }
+
+    /** The operation on its way, and the list, while the screen is open. A failure is ignored; the next pass tries again. */
+    suspend fun pollBattery(origin: String) = withContext(Dispatchers.IO) {
+        val current = _battery.value.active
+        if (current != null && current.active) runCatching { client.batteryOperation(origin, current.id) }.onSuccess { value -> _battery.update { it.copy(active = value) } }
+        runCatching { client.batteryOperations(origin) }.onSuccess { value -> _battery.update { it.copy(overview = value) } }
+    }
+
+    fun armBattery(origin: String, node: String, port: Int, op: String, output: String, state: String, serial: String) = batteryCall {
+        val armed = client.batteryArm(origin, node, port, op, output, state, serial)
+        _battery.update { it.copy(active = armed) }
+    }
+    fun executeBattery(origin: String, serial: String) = batteryCall {
+        val current = _battery.value.active ?: return@batteryCall
+        val started = client.batteryExecute(origin, current.id, serial)
+        _battery.update { it.copy(active = started) }
+    }
+    fun cancelBattery(origin: String) = batteryCall {
+        val current = _battery.value.active ?: return@batteryCall
+        val next = client.batteryCancel(origin, current.id)
+        _battery.update { it.copy(active = next) }
+    }
+    fun openBattery(operation: es.electrohobby3d.armor.model.BatteryOperationView) { _battery.update { it.copy(active = operation, message = null) } }
+    fun newBatteryOperation() { _battery.update { it.copy(active = null, message = null) } }
+
     /** The alarm panels and the status of their commands, quickly, while the Alarm panels screen is open. A failure is ignored; the next pass tries again. */
     suspend fun pollAlarmPanels(origin: String) = withContext(Dispatchers.IO) {
         runCatching { client.alarmPanels(origin) }.onSuccess { value -> _state.update { it.copy(alarmPanels = value) } }

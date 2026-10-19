@@ -91,6 +91,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     val state by viewModel.state.collectAsStateWithLifecycle()
     val voiceState by viewModel.voice.collectAsStateWithLifecycle()
     val securityState by viewModel.security.collectAsStateWithLifecycle()
+    val batteryState by viewModel.battery.collectAsStateWithLifecycle()
     var loginCode by rememberSaveable { mutableStateOf("") }
     // The panel of a node that is open (null: the list), and the addresses opened lately.
     var nodePanel by rememberSaveable { mutableStateOf<String?>(null) }
@@ -184,6 +185,13 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     LaunchedEffect(section, moreTab, state.authenticated, currentOrigin) {
         if (state.authenticated && currentOrigin.isNotBlank() && section == Section.More && moreTab == MoreTab.Solar) {
             lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { while (true) { viewModel.pollSolar(currentOrigin); delay(5_000) } }
+        }
+    }
+    // The Battery maintenance screen (in the More menu): the operation under way and the list every two seconds while it is open and the app is on screen.
+    LaunchedEffect(section, moreTab, state.authenticated, currentOrigin) {
+        if (state.authenticated && currentOrigin.isNotBlank() && section == Section.More && moreTab == MoreTab.Batteries) {
+            viewModel.loadBattery(currentOrigin)
+            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { while (true) { viewModel.pollBattery(currentOrigin); delay(2_000) } }
         }
     }
     // The Services screen (in the More menu): every service every eight seconds while it is open and the app is on screen.
@@ -311,7 +319,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 null -> MoreMenu(
                                     onOpen = { tab -> moreTab = tab; if (tab == MoreTab.Evidence) viewModel.loadMedia(currentOrigin); if (tab == MoreTab.Voice) viewModel.checkVoice(currentOrigin); if (tab == MoreTab.Security) viewModel.loadSecurity(currentOrigin) },
                                     onNodeSetup = { nodeSetup = true }, onAbout = { about = true }, onLogout = { confirmLogout = true },
-                                    updateAvailable = updateState is AppUpdateState.Available,
+                                    updateAvailable = updateState is AppUpdateState.Available, isAdmin = state.role == "admin",
                                 )
                                 MoreTab.Security -> SubScreen(Icons.Filled.Lock, tr("Seguridad"), onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.loadSecurity(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
@@ -334,6 +342,16 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 MoreTab.Solar -> SubScreen(Icons.Filled.WbSunny, tr("Solar"), onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.reloadSolar(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
                                 }) { SolarScreen(state.solar, state.network, onScanNetwork = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading) }
+                                MoreTab.Batteries -> SubScreen(Icons.Filled.BatteryChargingFull, tr("Mantenimiento de baterías"), onBack = { moreTab = null }, actions = {
+                                    IconButton(onClick = { viewModel.loadBattery(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
+                                }) {
+                                    BatteryScreen(
+                                        batteryState, es.electrohobby3d.armor.model.BatteryParser.nodes(state.solar), state.role == "admin",
+                                        onArm = { node, port, op, output, onOff, serial -> viewModel.armBattery(currentOrigin, node, port, op, output, onOff, serial) },
+                                        onExecute = { serial -> viewModel.executeBattery(currentOrigin, serial) }, onCancel = { viewModel.cancelBattery(currentOrigin) },
+                                        onNew = { viewModel.newBatteryOperation() }, onOpen = { viewModel.openBattery(it) },
+                                    )
+                                }
                                 MoreTab.Electrical -> SubScreen(Icons.Filled.ElectricBolt, tr("Eléctrica"), onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.reloadElectrical(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
                                 }) { ElectricalScreen(state.electrical, state.network, onScanNetwork = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading) }

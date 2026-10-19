@@ -112,6 +112,20 @@ class ArmorApiClient : ArmorApi {
     override fun solar(origin: String): SolarOverview = SolarParser.overview(getJson(origin, "/api/v1/solar"))
     override fun electrical(origin: String): es.electrohobby3d.armor.model.ElectricalOverview = es.electrohobby3d.armor.model.ElectricalParser.overview(getJson(origin, "/api/v1/electrical/readings"))
 
+    override fun batteryOperations(origin: String): es.electrohobby3d.armor.model.BatteryOverview = es.electrohobby3d.armor.model.BatteryParser.overview(getJson(origin, "/api/v1/solar/battery-ops"))
+    override fun batteryArm(origin: String, node: String, port: Int, op: String, output: String?, state: String?, serial: String): es.electrohobby3d.armor.model.BatteryOperationView {
+        val params = JSONObject()
+        if (op == "output_set") params.put("output", output.orEmpty()).put("state", state.orEmpty())
+        val body = JSONObject().put("node", node).put("port", port).put("op", op).put("params", params).put("serial", serial)
+        return es.electrohobby3d.armor.model.BatteryParser.operation(sendJson(origin, "/api/v1/solar/battery-ops", "POST", body, setOf(202)))
+    }
+    override fun batteryOperation(origin: String, id: String): es.electrohobby3d.armor.model.BatteryOperationView =
+        es.electrohobby3d.armor.model.BatteryParser.operation(getJson(origin, "/api/v1/solar/battery-ops/" + java.net.URLEncoder.encode(id, "UTF-8")))
+    override fun batteryExecute(origin: String, id: String, serial: String): es.electrohobby3d.armor.model.BatteryOperationView =
+        es.electrohobby3d.armor.model.BatteryParser.operation(sendJson(origin, "/api/v1/solar/battery-ops/" + java.net.URLEncoder.encode(id, "UTF-8") + "/execute", "POST", JSONObject().put("serial", serial), setOf(202)))
+    override fun batteryCancel(origin: String, id: String): es.electrohobby3d.armor.model.BatteryOperationView =
+        es.electrohobby3d.armor.model.BatteryParser.operation(sendJson(origin, "/api/v1/solar/battery-ops/" + java.net.URLEncoder.encode(id, "UTF-8") + "/cancel", "POST", JSONObject(), setOf(202)))
+
     /** The alarm nodes (ARMOR-ALARM): each panel's phase and mode, its zones and its last events; an operator session is needed. */
     override fun alarmPanels(origin: String): es.electrohobby3d.armor.model.AlarmPanelsOverview = es.electrohobby3d.armor.model.AlarmPanelsParser.overview(getJson(origin, "/api/v1/alarm/nodes"))
     /** Whether the server may arm, disarm and silence the panels at all, and what became of the latest commands. */

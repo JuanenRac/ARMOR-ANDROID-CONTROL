@@ -22,8 +22,8 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
-  <img src="https://img.shields.io/badge/Tests-207%20passing-2ea44f.svg" alt="Tests">
-  <img src="https://img.shields.io/badge/Version-0.7.2-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Tests-228%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Version-0.7.3-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
@@ -37,9 +37,9 @@
 
 | | |
 |---|---|
-| Versión | `0.7.2` |
+| Versión | `0.7.3` |
 | Madurez | Establecido |
-| Tests | 207 (`gradlew testDebugUnitTest`) |
+| Tests | 228 (`gradlew testDebugUnitTest`) |
 | Tecnología | Kotlin / Jetpack Compose |
 | En hardware real | Usada en un móvil real contra el banco de pruebas de la CM5; las pantallas solar, eléctrica y de centrales de alarma esperan nodos reales |
 
@@ -61,6 +61,7 @@
 * **Seguridad desde el móvil:** el segundo factor y sus códigos de recuperación, las sesiones abiertas, una comprobación de cómo ve el servidor al móvil, la nueva prueba de identidad para acciones críticas desde fuera y, para un administrador, la VPN (dispositivos con su configuración) y el nombre de DNS dinámico.**Todo el sistema en la pantalla de estado y la entrada desde fuera:** la pantalla de estado resume las centrales de alarma, los servicios, las cámaras que graban y la seguridad y el acceso remoto, y cada tarjeta abre su pantalla; y cuando la dirección escrita está fuera de casa y sin https, el inicio de sesión dice por qué no puede seguir y una guía explica las dos vías seguras (VPN, o dirección pública con https).
 * **Salud de los nodos y modos de armado:** una pantalla Salud de los nodos en Más (tiempo encendido, motivo del reinicio, memoria, enlace y señal, conexiones al broker, reinicios, último error y los avisos del servidor de cada nodo) y, en la pantalla de Centrales de alarma, un selector de modo (Fuera, En casa, Noche y los tuyos) que arma una central en el modo elegido cuando su firmware los conoce. Ocho idiomas.
 * **Conexiones en el historial:** la pantalla Historial tiene una segunda lista, solo de lectura, con los dispositivos y apps que se conectan al servidor (Studio, esta app, los paneles de los nodos, el servicio de voz), cuándo se vio cada uno por última vez, sus sesiones abiertas y sus inicios de sesión y rechazos; la app ahora le dice al servidor qué es para aparecer como ella misma. Las direcciones solo las ven los administradores.
+* **Mantenimiento de baterías (administradores):** las operaciones sencillas en una batería Pylontech - reloj, contadores y registros, reinicio, capacidad, prueba de MOSFET, fallo de fusible, salidas - en los mismos dos pasos que Studio (el servidor hace que el nodo lea la batería, la pantalla muestra exactamente lo que se hará y luego "Hacerlo ahora" con el número de serie escrito otra vez), con el resultado y lo que cambió; los límites, el firmware y la consola de experto se quedan en Studio.
 
 ## 🧩 Papel en A.R.M.O.R.
 

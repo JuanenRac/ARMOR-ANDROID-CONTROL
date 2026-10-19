@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [0.7.3] - Battery maintenance for administrators
+
+- **Battery maintenance (More menu, administrators only):** the simple operations on a Pylontech battery through its gateway node - set the clock, clear the statistics counters or the log, restart or shut the battery down, write the total capacity the maker gives for the model, switch the MOSFET-failure test on, clear a fuse fault and switch an output (charge or discharge MOSFET, buzzer, heater) on or off. The limits, the protections, the serial number, the memory, the firmware and the expert console stay in Studio.
+- **The same two steps as Studio:** the server has the node read the battery and check everything; the screen shows exactly what will be done, the battery's model, serial number and firmware and the risk (and that an operation cannot be stopped once it starts); only then "Do it now" writes, with the battery's serial number typed again, and the new proof of identity the server asks for is asked by the same dialog as for the other critical actions.
+- **Progress and result:** a bar and the step while it runs, then the outcome in plain words (it worked and was read back, the read-back does not match, it stopped midway, the battery did not answer, the node refused), what changed, and the history of the latest operations.
+- **Refusals in words:** the wrong serial number, a battery that is working or has an active protection, a write a moment ago, too many wrong attempts, a node with writing off, no service password in the node and every other answer of the server and of the node are explained in the eight languages.
+
 ## [0.7.2] - The details of a battery module, its event log and what a battery alert means
 
 - **Each battery module shows** its model and the versions of its board and software, its cells, the current it allows each way, the speed of its console and the state of health of its cells (the abnormal one marked).

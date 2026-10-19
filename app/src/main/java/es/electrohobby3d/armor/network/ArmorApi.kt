@@ -23,6 +23,14 @@ interface ArmorApi {
     /** Every inverter and battery that has reported, the declared ones still waiting, and the sums; an operator session is needed. */
     fun solar(origin: String): SolarOverview
     fun electrical(origin: String): es.electrohobby3d.armor.model.ElectricalOverview
+    /** The battery operations of the last weeks, newest first, and whether the server lets anything be written at all; an administrator's. */
+    fun batteryOperations(origin: String): es.electrohobby3d.armor.model.BatteryOverview
+    /** Step one of writing to a battery: the server asks the node to read it and check everything; the answer is the operation, still being checked. The typed serial number must be the battery's. */
+    fun batteryArm(origin: String, node: String, port: Int, op: String, output: String?, state: String?, serial: String): es.electrohobby3d.armor.model.BatteryOperationView
+    fun batteryOperation(origin: String, id: String): es.electrohobby3d.armor.model.BatteryOperationView
+    /** Step two: the operation must be armed; the serial number is typed again. */
+    fun batteryExecute(origin: String, id: String, serial: String): es.electrohobby3d.armor.model.BatteryOperationView
+    fun batteryCancel(origin: String, id: String): es.electrohobby3d.armor.model.BatteryOperationView
     /** The alarm nodes (ARMOR-ALARM): each panel's phase and mode, its zones and its last events; an operator session is needed. */
     fun alarmPanels(origin: String): es.electrohobby3d.armor.model.AlarmPanelsOverview
     /** The arming modes (Away, Home, Night, the owner's own) the server keeps; any signed-in session may read them. */
