@@ -114,3 +114,31 @@ class SolarTest {
         assertNull(SolarText.cellSpreadMv(listOf(3.3)))
     }
 }
+
+/** The extremes of the cells of the day that the server adds to a battery. */
+class SolarDayCellsTest {
+    private val answer = """
+    {"devices":[{"node_id":"casa","device":"us3000-1","kind":"battery","received_at":"2026-01-01T10:00:01.000Z","stale":false,"example":false,
+      "day_cells":{"date":"2026-01-01","bank_delta_v":0.06,"modules":[{"n":1,"delta_v":0.04,"min":{"v":3.31,"cell":1,"at":1767261720000},"max":{"v":3.35,"cell":3,"at":1767261780000}},{"n":2,"delta_v":0.06,"min":{"v":3.3,"cell":1,"at":1},"max":5}]},
+      "reading":{"kind":"battery","node_id":"casa","device":"us3000-1","timestamp_ms":2,"modules":1,"model":"US3000","state":"idle","stack":[{"n":1,"present":true,"cells_v":[3.31,3.33,3.35]}]}}],
+     "waiting":[],"totals":{},"catalog":{}}
+    """
+    @Test fun theExtremesOfTheDayAreReadAndAModuleWithoutThemIsSkipped() {
+        val device = SolarParser.overview(JSONObject(answer)).devices.single()
+        val day = device.dayCells!!
+        assertEquals(0.06, day.bankDeltaV, 1e-9)
+        assertEquals(1, day.modules.size)
+        assertEquals(3, day.modules[0].maxCell)
+        assertEquals(3.31, day.modules[0].minV, 1e-9)
+    }
+
+    @Test fun anInverterOrAnOlderServerHasNoExtremes() {
+        val old = JSONObject(answer.replace("\"day_cells\"", "\"other\""))
+        assertNull(SolarParser.overview(old).devices.single().dayCells)
+    }
+
+    @Test fun aReachIsWrittenWithVoltageCellAndTime() {
+        val text = SolarText.reach(3.3121, 5, 0L, "celda")
+        assertTrue(text, text.startsWith("3.312 V (celda 5, "))
+    }
+}

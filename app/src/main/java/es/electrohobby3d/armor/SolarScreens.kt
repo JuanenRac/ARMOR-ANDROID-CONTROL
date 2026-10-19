@@ -219,6 +219,8 @@ private fun BatteryCard(device: SolarDevice, r: SolarBatteryReading) {
                 if (r.capacityAh != null) Line(tr("Capacidad"), "${SolarText.ah(r.capacityAh)}${r.fullCapacityAh?.let { " de ${SolarText.ah(it)}" } ?: ""}")
                 if (r.cycles != null) Line(tr("Ciclos"), r.cycles.toString())
                 if (r.healthPercent != null) Line(tr("Salud (capacidad frente a nueva)"), "${r.healthPercent} %")
+                val bank = device.dayCells?.bankDeltaV
+                if (bank != null && bank > 0) Line(tr("Mayor diferencia hoy (banco)"), "${Math.round(bank * 1000)} mV", if (Math.round(bank * 1000) > 100) ArmorColors.Amber else ArmorColors.Text)
                 if (r.modules > 1) Line(tr("Módulos"), r.modules.toString())
             }
             if (r.alarm) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -234,6 +236,9 @@ private fun BatteryCard(device: SolarDevice, r: SolarBatteryReading) {
                 if (showCells) r.stack.filter { it.cellsV.isNotEmpty() }.forEach { module ->
                     if (r.stack.size > 1) Text(trf("Módulo %s", module.number), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
                     val low = module.cellsV.min(); val high = module.cellsV.max()
+                    device.dayCells?.modules?.firstOrNull { it.number == module.number }?.let { today ->
+                        Text(tr("Celdas hoy") + ": " + SolarText.reach(today.minV, today.minCell, today.minAt, tr("celda")) + " – " + SolarText.reach(today.maxV, today.maxCell, today.maxAt, tr("celda")) + " · Δ " + Math.round(today.deltaV * 1000) + " mV", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+                    }
                     module.cellsV.withIndex().toList().chunked(4).forEach { row ->
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             row.forEach { (index, volts) ->

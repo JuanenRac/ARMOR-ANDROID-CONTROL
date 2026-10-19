@@ -6,6 +6,7 @@ All notable changes to this project are documented here.
 
 - The app's link to the server is now an interface (`ArmorApi`); the HTTP client is one implementation of it, and the view model and the alarm notifier depend on the interface, so a test can stand in for the server.
 - A refusal from the server carries its status, its short code and its words as one value (`ApiError`), read once, instead of every screen digging the code out of the message text.
+- Batteries in the Solar tab show, when the cells are shown, the lowest and highest cell of each module for the day with the cell number and the time, and the widest gap of the whole bank today; they come from the server and are written in the eight languages.
 
 ## [0.7.0] - A switch for the update check at start
 

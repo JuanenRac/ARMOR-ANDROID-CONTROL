@@ -1061,5 +1061,8 @@
  "último uso": "最后使用",
  "…o el secreto de la flota (calcula el código desde la MAC)": "…或整批共用的密钥（由 MAC 计算出设置码）",
  "☀️ Amanece %s": "☀️ 日出 %s",
- "✓ Todo listo: los nodos responden y no hay zonas abiertas.": "✓ 一切就绪：节点均有响应，没有打开的分区。"
+ "✓ Todo listo: los nodos responden y no hay zonas abiertas.": "✓ 一切就绪：节点均有响应，没有打开的分区。",
+ "Celdas hoy": "今日的电芯",
+ "celda": "电芯",
+ "Mayor diferencia hoy (banco)": "今日最大压差（电池组）"
 }

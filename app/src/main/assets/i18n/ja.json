@@ -1061,5 +1061,8 @@
  "último uso": "最終使用",
  "…o el secreto de la flota (calcula el código desde la MAC)": "…または全台共通のシークレット（MACからコードを計算）",
  "☀️ Amanece %s": "☀️ 日の出 %s",
- "✓ Todo listo: los nodos responden y no hay zonas abiertas.": "✓ 準備完了：ノードは応答し、開いたゾーンはありません。"
+ "✓ Todo listo: los nodos responden y no hay zonas abiertas.": "✓ 準備完了：ノードは応答し、開いたゾーンはありません。",
+ "Celdas hoy": "本日のセル",
+ "celda": "セル",
+ "Mayor diferencia hoy (banco)": "本日の最大差（バンク）"
 }

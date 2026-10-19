@@ -1061,5 +1061,8 @@
  "último uso": "dernier usage",
  "…o el secreto de la flota (calcula el código desde la MAC)": "…ou le secret de la flotte (calcule le code à partir de la MAC)",
  "☀️ Amanece %s": "☀️ Lever du soleil %s",
- "✓ Todo listo: los nodos responden y no hay zonas abiertas.": "✓ Tout est prêt : les nœuds répondent et aucune zone n'est ouverte."
+ "✓ Todo listo: los nodos responden y no hay zonas abiertas.": "✓ Tout est prêt : les nœuds répondent et aucune zone n'est ouverte.",
+ "Celdas hoy": "Cellules aujourd'hui",
+ "celda": "cellule",
+ "Mayor diferencia hoy (banco)": "Plus grand écart aujourd'hui (banc)"
 }

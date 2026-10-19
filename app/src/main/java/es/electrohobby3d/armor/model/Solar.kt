@@ -52,10 +52,16 @@ data class SolarBatteryReading(
     val powerW: Double? get() = if (voltageV != null && currentA != null) voltageV * currentA else null
 }
 
+/** The lowest and the highest cell of a module today, with the cell number and the moment (milliseconds since 1970), and the widest gap of the module. */
+data class ModuleDayCells(val number: Int, val minV: Double, val minCell: Int, val minAt: Long, val maxV: Double, val maxCell: Int, val maxAt: Long, val deltaV: Double)
+
+/** What the server kept of the cells of a battery today (its own day): per module, and the widest gap of the whole bank. */
+data class DayCells(val modules: List<ModuleDayCells>, val bankDeltaV: Double)
+
 /** A piece of equipment that has reported: exactly one of [inverter] and [battery] is set. */
 data class SolarDevice(
     val nodeId: String, val device: String, val name: String, val model: String, val stale: Boolean, val example: Boolean, val receivedAt: String,
-    val inverter: SolarInverterReading?, val battery: SolarBatteryReading?,
+    val inverter: SolarInverterReading?, val battery: SolarBatteryReading?, val dayCells: DayCells? = null,
 ) { val isInverter: Boolean get() = inverter != null }
 
 /** Equipment an operator declared in Studio that no gateway node has reported yet. */
@@ -99,13 +105,24 @@ object SolarParser {
         val name = registered?.optStr("name").orEmpty().ifBlank { device }
         val model = registered?.optStr("model").orEmpty()
         val common = { inverter: SolarInverterReading?, battery: SolarBatteryReading? ->
-            SolarDevice(node, device, name, model, json.optBoolean("stale"), json.optBoolean("example"), json.optStr("received_at"), inverter, battery)
+            SolarDevice(node, device, name, model, json.optBoolean("stale"), json.optBoolean("example"), json.optStr("received_at"), inverter, battery, if (battery != null) dayCells(json.optJSONObject("day_cells")) else null)
         }
         return when (json.optStr("kind")) {
             "inverter" -> common(inverter(reading), null)
             "battery" -> common(null, battery(reading))
             else -> null
         }
+    }
+
+    private fun dayCells(d: JSONObject?): DayCells? {
+        if (d == null) return null
+        val modules = d.optJSONArray("modules").objects().mapNotNull { m ->
+            val low = m.optJSONObject("min"); val high = m.optJSONObject("max")
+            val minV = low?.number("v"); val maxV = high?.number("v")
+            if (low == null || high == null || minV == null || maxV == null) null
+            else ModuleDayCells(m.optInt("n"), minV, low.optInt("cell"), low.optLong("at"), maxV, high.optInt("cell"), high.optLong("at"), m.number("delta_v") ?: (maxV - minV))
+        }
+        return DayCells(modules, d.number("bank_delta_v") ?: 0.0)
     }
 
     private fun inverter(r: JSONObject) = SolarInverterReading(
@@ -134,6 +151,10 @@ object SolarParser {
 
 /** The wording of solar equipment, in plain Spanish. */
 object SolarText {
+    /** "3.312 V (celda 5, 14:02)": a cell extreme of the day as a line; the time is the phone's own clock. */
+    fun reach(volts: Double, cell: Int, atMs: Long, cellWord: String): String =
+        String.format(java.util.Locale.US, "%.3f V (%s %d, %s)", volts, cellWord, cell, java.text.SimpleDateFormat("HH:mm", java.util.Locale.US).format(java.util.Date(atMs)))
+
     fun mode(mode: String?) = when (mode) {
         "power_on" -> tr("Arrancando"); "standby" -> tr("En espera"); "line" -> tr("Con la red"); "battery" -> tr("Con la batería"); "fault" -> tr("Avería")
         "power_saving" -> tr("Ahorro de energía"); "shutdown" -> tr("Apagado"); else -> tr("Sin dato")

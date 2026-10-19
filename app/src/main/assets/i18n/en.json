@@ -1061,5 +1061,8 @@
  "último uso": "last used",
  "…o el secreto de la flota (calcula el código desde la MAC)": "…or the fleet secret (works out the code from the MAC)",
  "☀️ Amanece %s": "☀️ Sunrise %s",
- "✓ Todo listo: los nodos responden y no hay zonas abiertas.": "✓ All ready: the nodes answer and no zone is open."
+ "✓ Todo listo: los nodos responden y no hay zonas abiertas.": "✓ All ready: the nodes answer and no zone is open.",
+ "Celdas hoy": "Cells today",
+ "celda": "cell",
+ "Mayor diferencia hoy (banco)": "Widest gap today (bank)"
 }
