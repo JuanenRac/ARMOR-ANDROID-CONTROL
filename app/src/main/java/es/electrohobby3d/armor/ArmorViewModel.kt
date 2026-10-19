@@ -10,6 +10,7 @@ import es.electrohobby3d.armor.model.SiteDevice
 import es.electrohobby3d.armor.model.ArmorSnapshot
 import es.electrohobby3d.armor.model.CameraView
 import es.electrohobby3d.armor.model.MediaCatalogue
+import es.electrohobby3d.armor.network.ArmorApi
 import es.electrohobby3d.armor.network.ArmorApiClient
 import es.electrohobby3d.armor.network.WeatherApiClient
 import es.electrohobby3d.armor.model.Forecast
@@ -83,7 +84,7 @@ data class MonitorUiState(
     val isAdmin: Boolean get() = role == "admin"
 }
 
-class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), private val weatherClient: WeatherApiClient = WeatherApiClient()) : ViewModel() {
+class ArmorViewModel(private val client: ArmorApi = ArmorApiClient(), private val weatherClient: WeatherApiClient = WeatherApiClient()) : ViewModel() {
     private val _state = MutableStateFlow(MonitorUiState())
     val state: StateFlow<MonitorUiState> = _state.asStateFlow()
 
@@ -268,7 +269,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
                 SignIn.Done -> Unit
             }
         } catch (error: ArmorApiException) {
-            val code = SecurityParser.errorCode(error.message)
+            val code = error.apiError.code
             if (code == "totp_setup_required") throw ArmorApiException(securityError(code), error.code)
             throw error
         }
@@ -295,7 +296,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
                 }
             }.onSuccess { _security.update { it.copy(loginChallenge = null) }; _state.update { it.copy(loading = false, message = "Session established") } }
                 .onFailure { error ->
-                    val failure = SecurityParser.errorCode((error as? ArmorApiException)?.message)
+                    val failure = ((error as? ArmorApiException)?.apiError?.code.orEmpty())
                     if (failure == "challenge_expired") _security.update { it.copy(loginChallenge = null) }
                     _state.update { it.copy(loading = false, message = securityError(failure)) }
                 }
@@ -308,7 +309,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
             runCatching { withContext(Dispatchers.IO) { block() } }
                 .onFailure { error ->
                     if (error is ElevationRequiredException) { retryAfterElevation = { block() }; _security.update { it.copy(busy = false, elevationNeeded = true, elevationError = null) } }
-                    else _security.update { it.copy(busy = false, message = securityError(SecurityParser.errorCode((error as? ArmorApiException)?.message))) }
+                    else _security.update { it.copy(busy = false, message = securityError(((error as? ArmorApiException)?.apiError?.code.orEmpty()))) }
                 }
                 .onSuccess { _security.update { it.copy(busy = false) } }
         }
@@ -356,7 +357,7 @@ class ArmorViewModel(private val client: ArmorApiClient = ArmorApiClient(), priv
         viewModelScope.launch {
             _security.update { it.copy(busy = true, elevationError = null) }
             runCatching { withContext(Dispatchers.IO) { client.elevate(origin, password, code) } }
-                .onFailure { error -> _security.update { it.copy(busy = false, elevationError = securityError(SecurityParser.errorCode((error as? ArmorApiException)?.message))) } }
+                .onFailure { error -> _security.update { it.copy(busy = false, elevationError = securityError(((error as? ArmorApiException)?.apiError?.code.orEmpty()))) } }
                 .onSuccess {
                     _security.update { it.copy(busy = false, elevationNeeded = false) }
                     val retry = retryAfterElevation; retryAfterElevation = null

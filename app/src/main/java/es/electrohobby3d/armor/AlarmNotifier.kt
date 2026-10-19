@@ -11,7 +11,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import es.electrohobby3d.armor.network.ArmorApiClient
+import es.electrohobby3d.armor.network.ArmorApi
 
 object AlarmNotifier {
     const val ALARM_CHANNEL = "armor_alarm"
@@ -84,7 +84,7 @@ object AlarmNotifier {
     }
 
     /** One polling pass: fetch the newest events and announce the ones that matter. Returns the number announced. */
-    fun poll(context: Context, client: ArmorApiClient, origin: String): Int {
+    fun poll(context: Context, client: ArmorApi, origin: String): Int {
         val tracker = tracker(context)
         val window = client.history(origin, limit = 50)
         val events = freshEvents(tracker.last(origin), window, { after -> client.history(origin, limit = 200, after = after) })

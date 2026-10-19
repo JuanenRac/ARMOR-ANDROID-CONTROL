@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here.
 
+## [0.7.1] - The server link is an interface and refusals carry their code
+
+- The app's link to the server is now an interface (`ArmorApi`); the HTTP client is one implementation of it, and the view model and the alarm notifier depend on the interface, so a test can stand in for the server.
+- A refusal from the server carries its status, its short code and its words as one value (`ApiError`), read once, instead of every screen digging the code out of the message text.
+
 ## [0.7.0] - A switch for the update check at start
 
 - The update check at start is now a switch in More > Updates, off by default: nothing asks GitHub on its own unless it is turned on, and a note says that the weather and the radar use external weather services. The button "Check for updates" still works at any time. In the eight languages.
