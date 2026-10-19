@@ -227,6 +227,7 @@ fun AlarmsScreen(active: List<Alarm>, closed: List<Alarm>, devices: List<SiteDev
                     IconBadge(if (alarm.cleared) Icons.Filled.CheckCircle else Icons.Filled.Warning, tint, size = 44.dp)
                     Column(Modifier.weight(1f)) {
                         Text(DeviceText.alarmText(alarm.code), fontWeight = FontWeight.SemiBold)
+                        DeviceText.alarmHelp(alarm.code)?.let { help -> Text(help, style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted) }
                         Text("${alarmSourceName(alarm, devices, cameraNames, solarNames)} · ${Friendly.dayAndClock(alarm.raisedAt)}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                         Text(
                             if (alarm.acknowledged) (if (alarm.cleared) trf("Vista por %s", alarm.acknowledgedBy) else trf("Vista por %s · sigue activa", alarm.acknowledgedBy)) else if (alarm.cleared) tr("Ya terminó · falta confirmarla") else tr("Activa ahora"),

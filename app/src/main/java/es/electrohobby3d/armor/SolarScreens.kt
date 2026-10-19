@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import es.electrohobby3d.armor.model.LoggedEvent
 import es.electrohobby3d.armor.model.SolarBatteryReading
 import es.electrohobby3d.armor.model.SolarDevice
 import es.electrohobby3d.armor.model.SolarInverterReading
@@ -223,6 +224,9 @@ private fun BatteryCard(device: SolarDevice, r: SolarBatteryReading) {
                 if (bank != null && bank > 0) Line(tr("Mayor diferencia hoy (banco)"), "${Math.round(bank * 1000)} mV", if (Math.round(bank * 1000) > 100) ArmorColors.Amber else ArmorColors.Text)
                 if (r.modules > 1) Line(tr("Módulos"), r.modules.toString())
             }
+            SolarText.composition(r.stack).forEach { (code, modules) ->
+                Text(SolarText.compositionText(code) + " " + modules.joinToString(", ") { number -> trf("Módulo %s", number) + " (" + (r.stack.firstOrNull { it.number == number }?.model ?: "?") + ")" }, style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
+            }
             if (r.alarm) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Icon(Icons.Filled.Warning, null, tint = ArmorColors.Alert, modifier = Modifier.size(16.dp))
                 Text(tr("La batería avisa de un problema (una protección está actuando)."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Alert)
@@ -236,6 +240,17 @@ private fun BatteryCard(device: SolarDevice, r: SolarBatteryReading) {
                 if (showCells) r.stack.filter { it.cellsV.isNotEmpty() }.forEach { module ->
                     if (r.stack.size > 1) Text(trf("Módulo %s", module.number), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
                     val low = module.cellsV.min(); val high = module.cellsV.max()
+                    if (module.model.isNotBlank()) Line(tr("Modelo"), module.model)
+                    listOf(module.boardVersion, module.mainSoftVersion, module.softVersion).filter { it.isNotBlank() }.takeIf { it.isNotEmpty() }?.let { Line(tr("Firmware"), it.joinToString(" · ")) }
+                    if (module.cellCount != null) Line(tr("Celdas"), module.cellCount.toString())
+                    if (module.maxChargeA != null || module.maxDischargeA != null) Line(tr("Corriente admitida (carga / descarga)"), "${module.maxChargeA?.let { Math.round(it).toString() } ?: "–"} / ${module.maxDischargeA?.let { Math.round(it).toString() } ?: "–"} A")
+                    if (module.consoleBaud != null) Line(tr("Velocidad de la consola"), module.consoleBaud.toString())
+                    if (module.sohCounts.isNotEmpty()) {
+                        val weak = SolarText.abnormalCells(module)
+                        Text(tr("Estado de salud de las celdas") + ": " + module.sohCounts.withIndex().joinToString(" · ") { (cell, count) -> "${cell + 1}:$count" }, style = MaterialTheme.typography.labelSmall, color = if (weak.isEmpty()) ArmorColors.Muted else ArmorColors.Amber)
+                        if (weak.isNotEmpty()) Text(tr("Celda anormal") + ": " + weak.joinToString(", "), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Alert)
+                        Text(tr("El recuento de cada celda tal como lo informa la consola de la batería; Abnormal es la palabra de la propia consola para la celda débil. Solo lectura."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+                    }
                     SolarText.raisedCounters(module.counters).takeIf { it.isNotEmpty() }?.let { raised ->
                         Text(tr("Contadores de protección") + ": " + raised, style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
                         Text(tr("Nombres de la consola de la batería; su significado no es oficial."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
@@ -257,6 +272,32 @@ private fun BatteryCard(device: SolarDevice, r: SolarBatteryReading) {
                     if (module.temperaturesC.isNotEmpty()) Text(tr("Sensores: ") + module.temperaturesC.joinToString(" · ") { SolarText.celsius(it) }, style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
                 }
             }
+            if (device.events.isNotEmpty()) {
+                var showEvents by rememberSaveable(device.nodeId, device.device, "events") { mutableStateOf(false) }
+                TextButton(onClick = { showEvents = !showEvents }) {
+                    Icon(if (showEvents) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, null)
+                    Spacer(Modifier.width(6.dp))
+                    Text(if (showEvents) tr("Ocultar registro de eventos") else tr("Ver registro de eventos"))
+                }
+                if (showEvents) {
+                    Text(tr("Solo lectura. Cada entrada nueva que el nodo lee del registro propio de un módulo, la más reciente primero, con las palabras de la batería: los nombres de las protecciones se muestran tal como se imprimen, sin traducir ni decodificar."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+                    device.events.take(30).forEach { item -> EventRow(item) }
+                }
+            }
         }
+    }
+}
+
+/** One entry of a battery's own event log, as the console prints it: the numbers and the mnemonics are shown unchanged. */
+@Composable
+private fun EventRow(item: LoggedEvent) {
+    val e = item.event
+    Column(Modifier.fillMaxWidth()) {
+        Text(trf("Módulo %s", item.module) + " · #" + e.index + " · " + e.time, style = MaterialTheme.typography.labelSmall, fontFamily = FontFamily.Monospace, color = ArmorColors.Text)
+        Text(
+            listOf(e.voltageState, e.powerEvents.takeIf { it.isNotBlank() }?.let { tr("Eventos de potencia") + " " + it }, e.batteryEvents.takeIf { it.isNotBlank() }?.let { tr("Eventos de batería") + " " + it },
+                e.systemFault.takeIf { it.isNotBlank() }?.let { tr("Fallo del sistema") + " " + it }).filterNotNull().filter { it.isNotBlank() }.joinToString(" · "),
+            style = MaterialTheme.typography.labelSmall, fontFamily = FontFamily.Monospace, color = ArmorColors.Muted,
+        )
     }
 }

@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [0.7.2] - The details of a battery module, its event log and what a battery alert means
+
+- **Each battery module shows** its model and the versions of its board and software, its cells, the current it allows each way, the speed of its console and the state of health of its cells (the abnormal one marked).
+- **The event log of the battery, read-only,** newest first, with the protection fields exactly as the console prints them.
+- **Warnings about the models a group mixes** (the master is the newest model, only C, UP and US5000 models from the 9th module on, a 24 V model apart), from the makers' manuals.
+- **What a battery alert means and what to check,** two lines under the alert, in the eight languages; two new alerts (an abnormal cell and an overcurrent) with their texts.
+
 ## [0.7.1] - The server link is an interface and refusals carry their code
 
 - The app's link to the server is now an interface (`ArmorApi`); the HTTP client is one implementation of it, and the view model and the alarm notifier depend on the interface, so a test can stand in for the server.

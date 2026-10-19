@@ -43,7 +43,18 @@ data class SolarModule(
     val cellsV: List<Double>, val temperaturesC: List<Double>, val capacityAh: Double?, val fullCapacityAh: Double?, val cycles: Int?, val healthPercent: Int? = null,
     /** The counters of the module's life by the console's own name (bat_ov_times ...); what they mean is not official. */
     val counters: Map<String, Long> = emptyMap(),
+    /** What the module says about itself: its model (a stack may mix models), the versions of its board and software, its cells, the current it allows each way (amperes) and its console's speed. */
+    val model: String = "", val boardVersion: String = "", val mainSoftVersion: String = "", val softVersion: String = "", val cellCount: Int? = null,
+    val maxChargeA: Double? = null, val maxDischargeA: Double? = null, val consoleBaud: Int? = null,
+    /** The state of health of each cell, in cell order, and the cells (0-based) the battery's console does not call Normal. */
+    val sohCounts: List<Int> = emptyList(), val sohAbnormal: List<Int> = emptyList(),
 )
+
+/** An entry of a battery's event log: the protection fields are the console's own words (a number and a mnemonic), never decoded. */
+data class SolarEvent(val index: Int, val time: String, val voltageState: String, val powerEvents: String, val batteryEvents: String, val systemFault: String)
+
+/** An entry of the log with the module it belongs to and the moment (milliseconds since 1970) the server saw it. */
+data class LoggedEvent(val module: Int, val seenAt: Long, val event: SolarEvent)
 
 data class SolarBatteryReading(
     val modules: Int, val model: String, val state: String, val voltageV: Double?, val currentA: Double?, val temperatureMinC: Double?, val temperatureMaxC: Double?,
@@ -63,7 +74,7 @@ data class DayCells(val modules: List<ModuleDayCells>, val bankDeltaV: Double)
 /** A piece of equipment that has reported: exactly one of [inverter] and [battery] is set. */
 data class SolarDevice(
     val nodeId: String, val device: String, val name: String, val model: String, val stale: Boolean, val example: Boolean, val receivedAt: String,
-    val inverter: SolarInverterReading?, val battery: SolarBatteryReading?, val dayCells: DayCells? = null,
+    val inverter: SolarInverterReading?, val battery: SolarBatteryReading?, val dayCells: DayCells? = null, val events: List<LoggedEvent> = emptyList(),
 ) { val isInverter: Boolean get() = inverter != null }
 
 /** Equipment an operator declared in Studio that no gateway node has reported yet. */
@@ -107,7 +118,7 @@ object SolarParser {
         val name = registered?.optStr("name").orEmpty().ifBlank { device }
         val model = registered?.optStr("model").orEmpty()
         val common = { inverter: SolarInverterReading?, battery: SolarBatteryReading? ->
-            SolarDevice(node, device, name, model, json.optBoolean("stale"), json.optBoolean("example"), json.optStr("received_at"), inverter, battery, if (battery != null) dayCells(json.optJSONObject("day_cells")) else null)
+            SolarDevice(node, device, name, model, json.optBoolean("stale"), json.optBoolean("example"), json.optStr("received_at"), inverter, battery, if (battery != null) dayCells(json.optJSONObject("day_cells")) else null, if (battery != null) events(json.optJSONArray("events")) else emptyList())
         }
         return when (json.optStr("kind")) {
             "inverter" -> common(inverter(reading), null)
@@ -115,6 +126,15 @@ object SolarParser {
             else -> null
         }
     }
+
+    private fun events(list: JSONArray?): List<LoggedEvent> = list.objects().mapNotNull { item ->
+        val e = item.optJSONObject("event") ?: return@mapNotNull null
+        val module = item.optInt("n", -1)
+        if (module < 1 || e.optStr("time").isBlank()) null
+        else LoggedEvent(module, item.optLong("seen_at"), SolarEvent(e.optInt("index"), e.optStr("time"), e.optStr("voltage_state"), e.optStr("power_events"), e.optStr("battery_events"), e.optStr("system_fault")))
+    }
+
+    private fun JSONArray?.ints(): List<Int> = buildList { if (this@ints != null) for (i in 0 until length()) optInt(i, -1).takeIf { it >= 0 }?.let(::add) }
 
     private fun dayCells(d: JSONObject?): DayCells? {
         if (d == null) return null
@@ -142,6 +162,9 @@ object SolarParser {
         socPercent = m.whole("soc_percent"), state = m.optStr("state"), cellsV = m.optJSONArray("cells_v").numbers(), temperaturesC = m.optJSONArray("temperatures_c").numbers(),
         capacityAh = m.number("capacity_ah"), fullCapacityAh = m.number("full_capacity_ah"), cycles = m.whole("cycles"), healthPercent = m.whole("health_percent"),
         counters = m.optJSONObject("counters")?.let { c -> c.keys().asSequence().mapNotNull { k -> c.optLong(k, -1L).takeIf { v -> v >= 0 }?.let { v -> k to v } }.toMap() } ?: emptyMap(),
+        model = m.optStr("model"), boardVersion = m.optStr("board_version"), mainSoftVersion = m.optStr("main_soft_version"), softVersion = m.optStr("soft_version"), cellCount = m.whole("cell_count"),
+        maxChargeA = m.number("max_charge_a"), maxDischargeA = m.number("max_discharge_a"), consoleBaud = m.whole("console_baud"),
+        sohCounts = m.optJSONArray("soh_counts").ints(), sohAbnormal = m.optJSONArray("soh_abnormal").ints(),
     )
 
     private fun battery(r: JSONObject) = SolarBatteryReading(
@@ -168,7 +191,44 @@ object SolarText {
     fun raisedCounters(counters: Map<String, Long>): String =
         counters.filter { it.key in severeCounters && it.value > 0 }.toSortedMap().entries.joinToString(" · ") { counterLabel(it.key) + " " + it.value }
 
-    /** "3.312 V (celda 5, 14:02)": a cell extreme of the day as a line; the time is the phone's own clock. */
+    /** How new a model is, from the model a module reports: 1 the older ones, 2 the C, UP and US5000 models, 0 a model nobody knows. */
+    fun generation(model: String): Int {
+        val name = model.uppercase().filter { it in 'A'..'Z' || it in '0'..'9' }
+        return when {
+            name in setOf("US2000", "US2000B", "US2000BPLUS", "US2000PLUS", "US2KBPL", "US3000") -> 1
+            name in setOf("US2000C", "US3000C", "US5000", "US5000B", "UP2500", "UP5000") -> 2
+            else -> 0
+        }
+    }
+
+    /**
+     * What the makers' manuals say about mixing models in a group: the master (module 1) is the newest model, from the 9th module on only the C, UP and US5000 models are accepted, and a 24 V model
+     * (UP2500) does not share a group with 48 V ones. A warning (code to the modules it is about), never a block; a model nobody knows is not judged.
+     */
+    fun composition(stack: List<SolarModule>): List<Pair<String, List<Int>>> {
+        val known = stack.filter { it.present && it.model.isNotBlank() }
+        val out = mutableListOf<Pair<String, List<Int>>>()
+        known.filter { it.number >= 9 && generation(it.model) == 1 }.map { it.number }.takeIf { it.isNotEmpty() }?.let { out += "beyond8" to it }
+        val master = known.firstOrNull { it.number == 1 }
+        if (master != null && generation(master.model) > 0) known.filter { it.number != 1 && generation(it.model) > generation(master.model) }.map { it.number }.takeIf { it.isNotEmpty() }?.let { out += "master" to it }
+        val small = known.filter { it.model.uppercase().filter { c -> c in 'A'..'Z' || c in '0'..'9' } == "UP2500" }
+        val big = known.filter { it !in small && generation(it.model) > 0 }
+        if (small.isNotEmpty() && big.isNotEmpty()) out += "voltage" to small.map { it.number }
+        return out
+    }
+
+    /** The warning of [composition] in words. */
+    fun compositionText(code: String): String = when (code) {
+        "beyond8" -> tr("A partir del 9.º módulo solo se admiten modelos C, UP y US5000; estos son modelos antiguos:")
+        "master" -> tr("El maestro (módulo 1) debería ser el modelo más nuevo del grupo, pero hay un modelo más nuevo entre los esclavos:")
+        else -> tr("Un modelo de 24 V (UP2500) no puede compartir grupo con modelos de 48 V:")
+    }
+
+    /** The cells (counted from 1, as a person counts them) the battery's console calls abnormal in its state of health. */
+    fun abnormalCells(module: SolarModule): List<Int> = module.sohAbnormal.map { it + 1 }
+
+    /** "3.312 V (celda 5, 14:02)"
+: a cell extreme of the day as a line; the time is the phone's own clock. */
     fun reach(volts: Double, cell: Int, atMs: Long, cellWord: String): String =
         String.format(java.util.Locale.US, "%.3f V (%s %d, %s)", volts, cellWord, cell, java.text.SimpleDateFormat("HH:mm", java.util.Locale.US).format(java.util.Date(atMs)))
 

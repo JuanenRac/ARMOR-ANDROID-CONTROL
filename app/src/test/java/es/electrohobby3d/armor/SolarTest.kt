@@ -165,4 +165,57 @@ class SolarCountersTest {
         assertEquals("COC Times 1 · Dot Times 2".replace("Dot", "DOT"), SolarText.raisedCounters(mapOf("dot_times" to 2L, "coc_times" to 1L)))
         assertEquals("HT Half C Cnt", SolarText.counterLabel("ht_half_c_cnt"))
     }
+
+    private val details = """
+    {"devices":[{"node_id":"casa","device":"us2000-1","kind":"battery","received_at":"x","stale":false,"example":false,
+      "reading":{"kind":"battery","node_id":"casa","device":"us2000-1","timestamp_ms":2,"modules":2,"stack":[
+        {"n":1,"present":true,"model":"US2000","board_version":"V10R04","main_soft_version":"B68.2.0.0","soft_version":"V2.6","cell_count":15,"max_charge_a":53,"max_discharge_a":55,"console_baud":19200,
+         "soh_counts":[0,0,0,0,0,0,13,0],"soh_abnormal":[6]},
+        {"n":2,"present":true,"model":"US3000C"}]},
+      "events":[{"n":1,"seen_at":1700000000000,"event":{"index":754,"time":"25-03-09 19:01:42","voltage_state":"OV","power_events":"0x2 PHV","battery_events":"0x4 BVNOR","system_fault":"0x0"}},
+                {"n":1,"seen_at":1,"event":{"index":1}},{"n":0,"seen_at":1,"event":{"index":2,"time":"t"}}]}],
+     "waiting":[],"totals":{},"catalog":{}}
+    """
+    @Test fun theDetailsOfAModuleAndTheEventLogAreRead() {
+        val device = SolarParser.overview(JSONObject(details)).devices.single()
+        val first = device.battery!!.stack[0]
+        assertEquals("US2000", first.model)
+        assertEquals("V10R04", first.boardVersion)
+        assertEquals("B68.2.0.0", first.mainSoftVersion)
+        assertEquals("V2.6", first.softVersion)
+        assertEquals(15, first.cellCount)
+        assertEquals(53.0, first.maxChargeA!!, 0.001)
+        assertEquals(55.0, first.maxDischargeA!!, 0.001)
+        assertEquals(19200, first.consoleBaud)
+        assertEquals(listOf(7), SolarText.abnormalCells(first))   // counted from 1
+        assertEquals(13, first.sohCounts[6])
+        assertEquals(1, device.events.size)   // the entries with no time or no module are left out
+        assertEquals("0x4 BVNOR", device.events[0].event.batteryEvents)
+        assertEquals(754, device.events[0].event.index)
+        assertTrue(SolarParser.overview(JSONObject(answer)).devices.all { it.events.isEmpty() })
+    }
+
+    @Test fun theModelsAGroupMixesAreJudgedByTheManualsRules() {
+        val stack = SolarParser.overview(JSONObject(details)).devices.single().battery!!.stack
+        assertEquals(listOf("master" to listOf(2)), SolarText.composition(stack))   // the master is older than a slave
+        assertEquals(emptyList<Pair<String, List<Int>>>(), SolarText.composition(stack.reversed().mapIndexed { i, m -> m.copy(number = i + 1) }))
+        val eight = (1..8).map { stack[1].copy(number = it) }
+        assertEquals(listOf("beyond8" to listOf(9)), SolarText.composition(eight + stack[0].copy(number = 9)))
+        assertEquals(emptyList<Pair<String, List<Int>>>(), SolarText.composition(eight + stack[1].copy(number = 9)))
+        assertEquals(listOf("voltage" to listOf(1)), SolarText.composition(listOf(stack[1].copy(number = 1, model = "UP2500"), stack[1].copy(number = 2))))
+        assertEquals(emptyList<Pair<String, List<Int>>>(), SolarText.composition(listOf(stack[0].copy(model = ""), stack[1].copy(model = "Fidus", number = 2))))
+        for (code in listOf("beyond8", "master", "voltage")) assertTrue(SolarText.compositionText(code).isNotBlank())
+    }
+
+    @Test fun theBatteryAlertsTellWhatTheyMeanAndWhatToCheck() {
+        val codes = listOf("solar_battery_overvoltage", "solar_battery_low", "solar_battery_alarm", "solar_battery_hot", "solar_battery_cold", "solar_cells_unbalanced", "solar_counter_rose",
+            "solar_cell_soh_abnormal", "solar_module_overcurrent", "solar_offline", "solar_battery_worn")
+        for (code in codes) {
+            val help = es.electrohobby3d.armor.model.DeviceText.alarmHelp(code)
+            assertNotNull(code, help)
+            assertEquals(code, 2, help!!.split("\n").size)
+        }
+        assertNull(es.electrohobby3d.armor.model.DeviceText.alarmHelp("smoke"))
+        for (code in listOf("solar_cell_soh_abnormal", "solar_module_overcurrent")) assertTrue(es.electrohobby3d.armor.model.DeviceText.alarmText(code) != code)
+    }
 }
