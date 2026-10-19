@@ -1067,5 +1067,6 @@
  "Mayor diferencia hoy (banco)": "Größte Abweichung heute (Bank)",
  "Contadores de protección": "Schutzzähler",
  "Nombres de la consola de la batería; su significado no es oficial.": "Namen aus der Konsole der Batterie; ihre Bedeutung ist nicht offiziell.",
- "Ha subido un contador de protección de un módulo de batería": "Ein Schutzzähler eines Batteriemoduls ist gestiegen"
+ "Ha subido un contador de protección de un módulo de batería": "Ein Schutzzähler eines Batteriemoduls ist gestiegen",
+ "Una batería supera la tensión a la que actúa su propia protección": "Eine Batterie liegt über der Spannung, bei der ihr eigener Schutz anspricht"
 }

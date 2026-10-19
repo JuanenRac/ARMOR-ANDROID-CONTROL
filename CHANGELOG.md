@@ -8,6 +8,7 @@ All notable changes to this project are documented here.
 - A refusal from the server carries its status, its short code and its words as one value (`ApiError`), read once, instead of every screen digging the code out of the message text.
 - Batteries in the Solar tab show, when the cells are shown, the lowest and highest cell of each module for the day with the cell number and the time, and the widest gap of the whole bank today; they come from the server and are written in the eight languages.
 - The Solar tab shows, with the cells of a module, the protection counters of its console that are above zero (named as the console prints them, with a note that their meaning is not official), and the new alarm for a protection counter that went up is worded in the eight languages.
+- The alarm for a battery over the voltage at which its own protection acts is worded in the eight languages.
 
 ## [0.7.0] - A switch for the update check at start
 

@@ -1067,5 +1067,6 @@
  "Mayor diferencia hoy (banco)": "Widest gap today (bank)",
  "Contadores de protección": "Protection counters",
  "Nombres de la consola de la batería; su significado no es oficial.": "Names from the battery's console; their meaning is not official.",
- "Ha subido un contador de protección de un módulo de batería": "A protection counter of a battery module went up"
+ "Ha subido un contador de protección de un módulo de batería": "A protection counter of a battery module went up",
+ "Una batería supera la tensión a la que actúa su propia protección": "A battery is over the voltage its own protection acts at"
 }

@@ -1067,5 +1067,6 @@
  "Mayor diferencia hoy (banco)": "本日の最大差（バンク）",
  "Contadores de protección": "保護カウンター",
  "Nombres de la consola de la batería; su significado no es oficial.": "バッテリーのコンソールの名前です。意味は公式のものではありません。",
- "Ha subido un contador de protección de un módulo de batería": "バッテリーモジュールの保護カウンターが増えました"
+ "Ha subido un contador de protección de un módulo de batería": "バッテリーモジュールの保護カウンターが増えました",
+ "Una batería supera la tensión a la que actúa su propia protección": "バッテリーが自己保護の動作電圧を超えています"
 }

@@ -1067,5 +1067,6 @@
  "Mayor diferencia hoy (banco)": "Maior diferença hoje (banco)",
  "Contadores de protección": "Contadores de proteção",
  "Nombres de la consola de la batería; su significado no es oficial.": "Nomes da consola da bateria; o seu significado não é oficial.",
- "Ha subido un contador de protección de un módulo de batería": "Subiu um contador de proteção de um módulo de bateria"
+ "Ha subido un contador de protección de un módulo de batería": "Subiu um contador de proteção de um módulo de bateria",
+ "Una batería supera la tensión a la que actúa su propia protección": "Uma bateria excede a tensão a que atua a sua própria proteção"
 }
