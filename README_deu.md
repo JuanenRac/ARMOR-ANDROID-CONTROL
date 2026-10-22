@@ -23,7 +23,7 @@
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
   <img src="https://img.shields.io/badge/Tests-228%20passing-2ea44f.svg" alt="Tests">
-  <img src="https://img.shields.io/badge/Version-0.7.3-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-0.7.4-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
@@ -37,9 +37,9 @@
 
 | | |
 |---|---|
-| Version | `0.7.3` |
+| Version | `0.7.4` |
 | Reifegrad | Etabliert |
-| Tests | 240 (`gradlew testDebugUnitTest`) |
+| Tests | 257 (`gradlew testDebugUnitTest`) |
 | Technik | Kotlin / Jetpack Compose |
 | Auf echter Hardware | Auf einem echten Telefon gegen den CM5-Testaufbau im Einsatz; die Solar-, Elektro- und Alarmzentralen-Bildschirme warten auf echte Knoten |
 
@@ -63,6 +63,7 @@
 * **Verbindungen im Verlauf:** Der Verlaufsbildschirm hat eine zweite Liste, nur lesend, mit den Geräten und Apps, die sich mit dem Server verbinden (Studio, diese App, die Panels der Knoten, der Sprachdienst), wann jedes zuletzt gesehen wurde, seinen offenen Sitzungen sowie Anmeldungen und Ablehnungen; die App sagt dem Server jetzt, was sie ist, und erscheint so als sie selbst. Adressen sehen nur Administratoren.
 * **Batteriewartung (Administratoren):** die einfachen Operationen an einer Pylontech-Batterie - Uhr, Zähler und Protokolle, Neustart, Kapazität, MOSFET-Test, Sicherungsfehler, Ausgänge - in denselben zwei Schritten wie in Studio (der Server lässt den Knoten die Batterie lesen, der Bildschirm zeigt genau, was getan wird, dann "Jetzt ausführen" mit nochmals eingetippter Seriennummer), mit Ergebnis und Änderungen; Grenzwerte, Firmware und Expertenkonsole bleiben in Studio.
 * **Steuerung der Knoten (Administratoren):** Mehr > Knotensteuerung bietet dieselben Operationen wie Studio - Neustart, Pause, Fortsetzen, Standby (Arbeit aus, bleibt verbunden), Identifizieren, Diagnose und Wartung ein oder aus - für einen Knoten oder alle, verlangt die erneute Eingabe des Knotennamens (oder des Wortes RESTART, PAUSE oder STANDBY für alle) und den frischen Identitätsnachweis, zeigt, wie weit jeder Knoten ist, und warnt, dass eine pausierte oder im Standby befindliche Alarmzentrale oder ein Radar das Haus ungeschützt lässt. Es gibt kein Zurücksetzen auf Werkseinstellungen, kein Löschen und keinen Tiefschlaf.
+* **Ein Alarmfenster in der geöffneten App:** Solange ein Alarm auf eine Person wartet, pulsiert über jedem Bildschirm außer dem der Alarme ein Banner (rot und schnell bei kritischen, bernsteinfarben bei den übrigen, ruhig, wenn das Telefon die Animationen abgeschaltet hat), nennt den schlimmsten Alarm und wie viele warten und lässt die App darunter bedienen; es kann die Alarme öffnen, direkt bestätigen oder bis zum nächsten Alarm geschlossen werden.
 
 ## 🧩 Rolle in A.R.M.O.R.
 
@@ -76,7 +77,7 @@ ARMOR-ANDROID-CONTROL/
 │   ├── ArmorActivity.kt (the shell), EntryScreens.kt, HomeScreens.kt, CameraScreens.kt, RadarScreens.kt, DevicePanels.kt, MoreScreens.kt
 │   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, NodeControlScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
 │   ├── NodeBleClient.kt, NodeSetupScreen.kt, NodeFinderScreens.kt, NodePanel.kt   configure a node over Bluetooth (the protocol is in model/NodeBle.kt)
-│   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
+│   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmBanner.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
 │   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, PinDialog.kt, MjpegFeed.kt
 │   ├── network/   model/   update/
 │   └── assets/i18n/   en, es (the source phrases), de, fr, it, ja, zh, pt
@@ -89,7 +90,7 @@ ARMOR-ANDROID-CONTROL/
 **Voraussetzungen:** JDK 17+, the Android SDK (compile SDK 37), an Android 8.0+ phone (minSdk 26)
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 219 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 257 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 

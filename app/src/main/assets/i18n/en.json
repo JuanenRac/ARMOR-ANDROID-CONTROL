@@ -1252,5 +1252,7 @@
  "Escribe el nombre del nodo para confirmar": "Type the name of the node to confirm",
  "Órdenes recientes": "Recent orders",
  "Todavía no se ha dado ninguna orden a los nodos.": "No order has been given to the nodes yet.",
- "Reiniciar, pausar, poner en espera, identificar, diagnosticar y mantenimiento de un nodo o de todos": "Restart, pause, standby, identify, diagnostics and maintenance of one node or of all"
+ "Reiniciar, pausar, poner en espera, identificar, diagnosticar y mantenimiento de un nodo o de todos": "Restart, pause, standby, identify, diagnostics and maintenance of one node or of all",
+ "%d alarmas sin confirmar": "%d alarms not confirmed",
+ "Ver alarmas": "View alarms"
 }

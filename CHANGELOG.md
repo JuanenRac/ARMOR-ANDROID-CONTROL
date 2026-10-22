@@ -4,6 +4,10 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.7.4] - The alarm window of the open app and tests against the answers of a real server
+
+- **An alarm window in the open app:** while an alarm waits for a person, a banner over every screen but the alarms pulses (red and fast for a critical one, amber for the rest, still when the phone has its animations off), says which alarm is the worst and how many wait, and lets the app be used under it. It has View alarms, Confirm (not for a read-only user) and Close; a closed banner comes back when another alarm arrives. The alarm of a duress PIN is never shown.
+- **The app is tested against what a real server answers:** the status, the alarms, the history, the cameras, the recordings and the solar overview captured from a server fed by the simulator are test fixtures, and tests read them through the real client; the tool that captures them is in the repository.
 - **Node control (More menu, administrators only):** restart, pause, resume, standby ("work off, still connected"), identify, diagnostics and maintenance on or off for one node or for all of them, the same eight operations as Studio. Nothing in it erases settings or credentials, resets a node to the factory or puts it to deep sleep.
 - **Typed confirmation:** a restart, a pause and a standby ask for the node's name typed again, or for the word RESTART, PAUSE or STANDBY when they go to all nodes; the new proof of identity the server asks for is asked by the same dialog as for the other critical actions, and the order then goes by itself.
 - **Warnings before the order:** a restart leaves a node out of service for about a minute (all at once is not recommended; the rolling mode puts the alarm panel last), a pause ends by itself, a standby does not (it stays across a restart and is ended with Resume) and is never described as a power-off, maintenance only stops the "node is silent" alerts, and an alarm panel or a radar paused or on standby leaves the house NOT protected.

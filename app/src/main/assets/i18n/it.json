@@ -1252,5 +1252,7 @@
  "Escribe el nombre del nodo para confirmar": "Digita il nome del nodo per confermare",
  "Órdenes recientes": "Ordini recenti",
  "Todavía no se ha dado ninguna orden a los nodos.": "Non è ancora stato dato alcun ordine ai nodi.",
- "Reiniciar, pausar, poner en espera, identificar, diagnosticar y mantenimiento de un nodo o de todos": "Riavvio, pausa, standby, identificazione, diagnostica e manutenzione di un nodo o di tutti"
+ "Reiniciar, pausar, poner en espera, identificar, diagnosticar y mantenimiento de un nodo o de todos": "Riavvio, pausa, standby, identificazione, diagnostica e manutenzione di un nodo o di tutti",
+ "%d alarmas sin confirmar": "%d allarmi non confermati",
+ "Ver alarmas": "Vedi gli allarmi"
 }

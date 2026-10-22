@@ -23,13 +23,13 @@
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
   <img src="https://img.shields.io/badge/Tests-228%20passing-2ea44f.svg" alt="Tests">
-  <img src="https://img.shields.io/badge/Version-0.7.3-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-0.7.4-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
 ---
 
-**Vérification d'honnêteté - ce qui fonctionne aujourd'hui:** Les règles de sécurité de l'adresse, de décision d'alarme, de veilleur d'alarmes, de traduction et de rôle en lecture seule sont couvertes par 219 tests unitaires et l'application se compile (`gradlew testDebugUnitTest assembleDebug`). Elle fonctionne sur un vrai téléphone contre le banc de test CM5 : la connexion, le moniteur de caméras, l'armement et les alarmes, le radar, la configuration d'un nœud en Bluetooth et les mises à jour depuis GitHub sont utilisés. Ce qui n'est **pas** encore prouvé : les écrans solaire, électrique et centrales d'alarme avec du vrai matériel (seul un nœud radar existe), le push via Firebase (il est dans l'application et demande un projet Firebase propre ; il n'a pas encore été essayé sur un téléphone) et la veille d'alarmes en arrière-plan sous les règles de batterie de chaque fabricant.
+**Vérification d'honnêteté - ce qui fonctionne aujourd'hui:** Les règles de sécurité de l'adresse, de décision d'alarme, de veilleur d'alarmes, de traduction et de rôle en lecture seule sont couvertes par 257 tests unitaires et l'application se compile (`gradlew testDebugUnitTest assembleDebug`). Elle fonctionne sur un vrai téléphone contre le banc de test CM5 : la connexion, le moniteur de caméras, l'armement et les alarmes, le radar, la configuration d'un nœud en Bluetooth et les mises à jour depuis GitHub sont utilisés. Ce qui n'est **pas** encore prouvé : les écrans solaire, électrique et centrales d'alarme avec du vrai matériel (seul un nœud radar existe), le push via Firebase (il est dans l'application et demande un projet Firebase propre ; il n'a pas encore été essayé sur un téléphone) et la veille d'alarmes en arrière-plan sous les règles de batterie de chaque fabricant.
 
 ---
 
@@ -37,9 +37,9 @@
 
 | | |
 |---|---|
-| Version | `0.7.3` |
+| Version | `0.7.4` |
 | Maturité | Établi |
-| Tests | 240 (`gradlew testDebugUnitTest`) |
+| Tests | 257 (`gradlew testDebugUnitTest`) |
 | Technologie | Kotlin / Jetpack Compose |
 | Sur matériel réel | Utilisée sur un vrai téléphone contre le banc de test CM5 ; les écrans solaire, électrique et centrales d'alarme attendent de vrais nœuds |
 
@@ -63,6 +63,7 @@
 * **Connexions dans l'historique :** l'écran Historique a une seconde liste, en lecture seule, avec les appareils et applications qui se connectent au serveur (Studio, cette appli, les panneaux des nœuds, le service vocal), la dernière fois que chacun a été vu, ses sessions ouvertes, ses connexions et ses refus ; l'appli dit maintenant au serveur ce qu'elle est pour apparaître sous son nom. Les adresses ne sont visibles que des administrateurs.
 * **Maintenance des batteries (administrateurs) :** les opérations simples sur une batterie Pylontech - horloge, compteurs et journaux, redémarrage, capacité, test MOSFET, défaut de fusible, sorties - en deux étapes comme dans Studio (le serveur fait lire la batterie par le nœud, l'écran montre exactement ce qui sera fait, puis "Le faire maintenant" avec le numéro de série saisi de nouveau), avec le résultat et ce qui a changé ; les limites, le firmware et la console expert restent dans Studio.
 * **Commande des nœuds (administrateurs) :** Plus > Contrôle des nœuds offre les mêmes opérations que Studio - redémarrer, mettre en pause, reprendre, mettre en veille (travail arrêté, reste connecté), identifier, diagnostic et maintenance activée ou désactivée - à un nœud ou à tous, en demandant de saisir de nouveau le nom du nœud (ou le mot RESTART, PAUSE ou STANDBY pour tous) et la nouvelle preuve d'identité, en montrant où en est chaque nœud et en avertissant qu'une centrale d'alarme ou un radar en pause ou en veille laisse la maison sans protection. Il n'existe ni réinitialisation d'usine, ni effacement, ni sommeil profond.
+* **Une fenêtre d'alarme dans l'appli ouverte :** tant qu'une alarme attend quelqu'un, une bannière pulse au-dessus de tous les écrans sauf celui des alarmes (rouge et rapide pour une critique, ambre pour les autres, fixe si le téléphone a les animations coupées), dit quelle alarme est la pire et combien attendent, et laisse utiliser l'appli en dessous ; elle peut ouvrir les alarmes, confirmer depuis la bannière ou être fermée jusqu'à l'arrivée d'une autre alarme.
 
 ## 🧩 Rôle dans A.R.M.O.R.
 
@@ -76,7 +77,7 @@ ARMOR-ANDROID-CONTROL/
 │   ├── ArmorActivity.kt (the shell), EntryScreens.kt, HomeScreens.kt, CameraScreens.kt, RadarScreens.kt, DevicePanels.kt, MoreScreens.kt
 │   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, NodeControlScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
 │   ├── NodeBleClient.kt, NodeSetupScreen.kt, NodeFinderScreens.kt, NodePanel.kt   configure a node over Bluetooth (the protocol is in model/NodeBle.kt)
-│   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
+│   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmBanner.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
 │   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, PinDialog.kt, MjpegFeed.kt
 │   ├── network/   model/   update/
 │   └── assets/i18n/   en, es (the source phrases), de, fr, it, ja, zh, pt
@@ -89,7 +90,7 @@ ARMOR-ANDROID-CONTROL/
 **Prérequis:** JDK 17+, the Android SDK (compile SDK 37), an Android 8.0+ phone (minSdk 26)
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 219 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 257 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 

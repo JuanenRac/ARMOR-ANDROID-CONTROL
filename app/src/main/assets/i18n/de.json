@@ -1252,5 +1252,7 @@
  "Escribe el nombre del nodo para confirmar": "Tippe zur Bestätigung den Namen des Knotens ein",
  "Órdenes recientes": "Letzte Befehle",
  "Todavía no se ha dado ninguna orden a los nodos.": "Den Knoten wurde noch kein Befehl erteilt.",
- "Reiniciar, pausar, poner en espera, identificar, diagnosticar y mantenimiento de un nodo o de todos": "Neustart, Pause, Bereitschaft, Identifizieren, Diagnose und Wartung eines Knotens oder aller"
+ "Reiniciar, pausar, poner en espera, identificar, diagnosticar y mantenimiento de un nodo o de todos": "Neustart, Pause, Bereitschaft, Identifizieren, Diagnose und Wartung eines Knotens oder aller",
+ "%d alarmas sin confirmar": "%d unbestätigte Alarme",
+ "Ver alarmas": "Alarme ansehen"
 }

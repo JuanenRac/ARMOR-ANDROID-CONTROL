@@ -23,13 +23,13 @@
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
   <img src="https://img.shields.io/badge/Tests-228%20passing-2ea44f.svg" alt="Tests">
-  <img src="https://img.shields.io/badge/Version-0.7.3-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-0.7.4-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
 ---
 
-**Controllo di onestà - cosa funziona oggi:** Le regole di sicurezza dell'indirizzo, di decisione degli allarmi, del guardiano degli allarmi, di traduzione e del ruolo di sola lettura sono coperte da 228 test unitari e l'app si compila (`gradlew testDebugUnitTest assembleDebug`). Funziona su un vero telefono contro il banco di prova CM5: l'accesso, il monitor delle telecamere, l'inserimento e gli allarmi, il radar, la configurazione di un nodo via Bluetooth e gli aggiornamenti da GitHub sono in uso. Ciò che **non** è ancora provato: le schermate solare, elettrica e delle centrali d'allarme con apparecchi reali (esiste solo un nodo radar), il push tramite Firebase (è nell'app e richiede un progetto Firebase proprio; non è ancora stato provato su un telefono) e la sorveglianza degli allarmi in background sotto le regole di batteria di ogni produttore.
+**Controllo di onestà - cosa funziona oggi:** Le regole di sicurezza dell'indirizzo, di decisione degli allarmi, del guardiano degli allarmi, di traduzione e del ruolo di sola lettura sono coperte da 257 test unitari e l'app si compila (`gradlew testDebugUnitTest assembleDebug`). Funziona su un vero telefono contro il banco di prova CM5: l'accesso, il monitor delle telecamere, l'inserimento e gli allarmi, il radar, la configurazione di un nodo via Bluetooth e gli aggiornamenti da GitHub sono in uso. Ciò che **non** è ancora provato: le schermate solare, elettrica e delle centrali d'allarme con apparecchi reali (esiste solo un nodo radar), il push tramite Firebase (è nell'app e richiede un progetto Firebase proprio; non è ancora stato provato su un telefono) e la sorveglianza degli allarmi in background sotto le regole di batteria di ogni produttore.
 
 ---
 
@@ -37,9 +37,9 @@
 
 | | |
 |---|---|
-| Versione | `0.7.3` |
+| Versione | `0.7.4` |
 | Maturità | Consolidato |
-| Test | 240 (`gradlew testDebugUnitTest`) |
+| Test | 257 (`gradlew testDebugUnitTest`) |
 | Tecnologia | Kotlin / Jetpack Compose |
 | Su hardware reale | Usata su un vero telefono contro il banco di prova CM5; le schermate solare, elettrica e delle centrali d'allarme attendono nodi reali |
 
@@ -63,6 +63,7 @@
 * **Connessioni nella cronologia:** la schermata Cronologia ha un secondo elenco, di sola lettura, con i dispositivi e le app che si collegano al server (Studio, questa app, i pannelli dei nodi, il servizio vocale), quando ciascuno è stato visto l'ultima volta, le sue sessioni aperte, gli accessi e i rifiuti; l'app ora dice al server cos'è per comparire come se stessa. Gli indirizzi li vedono solo gli amministratori.
 * **Manutenzione delle batterie (amministratori):** le operazioni semplici su una batteria Pylontech - orologio, contatori e registri, riavvio, capacità, test MOSFET, guasto al fusibile, uscite - nei due passi di Studio (il server fa leggere la batteria al nodo, la schermata mostra esattamente cosa verrà fatto, poi "Esegui ora" con il numero di serie digitato di nuovo), con il risultato e cosa è cambiato; limiti, firmware e console esperto restano in Studio.
 * **Controllo dei nodi (amministratori):** Altro > Controllo dei nodi offre le stesse operazioni di Studio - riavvio, pausa, ripresa, standby (lavoro spento, resta connesso), identificazione, diagnostica e manutenzione attivata o disattivata - a un nodo o a tutti, chiedendo di digitare di nuovo il nome del nodo (o la parola RESTART, PAUSE o STANDBY per tutti) e la nuova prova di identità, mostrando a che punto è ogni nodo e avvisando che una centrale d'allarme o un radar in pausa o in standby lascia la casa senza protezione. Non esistono ripristino di fabbrica, cancellazione né sonno profondo.
+* **Una finestra di allarme nell'app aperta:** finché un allarme aspetta una persona, un banner sopra tutte le schermate tranne quella degli allarmi pulsa (rosso e veloce per un critico, ambra per gli altri, fermo se il telefono ha le animazioni spente), dice qual è l'allarme peggiore e quanti aspettano, e lascia usare l'app sotto; può aprire gli allarmi, confermare dal banner o essere chiuso finché non arriva un altro allarme.
 
 ## 🧩 Ruolo in A.R.M.O.R.
 
@@ -76,7 +77,7 @@ ARMOR-ANDROID-CONTROL/
 │   ├── ArmorActivity.kt (the shell), EntryScreens.kt, HomeScreens.kt, CameraScreens.kt, RadarScreens.kt, DevicePanels.kt, MoreScreens.kt
 │   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, NodeControlScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
 │   ├── NodeBleClient.kt, NodeSetupScreen.kt, NodeFinderScreens.kt, NodePanel.kt   configure a node over Bluetooth (the protocol is in model/NodeBle.kt)
-│   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
+│   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmBanner.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
 │   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, PinDialog.kt, MjpegFeed.kt
 │   ├── network/   model/   update/
 │   └── assets/i18n/   en, es (the source phrases), de, fr, it, ja, zh, pt
@@ -89,7 +90,7 @@ ARMOR-ANDROID-CONTROL/
 **Requisiti:** JDK 17+, the Android SDK (compile SDK 37), an Android 8.0+ phone (minSdk 26)
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 219 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 257 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 

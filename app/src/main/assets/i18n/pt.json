@@ -1252,5 +1252,7 @@
  "Escribe el nombre del nodo para confirmar": "Escreve o nome do nó para confirmar",
  "Órdenes recientes": "Ordens recentes",
  "Todavía no se ha dado ninguna orden a los nodos.": "Ainda não foi dada nenhuma ordem aos nós.",
- "Reiniciar, pausar, poner en espera, identificar, diagnosticar y mantenimiento de un nodo o de todos": "Reiniciar, pausar, pôr em espera, identificar, diagnosticar e manutenção de um nó ou de todos"
+ "Reiniciar, pausar, poner en espera, identificar, diagnosticar y mantenimiento de un nodo o de todos": "Reiniciar, pausar, pôr em espera, identificar, diagnosticar e manutenção de um nó ou de todos",
+ "%d alarmas sin confirmar": "%d alarmes por confirmar",
+ "Ver alarmas": "Ver alarmes"
 }

@@ -69,6 +69,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     var username by rememberSaveable { mutableStateOf(preferences.getString("user", "") ?: "") }
     var password by rememberSaveable { mutableStateOf("") }
     var section by rememberSaveable { mutableStateOf(Section.Status) }
+    var closedBanner by rememberSaveable { mutableStateOf<String?>(null) }
     var moreTab by rememberSaveable { mutableStateOf<MoreTab?>(null) }
     // The weather's place, remembered between launches; nothing is asked of Open-Meteo until one is chosen.
     val savedPlace = remember {
@@ -296,6 +297,10 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                     },
                 ) { padding ->
                     Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 14.dp)) {
+                        // The alarm window: while an alarm waits, a pulsing banner sits over every screen but the alarms themselves; the app stays usable under it.
+                        if (section != Section.Alarms) AlarmBannerPolicy.from(state.alarms, closedBanner)?.let { banner ->
+                            AlarmBanner(banner, canConfirm = !state.readOnly, onOpen = { section = Section.Alarms; moreTab = null }, onConfirm = { viewModel.acknowledge(currentOrigin, it) }, onClose = { closedBanner = it })
+                        }
                         when (section) {
                             Section.Status -> StatusScreen(
                                 armed = state.snapshot.mode == "armed", updated = state.snapshot.updatedAt, nodes = state.snapshot.nodes, cameras = state.cameras.size,

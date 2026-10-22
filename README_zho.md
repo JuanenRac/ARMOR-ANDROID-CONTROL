@@ -23,7 +23,7 @@
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
   <img src="https://img.shields.io/badge/Tests-228%20passing-2ea44f.svg" alt="Tests">
-  <img src="https://img.shields.io/badge/Version-0.7.3-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Version-0.7.4-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
@@ -37,9 +37,9 @@
 
 | | |
 |---|---|
-| 版本 | `0.7.3` |
+| 版本 | `0.7.4` |
 | 成熟度 | 成熟 |
-| 测试 | 240 (`gradlew testDebugUnitTest`) |
+| 测试 | 257 (`gradlew testDebugUnitTest`) |
 | 技术栈 | Kotlin / Jetpack Compose |
 | 真实硬件 | 在真实手机上对照 CM5 测试台使用；太阳能、电气和报警主机界面在等待真实节点 |
 
@@ -63,6 +63,7 @@
 * **历史中的连接：** 历史页面新增了第二个只读列表，列出连接服务器的设备和应用（Studio、本应用、节点面板、语音服务），以及各自最后出现的时间、已打开的会话、登录与被拒次数；应用现在会向服务器表明自己的身份，因此会以自己的名义显示。地址只显示给管理员。
 * **电池维护（管理员）：** 对 Pylontech 电池的简单操作——时钟、计数器和日志、重启、容量、MOSFET 测试、保险丝故障、输出——与 Studio 相同的两步（服务器让节点读取电池，界面准确显示将要执行的内容，再输入序列号点击“立即执行”），并显示结果和变化；限值、固件和专家控制台仍在 Studio 中操作。
 * **节点控制（管理员）：** 更多 > 节点控制提供与 Studio 相同的操作——重启、暂停、恢复、待机（停止工作，保持连接）、识别、诊断以及开启或关闭维护——可用于一个节点或全部节点；需要再次输入节点名称（对所有节点则输入单词 RESTART、PAUSE 或 STANDBY）并重新验证身份，显示每个节点进行到哪一步，并警告报警主机或雷达处于暂停或待机时家中将失去保护。没有恢复出厂设置、擦除或深度睡眠。
+* **已打开应用中的报警窗口：** 有报警等待人处理时，除报警页面外，每个页面上方都会出现脉动的横幅（严重报警为红色且更快，其余为琥珀色，手机关闭动画时保持静止），说明最严重的报警和等待的数量，并允许在其下继续使用应用；可打开报警、直接在横幅上确认，或关闭到下一个报警到来。
 
 ## 🧩 在 A.R.M.O.R. 中的角色
 
@@ -76,7 +77,7 @@ ARMOR-ANDROID-CONTROL/
 │   ├── ArmorActivity.kt (the shell), EntryScreens.kt, HomeScreens.kt, CameraScreens.kt, RadarScreens.kt, DevicePanels.kt, MoreScreens.kt
 │   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, NodeControlScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
 │   ├── NodeBleClient.kt, NodeSetupScreen.kt, NodeFinderScreens.kt, NodePanel.kt   configure a node over Bluetooth (the protocol is in model/NodeBle.kt)
-│   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
+│   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmBanner.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
 │   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, PinDialog.kt, MjpegFeed.kt
 │   ├── network/   model/   update/
 │   └── assets/i18n/   en, es (the source phrases), de, fr, it, ja, zh, pt
@@ -89,7 +90,7 @@ ARMOR-ANDROID-CONTROL/
 **环境要求:** JDK 17+, the Android SDK (compile SDK 37), an Android 8.0+ phone (minSdk 26)
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 219 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 257 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 

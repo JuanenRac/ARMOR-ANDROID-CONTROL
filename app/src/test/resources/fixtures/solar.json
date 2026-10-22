@@ -1,0 +1,682 @@
+{
+  "devices": [
+    {
+      "node_id": "simulator-1",
+      "device": "axpert-1",
+      "kind": "inverter",
+      "reading": {
+        "kind": "inverter",
+        "node_id": "simulator-1",
+        "device": "axpert-1",
+        "timestamp_ms": 1893456009000,
+        "mode": "line",
+        "grid_v": 231.5,
+        "grid_hz": 50,
+        "out_v": 230,
+        "out_hz": 50,
+        "out_va": 990,
+        "out_w": 900,
+        "load_percent": 18,
+        "battery_v": 48.86,
+        "battery_a": -3.2,
+        "battery_percent": 30,
+        "pv_v": 168.6,
+        "pv_a": 4.4,
+        "pv_w": 743,
+        "heatsink_c": 46,
+        "ac_charging": false,
+        "pv_charging": false,
+        "load_on": true,
+        "warnings": []
+      },
+      "received_at": "2030-01-01T00:00:00.000Z",
+      "stale": false,
+      "example": false
+    },
+    {
+      "node_id": "simulator-1",
+      "device": "us3000-1",
+      "kind": "battery",
+      "reading": {
+        "kind": "battery",
+        "node_id": "simulator-1",
+        "device": "us3000-1",
+        "timestamp_ms": 1893456009000,
+        "modules": 2,
+        "state": "discharging",
+        "voltage_v": 48.954,
+        "current_a": -3.2,
+        "temperature_min_c": 22.3,
+        "temperature_max_c": 23.2,
+        "cell_min_v": 3.259,
+        "cell_max_v": 3.286,
+        "soc_percent": 30,
+        "alarm": false,
+        "model": "US3000C",
+        "capacity_ah": 44.4,
+        "full_capacity_ah": 148,
+        "energy_kwh": 2.17,
+        "cycles": 181,
+        "stack": [
+          {
+            "n": 1,
+            "present": true,
+            "voltage_v": 48.942,
+            "current_a": -1.6,
+            "temperature_c": 22.3,
+            "soc_percent": 30,
+            "state": "Dischg",
+            "cells_v": [
+              3.264,
+              3.26,
+              3.263,
+              3.266,
+              3.261,
+              3.265,
+              3.26,
+              3.263,
+              3.265,
+              3.261,
+              3.264,
+              3.259,
+              3.263,
+              3.266,
+              3.262
+            ],
+            "temperatures_c": [
+              21.7,
+              22.5,
+              22.4,
+              22.2,
+              21.4
+            ],
+            "capacity_ah": 22.2,
+            "full_capacity_ah": 74,
+            "cycles": 181
+          },
+          {
+            "n": 2,
+            "present": true,
+            "voltage_v": 48.966,
+            "current_a": -1.6,
+            "temperature_c": 23.2,
+            "soc_percent": 30,
+            "state": "Dischg",
+            "cells_v": [
+              3.261,
+              3.265,
+              3.26,
+              3.263,
+              3.266,
+              3.261,
+              3.265,
+              3.26,
+              3.263,
+              3.286,
+              3.262,
+              3.264,
+              3.259,
+              3.264,
+              3.267
+            ],
+            "temperatures_c": [
+              23,
+              22.7,
+              22.6,
+              22.8,
+              23
+            ],
+            "capacity_ah": 22.2,
+            "full_capacity_ah": 74,
+            "cycles": 182
+          }
+        ]
+      },
+      "received_at": "2030-01-01T00:00:00.000Z",
+      "stale": false,
+      "example": false,
+      "day_cells": {
+        "date": "2030-10-22",
+        "modules": [
+          {
+            "n": 1,
+            "min": {
+              "v": 3.254,
+              "cell": 2,
+              "at": 1792640172576
+            },
+            "max": {
+              "v": 3.266,
+              "cell": 9,
+              "at": 1792640173338
+            },
+            "delta_v": 0.008
+          },
+          {
+            "n": 2,
+            "min": {
+              "v": 3.254,
+              "cell": 3,
+              "at": 1792640172576
+            },
+            "max": {
+              "v": 3.286,
+              "cell": 10,
+              "at": 1792640173365
+            },
+            "delta_v": 0.028
+          }
+        ],
+        "bank_delta_v": 0.028
+      }
+    }
+  ],
+  "waiting": [],
+  "totals": {
+    "inverters": 1,
+    "batteries": 1,
+    "stale": 0,
+    "pv_w": 743,
+    "load_w": 900,
+    "battery_w": -157,
+    "soc_percent": 30,
+    "capacity_ah": 44.4,
+    "full_capacity_ah": 148,
+    "energy_kwh": 2.17,
+    "grid_present": true,
+    "mode": "line"
+  },
+  "catalog": {
+    "inverter_models": [
+      "voltronic",
+      "mpp-solar",
+      "axpert-vm-ii",
+      "axpert-vm-iii",
+      "axpert-mks",
+      "axpert-mks-iv",
+      "axpert-king",
+      "pip-ms",
+      "pip-hs",
+      "pip-gk",
+      "easun-isolar",
+      "must-ph18",
+      "revo-vm-iii",
+      "infinisolar-v",
+      "lv5048-hybrid",
+      "sungoldpower",
+      "other"
+    ],
+    "battery_models": [
+      "pylontech-us2000",
+      "pylontech-us2000c",
+      "pylontech-us2000b-plus",
+      "pylontech-us2kbpl",
+      "pylontech-us3000",
+      "pylontech-us3000c",
+      "pylontech-us5000",
+      "pylontech-up2500",
+      "pylontech-up5000",
+      "pylontech-uf5000",
+      "pylontech-fidus-fb-l-5-12-eu",
+      "pylontech-fidus-fb-l-5-12-eu-pro",
+      "pylontech-force-l1",
+      "pylontech-force-l2",
+      "pytes-e-box",
+      "ant-bms",
+      "ant-bms-4s-40a",
+      "ant-bms-4s-60a",
+      "ant-bms-4s-100a",
+      "ant-bms-4s-120a",
+      "ant-bms-4s-150a",
+      "ant-bms-4s-200a",
+      "ant-bms-4s-250a",
+      "ant-bms-4s-300a",
+      "ant-bms-7s-40a",
+      "ant-bms-7s-60a",
+      "ant-bms-7s-100a",
+      "ant-bms-7s-120a",
+      "ant-bms-7s-150a",
+      "ant-bms-7s-200a",
+      "ant-bms-7s-250a",
+      "ant-bms-7s-300a",
+      "ant-bms-8s-40a",
+      "ant-bms-8s-60a",
+      "ant-bms-8s-100a",
+      "ant-bms-8s-120a",
+      "ant-bms-8s-150a",
+      "ant-bms-8s-200a",
+      "ant-bms-8s-250a",
+      "ant-bms-8s-300a",
+      "ant-bms-10s-40a",
+      "ant-bms-10s-60a",
+      "ant-bms-10s-100a",
+      "ant-bms-10s-120a",
+      "ant-bms-10s-150a",
+      "ant-bms-10s-200a",
+      "ant-bms-10s-250a",
+      "ant-bms-10s-300a",
+      "ant-bms-12s-40a",
+      "ant-bms-12s-60a",
+      "ant-bms-12s-100a",
+      "ant-bms-12s-120a",
+      "ant-bms-12s-150a",
+      "ant-bms-12s-200a",
+      "ant-bms-12s-250a",
+      "ant-bms-12s-300a",
+      "ant-bms-13s-40a",
+      "ant-bms-13s-60a",
+      "ant-bms-13s-100a",
+      "ant-bms-13s-120a",
+      "ant-bms-13s-150a",
+      "ant-bms-13s-200a",
+      "ant-bms-13s-250a",
+      "ant-bms-13s-300a",
+      "ant-bms-14s-40a",
+      "ant-bms-14s-60a",
+      "ant-bms-14s-100a",
+      "ant-bms-14s-120a",
+      "ant-bms-14s-150a",
+      "ant-bms-14s-200a",
+      "ant-bms-14s-250a",
+      "ant-bms-14s-300a",
+      "ant-bms-15s-40a",
+      "ant-bms-15s-60a",
+      "ant-bms-15s-100a",
+      "ant-bms-15s-120a",
+      "ant-bms-15s-150a",
+      "ant-bms-15s-200a",
+      "ant-bms-15s-250a",
+      "ant-bms-15s-300a",
+      "ant-bms-16s-40a",
+      "ant-bms-16s-60a",
+      "ant-bms-16s-100a",
+      "ant-bms-16s-120a",
+      "ant-bms-16s-150a",
+      "ant-bms-16s-200a",
+      "ant-bms-16s-250a",
+      "ant-bms-16s-300a",
+      "ant-bms-20s-40a",
+      "ant-bms-20s-60a",
+      "ant-bms-20s-100a",
+      "ant-bms-20s-120a",
+      "ant-bms-20s-150a",
+      "ant-bms-20s-200a",
+      "ant-bms-20s-250a",
+      "ant-bms-20s-300a",
+      "ant-bms-24s-40a",
+      "ant-bms-24s-60a",
+      "ant-bms-24s-100a",
+      "ant-bms-24s-120a",
+      "ant-bms-24s-150a",
+      "ant-bms-24s-200a",
+      "ant-bms-24s-250a",
+      "ant-bms-24s-300a",
+      "ant-bms-32s-40a",
+      "ant-bms-32s-60a",
+      "ant-bms-32s-100a",
+      "ant-bms-32s-120a",
+      "ant-bms-32s-150a",
+      "ant-bms-32s-200a",
+      "ant-bms-32s-250a",
+      "ant-bms-32s-300a",
+      "other"
+    ],
+    "connections": [
+      "rs232",
+      "rs485",
+      "usb",
+      "can",
+      "wifi",
+      "other"
+    ],
+    "battery_profiles": {
+      "pylontech-us2000": {
+        "nominal_v": 48,
+        "charge_v": [
+          52.5,
+          53.5
+        ],
+        "discharge_min_v": 44.5,
+        "charge_temp_c": [
+          0,
+          50
+        ],
+        "discharge_temp_c": [
+          -10,
+          50
+        ],
+        "max_group": 8
+      },
+      "pylontech-us2000c": {
+        "nominal_v": 48,
+        "charge_v": [
+          52.5,
+          53.5
+        ],
+        "discharge_min_v": 44.5,
+        "charge_temp_c": [
+          0,
+          50
+        ],
+        "discharge_temp_c": [
+          -10,
+          50
+        ],
+        "max_group": 16
+      },
+      "pylontech-us2000b-plus": {
+        "nominal_v": 48,
+        "charge_v": [
+          52.5,
+          53.5
+        ],
+        "discharge_min_v": 44.5,
+        "charge_temp_c": [
+          0,
+          50
+        ],
+        "discharge_temp_c": [
+          -10,
+          50
+        ],
+        "max_group": 8
+      },
+      "pylontech-us2kbpl": {
+        "nominal_v": 48,
+        "charge_v": [
+          52.5,
+          53.5
+        ],
+        "discharge_min_v": 44.5,
+        "charge_temp_c": [
+          0,
+          50
+        ],
+        "discharge_temp_c": [
+          -10,
+          50
+        ],
+        "max_group": 8
+      },
+      "pylontech-us3000": {
+        "nominal_v": 48,
+        "charge_v": [
+          52.5,
+          53.5
+        ],
+        "discharge_min_v": 44.5,
+        "charge_temp_c": [
+          0,
+          50
+        ],
+        "discharge_temp_c": [
+          -10,
+          50
+        ],
+        "max_group": 8
+      },
+      "pylontech-us3000c": {
+        "nominal_v": 48,
+        "charge_v": [
+          52.5,
+          53.5
+        ],
+        "discharge_min_v": 44.5,
+        "charge_temp_c": [
+          0,
+          50
+        ],
+        "discharge_temp_c": [
+          -10,
+          50
+        ],
+        "max_group": 16
+      },
+      "pylontech-us5000": {
+        "nominal_v": 48,
+        "charge_v": [
+          52.5,
+          53.5
+        ],
+        "discharge_min_v": 43.5,
+        "charge_temp_c": [
+          0,
+          50
+        ],
+        "discharge_temp_c": [
+          -10,
+          50
+        ],
+        "max_group": 16
+      },
+      "pylontech-up2500": {
+        "nominal_v": 25.6,
+        "charge_v": [
+          28.2,
+          28.5
+        ],
+        "max_group": 20
+      },
+      "pylontech-up5000": {
+        "nominal_v": 48,
+        "charge_v": [
+          52.5,
+          53.5
+        ],
+        "discharge_min_v": 44.5,
+        "charge_temp_c": [
+          0,
+          50
+        ],
+        "discharge_temp_c": [
+          -10,
+          50
+        ],
+        "max_group": 16
+      },
+      "pylontech-uf5000": {
+        "nominal_v": 51.2,
+        "charge_v": [
+          56,
+          56.8
+        ],
+        "discharge_min_v": 45.6,
+        "over_v": 57
+      },
+      "pylontech-fidus-fb-l-5-12-eu": {
+        "nominal_v": 51.2,
+        "charge_v": [
+          56,
+          56.8
+        ],
+        "discharge_min_v": 45.6,
+        "over_v": 57.6,
+        "max_group": 20
+      },
+      "pylontech-fidus-fb-l-5-12-eu-pro": {
+        "nominal_v": 51.2,
+        "charge_v": [
+          56,
+          56.8
+        ],
+        "discharge_min_v": 42.5,
+        "over_v": 57.6,
+        "max_group": 20
+      }
+    },
+    "labels": {
+      "voltronic": "Voltronic (Axpert, PIP)",
+      "mpp-solar": "MPP Solar (Axpert, PIP, InfiniSolar)",
+      "axpert-vm-ii": "Voltronic Axpert VM II",
+      "axpert-vm-iii": "Voltronic Axpert VM III",
+      "axpert-mks": "Voltronic Axpert MKS / MKS II",
+      "axpert-mks-iv": "Voltronic Axpert MKS IV / MKS V",
+      "axpert-king": "Voltronic Axpert King",
+      "pip-ms": "MPP Solar PIP MS / MSD / MSE / MSX",
+      "pip-hs": "MPP Solar PIP HS / HSE / LV",
+      "pip-gk": "MPP Solar PIP-GK / MK",
+      "easun-isolar": "EASun iSolar SMG II / SMH II",
+      "must-ph18": "Must PV18 / PH18 (PI30 compatible)",
+      "revo-vm-iii": "Revo VM III / Revo II (checksum replies)",
+      "infinisolar-v": "MPP Solar InfiniSolar V",
+      "lv5048-hybrid": "MPP Solar LV5048 Hybrid / LV6048",
+      "sungoldpower": "SunGoldPower SPH / SPF hybrid",
+      "pylontech-us2000": "Pylontech US2000 / US2000B",
+      "pylontech-us2000c": "Pylontech US2000C",
+      "pylontech-us2000b-plus": "Pylontech US2000B Plus",
+      "pylontech-us2kbpl": "Pylontech US2KBPL",
+      "pylontech-us3000": "Pylontech US3000",
+      "pylontech-us3000c": "Pylontech US3000C",
+      "pylontech-us5000": "Pylontech US5000",
+      "pylontech-up2500": "Pylontech UP2500",
+      "pylontech-up5000": "Pylontech UP5000",
+      "pylontech-uf5000": "Pylontech UF5000",
+      "pylontech-fidus-fb-l-5-12-eu": "Pylontech Fidus FB-L-5.12-EU",
+      "pylontech-fidus-fb-l-5-12-eu-pro": "Pylontech Fidus FB-L-5.12-EU Pro",
+      "pylontech-force-l1": "Pylontech Force L1",
+      "pylontech-force-l2": "Pylontech Force L2",
+      "pytes-e-box": "Pytes E-Box 48100R",
+      "ant-bms": "ANT-BMS (own battery)",
+      "ant-bms-4s-40a": "ANT-BMS 4S · 40 A",
+      "ant-bms-4s-60a": "ANT-BMS 4S · 60 A",
+      "ant-bms-4s-100a": "ANT-BMS 4S · 100 A",
+      "ant-bms-4s-120a": "ANT-BMS 4S · 120 A",
+      "ant-bms-4s-150a": "ANT-BMS 4S · 150 A",
+      "ant-bms-4s-200a": "ANT-BMS 4S · 200 A",
+      "ant-bms-4s-250a": "ANT-BMS 4S · 250 A",
+      "ant-bms-4s-300a": "ANT-BMS 4S · 300 A",
+      "ant-bms-7s-40a": "ANT-BMS 7S · 40 A",
+      "ant-bms-7s-60a": "ANT-BMS 7S · 60 A",
+      "ant-bms-7s-100a": "ANT-BMS 7S · 100 A",
+      "ant-bms-7s-120a": "ANT-BMS 7S · 120 A",
+      "ant-bms-7s-150a": "ANT-BMS 7S · 150 A",
+      "ant-bms-7s-200a": "ANT-BMS 7S · 200 A",
+      "ant-bms-7s-250a": "ANT-BMS 7S · 250 A",
+      "ant-bms-7s-300a": "ANT-BMS 7S · 300 A",
+      "ant-bms-8s-40a": "ANT-BMS 8S · 40 A",
+      "ant-bms-8s-60a": "ANT-BMS 8S · 60 A",
+      "ant-bms-8s-100a": "ANT-BMS 8S · 100 A",
+      "ant-bms-8s-120a": "ANT-BMS 8S · 120 A",
+      "ant-bms-8s-150a": "ANT-BMS 8S · 150 A",
+      "ant-bms-8s-200a": "ANT-BMS 8S · 200 A",
+      "ant-bms-8s-250a": "ANT-BMS 8S · 250 A",
+      "ant-bms-8s-300a": "ANT-BMS 8S · 300 A",
+      "ant-bms-10s-40a": "ANT-BMS 10S · 40 A",
+      "ant-bms-10s-60a": "ANT-BMS 10S · 60 A",
+      "ant-bms-10s-100a": "ANT-BMS 10S · 100 A",
+      "ant-bms-10s-120a": "ANT-BMS 10S · 120 A",
+      "ant-bms-10s-150a": "ANT-BMS 10S · 150 A",
+      "ant-bms-10s-200a": "ANT-BMS 10S · 200 A",
+      "ant-bms-10s-250a": "ANT-BMS 10S · 250 A",
+      "ant-bms-10s-300a": "ANT-BMS 10S · 300 A",
+      "ant-bms-12s-40a": "ANT-BMS 12S · 40 A",
+      "ant-bms-12s-60a": "ANT-BMS 12S · 60 A",
+      "ant-bms-12s-100a": "ANT-BMS 12S · 100 A",
+      "ant-bms-12s-120a": "ANT-BMS 12S · 120 A",
+      "ant-bms-12s-150a": "ANT-BMS 12S · 150 A",
+      "ant-bms-12s-200a": "ANT-BMS 12S · 200 A",
+      "ant-bms-12s-250a": "ANT-BMS 12S · 250 A",
+      "ant-bms-12s-300a": "ANT-BMS 12S · 300 A",
+      "ant-bms-13s-40a": "ANT-BMS 13S · 40 A",
+      "ant-bms-13s-60a": "ANT-BMS 13S · 60 A",
+      "ant-bms-13s-100a": "ANT-BMS 13S · 100 A",
+      "ant-bms-13s-120a": "ANT-BMS 13S · 120 A",
+      "ant-bms-13s-150a": "ANT-BMS 13S · 150 A",
+      "ant-bms-13s-200a": "ANT-BMS 13S · 200 A",
+      "ant-bms-13s-250a": "ANT-BMS 13S · 250 A",
+      "ant-bms-13s-300a": "ANT-BMS 13S · 300 A",
+      "ant-bms-14s-40a": "ANT-BMS 14S · 40 A",
+      "ant-bms-14s-60a": "ANT-BMS 14S · 60 A",
+      "ant-bms-14s-100a": "ANT-BMS 14S · 100 A",
+      "ant-bms-14s-120a": "ANT-BMS 14S · 120 A",
+      "ant-bms-14s-150a": "ANT-BMS 14S · 150 A",
+      "ant-bms-14s-200a": "ANT-BMS 14S · 200 A",
+      "ant-bms-14s-250a": "ANT-BMS 14S · 250 A",
+      "ant-bms-14s-300a": "ANT-BMS 14S · 300 A",
+      "ant-bms-15s-40a": "ANT-BMS 15S · 40 A",
+      "ant-bms-15s-60a": "ANT-BMS 15S · 60 A",
+      "ant-bms-15s-100a": "ANT-BMS 15S · 100 A",
+      "ant-bms-15s-120a": "ANT-BMS 15S · 120 A",
+      "ant-bms-15s-150a": "ANT-BMS 15S · 150 A",
+      "ant-bms-15s-200a": "ANT-BMS 15S · 200 A",
+      "ant-bms-15s-250a": "ANT-BMS 15S · 250 A",
+      "ant-bms-15s-300a": "ANT-BMS 15S · 300 A",
+      "ant-bms-16s-40a": "ANT-BMS 16S · 40 A",
+      "ant-bms-16s-60a": "ANT-BMS 16S · 60 A",
+      "ant-bms-16s-100a": "ANT-BMS 16S · 100 A",
+      "ant-bms-16s-120a": "ANT-BMS 16S · 120 A",
+      "ant-bms-16s-150a": "ANT-BMS 16S · 150 A",
+      "ant-bms-16s-200a": "ANT-BMS 16S · 200 A",
+      "ant-bms-16s-250a": "ANT-BMS 16S · 250 A",
+      "ant-bms-16s-300a": "ANT-BMS 16S · 300 A",
+      "ant-bms-20s-40a": "ANT-BMS 20S · 40 A",
+      "ant-bms-20s-60a": "ANT-BMS 20S · 60 A",
+      "ant-bms-20s-100a": "ANT-BMS 20S · 100 A",
+      "ant-bms-20s-120a": "ANT-BMS 20S · 120 A",
+      "ant-bms-20s-150a": "ANT-BMS 20S · 150 A",
+      "ant-bms-20s-200a": "ANT-BMS 20S · 200 A",
+      "ant-bms-20s-250a": "ANT-BMS 20S · 250 A",
+      "ant-bms-20s-300a": "ANT-BMS 20S · 300 A",
+      "ant-bms-24s-40a": "ANT-BMS 24S · 40 A",
+      "ant-bms-24s-60a": "ANT-BMS 24S · 60 A",
+      "ant-bms-24s-100a": "ANT-BMS 24S · 100 A",
+      "ant-bms-24s-120a": "ANT-BMS 24S · 120 A",
+      "ant-bms-24s-150a": "ANT-BMS 24S · 150 A",
+      "ant-bms-24s-200a": "ANT-BMS 24S · 200 A",
+      "ant-bms-24s-250a": "ANT-BMS 24S · 250 A",
+      "ant-bms-24s-300a": "ANT-BMS 24S · 300 A",
+      "ant-bms-32s-40a": "ANT-BMS 32S · 40 A",
+      "ant-bms-32s-60a": "ANT-BMS 32S · 60 A",
+      "ant-bms-32s-100a": "ANT-BMS 32S · 100 A",
+      "ant-bms-32s-120a": "ANT-BMS 32S · 120 A",
+      "ant-bms-32s-150a": "ANT-BMS 32S · 150 A",
+      "ant-bms-32s-200a": "ANT-BMS 32S · 200 A",
+      "ant-bms-32s-250a": "ANT-BMS 32S · 250 A",
+      "ant-bms-32s-300a": "ANT-BMS 32S · 300 A"
+    },
+    "inverter_dialects": {
+      "voltronic": "auto",
+      "mpp-solar": "auto",
+      "axpert-vm-ii": "pi30",
+      "axpert-vm-iii": "pi30",
+      "axpert-mks": "pi30",
+      "axpert-mks-iv": "pi30",
+      "axpert-king": "pi30",
+      "pip-ms": "pi30",
+      "pip-hs": "pi30",
+      "pip-gk": "pi30",
+      "easun-isolar": "pi30",
+      "must-ph18": "pi30",
+      "revo-vm-iii": "revo",
+      "infinisolar-v": "pi18",
+      "lv5048-hybrid": "pi18",
+      "sungoldpower": "pi18"
+    },
+    "ant_bms": {
+      "cell_counts": [
+        4,
+        7,
+        8,
+        10,
+        12,
+        13,
+        14,
+        15,
+        16,
+        20,
+        24,
+        32
+      ],
+      "currents_a": [
+        40,
+        60,
+        100,
+        120,
+        150,
+        200,
+        250,
+        300
+      ]
+    }
+  }
+}
