@@ -4,6 +4,7 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- The banner follows the animated style of the ecosystem banners, with the name, the kind and the technologies of the project.
 ## [0.7.4] - The alarm window of the open app and tests against the answers of a real server
 
 - **An alarm window in the open app:** while an alarm waits for a person, a banner over every screen but the alarms pulses (red and fast for a critical one, amber for the rest, still when the phone has its animations off), says which alarm is the worst and how many wait, and lets the app be used under it. It has View alarms, Confirm (not for a read-only user) and Close; a closed banner comes back when another alarm arrives. The alarm of a duress PIN is never shown.
