@@ -7,7 +7,7 @@ import es.electrohobby3d.armor.trf
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** One warning the server raised about a node: "node_low_memory", "node_frequent_resets", "node_link_flapping" or "node_weak_signal". */
+/** One warning the server raised about a node: "node_low_memory", "node_frequent_resets", "node_link_flapping", "node_weak_signal", or for a radar node "node_sensor_bluetooth_open", "node_radar_masked" and "node_wifi_jam". */
 data class NodeHealthWarning(val code: String)
 
 /** What a node says about itself, and what the server makes of it. `rssiDbm` is null unless the node is on a Wi-Fi link that is up. */
@@ -77,6 +77,9 @@ object NodeHealthText {
         "node_frequent_resets" -> tr("Se reinicia demasiado")
         "node_link_flapping" -> tr("Pierde el broker una y otra vez")
         "node_weak_signal" -> tr("Señal Wi-Fi débil")
+        "node_sensor_bluetooth_open" -> tr("El Bluetooth propio de un sensor está abierto")
+        "node_radar_masked" -> tr("Los sensores del radar están tapados")
+        "node_wifi_jam" -> tr("Posible bloqueo de la Wi-Fi")
         else -> code
     }
 

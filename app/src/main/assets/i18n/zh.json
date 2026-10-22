@@ -1254,5 +1254,8 @@
  "Todavía no se ha dado ninguna orden a los nodos.": "尚未向节点下达任何命令。",
  "Reiniciar, pausar, poner en espera, identificar, diagnosticar y mantenimiento de un nodo o de todos": "对一个或所有节点进行重启、暂停、待机、识别、诊断和维护",
  "%d alarmas sin confirmar": "%d 个未确认的报警",
- "Ver alarmas": "查看报警"
+ "Ver alarmas": "查看报警",
+ "El Bluetooth propio de un sensor está abierto": "传感器自带的蓝牙处于开启状态",
+ "Los sensores del radar están tapados": "雷达的传感器被遮挡",
+ "Posible bloqueo de la Wi-Fi": "Wi-Fi 可能被干扰"
 }

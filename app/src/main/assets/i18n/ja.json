@@ -1254,5 +1254,8 @@
  "Todavía no se ha dado ninguna orden a los nodos.": "ノードへの命令はまだありません。",
  "Reiniciar, pausar, poner en espera, identificar, diagnosticar y mantenimiento de un nodo o de todos": "1台または全ノードの再起動、一時停止、スタンバイ、識別、診断、メンテナンス",
  "%d alarmas sin confirmar": "未確認のアラーム %d 件",
- "Ver alarmas": "アラームを見る"
+ "Ver alarmas": "アラームを見る",
+ "El Bluetooth propio de un sensor está abierto": "センサー自体のBluetoothが開いています",
+ "Los sensores del radar están tapados": "レーダーのセンサーが覆われています",
+ "Posible bloqueo de la Wi-Fi": "Wi-Fiが妨害されている可能性"
 }

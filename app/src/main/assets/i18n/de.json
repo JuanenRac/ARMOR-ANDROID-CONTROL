@@ -1254,5 +1254,8 @@
  "Todavía no se ha dado ninguna orden a los nodos.": "Den Knoten wurde noch kein Befehl erteilt.",
  "Reiniciar, pausar, poner en espera, identificar, diagnosticar y mantenimiento de un nodo o de todos": "Neustart, Pause, Bereitschaft, Identifizieren, Diagnose und Wartung eines Knotens oder aller",
  "%d alarmas sin confirmar": "%d unbestätigte Alarme",
- "Ver alarmas": "Alarme ansehen"
+ "Ver alarmas": "Alarme ansehen",
+ "El Bluetooth propio de un sensor está abierto": "Das eigene Bluetooth eines Sensors ist offen",
+ "Los sensores del radar están tapados": "Die Sensoren des Radars sind verdeckt",
+ "Posible bloqueo de la Wi-Fi": "Mögliche WLAN-Störung"
 }

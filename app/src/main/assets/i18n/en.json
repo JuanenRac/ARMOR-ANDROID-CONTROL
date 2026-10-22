@@ -1254,5 +1254,8 @@
  "Todavía no se ha dado ninguna orden a los nodos.": "No order has been given to the nodes yet.",
  "Reiniciar, pausar, poner en espera, identificar, diagnosticar y mantenimiento de un nodo o de todos": "Restart, pause, standby, identify, diagnostics and maintenance of one node or of all",
  "%d alarmas sin confirmar": "%d alarms not confirmed",
- "Ver alarmas": "View alarms"
+ "Ver alarmas": "View alarms",
+ "El Bluetooth propio de un sensor está abierto": "A sensor's own Bluetooth is open",
+ "Los sensores del radar están tapados": "The radar's sensors are covered",
+ "Posible bloqueo de la Wi-Fi": "Possible Wi-Fi jamming"
 }

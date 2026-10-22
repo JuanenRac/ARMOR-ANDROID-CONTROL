@@ -1254,5 +1254,8 @@
  "Todavía no se ha dado ninguna orden a los nodos.": "Ainda não foi dada nenhuma ordem aos nós.",
  "Reiniciar, pausar, poner en espera, identificar, diagnosticar y mantenimiento de un nodo o de todos": "Reiniciar, pausar, pôr em espera, identificar, diagnosticar e manutenção de um nó ou de todos",
  "%d alarmas sin confirmar": "%d alarmes por confirmar",
- "Ver alarmas": "Ver alarmes"
+ "Ver alarmas": "Ver alarmes",
+ "El Bluetooth propio de un sensor está abierto": "O Bluetooth próprio de um sensor está aberto",
+ "Los sensores del radar están tapados": "Os sensores do radar estão tapados",
+ "Posible bloqueo de la Wi-Fi": "Possível bloqueio da Wi-Fi"
 }

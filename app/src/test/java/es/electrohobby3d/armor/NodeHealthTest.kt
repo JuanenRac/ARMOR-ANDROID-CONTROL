@@ -53,7 +53,7 @@ class NodeHealthTest {
     @Test fun theWordingIsPlainSpanishAndNeverShowsACode() {
         for (family in listOf("radar", "solar", "electrical", "alarm", "hmi")) assertNotEquals(family, NodeHealthText.family(family))
         for (status in listOf("ok", "warning", "stale")) assertNotEquals(status, NodeHealthText.status(status))
-        for (code in listOf("node_low_memory", "node_frequent_resets", "node_link_flapping", "node_weak_signal")) assertNotEquals(code, NodeHealthText.warning(code))
+        for (code in listOf("node_low_memory", "node_frequent_resets", "node_link_flapping", "node_weak_signal", "node_sensor_bluetooth_open", "node_radar_masked", "node_wifi_jam")) assertNotEquals(code, NodeHealthText.warning(code))
         for (reason in listOf("power_on", "external", "software", "panic", "int_wdt", "task_wdt", "other_wdt", "deep_sleep", "brownout", "sdio", "usb", "jtag", "efuse", "power_glitch", "cpu_lockup"))
             assertNotEquals(reason, NodeHealthText.resetReason(reason))
         assertEquals("desconocido", NodeHealthText.resetReason("cosmic_ray"))
