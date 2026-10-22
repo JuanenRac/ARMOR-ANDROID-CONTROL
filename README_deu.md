@@ -87,7 +87,7 @@ ARMOR-ANDROID-CONTROL/
 
 ## 🛠️ Entwicklungsumgebung
 
-**Voraussetzungen:** JDK 17+, the Android SDK (compile SDK 37), an Android 8.0+ phone (minSdk 26)
+**Voraussetzungen:** JDK 17+, das Android-SDK (compile SDK 37), ein Android-8.0+-Telefon (minSdk 26)
 
 ```powershell
 .\gradlew.bat testDebugUnitTest assembleDebug   # 257 tests, then the debug APK
