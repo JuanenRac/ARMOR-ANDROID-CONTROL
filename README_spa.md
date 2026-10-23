@@ -22,7 +22,7 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
-  <img src="https://img.shields.io/badge/Tests-228%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-272%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.7.4-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
@@ -39,13 +39,14 @@
 |---|---|
 | Versión | `0.7.4` |
 | Madurez | Establecido |
-| Tests | 257 (`gradlew testDebugUnitTest`) |
+| Tests | 272 (`gradlew testDebugUnitTest`) |
 | Tecnología | Kotlin / Jetpack Compose |
 | En hardware real | Usada en un móvil real contra el banco de pruebas de la CM5; las pantallas solar, eléctrica y de centrales de alarma esperan nodos reales |
 
 ## 🎯 Descripción general
 
 * **Acceso con el login del propio servidor:** IP, puerto, usuario y contraseña; la contraseña crea una sesión HttpOnly; solo se guarda en el móvil si marcas **Recordarme** (apagado por defecto: usuario y contraseña sellados con una clave propia del Keystore, solo para ese servidor, y se olvidan en cuanto la desmarcas). Un rol **viewer** solo mira: todo botón que cambia algo está apagado.
+* **Bloqueo con el teléfono:** la app pide la huella, el rostro o el PIN del propio teléfono antes de armar, desarmar, silenciar una sirena, desbloquear y las demás órdenes críticas (activado por defecto solo si el teléfono tiene huella o rostro) y, si lo activas, para abrir la app. Tu administrador puede exigirlo desde Studio pero nunca bajar lo que elegiste, un teléfono sin bloqueo de pantalla nunca se queda fuera y la pantalla bloqueada siempre ofrece entrar de nuevo con la contraseña.
 * **Monitor de cámaras:** de 1 a 16 teselas, una vista ampliada, MJPEG en directo que conserva la proporción, un mando PTZ acotado, capturas y grabaciones, con visor y confirmación de borrado de las grabaciones.
 * **Armar y desarmar,** tras una **comprobación antes de armar** (qué está abierto, mudo o caído) y con el PIN para desarmar; **alarmas** que reconocer, con una insignia para las que esperan; **dispositivos** (humo, gas, inundación, puerta, ventana, movimiento, clima, enchufes, luces, sirenas, cerraduras, persianas, motores de cancela y garaje, calentadores) con su estado y Encender / Apagar / Alternar.
 * **Alarmas que te alcanzan:** un sonido para cada gravedad, una **alarma hablada** opcional, avisos de un nodo que llega a ALTA, una cámara muda, una alarma de dispositivo y (armado) un nodo desconectado, y **una central que suena despierta el móvil**; la vigilancia en segundo plano sobrevive a un reinicio y cede cuando el servidor está caído.
@@ -78,7 +79,7 @@ ARMOR-ANDROID-CONTROL/
 │   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, NodeControlScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
 │   ├── NodeBleClient.kt, NodeSetupScreen.kt, NodeFinderScreens.kt, NodePanel.kt   configure a node over Bluetooth (the protocol is in model/NodeBle.kt)
 │   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmBanner.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
-│   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, PinDialog.kt, MjpegFeed.kt
+│   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, DeviceLock.kt, PhoneLock.kt, LockScreens.kt, PinDialog.kt, MjpegFeed.kt
 │   ├── network/   model/   update/
 │   └── assets/i18n/   en, es (the source phrases), de, fr, it, ja, zh, pt
 ├── docs/CLIENT_BOUNDARY.md, PUSH_NOTIFICATIONS.md   (the Firebase steps, in eight languages)
@@ -90,7 +91,7 @@ ARMOR-ANDROID-CONTROL/
 **Requisitos:** JDK 17+, el SDK de Android (compile SDK 37), un móvil con Android 8.0+ (minSdk 26)
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 257 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 272 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 

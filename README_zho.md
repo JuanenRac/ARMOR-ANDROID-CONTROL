@@ -22,7 +22,7 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
-  <img src="https://img.shields.io/badge/Tests-228%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-272%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.7.4-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
@@ -39,13 +39,14 @@
 |---|---|
 | 版本 | `0.7.4` |
 | 成熟度 | 成熟 |
-| 测试 | 257 (`gradlew testDebugUnitTest`) |
+| 测试 | 272 (`gradlew testDebugUnitTest`) |
 | 技术栈 | Kotlin / Jetpack Compose |
 | 真实硬件 | 在真实手机上对照 CM5 测试台使用；太阳能、电气和报警主机界面在等待真实节点 |
 
 ## 🎯 概述
 
 * **使用服务器自己的登录登录：**IP、端口、用户名和密码；密码创建一个 HttpOnly 会话；只有勾选 **记住我** 时才会保存在手机上（默认关闭：用户名和密码用 Keystore 专属密钥加密，仅用于该服务器，取消勾选后立即清除）。**viewer** 角色只能查看：所有会修改内容的按钮都被关闭。
+* **使用手机锁定：** 在布防、撤防、关闭警报器、解锁以及其他关键指令之前，应用会要求验证手机自身的指纹、面部或 PIN（仅当手机有指纹或面部识别时默认开启）；如果你开启，打开应用时也会要求验证。管理员可以在 Studio 中强制要求，但不能降低你的选择；没有屏幕锁定的手机永远不会被拒之门外，锁定界面也始终提供改用密码重新登录。
 * **摄像头监视器：**1 到 16 个画面、放大视图、保持画面比例的实时 MJPEG、有限定范围的云台面板、快照和录像，录像带有查看器和删除确认。
 * **布防和撤防：**先做**布防前检查**（哪些是打开、沉默或故障的），撤防需要 PIN；要确认的**报警**，等待中的显示角标；**设备**（烟雾、燃气、漏水、门、窗、移动、气候、插座、灯、警笛、门锁、卷帘、大门和车库门电机、热水器）及其状态和开 / 关 / 切换。
 * **能找到你的报警：**每种严重级别有声音、可选的**语音报警**、节点达到高级、摄像头沉默、设备报警和（布防时）节点离线的通知，**响起的报警主机会唤醒手机**；后台监视在重启后仍然存在，并在服务器宕机时退避。
@@ -78,7 +79,7 @@ ARMOR-ANDROID-CONTROL/
 │   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, NodeControlScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
 │   ├── NodeBleClient.kt, NodeSetupScreen.kt, NodeFinderScreens.kt, NodePanel.kt   configure a node over Bluetooth (the protocol is in model/NodeBle.kt)
 │   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmBanner.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
-│   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, PinDialog.kt, MjpegFeed.kt
+│   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, DeviceLock.kt, PhoneLock.kt, LockScreens.kt, PinDialog.kt, MjpegFeed.kt
 │   ├── network/   model/   update/
 │   └── assets/i18n/   en, es (the source phrases), de, fr, it, ja, zh, pt
 ├── docs/CLIENT_BOUNDARY.md, PUSH_NOTIFICATIONS.md   (the Firebase steps, in eight languages)
@@ -90,7 +91,7 @@ ARMOR-ANDROID-CONTROL/
 **环境要求:** JDK 17+, Android SDK（compile SDK 37）, Android 8.0+ 手机（minSdk 26）
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 257 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 272 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 

@@ -12,6 +12,7 @@ import es.electrohobby3d.armor.model.CameraView
 import es.electrohobby3d.armor.model.MediaCatalogue
 import es.electrohobby3d.armor.network.ArmorApi
 import es.electrohobby3d.armor.network.ArmorApiClient
+import es.electrohobby3d.armor.network.SessionFacts
 import es.electrohobby3d.armor.network.WeatherApiClient
 import es.electrohobby3d.armor.model.Forecast
 import es.electrohobby3d.armor.model.AirQuality
@@ -42,6 +43,8 @@ data class WeatherUiState(
 data class MonitorUiState(
     /** The role of the signed-in user; a viewer only looks. */
     val role: String = "",
+    /** What the server asks of the phone's lock: "user" (the person decides), "sensitive" or "always". */
+    val deviceLock: String = "user",
     val loading: Boolean = false,
     val snapshot: ArmorSnapshot = ArmorSnapshot(),
     val cameras: List<CameraView> = emptyList(),
@@ -186,10 +189,12 @@ class ArmorViewModel(private val client: ArmorApi = ArmorApiClient(), private va
         val armed = client.batteryArm(origin, node, port, op, output, state, serial)
         _battery.update { it.copy(active = armed) }
     }
-    fun executeBattery(origin: String, serial: String) = batteryCall {
-        val current = _battery.value.active ?: return@batteryCall
-        val started = client.batteryExecute(origin, current.id, serial)
-        _battery.update { it.copy(active = started) }
+    fun executeBattery(origin: String, serial: String) = confirmed(tr("Operar una batería"), { text -> _battery.update { it.copy(message = text) } }) {
+        batteryCall {
+            val current = _battery.value.active ?: return@batteryCall
+            val started = client.batteryExecute(origin, current.id, serial)
+            _battery.update { it.copy(active = started) }
+        }
     }
     fun cancelBattery(origin: String) = batteryCall {
         val current = _battery.value.active ?: return@batteryCall
@@ -225,13 +230,17 @@ class ArmorViewModel(private val client: ArmorApi = ArmorApiClient(), private va
         runCatching { client.nodeControlOperations(origin) }.onSuccess { value -> _control.update { it.copy(operations = value) } }
     }
 
-    fun orderNode(origin: String, nodeId: String, operation: String, confirm: String?, durationS: Int?) = controlCall {
-        val started = client.nodeControl(origin, nodeId, operation, confirm, durationS)
-        _control.update { it.copy(active = started) }
+    fun orderNode(origin: String, nodeId: String, operation: String, confirm: String?, durationS: Int?) = confirmed(trf("Ordenar a %s", nodeId), { text -> _control.update { it.copy(message = text) } }) {
+        controlCall {
+            val started = client.nodeControl(origin, nodeId, operation, confirm, durationS)
+            _control.update { it.copy(active = started) }
+        }
     }
-    fun orderAllNodes(origin: String, operation: String, mode: String, confirm: String?, durationS: Int?) = controlCall {
-        val started = client.nodesControl(origin, operation, mode, confirm, durationS)
-        _control.update { it.copy(active = started) }
+    fun orderAllNodes(origin: String, operation: String, mode: String, confirm: String?, durationS: Int?) = confirmed(tr("Ordenar a todos los nodos"), { text -> _control.update { it.copy(message = text) } }) {
+        controlCall {
+            val started = client.nodesControl(origin, operation, mode, confirm, durationS)
+            _control.update { it.copy(active = started) }
+        }
     }
     fun openControl(operation: es.electrohobby3d.armor.model.ControlOperationView) { _control.update { it.copy(active = operation, message = null) } }
     fun closeControl() { _control.update { it.copy(active = null, message = null) } }
@@ -258,15 +267,25 @@ class ArmorViewModel(private val client: ArmorApi = ArmorApiClient(), private va
     fun reloadAlarmPanels(origin: String) { viewModelScope.launch { pollAlarmPanels(origin) } }
 
     /** Arms a panel (mode "away" or "stay") or disarms it (mode null); the node's own answer shows in the panel's card a moment later. */
-    fun alarmCommand(origin: String, node: String, mode: String?, force: Boolean = false, pin: String? = null, profile: String? = null) = mutating(origin, if (mode == null) trf("%s: orden de desarmar enviada", node) else trf("%s: orden de armar enviada", node)) {
-        client.sendAlarmCommand(origin, node, mode, force, pin, profile)
-        pollAlarmPanels(origin)
+    fun alarmCommand(origin: String, node: String, mode: String?, force: Boolean = false, pin: String? = null, profile: String? = null) {
+        if (viewerRefused()) return
+        confirmed(if (mode == null) trf("Desarmar %s", node) else trf("Armar %s", node)) {
+            mutating(origin, if (mode == null) trf("%s: orden de desarmar enviada", node) else trf("%s: orden de armar enviada", node)) {
+                client.sendAlarmCommand(origin, node, mode, force, pin, profile)
+                pollAlarmPanels(origin)
+            }
+        }
     }
 
     /** Silences the siren of a panel with the system still armed; the PIN is checked by the server. */
-    fun silenceAlarm(origin: String, node: String, pin: String? = null) = mutating(origin, trf("%s: orden de silenciar la sirena enviada", node)) {
-        client.silenceAlarmSiren(origin, node, pin)
-        pollAlarmPanels(origin)
+    fun silenceAlarm(origin: String, node: String, pin: String? = null) {
+        if (viewerRefused()) return
+        confirmed(trf("Silenciar la sirena de %s", node)) {
+            mutating(origin, trf("%s: orden de silenciar la sirena enviada", node)) {
+                client.silenceAlarmSiren(origin, node, pin)
+                pollAlarmPanels(origin)
+            }
+        }
     }
 
     /** The electrical network, quickly, while the Electrical screen is open. A failure is ignored; the next pass tries again. */
@@ -329,10 +348,30 @@ class ArmorViewModel(private val client: ArmorApi = ArmorApiClient(), private va
         return true
     }
 
+    /** Signed in: the role and what the server asks of the phone's lock come from one request to the session. */
+    private fun MonitorUiState.signedIn(origin: String): MonitorUiState {
+        val facts = runCatching { client.sessionFacts(origin) }.getOrDefault(SessionFacts())
+        return copy(authenticated = true, role = facts.role, deviceLock = facts.deviceLock)
+    }
+
+    /** Asked before an action that must be confirmed with the lock of the phone; the screen puts the real question here, a test a stand-in. Null: nothing is asked. */
+    var sensitiveGate: SensitiveGate? = null
+
+    /** Runs [run] once the lock of the phone allowed it (at once when nothing is asked); a refusal leaves a message and nothing is sent. */
+    private fun confirmed(reason: String, denied: (String) -> Unit = { text -> _state.update { it.copy(message = text) } }, run: () -> Unit) {
+        val gate = sensitiveGate ?: return run()
+        viewModelScope.launch {
+            if (gate.allow(reason)) run() else denied(tr("No se ha confirmado con el bloqueo del teléfono: no se ha hecho nada."))
+        }
+    }
+
     private fun mutating(origin: String, success: String, operation: suspend () -> Unit) {
         if (viewerRefused()) return
         action(origin, success, operation)
     }
+
+    /** Shows a message on screen. */
+    fun say(text: String) { _state.update { it.copy(message = text) } }
 
     /** The message on screen has been read. */
     fun dismissMessage() { _state.update { it.copy(message = null) } }
@@ -355,7 +394,7 @@ class ArmorViewModel(private val client: ArmorApi = ArmorApiClient(), private va
             if (code == "totp_setup_required") throw ArmorApiException(securityError(code), error.code)
             throw error
         }
-        _state.update { it.copy(authenticated = true, role = runCatching { client.studioRole(origin) }.getOrDefault("")) }
+        _state.update { it.signedIn(origin) }
         refreshInternal(origin, loadMedia = true)
     }
 
@@ -373,7 +412,7 @@ class ArmorViewModel(private val client: ArmorApi = ArmorApiClient(), private va
             runCatching {
                 withContext(Dispatchers.IO) {
                     client.completeSignIn(origin, challenge, code.trim())
-                    _state.update { it.copy(authenticated = true, role = runCatching { client.studioRole(origin) }.getOrDefault("")) }
+                    _state.update { it.signedIn(origin) }
                     refreshInternal(origin, loadMedia = true)
                 }
             }.onSuccess { _security.update { it.copy(loginChallenge = null) }; _state.update { it.copy(loading = false, message = "Session established") } }
@@ -469,7 +508,7 @@ class ArmorViewModel(private val client: ArmorApi = ArmorApiClient(), private va
         client.restoreSessionCookie(origin, session.name, session.value)
         try {
             if (!client.studioSessionActive(origin)) { refused(); return@withContext false }
-            _state.update { it.copy(authenticated = true, role = runCatching { client.studioRole(origin) }.getOrDefault("")) }
+            _state.update { it.signedIn(origin) }
             refreshInternal(origin, loadMedia = true)
             true
         } catch (error: ArmorApiException) {
@@ -484,7 +523,7 @@ class ArmorViewModel(private val client: ArmorApi = ArmorApiClient(), private va
 
     fun restoreSession(origin: String) = action(origin, "Session restored") {
         require(client.studioSessionActive(origin)) { "Sign in to ARMOR-SERVER" }
-        _state.update { it.copy(authenticated = true, role = runCatching { client.studioRole(origin) }.getOrDefault("")) }
+        _state.update { it.signedIn(origin) }
         refreshInternal(origin, loadMedia = true)
     }
 
@@ -532,10 +571,15 @@ class ArmorViewModel(private val client: ArmorApi = ArmorApiClient(), private va
         }
     }
 
-    fun deleteMedia(origin: String, item: es.electrohobby3d.armor.model.MediaItem) = mutating(origin, "Evidence removed") {
-        require(_state.value.authenticated) { "Sign in first" }
-        client.deleteMedia(origin, item)
-        _state.update { it.copy(media = client.media(origin)) }
+    fun deleteMedia(origin: String, item: es.electrohobby3d.armor.model.MediaItem) {
+        if (viewerRefused()) return
+        confirmed(tr("Borrar una grabación")) {
+            mutating(origin, "Evidence removed") {
+                require(_state.value.authenticated) { "Sign in first" }
+                client.deleteMedia(origin, item)
+                _state.update { it.copy(media = client.media(origin)) }
+            }
+        }
     }
 
     /**
@@ -573,9 +617,14 @@ class ArmorViewModel(private val client: ArmorApi = ArmorApiClient(), private va
     suspend fun preflight(origin: String): es.electrohobby3d.armor.model.Preflight? = withContext(Dispatchers.IO) { runCatching { client.preflight(origin) }.getOrNull() }
 
     /** Arm or disarm. The screen asks the person first; a failure shows as a message and changes nothing. */
-    fun setMode(origin: String, mode: String, pin: String? = null) = mutating(origin, if (mode == "armed") tr("Sistema ARMADO") else tr("Sistema DESARMADO")) {
-        require(_state.value.authenticated) { "Sign in first" }
-        _state.update { it.copy(snapshot = client.setMode(origin, mode, pin)) }
+    fun setMode(origin: String, mode: String, pin: String? = null) {
+        if (viewerRefused()) return
+        confirmed(if (mode == "armed") tr("Armar el sistema") else tr("Desarmar el sistema")) {
+            mutating(origin, if (mode == "armed") tr("Sistema ARMADO") else tr("Sistema DESARMADO")) {
+                require(_state.value.authenticated) { "Sign in first" }
+                _state.update { it.copy(snapshot = client.setMode(origin, mode, pin)) }
+            }
+        }
     }
 
     fun acknowledge(origin: String, alarm: Alarm) = mutating(origin, tr("Alarma confirmada")) {
@@ -589,9 +638,16 @@ class ArmorViewModel(private val client: ArmorApi = ArmorApiClient(), private va
     }
 
     /** "on", "off" or "toggle" to a plug, light, switch, siren, lock or valve. */
-    fun command(origin: String, device: SiteDevice, command: String, confirm: Boolean = false) = mutating(origin, trf("%s: orden enviada", device.name)) {
-        client.commandDevice(origin, device.id, command, confirm)
-        _state.update { it.copy(devices = client.devices(origin)) }
+    fun command(origin: String, device: SiteDevice, command: String, confirm: Boolean = false) {
+        if (viewerRefused()) return
+        val send = {
+            mutating(origin, trf("%s: orden enviada", device.name)) {
+                client.commandDevice(origin, device.id, command, confirm)
+                _state.update { it.copy(devices = client.devices(origin)) }
+            }
+        }
+        // a lock, a circuit of the board and a critical device are not a click: they ask for the lock of the phone first
+        if (device.kind == "lock" || device.risk != "low") confirmed(trf("Ordenar a %s", device.name)) { send() } else send()
     }
 
     fun loadOlderEvents(origin: String) = action(origin, tr("Historial ampliado")) {

@@ -97,12 +97,13 @@ private fun PasswordField(value: String, onValue: (String) -> Unit, label: Strin
 @Composable
 fun SecurityScreen(
     state: SecurityUiState, onStart: (String) -> Unit, onEnable: (String) -> Unit, onDisable: (String) -> Unit, onEndSession: (SessionInfo) -> Unit, onEndOthers: () -> Unit, onCheck: () -> Unit,
-    remoteActions: RemoteSetupActions? = null,
+    remoteActions: RemoteSetupActions? = null, lock: LockCardActions? = null,
 ) {
     val uri = LocalUriHandler.current
     var password by remember { mutableStateOf("") }
     var code by remember { mutableStateOf("") }
     Column(Modifier.verticalScroll(rememberScrollState()).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        lock?.let { LockSettingsCard(it) }
         SectionCard(tr("Segundo factor (aplicación autenticadora)"), tr("Con él, una contraseña robada no basta para entrar: la aplicación del móvil da un código de seis cifras que cambia cada treinta segundos. Sirve Google Authenticator, Aegis, Authy o cualquier similar.")) {
             state.totp?.let { totp ->
                 Text(

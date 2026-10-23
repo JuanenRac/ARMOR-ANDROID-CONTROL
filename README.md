@@ -22,14 +22,14 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
-  <img src="https://img.shields.io/badge/Tests-228%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-272%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.7.4-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
 ---
 
-**Honesty check - what runs today:** The endpoint-safety, alarm-decision, alarm-watcher, translation and read-only-role rules are covered by 228 unit tests and the app builds (`gradlew testDebugUnitTest assembleDebug`). It runs on a real phone against the CM5 test bench: sign-in, the camera monitor, arming and alarms, the radar, the set-up of a node over Bluetooth and the updates from GitHub are in use. What is **not** proven yet: the solar, electrical and alarm-panel screens with real equipment (only a radar node exists), push through Firebase (it is in the app and needs a Firebase project of its own; it has not been tried on a phone yet) and the background alarm watch under the battery rules of every phone maker.
+**Honesty check - what runs today:** The endpoint-safety, alarm-decision, alarm-watcher, translation and read-only-role rules are covered by 272 unit tests and the app builds (`gradlew testDebugUnitTest assembleDebug`). It runs on a real phone against the CM5 test bench: sign-in, the camera monitor, arming and alarms, the radar, the set-up of a node over Bluetooth and the updates from GitHub are in use. What is **not** proven yet: the solar, electrical and alarm-panel screens with real equipment (only a radar node exists), push through Firebase (it is in the app and needs a Firebase project of its own; it has not been tried on a phone yet) and the background alarm watch under the battery rules of every phone maker.
 
 ---
 
@@ -39,13 +39,14 @@
 |---|---|
 | Version | `0.7.4` |
 | Maturity | Established |
-| Tests | 257 (`gradlew testDebugUnitTest`) |
+| Tests | 272 (`gradlew testDebugUnitTest`) |
 | Stack | Kotlin / Jetpack Compose |
 | On real hardware | Used on a real phone against the CM5 test bench; the solar, electrical and alarm-panel screens wait for real nodes |
 
 ## 🎯 Overview
 
 * **Sign in with the server's own login:** IP, port, user and password; the password creates an HttpOnly session; it is stored on the phone only if you tick **Remember me** (off by default: user and password sealed with a Keystore key of their own, for that server only, forgotten the moment you untick it). A **viewer** role only looks: every button that changes something is off.
+* **Lock with the phone:** the app asks for the fingerprint, the face or the PIN of the phone itself before arming, disarming, silencing a siren, unlocking and the other critical orders (on by default only when the phone has a fingerprint or a face), and, if you turn it on, to open the app. Your administrator can require it from Studio but never lower what you chose, a phone with no screen lock is never shut out, and the locked screen always offers signing in again with the password.
 * **Camera monitor:** 1 to 16 tiles, a maximized view, live MJPEG that keeps the picture ratio, a bounded PTZ pad, snapshots and recordings, with a viewer and a delete confirmation for the recordings.
 * **Arm and disarm,** after a **check before arming** (what is open, silent or down) and with the PIN to disarm; **alarms** to acknowledge, with a badge for those waiting; **devices** (smoke, gas, flood, door, window, motion, climate, plugs, lights, sirens, locks, shutters, gate and garage-door motors, water heaters) with their state and On / Off / Toggle.
 * **Alarms that reach you:** a sound for every severity, an optional **spoken alarm**, notifications for a node reaching HIGH, a silent camera, a device alarm and (while armed) an offline node, and a **sounding alarm panel wakes the phone**; the background watch survives a reboot and backs off when the server is down.
@@ -78,7 +79,7 @@ ARMOR-ANDROID-CONTROL/
 │   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, NodeControlScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
 │   ├── NodeBleClient.kt, NodeSetupScreen.kt, NodeFinderScreens.kt, NodePanel.kt   configure a node over Bluetooth (the protocol is in model/NodeBle.kt)
 │   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmBanner.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
-│   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, PinDialog.kt, MjpegFeed.kt
+│   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, DeviceLock.kt, PhoneLock.kt, LockScreens.kt, PinDialog.kt, MjpegFeed.kt
 │   ├── network/   model/   update/
 │   └── assets/i18n/   en, es (the source phrases), de, fr, it, ja, zh, pt
 ├── docs/CLIENT_BOUNDARY.md, PUSH_NOTIFICATIONS.md   (the Firebase steps, in eight languages)
@@ -90,7 +91,7 @@ ARMOR-ANDROID-CONTROL/
 **Requirements:** JDK 17+, the Android SDK (compile SDK 37), an Android 8.0+ phone (minSdk 26)
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 257 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 272 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 

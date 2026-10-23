@@ -217,6 +217,8 @@ class ArmorApiClient : ArmorApi {
     /** The role of the signed-in user ("admin", "operator", "viewer"), empty when the server does not say. */
     override fun studioRole(origin: String): String = getJson(origin, "/api/v1/studio/session").optJSONObject("user")?.optString("role").orEmpty()
 
+    override fun sessionFacts(origin: String): SessionFacts = SessionFacts.parse(getJson(origin, "/api/v1/studio/session"))
+
     /** Sends the human login only once; the server returns an HttpOnly session cookie. */
     override fun openStudioSession(origin: String, username: String, password: String) {
         request(

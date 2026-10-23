@@ -3,6 +3,17 @@ package es.electrohobby3d.armor.network
 
 import es.electrohobby3d.armor.model.*
 
+/** What the session of the server tells about the signed-in person and the options in force for the phone. */
+data class SessionFacts(val role: String = "", val deviceLock: String = "user") {
+    companion object {
+        /** From the answer of `GET /api/v1/studio/session`. */
+        fun parse(json: org.json.JSONObject): SessionFacts = SessionFacts(
+            role = json.optJSONObject("user")?.optString("role").orEmpty(),
+            deviceLock = json.optJSONObject("capabilities")?.optJSONObject("security")?.optString("client.device_lock").orEmpty().ifBlank { "user" },
+        )
+    }
+}
+
 interface ArmorApi {
     /** The site as Studio designed it (terrain, buildings, radars, cameras); null when no design has been saved yet. */
     fun site(origin: String): SiteDesign?
@@ -64,6 +75,8 @@ interface ArmorApi {
     fun studioSessionActive(origin: String): Boolean
     /** The role of the signed-in user ("admin", "operator", "viewer"), empty when the server does not say. */
     fun studioRole(origin: String): String
+    /** The role and what the server asks of the phone's lock, in one request; an older server says nothing and then the person decides. */
+    fun sessionFacts(origin: String): SessionFacts = SessionFacts(role = studioRole(origin))
     /** Sends the human login only once; the server returns an HttpOnly session cookie. */
     fun openStudioSession(origin: String, username: String, password: String)
     /** Like [openStudioSession] but tells when the second factor is asked. */

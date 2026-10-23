@@ -312,6 +312,43 @@ class ArmorViewModelTest {
         assertTrue(server.seen.none { it.path == "/api/v1/history" })
     }
 
+    @Test fun `arming waits for the lock of the phone and is not sent when the lock refuses`() {
+        signIn()
+        val reasons = mutableListOf<String>()
+        model.sensitiveGate = SensitiveGate { reason -> reasons += reason; false }
+        model.setMode(origin, "disarmed"); idle()
+        assertEquals(0, posts("/api/v1/mode"))
+        assertEquals(tr("No se ha confirmado con el bloqueo del teléfono: no se ha hecho nada."), model.state.value.message)
+        assertEquals(listOf(tr("Desarmar el sistema")), reasons)
+        model.sensitiveGate = SensitiveGate { true }
+        model.setMode(origin, "disarmed"); idle()
+        until("the order went") { posts("/api/v1/mode") == 1 }
+    }
+
+    @Test fun `a viewer is told off before the lock of the phone is asked`() {
+        signIn("viewer")
+        var asked = false
+        model.sensitiveGate = SensitiveGate { asked = true; true }
+        model.setMode(origin, "armed"); idle()
+        assertFalse(asked)
+        assertEquals(0, posts("/api/v1/mode"))
+    }
+
+    @Test fun `without a gate everything goes as before`() {
+        signIn()
+        model.setMode(origin, "armed"); idle()
+        assertEquals(1, posts("/api/v1/mode"))
+    }
+
+    @Test fun `the server's request for the lock comes with the sign-in`() {
+        serve { request ->
+            if (request.method == "GET" && request.path == "/api/v1/studio/session") Triple(200, """{"authenticated":true,"user":{"role":"operator"},"capabilities":{"version":1,"actions":{},"features":[],"security":{"client.device_lock":"always"}}}""", emptyMap()) else null
+        }
+        model.login(origin, "ana", "pw"); until("signed in") { model.state.value.authenticated }; idle()
+        assertEquals("always", model.state.value.deviceLock)
+        assertEquals("operator", model.state.value.role)
+    }
+
     @Test fun `the voice is not sent for an empty phrase or to an address that is not valid`() {
         signIn()
         server.seen.clear()

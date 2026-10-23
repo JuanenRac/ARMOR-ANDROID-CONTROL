@@ -34,11 +34,17 @@ import es.electrohobby3d.armor.model.CameraView
 import es.electrohobby3d.armor.update.AppUpdateState
 import es.electrohobby3d.armor.update.AppUpdateViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.net.URI
 
 class ArmorActivity : ComponentActivity() {
+    /** The phone's own question (fingerprint, face, PIN); it has to be made while the activity is created. */
+    lateinit var deviceAuth: AndroidDeviceAuth
+        private set
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        deviceAuth = AndroidDeviceAuth(this)
         Tr.init(this)
         setContent { ArmorScreen() }
     }
@@ -61,6 +67,14 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     // "Remember me" is off until the person turns it on: then the user and the password are sealed in the Keystore with a key of their own, for this server only.
     val credentials = remember { CredentialVault(PreferencesStore(context.getSharedPreferences("armor-credentials", Context.MODE_PRIVATE)), KeystoreBox("armor-credentials")) }
     var rememberMe by rememberSaveable { mutableStateOf(credentials.has()) }
+    // The lock of the phone: before the sensitive actions (on by default only when the phone has a fingerprint or a face) and, if the person or the server wants it, to open the app.
+    val lockSettings = remember { LockSettings(PreferencesStore(context.getSharedPreferences("armor-control", Context.MODE_PRIVATE))) }
+    val phoneAuth: DeviceAuth = remember { (context as? ArmorActivity)?.deviceAuth ?: NoDeviceAuth }
+    val lockPolicy = remember { LockPolicy(lockSettings, phoneAuth::availability) }
+    val lockGate = remember { LockGate(lockPolicy, phoneAuth) }
+    var locked by rememberSaveable { mutableStateOf(lockPolicy.openRequired()) }
+    var lockStatus by remember { mutableStateOf(lockPolicy.status()) }
+    val lockScope = rememberCoroutineScope()
     var pendingRemember by remember { mutableStateOf<StoredCredentials?>(null) }   // typed with the box on; kept only once the server has accepted the sign-in
     var origin by rememberSaveable { mutableStateOf(preferences.getString("origin", "") ?: "") }
     val savedUri = remember(origin) { runCatching { URI(origin) }.getOrNull() }
@@ -116,7 +130,17 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     LaunchedEffect(state.authenticated, currentOrigin) {
         if (state.authenticated && currentOrigin.isNotBlank() && Push.available) Push.token(context.applicationContext) { viewModel.registerPush(currentOrigin, it) }
     }
-    LaunchedEffect(Unit) {
+    // What the server asks of the lock is kept, so it also holds when the app opens before the sign-in.
+    LaunchedEffect(state.deviceLock, state.authenticated) {
+        if (state.authenticated) { lockSettings.server = ServerLock.parse(state.deviceLock); lockStatus = lockPolicy.status() }
+    }
+    DisposableEffect(viewModel, lockGate) {
+        viewModel.sensitiveGate = lockGate
+        onDispose { if (viewModel.sensitiveGate === lockGate) viewModel.sensitiveGate = null }
+    }
+    // The session kept from last time is tried only once the person is recognised.
+    LaunchedEffect(locked) {
+        if (locked) return@LaunchedEffect
         if (restoring && !state.authenticated && currentOrigin.isNotBlank()) viewModel.tryRestore(currentOrigin, vault.load(currentOrigin)) { vault.clear() }
         restoring = false
     }
@@ -127,7 +151,9 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     // AppUpdateViewModel.resumeInstallAfterPermissionApproval's own doc).
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) updateViewModel.resumeInstallAfterPermissionApproval()
+            if (event == Lifecycle.Event.ON_RESUME) { updateViewModel.resumeInstallAfterPermissionApproval(); lockStatus = lockPolicy.status() }
+            if (event == Lifecycle.Event.ON_STOP) lockPolicy.left()
+            if (event == Lifecycle.Event.ON_START && lockPolicy.returned()) locked = true
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
@@ -239,6 +265,17 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     // The back button goes up one level instead of leaving the app.
     BackHandler(enabled = state.authenticated && (moreTab != null || section != Section.Status)) { if (moreTab != null) moreTab = null else section = Section.Status }
 
+    // Turning the lock on proves that the phone can ask (so the person is not shut out by a switch that cannot be answered); turning it off proves it is the person.
+    fun changeLock(turnOn: Boolean, wasRequired: Boolean, apply: () -> Unit) {
+        if (!turnOn && !wasRequired) { apply(); lockStatus = lockPolicy.status(); return }
+        lockScope.launch {
+            val result = lockGate.prove()
+            if (result == AuthResult.Success || (!turnOn && result == AuthResult.Unavailable)) apply()
+            else viewModel.say(tr("No se ha cambiado: no se pudo comprobar con el bloqueo del teléfono."))
+            lockStatus = lockPolicy.status()
+        }
+    }
+
     fun logout() {
         vault.clear()
         Push.forget(context)   // the token is dropped at Firebase too: if the server could not be told, its next message to this phone finds no one and the server forgets it
@@ -250,6 +287,13 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     ArmorTheme {
         Surface(Modifier.fillMaxSize(), color = ArmorColors.Background) {
             if (splash) { ArmorSplash { splash = false }; return@Surface }
+            if (locked) {
+                LockScreen(
+                    gate = lockGate, onUnlocked = { locked = false },
+                    onPasswordInstead = { logout(); credentials.clear(); rememberMe = false; locked = false },   // the way out: the session and the remembered sign-in on the phone are forgotten
+                )
+                return@Surface
+            }
             if (restoring && !state.authenticated && currentOrigin.isNotBlank()) { RestoringScreen(); return@Surface }
             if (nodeSetup) { NodeSetupScreen(onClose = { nodeSetup = false }); return@Surface }
             if (!state.authenticated) {
@@ -337,7 +381,12 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                     IconButton(onClick = { viewModel.loadSecurity(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
                                 }) {
                                     SecurityScreen(
-                                        securityState, onStart = { viewModel.startSecondFactor(currentOrigin, it) }, onEnable = { viewModel.enableSecondFactor(currentOrigin, it) }, onDisable = { viewModel.disableSecondFactor(currentOrigin, it) },
+                                        securityState, lock = LockCardActions(
+                                            status = lockStatus,
+                                            onSensitive = { on -> changeLock(on, lockPolicy.sensitiveRequired()) { lockSettings.setSensitive(on) } },
+                                            onOpen = { on -> changeLock(on, lockPolicy.openRequired()) { lockSettings.openApp = on } },
+                                            onGrace = { seconds -> lockSettings.graceSeconds = seconds; lockStatus = lockPolicy.status() },
+                                        ), onStart = { viewModel.startSecondFactor(currentOrigin, it) }, onEnable = { viewModel.enableSecondFactor(currentOrigin, it) }, onDisable = { viewModel.disableSecondFactor(currentOrigin, it) },
                                         onEndSession = { viewModel.endSession(currentOrigin, it) }, onEndOthers = { viewModel.endOtherSessions(currentOrigin) }, onCheck = { viewModel.checkRemote(currentOrigin) },
                                         remoteActions = RemoteSetupActions(
                                             onVpnSetup = { endpoint, port, lan, route -> viewModel.setupVpn(currentOrigin, endpoint, port, lan, route) },

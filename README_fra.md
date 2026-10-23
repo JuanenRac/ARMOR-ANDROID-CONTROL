@@ -22,7 +22,7 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
-  <img src="https://img.shields.io/badge/Tests-228%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-272%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.7.4-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
@@ -39,13 +39,14 @@
 |---|---|
 | Version | `0.7.4` |
 | Maturité | Établi |
-| Tests | 257 (`gradlew testDebugUnitTest`) |
+| Tests | 272 (`gradlew testDebugUnitTest`) |
 | Technologie | Kotlin / Jetpack Compose |
 | Sur matériel réel | Utilisée sur un vrai téléphone contre le banc de test CM5 ; les écrans solaire, électrique et centrales d'alarme attendent de vrais nœuds |
 
 ## 🎯 Présentation
 
 * **Connexion avec le login du serveur lui-même :** IP, port, utilisateur et mot de passe ; le mot de passe crée une session HttpOnly ; il n'est stocké sur le téléphone que si vous cochez **Se souvenir de moi** (désactivé par défaut : utilisateur et mot de passe scellés avec une clé propre du Keystore, pour ce serveur seulement, oubliés dès que vous décochez). Un rôle **viewer** ne fait que regarder : tout bouton qui change quelque chose est désactivé.
+* **Verrouillage avec le téléphone :** l'application demande l'empreinte, le visage ou le code du téléphone lui-même avant d'armer, de désarmer, de couper une sirène, de déverrouiller et pour les autres ordres critiques (activé par défaut seulement si le téléphone a une empreinte ou un visage) et, si tu l'actives, pour ouvrir l'application. Ton administrateur peut l'exiger depuis Studio mais jamais abaisser ton choix ; un téléphone sans verrouillage d'écran n'est jamais bloqué et l'écran verrouillé propose toujours de se reconnecter avec le mot de passe.
 * **Moniteur de caméras :** de 1 à 16 tuiles, une vue agrandie, MJPEG en direct qui garde le rapport d'image, une télécommande PTZ bornée, captures et enregistrements, avec visionneuse et confirmation de suppression des enregistrements.
 * **Armer et désarmer,** après une **vérification avant armement** (ce qui est ouvert, muet ou en panne) et avec le PIN pour désarmer ; **alarmes** à acquitter, avec un badge pour celles en attente ; **appareils** (fumée, gaz, inondation, porte, fenêtre, mouvement, climat, prises, lumières, sirènes, serrures, volets, moteurs de portail et de garage, chauffe-eau) avec leur état et Allumer / Éteindre / Basculer.
 * **Des alarmes qui vous atteignent :** un son pour chaque gravité, une **alarme parlée** facultative, des notifications pour un nœud qui passe en HAUT, une caméra muette, une alarme d'appareil et (armé) un nœud hors ligne, et **une centrale qui sonne réveille le téléphone** ; la veille en arrière-plan survit à un redémarrage et lève le pied quand le serveur est en panne.
@@ -78,7 +79,7 @@ ARMOR-ANDROID-CONTROL/
 │   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, NodeControlScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
 │   ├── NodeBleClient.kt, NodeSetupScreen.kt, NodeFinderScreens.kt, NodePanel.kt   configure a node over Bluetooth (the protocol is in model/NodeBle.kt)
 │   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmBanner.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
-│   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, PinDialog.kt, MjpegFeed.kt
+│   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, DeviceLock.kt, PhoneLock.kt, LockScreens.kt, PinDialog.kt, MjpegFeed.kt
 │   ├── network/   model/   update/
 │   └── assets/i18n/   en, es (the source phrases), de, fr, it, ja, zh, pt
 ├── docs/CLIENT_BOUNDARY.md, PUSH_NOTIFICATIONS.md   (the Firebase steps, in eight languages)
@@ -90,7 +91,7 @@ ARMOR-ANDROID-CONTROL/
 **Prérequis:** JDK 17+, le SDK Android (compile SDK 37), un téléphone Android 8.0+ (minSdk 26)
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 257 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 272 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
