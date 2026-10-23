@@ -184,12 +184,12 @@ A new server route lets a phone take its token back with a POST, for HTTP stacks
 
 ## [0.5.1] - A sounding central wakes the phone, and the PIN to disarm
 
-- **An alarm of an ARMOR-ALARM node** (sounding, a zone in tamper, locked out, gone quiet) is told like the other alarms, armed or not, and its source is named by node and zone. Before, `source_type` `alarm` was not on the list and the phone stayed silent. The app has not been compiled with this change: only the unit test was written.
+- **An alarm of an ARMOR-NODE-ALARM node** (sounding, a zone in tamper, locked out, gone quiet) is told like the other alarms, armed or not, and its source is named by node and zone. Before, `source_type` `alarm` was not on the list and the phone stayed silent. The app has not been compiled with this change: only the unit test was written.
 - **Disarming asks for the PIN** (the system, and an alarm panel) in a dialog with a numeric field; a wrong, locked or missing PIN is told in words. The alarm of a disarm under duress has its sentence. The app has not been compiled with this change.
 
 ## [0.5.0] - The alarm panels, and the electrical devices of the house
 
-- **More > Alarm panels:** the ARMOR-ALARM nodes. One card per panel with its phase and mode (disarmed, leaving, armed, entry delay, ALARM; away or at home), the siren, its zones (kind and closed, open, tamper or left out) and its last events told as how long ago; the node finder is there too. The screen reads the panels every three seconds while it is open.
+- **More > Alarm panels:** the ARMOR-NODE-ALARM nodes. One card per panel with its phase and mode (disarmed, leaving, armed, entry delay, ALARM; away or at home), the siren, its zones (kind and closed, open, tamper or left out) and its last events told as how long ago; the node finder is there too. The screen reads the panels every three seconds while it is open.
 - **Arm and disarm from the card**, only when the server (`ARMOR_ALARM_COMMANDS=1`), the node and the broker all allow it (the screen says so when the server does not). A disarm carries no PIN, so the app asks first; a command the server refuses is explained in Spanish, and what the node answered (accepted, a zone is open, it did not answer) shows on the card. An accepted command is not an armed alarm: the card follows what the node says next.
 - **The alarms of a panel** have their own sentences: it is sounding, a zone shows tamper, the panel is locked out after wrong PINs, the node stopped answering.
 - **Devices:** the circuit-breaker and energy-meter kinds with their voltage, current and energy, and a command to a device that matters (a circuit of the board, a critical one) asks first and goes with the confirmation the server wants.
@@ -258,7 +258,7 @@ A new server route lets a phone take its token back with a POST, for HTTP stacks
 - **Real bug, reported by the user:** after giving a node the Wi-Fi of the house over Bluetooth, the node restarted and neither joined the Wi-Fi nor could be found again, and the app only said "open it by its address". The app now looks for the node again by Bluetooth after it restarts and reads, from its `hello`, whether it joined (its address and network) or why it did not (network not found, wrong password, or only "it did not connect"), with buttons to check again or to change the configuration.
 - **Fixed address or DHCP on the Wi-Fi too:** the address block (DHCP or fixed address, mask, gateway, DNS) is offered whichever connection is chosen; before it was only shown for the cable.
 - **The form is checked before it is sent:** a Wi-Fi name is needed, a Wi-Fi password has 8 to 63 characters, and a fixed address, mask and gateway must be valid and in the same network.
-- Needs the node firmware that reports why it did not join (ARMOR-RADAR 0.3.2, ARMOR-SOLAR 0.1.1, ARMOR-ELECTRICAL 0.0.7); with an older firmware the app says only that it could not tell.
+- Needs the node firmware that reports why it did not join (ARMOR-NODE-RADAR 0.3.2, ARMOR-NODE-SOLAR 0.1.1, ARMOR-NODE-ELECTRICAL 0.0.7); with an older firmware the app says only that it could not tell.
 - **Tests:** the patch with a fixed address on Wi-Fi, the form checks and the reading of the outcome from the `hello`.
 
 ## [0.3.7] - A GitHub rate limit looked like a broken update check

@@ -42,7 +42,7 @@ interface ArmorApi {
     /** Step two: the operation must be armed; the serial number is typed again. */
     fun batteryExecute(origin: String, id: String, serial: String): es.electrohobby3d.armor.model.BatteryOperationView
     fun batteryCancel(origin: String, id: String): es.electrohobby3d.armor.model.BatteryOperationView
-    /** The alarm nodes (ARMOR-ALARM): each panel's phase and mode, its zones and its last events; an operator session is needed. */
+    /** The alarm nodes (ARMOR-NODE-ALARM): each panel's phase and mode, its zones and its last events; an operator session is needed. */
     fun alarmPanels(origin: String): es.electrohobby3d.armor.model.AlarmPanelsOverview
     /** The arming modes (Away, Home, Night, the owner's own) the server keeps; any signed-in session may read them. */
     fun armProfiles(origin: String): List<es.electrohobby3d.armor.model.ArmProfileView>

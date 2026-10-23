@@ -1,4 +1,4 @@
-// ARMOR-ANDROID-CONTROL - the protocol of a field node's Bluetooth configuration channel (ARMOR-RADAR, docs/BLE_PROVISIONING.md), without the radio.
+// ARMOR-ANDROID-CONTROL - the protocol of a field node's Bluetooth configuration channel (ARMOR-NODE-RADAR, docs/BLE_PROVISIONING.md), without the radio.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor.model
 

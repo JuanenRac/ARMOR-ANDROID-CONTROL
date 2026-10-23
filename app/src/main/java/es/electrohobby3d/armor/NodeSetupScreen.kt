@@ -1,7 +1,7 @@
 // ARMOR-ANDROID-CONTROL - configure a field node over Bluetooth: find it, sign in (or create its administrator), and set its name, Wi-Fi, address and broker.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 //
-// For a node that has no Ethernet cable or no address yet. The operations are those of the node's own web panel; the protocol is ARMOR-RADAR's docs/BLE_PROVISIONING.md.
+// For a node that has no Ethernet cable or no address yet. The operations are those of the node's own web panel; the protocol is ARMOR-NODE-RADAR's docs/BLE_PROVISIONING.md.
 // Compiled, never run against a node.
 package es.electrohobby3d.armor
 
