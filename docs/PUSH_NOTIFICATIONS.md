@@ -26,6 +26,8 @@ Two files come out of the Firebase console. They are different and neither goes 
 
 **Security.** Never commit either file or paste them in an issue. To cut off a leaked service account, delete its key in the console (*Service accounts* → *Manage service account permissions* → *Keys*). The phone tokens are kept in the server's data directory and a phone is removed when it signs out if the server can be reached and the user may do it (a viewer's sign-out also drops the phone's Firebase token, so the server's next message to it finds no one). The text of a notification is in the language of the server, not of the phone. The APKs on this repository's releases are built with the maintainer's own project: push works only against that maintainer's server, so build your own APK for your installation.
 
+Data-only messages. Besides the notification message, the app understands a message of data only (no `notification` part): the server says which event happened and the phone writes the notice in its own language. The data are `event_id` (the id the history gives the event; a message without it is ignored), `type` (`alarm`, `alert`, `node`, `camera`, `device`), the subject (`node_id`, `camera_id`, `device_id` or `source`), `to`, `severity`, `code`, `source_type`, `targets`, `at` and `armed`. The id of the event is what keeps one event from being announced twice, whether it arrives by push or by the watch of the app, and a message the system already showed by itself is only noted. This needs a server that sends such messages; with the notification kind nothing changes.
+
 ## Español
 
 1. **Crea el proyecto.** Entra en <https://console.firebase.google.com>, *Añadir proyecto*, ponle un nombre (por ejemplo `armor-casa`). No hace falta Google Analytics.
@@ -38,6 +40,8 @@ Two files come out of the Firebase console. They are different and neither goes 
 8. **Si no llega.** `enabled:false`: la variable no está puesta o la ruta es incorrecta (el registro del servidor dice por qué, nunca con una clave dentro). `devices:0`: el móvil no ha iniciado sesión en esta compilación, o la compilación no tenía `google-services.json`. No se muestra nada: permite las notificaciones de la app en Android y comprueba que la *Cloud Messaging API (V1)* esté activa.
 
 **Seguridad.** No subas nunca ninguno de los dos archivos ni los pegues en una incidencia. Para anular una cuenta de servicio filtrada, borra su clave en la consola (*Cuentas de servicio* → *Administrar permisos de la cuenta de servicio* → *Claves*). Los tokens de los móviles se guardan en el directorio de datos del servidor y un móvil se quita al cerrar sesión si se puede avisar al servidor (al cerrar sesión también se descarta el token de Firebase del móvil, así que los mensajes del servidor ya no lo encuentran). El texto de las notificaciones va en el idioma del servidor, no en el del móvil. Los APK de las releases de este repositorio se compilan con el proyecto del mantenedor: el push solo funciona contra el servidor del mantenedor, así que compila tu propio APK para tu instalación.
+
+Mensajes solo con datos. Además del mensaje de notificación, la app entiende un mensaje solo de datos (sin parte `notification`): el servidor dice qué evento ocurrió y el teléfono escribe el aviso en su idioma. Los datos son `event_id` (the id the history gives the event; a message without it is ignored), `type` (`alarm`, `alert`, `node`, `camera`, `device`), the subject (`node_id`, `camera_id`, `device_id` or `source`), `to`, `severity`, `code`, `source_type`, `targets`, `at` and `armed`. El id del evento es lo que impide anunciar dos veces un mismo evento, llegue por push o por la vigilancia de la app, y un mensaje que el sistema ya mostró por sí mismo solo se anota. Hace falta un servidor que envíe esos mensajes; con el tipo notificación no cambia nada.
 
 ## Français
 
@@ -52,6 +56,8 @@ Two files come out of the Firebase console. They are different and neither goes 
 
 **Sécurité.** Ne versionnez jamais l'un de ces fichiers et ne les collez pas dans un ticket. Pour neutraliser un compte de service divulgué, supprimez sa clé dans la console (*Comptes de service* → *Gérer les autorisations du compte de service* → *Clés*). Les jetons des téléphones sont gardés dans le répertoire de données du serveur et un téléphone est retiré à la déconnexion si le serveur peut être prévenu (la déconnexion supprime aussi le jeton Firebase du téléphone : les messages du serveur ne le trouvent plus). Le texte des notifications est dans la langue du serveur, pas celle du téléphone. Les APK des releases de ce dépôt sont compilés avec le projet du mainteneur : le push ne fonctionne que contre son serveur, compilez donc votre propre APK pour votre installation.
 
+Messages de données seules. En plus du message de notification, l'app comprend un message de données seules (sans partie `notification`) : le serveur dit quel événement s'est produit et le téléphone écrit l'avis dans sa langue. Les données sont `event_id` (the id the history gives the event; a message without it is ignored), `type` (`alarm`, `alert`, `node`, `camera`, `device`), the subject (`node_id`, `camera_id`, `device_id` or `source`), `to`, `severity`, `code`, `source_type`, `targets`, `at` and `armed`. L'id de l'événement empêche d'annoncer deux fois le même événement, qu'il arrive par push ou par la surveillance de l'app, et un message que le système a déjà affiché lui-même est seulement noté. Il faut un serveur qui envoie ces messages ; avec le type notification rien ne change.
+
 ## Italiano
 
 1. **Crea il progetto.** Apri <https://console.firebase.google.com>, *Aggiungi progetto*, dagli un nome (per esempio `armor-casa`). Google Analytics non serve.
@@ -64,6 +70,8 @@ Two files come out of the Firebase console. They are different and neither goes 
 8. **Se non arriva.** `enabled:false`: la variabile non è impostata o il percorso è sbagliato (il registro del server dice perché, mai con una chiave dentro). `devices:0`: il telefono non ha effettuato l'accesso con questa compilazione, o non aveva `google-services.json`. Non si vede nulla: consenti le notifiche dell'app in Android e controlla che la *Cloud Messaging API (V1)* sia attiva.
 
 **Sicurezza.** Non committare mai nessuno dei due file e non incollarli in una segnalazione. Per invalidare un account di servizio trapelato, elimina la sua chiave nella console (*Account di servizio* → *Gestisci autorizzazioni dell'account di servizio* → *Chiavi*). I token dei telefoni sono nella directory dati del server e un telefono viene rimosso quando esce, se il server può essere avvisato (l'uscita elimina anche il token Firebase del telefono: i messaggi del server non lo trovano più). Il testo delle notifiche è nella lingua del server, non in quella del telefono. Gli APK delle release di questo repository sono compilati con il progetto del manutentore: il push funziona solo col suo server, quindi compila il tuo APK per la tua installazione.
+
+Messaggi di soli dati. Oltre al messaggio di notifica, l'app capisce un messaggio di soli dati (senza parte `notification`): il server dice quale evento è avvenuto e il telefono scrive l'avviso nella sua lingua. I dati sono `event_id` (the id the history gives the event; a message without it is ignored), `type` (`alarm`, `alert`, `node`, `camera`, `device`), the subject (`node_id`, `camera_id`, `device_id` or `source`), `to`, `severity`, `code`, `source_type`, `targets`, `at` and `armed`. L'id dell'evento impedisce di annunciare due volte lo stesso evento, arrivi per push o dalla sorveglianza dell'app, e un messaggio che il sistema ha già mostrato da sé viene solo annotato. Serve un server che invii tali messaggi; con il tipo notifica non cambia nulla.
 
 ## Deutsch
 
@@ -78,6 +86,8 @@ Two files come out of the Firebase console. They are different and neither goes 
 
 **Sicherheit.** Committen Sie keine der beiden Dateien und fügen Sie sie in kein Ticket ein. Um ein geleaktes Dienstkonto unbrauchbar zu machen, löschen Sie seinen Schlüssel in der Konsole (*Dienstkonten* → *Dienstkontoberechtigungen verwalten* → *Schlüssel*). Die Handy-Tokens liegen im Datenverzeichnis des Servers und ein Handy wird beim Abmelden entfernt, wenn der Server erreicht werden kann (beim Abmelden wird auch das Firebase-Token des Handys verworfen, die Nachrichten des Servers finden es dann nicht mehr). Der Text der Benachrichtigungen ist in der Sprache des Servers, nicht des Handys. Die APKs der Releases dieses Repositorys sind mit dem Projekt des Maintainers gebaut: Push funktioniert nur gegen dessen Server, bauen Sie also für Ihre Installation Ihre eigene APK.
 
+Nachrichten nur mit Daten. Neben der Benachrichtigungsnachricht versteht die App eine reine Datennachricht (ohne `notification`-Teil): Der Server sagt, welches Ereignis eintrat, und das Telefon schreibt die Meldung in seiner Sprache. Die Daten sind `event_id` (the id the history gives the event; a message without it is ignored), `type` (`alarm`, `alert`, `node`, `camera`, `device`), the subject (`node_id`, `camera_id`, `device_id` or `source`), `to`, `severity`, `code`, `source_type`, `targets`, `at` and `armed`. Die Id des Ereignisses verhindert, dass ein Ereignis zweimal gemeldet wird, ob es per Push oder durch die Überwachung der App eintrifft; eine vom System schon selbst angezeigte Nachricht wird nur vermerkt. Dafür braucht es einen Server, der solche Nachrichten sendet; mit der Benachrichtigungsart ändert sich nichts.
+
 ## 中文
 
 1. **创建项目。** 打开 <https://console.firebase.google.com>，点击“添加项目”，起个名字（例如 `armor-home`）。不需要 Google Analytics。
@@ -90,6 +100,8 @@ Two files come out of the Firebase console. They are different and neither goes 
 8. **收不到时。** `enabled:false`：未设置该变量或路径错误（服务器日志会说明原因，且从不包含密钥）。`devices:0`：手机没有用此构建登录，或该构建没有 `google-services.json`。没有显示：在 Android 中允许该应用的通知，并确认 *Cloud Messaging API (V1)* 已启用。
 
 **安全。** 切勿提交这两个文件，也不要贴到问题反馈里。要使泄露的服务账号失效，请在控制台删除其密钥（“服务账号”→“管理服务账号权限”→“密钥”）。手机令牌保存在服务器的数据目录中，手机退出登录时，如果能通知到服务器，就会被移除（退出登录还会丢弃手机的 Firebase 令牌，服务器之后的消息就找不到它了）。通知文字使用服务器的语言，而不是手机的语言。本仓库 Release 中的 APK 是用维护者自己的项目构建的：推送只对维护者的服务器有效，所以请为你的安装自己构建 APK。
+
+仅含数据的消息。除通知消息外，应用还能理解仅含数据的消息（没有 `notification` 部分）：服务器说明发生了哪个事件，手机用自己的语言写出提醒。数据包括 `event_id` (the id the history gives the event; a message without it is ignored), `type` (`alarm`, `alert`, `node`, `camera`, `device`), the subject (`node_id`, `camera_id`, `device_id` or `source`), `to`, `severity`, `code`, `source_type`, `targets`, `at` and `armed`。事件的 id 保证同一事件无论经由推送还是应用的后台监控到达都只播报一次；系统已自行显示的消息只会被记录。这需要服务器发送此类消息；使用通知类型时一切照旧。
 
 ## 日本語
 
@@ -104,6 +116,8 @@ Two files come out of the Firebase console. They are different and neither goes 
 
 **セキュリティ。** どちらのファイルもコミットしたり、課題に貼り付けたりしないでください。漏えいしたサービスアカウントを無効にするには、コンソールでその鍵を削除します（「サービスアカウント」→「サービスアカウントの権限を管理」→「鍵」）。端末のトークンはサーバーのデータディレクトリに保存され、サインアウトすると、サーバーに連絡できる場合は削除されます（サインアウトは端末の Firebase トークンも破棄するため、以後サーバーのメッセージは届きません）。通知の文面はサーバーの言語であり、端末の言語ではありません。このリポジトリのリリースの APK はメンテナー自身のプロジェクトでビルドされているため、プッシュはそのサーバーに対してのみ動作します。ご自身の環境では APK を自分でビルドしてください。
 
+データのみのメッセージ。通知メッセージに加えて、アプリはデータのみのメッセージ（`notification` 部分なし）を理解します。サーバーはどのイベントが起きたかを伝え、携帯電話が自分の言語で通知を作ります。データは `event_id` (the id the history gives the event; a message without it is ignored), `type` (`alarm`, `alert`, `node`, `camera`, `device`), the subject (`node_id`, `camera_id`, `device_id` or `source`), `to`, `severity`, `code`, `source_type`, `targets`, `at` and `armed` です。イベントの id により、プッシュでもアプリの監視でも同じイベントを 2 度通知しません。システムがすでに表示したメッセージは記録されるだけです。このようなメッセージを送るサーバーが必要で、通知タイプでは何も変わりません。
+
 ## Português
 
 1. **Crie o projeto.** Abra <https://console.firebase.google.com>, *Adicionar projeto*, dê-lhe um nome (por exemplo `armor-casa`). O Google Analytics não é necessário.
@@ -116,3 +130,5 @@ Two files come out of the Firebase console. They are different and neither goes 
 8. **Se não chegar.** `enabled:false`: a variável não está definida ou o caminho está errado (o registo do servidor diz porquê, nunca com uma chave lá dentro). `devices:0`: o telemóvel não iniciou sessão nesta compilação, ou a compilação não tinha `google-services.json`. Nada é mostrado: permita as notificações da app no Android e confirme que a *Cloud Messaging API (V1)* está ativa.
 
 **Segurança.** Nunca faça commit de nenhum dos dois ficheiros nem os cole numa issue. Para anular uma conta de serviço divulgada, apague a sua chave na consola (*Contas de serviço* → *Gerir permissões da conta de serviço* → *Chaves*). Os tokens dos telemóveis ficam no diretório de dados do servidor e um telemóvel é removido ao terminar a sessão se o servidor puder ser avisado (terminar a sessão também descarta o token do Firebase do telemóvel, por isso as mensagens do servidor já não o encontram). O texto das notificações está no idioma do servidor, não no do telemóvel. Os APK das releases deste repositório são compilados com o projeto do mantenedor: o push só funciona com o servidor dele, por isso compile o seu próprio APK para a sua instalação.
+
+Mensagens só com dados. Além da mensagem de notificação, a app compreende uma mensagem só de dados (sem parte `notification`): o servidor diz que evento ocorreu e o telemóvel escreve o aviso no seu idioma. Os dados são `event_id` (the id the history gives the event; a message without it is ignored), `type` (`alarm`, `alert`, `node`, `camera`, `device`), the subject (`node_id`, `camera_id`, `device_id` or `source`), `to`, `severity`, `code`, `source_type`, `targets`, `at` and `armed`. O id do evento impede que um mesmo evento seja anunciado duas vezes, chegue por push ou pela vigilância da app, e uma mensagem que o sistema já mostrou por si só apenas é anotada. É preciso um servidor que envie essas mensagens; com o tipo notificação nada muda.
