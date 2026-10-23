@@ -35,6 +35,7 @@ private object PromptError {
 }
 
 /** Must be created while the activity is being created (it registers for the answer of the older "confirm your PIN" screen). */
+@android.annotation.SuppressLint("InvalidFragmentVersionForActivityResult") // a plain ComponentActivity: the app uses no fragments
 class AndroidDeviceAuth(private val activity: ComponentActivity) : DeviceAuth {
     private var pending: ((AuthResult) -> Unit)? = null
     private val credentialScreen: ActivityResultLauncher<android.content.Intent> =
