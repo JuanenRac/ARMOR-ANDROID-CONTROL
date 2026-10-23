@@ -73,7 +73,7 @@ private fun StillPicture(url: String, cookie: Pair<String, String>?) {
                     connection.connectTimeout = 8_000; connection.readTimeout = 20_000
                     cookie?.let { connection.setRequestProperty("Cookie", "${it.first}=${it.second}") }
                     if (connection.responseCode != 200) error("HTTP ${connection.responseCode}")
-                    val bytes = connection.inputStream.use { it.readNBytes(MAX_PICTURE_BYTES) }
+                    val bytes = connection.inputStream.use { stream -> readUpTo(stream, MAX_PICTURE_BYTES) }   // readNBytes exists only from Android 13
                     BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: error(tr("La imagen no se pudo leer"))
                 } finally { connection.disconnect() }
             }
@@ -86,4 +86,16 @@ private fun StillPicture(url: String, cookie: Pair<String, String>?) {
             onFailure = { Text(it.message ?: tr("No se pudo abrir"), color = MaterialTheme.colorScheme.error) },
         )
     }
+}
+
+/** Up to [limit] bytes of [stream] (less if it ends first). */
+private fun readUpTo(stream: java.io.InputStream, limit: Int): ByteArray {
+    val buffer = ByteArray(limit)
+    var read = 0
+    while (read < limit) {
+        val count = stream.read(buffer, read, limit - read)
+        if (count < 0) break
+        read += count
+    }
+    return buffer.copyOf(read)
 }

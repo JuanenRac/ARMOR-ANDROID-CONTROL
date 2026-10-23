@@ -58,7 +58,7 @@ object AlarmPolicy {
  * service announces the same event twice. The first call only records a baseline: opening the
  * app for the first time must not replay the whole history as alarms.
  */
-class AlarmTracker(private val load: (String) -> Long, private val save: (String, Long) -> Unit, private val now: () -> Long = System::currentTimeMillis) {
+class AlarmTracker(private val load: (String) -> Long, private val save: (String, Long) -> Unit, private val now: () -> Long = System::currentTimeMillis, private val announced: AnnouncedIds? = null) {
     /** The newest event handled for this server, or -1 when it was never looked at. */
     fun last(origin: String): Long = load(origin)
 
@@ -72,11 +72,14 @@ class AlarmTracker(private val load: (String) -> Long, private val save: (String
         val newest = events.maxOf { it.id }
         val last = load(origin)
         if (last < 0) { save(origin, newest); return emptyList() }
-        if (newest < last) { save(origin, newest); return AlarmPolicy.notices(recent(events), armed) }
+        if (newest < last) { save(origin, newest); return once(origin, AlarmPolicy.notices(recent(events), armed)) }
         val fresh = events.filter { it.id > last }
         if (newest > last) save(origin, newest)
-        return AlarmPolicy.notices(recent(fresh), armed)
+        return once(origin, AlarmPolicy.notices(recent(fresh), armed))
     }
+
+    /** What a push message already announced is not announced again by the watch, and the other way round. */
+    private fun once(origin: String, notices: List<AlarmNotice>): List<AlarmNotice> = if (announced == null) notices else notices.filter { announced.firstTime(origin, it.id) }
 
     private fun recent(events: List<ArmorEvent>): List<ArmorEvent> = events.filter { event ->
         val at = runCatching { java.time.Instant.parse(event.at).toEpochMilli() }.getOrNull()

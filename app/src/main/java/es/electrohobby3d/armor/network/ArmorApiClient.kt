@@ -143,7 +143,7 @@ class ArmorApiClient : ArmorApi {
     override fun nodeControlOperation(origin: String, id: String): es.electrohobby3d.armor.model.ControlOperationView =
         es.electrohobby3d.armor.model.NodeControlParser.operation(getJson(origin, "/api/v1/nodes/control/operations/" + java.net.URLEncoder.encode(id, "UTF-8")))
 
-    /** The alarm nodes (ARMOR-ALARM): each panel's phase and mode, its zones and its last events; an operator session is needed. */
+    /** The alarm nodes (ARMOR-NODE-ALARM): each panel's phase and mode, its zones and its last events; an operator session is needed. */
     override fun alarmPanels(origin: String): es.electrohobby3d.armor.model.AlarmPanelsOverview = es.electrohobby3d.armor.model.AlarmPanelsParser.overview(getJson(origin, "/api/v1/alarm/nodes"))
     /** Whether the server may arm, disarm and silence the panels at all, and what became of the latest commands. */
     /** The arming modes (Away, Home, Night, the owner's own) the server keeps; any signed-in session may read them. */
@@ -362,8 +362,10 @@ class ArmorApiClient : ArmorApi {
         return try { JSONObject(connection.inputStream.bufferedReader().use { it.readText() }) } finally { connection.disconnect() }
     }
     private fun request(origin: String, path: String, method: String, headers: Map<String, String>, body: String?, expected: Set<Int>): HttpURLConnection {
+        es.electrohobby3d.armor.TrustPins.checkScheme(origin)
         val connection = (URL(origin.trimEnd('/') + path).openConnection() as HttpURLConnection).apply {
             requestMethod = method; connectTimeout = 8_000; readTimeout = 12_000; instanceFollowRedirects = false
+            es.electrohobby3d.armor.TrustPins.apply(this, url.host)
             // what the app says it is, so that the history of connections of the server can tell it from Studio and from the other clients (only informative)
             setRequestProperty("X-Armor-Client", "android/${es.electrohobby3d.armor.BuildConfig.VERSION_NAME}")
             headers.forEach { (key, value) -> setRequestProperty(key, value) }
@@ -371,6 +373,7 @@ class ArmorApiClient : ArmorApi {
         }
         // the connection is closed whatever goes wrong (a refused connection, a timeout), and the status is read once
         val code = try { connection.responseCode } catch (error: java.io.IOException) { connection.disconnect(); throw error }
+        es.electrohobby3d.armor.TrustPins.reached(origin)
         if (code !in expected) {
             val detail = try { connection.errorStream?.bufferedReader()?.use { it.readText() }?.take(180).orEmpty() } catch (_: java.io.IOException) { "" }
             connection.disconnect()
@@ -380,7 +383,7 @@ class ArmorApiClient : ArmorApi {
         return connection
     }
     /** A piece of a path: a space is %20 (the form encoding of URLEncoder writes "+", which in a path is a plus sign, so "cam 1" went to "cam+1"). */
-    private fun part(value: String) = java.net.URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20")
+    private fun part(value: String) = java.net.URLEncoder.encode(value, "UTF-8").replace("+", "%20")   // the charset by name: the overload that takes a Charset exists only from Android 13
 }
 
 private fun JSONArray?.asObjects(): List<JSONObject> = buildList { if (this@asObjects != null) for (index in 0 until length()) optJSONObject(index)?.let(::add) }

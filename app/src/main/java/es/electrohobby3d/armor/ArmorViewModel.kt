@@ -58,7 +58,7 @@ data class MonitorUiState(
     val devices: List<SiteDevice> = emptyList(),
     /** Solar inverters and batteries; null until the server has answered (an older server never does). */
     val solar: es.electrohobby3d.armor.model.SolarOverview? = null,
-    /** The alarm panels (ARMOR-ALARM nodes); null until the server has answered (an older server never does). */
+    /** The alarm panels (ARMOR-NODE-ALARM nodes); null until the server has answered (an older server never does). */
     val alarmPanels: es.electrohobby3d.armor.model.AlarmPanelsOverview? = null,
     /** The arming modes the server keeps (Away, Home, Night, the owner's own). */
     val armProfiles: List<es.electrohobby3d.armor.model.ArmProfileView> = emptyList(),
@@ -80,6 +80,8 @@ data class MonitorUiState(
     val site: es.electrohobby3d.armor.model.SiteDesign? = null,
     val siteLoaded: Boolean = false,
     val authenticated: Boolean = false,
+    /** The server has not answered at all for a few passes: the address in use may be the wrong one for where the phone is. */
+    val silent: Boolean = false,
     val message: String? = null,
 ) {
     val readOnly: Boolean get() = role.isNotEmpty() && role != "admin" && role != "operator"   // a viewer and a wall panel (which may read, arm, disarm and acknowledge, and nothing else) only look, and so does any role this app does not know; an empty role is "not told yet"
@@ -87,7 +89,7 @@ data class MonitorUiState(
     val isAdmin: Boolean get() = role == "admin"
 }
 
-class ArmorViewModel(private val client: ArmorApi = ArmorApiClient(), private val weatherClient: WeatherApiClient = WeatherApiClient()) : ViewModel() {
+class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val weatherClient: WeatherApiClient = WeatherApiClient()) : ViewModel() {
     private val _state = MutableStateFlow(MonitorUiState())
     val state: StateFlow<MonitorUiState> = _state.asStateFlow()
 
@@ -588,6 +590,7 @@ class ArmorViewModel(private val client: ArmorApi = ArmorApiClient(), private va
      */
     suspend fun pollOnce(origin: String, app: Context) = withContext(Dispatchers.IO) {
         try {
+            SharedFeed.appRead()   // the watch in the background leaves its turn to the app while the app is reading
             val status = client.status(origin)
             val cameras = client.cameraViews(origin)
             val window = client.history(origin, limit = 50)
@@ -604,14 +607,22 @@ class ArmorViewModel(private val client: ArmorApi = ArmorApiClient(), private va
             _state.update { it.copy(
                 solar = solar ?: it.solar, electrical = electrical ?: it.electrical, network = network ?: it.network,
                 snapshot = status, cameras = cameras, events = mergeEvents(window, it.events), cameraHealth = health,
-                alarms = alarms?.first ?: it.alarms, closedAlarms = alarms?.second ?: it.closedAlarms, devices = devices ?: it.devices,
+                alarms = alarms?.first ?: it.alarms, closedAlarms = alarms?.second ?: it.closedAlarms, devices = devices ?: it.devices, silent = false,
             ) }
+            silentPasses = 0
         } catch (error: ArmorApiException) {
             if (error.code == 401) _state.update { MonitorUiState(message = tr("La sesión ha caducado: inicia sesión de nuevo")) }
+            else if (error.code == null) noteSilence()
         } catch (_: Exception) {
             // The server may be restarting or the network changing; the next pass tries again.
+            noteSilence()
         }
     }
+
+    private var silentPasses = 0
+
+    /** Three passes in a row without an answer of any kind: the screen is told, and it looks for the other address of the house. */
+    private fun noteSilence() { silentPasses += 1; if (silentPasses == 3) _state.update { it.copy(silent = true) } }
 
     /** The check before arming; null when the server cannot answer it (the person may still arm). */
     suspend fun preflight(origin: String): es.electrohobby3d.armor.model.Preflight? = withContext(Dispatchers.IO) { runCatching { client.preflight(origin) }.getOrNull() }
@@ -678,6 +689,40 @@ class ArmorViewModel(private val client: ArmorApi = ArmorApiClient(), private va
                         _state.update { it.copy(loading = false) }
                     } else _state.update { it.copy(loading = false, message = error.message ?: "Server operation failed") }
                 }   // the error, not the (empty) message of the state: a wrong PIN, a lock and a refusal are told as they are
+        }
+    }
+
+    // ---- the two addresses of the house: at home and away ----
+
+    /** An answer of any kind from the server (even a refusal) means the address is the right one; only silence (no HTTP status) means it is not. */
+    private fun answers(origin: String): Boolean = try { client.sessionFacts(origin); true } catch (error: ArmorApiException) { error.code != null } catch (error: Exception) { false }
+
+    /**
+     * Chooses the address to use (the private one at home, the one for outside away, and the other when the chosen one is silent) and reports it. [pinMismatch] tells whether the rules of the
+     * certificate refused something meanwhile, so that the message can say the certificate changed instead of "unreachable".
+     */
+    fun reach(addresses: ServerAddresses, place: NetworkPlace, networkAvailable: Boolean, pinMismatch: () -> Boolean = { TrustPins.takeMismatch() }, done: (Selection) -> Unit) {
+        viewModelScope.launch {
+            _state.update { it.copy(loading = true, message = null) }
+            val selection = withContext(Dispatchers.IO) { Connector.select(addresses, place, networkAvailable, pinMismatch) { endpoint -> answers(endpoint.origin) } }
+            _state.update { it.copy(loading = false, message = (selection as? Selection.Failed)?.problem?.message) }
+            done(selection)
+        }
+    }
+
+    /**
+     * The phone changed place and the address in use is not the one for it: the session is the server's, not the address's, so the cookie is copied to the new address and the session is
+     * checked there; only if it holds is the new address taken. [done] gets the new origin, or null when the session could not be carried over (the old address stays).
+     */
+    fun moveTo(old: String, new: String, done: (String?) -> Unit) {
+        if (old == new || ServerEndpoint.parse(new) == null) return
+        viewModelScope.launch {
+            val moved = withContext(Dispatchers.IO) {
+                client.sessionCookie(old)?.let { client.restoreSessionCookie(new, it.first, it.second) }
+                runCatching { client.studioSessionActive(new) }.getOrDefault(false)
+            }
+            done(if (moved) new else null)
+            if (moved) runCatching { withContext(Dispatchers.IO) { refreshInternal(new, false) } }
         }
     }
 

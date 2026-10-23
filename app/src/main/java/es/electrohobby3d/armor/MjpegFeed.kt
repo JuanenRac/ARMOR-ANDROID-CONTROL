@@ -23,32 +23,67 @@ import java.net.URL
 
 private sealed interface MjpegState { data object Loading : MjpegState; data class Frame(val bitmap: Bitmap) : MjpegState; data class Failure(val message: String) : MjpegState }
 
+/** How long to wait before asking for a stream again: 1 s, doubling to 30 s, back to 1 s once a picture arrived. */
+class Backoff {
+    var attempts = 0
+        private set
+    val delayMs: Long get() = minOf(30_000L, 1_000L shl attempts.coerceAtMost(5))
+    fun failed() { attempts = minOf(attempts + 1, 10) }
+    fun succeeded() { attempts = 0 }
+}
+
 @Composable
-/** [sampleSize] 2 or 4 decodes a picture at half or a quarter of its size: a grid of sixteen tiles does not need sixteen full-size pictures at once. */
+/**
+ * [sampleSize] 2 or 4 decodes a picture at half or a quarter of its size: a grid of sixteen tiles does not need sixteen full-size pictures at once. The stream stops while the app is out of
+ * sight, a dropped stream is asked for again after 1, 2, 4... seconds (30 at most) instead of staying dead, and two bitmaps are decoded in turn so that each picture does not allocate a new one.
+ */
 fun MjpegFeed(url: String, modifier: Modifier = Modifier, sampleSize: Int = 1, resolve: (suspend (String) -> String)? = null) {
-    val feed by produceState<MjpegState>(MjpegState.Loading, url) {
+    val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    var inSight by remember { mutableStateOf(owner.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED)) }
+    DisposableEffect(owner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_START) inSight = true else if (event == androidx.lifecycle.Lifecycle.Event.ON_STOP) inSight = false
+        }
+        owner.lifecycle.addObserver(observer)
+        onDispose { owner.lifecycle.removeObserver(observer) }
+    }
+    val feed by produceState<MjpegState>(MjpegState.Loading, url, inSight) {
+        if (!inSight) return@produceState
         value = MjpegState.Loading
-        // [resolve] turns the plain address into one with a stream ticket (a viewer cannot watch without it)
-        val target = runCatching { resolve?.invoke(url) }.getOrNull() ?: url
+        val backoff = Backoff()
+        var shown: Bitmap? = null
+        var spare: Bitmap? = null
         withContext(Dispatchers.IO) {
-            var connection: HttpURLConnection? = null
-            try {
-                connection = URL(target).openConnection() as HttpURLConnection
-                connection.connectTimeout = 8_000
-                connection.readTimeout = 20_000
-                connection.setRequestProperty("Accept", "multipart/x-mixed-replace")
-                if (connection.responseCode != 200) throw IllegalStateException(trf("El servidor respondió HTTP %s", connection.responseCode))
-                connection.inputStream.use { raw ->
-                    val input = BufferedInputStream(raw, 64 * 1024)
-                    while (isActive) {
-                        val frame = readJpeg(input) ?: break
-                        val options = BitmapFactory.Options().apply { inSampleSize = sampleSize.coerceIn(1, 8) }
-                        BitmapFactory.decodeByteArray(frame, 0, frame.size, options)?.let { value = MjpegState.Frame(it) }
+            while (isActive) {
+                var connection: HttpURLConnection? = null
+                try {
+                    // [resolve] turns the plain address into one with a stream ticket (a viewer cannot watch without it); a ticket is for one use, so each try asks for a new one
+                    val target = runCatching { resolve?.invoke(url) }.getOrNull() ?: url
+                    connection = URL(target).openConnection() as HttpURLConnection
+                    TrustPins.apply(connection, URL(target).host)
+                    connection.connectTimeout = 8_000
+                    connection.readTimeout = 20_000
+                    connection.setRequestProperty("Accept", "multipart/x-mixed-replace")
+                    if (connection.responseCode != 200) throw IllegalStateException(trf("El servidor respondió HTTP %s", connection.responseCode))
+                    connection.inputStream.use { raw ->
+                        val input = BufferedInputStream(raw, 64 * 1024)
+                        while (isActive) {
+                            val frame = readJpeg(input) ?: break
+                            val options = BitmapFactory.Options().apply { inSampleSize = sampleSize.coerceIn(1, 8); inMutable = true; inBitmap = spare }
+                            val bitmap = try { BitmapFactory.decodeByteArray(frame, 0, frame.size, options) }
+                                catch (_: IllegalArgumentException) { options.inBitmap = null; BitmapFactory.decodeByteArray(frame, 0, frame.size, options) }   // a spare of another size cannot be reused
+                            if (bitmap != null) { spare = shown; shown = bitmap; value = MjpegState.Frame(bitmap); backoff.succeeded() }
+                        }
                     }
-                    if (value is MjpegState.Loading) value = MjpegState.Failure(tr("No llegan imágenes"))
-                }
-            } catch (error: Exception) { value = MjpegState.Failure(Friendly.message(error.message) ?: tr("Vídeo no disponible"))
-            } finally { connection?.disconnect() }   // whatever happened (a cancelled screen, a lost connection), the socket is closed
+                } catch (error: Exception) {
+                    if (!isActive) break
+                    if (value !is MjpegState.Frame) value = MjpegState.Failure(Friendly.message(error.message) ?: tr("Vídeo no disponible"))
+                } finally { connection?.disconnect() }   // whatever happened (a cancelled screen, a lost connection), the socket is closed
+                if (!isActive) break
+                backoff.failed()
+                if (value is MjpegState.Loading) value = MjpegState.Failure(tr("No llegan imágenes"))
+                kotlinx.coroutines.delay(backoff.delayMs)
+            }
         }
     }
     Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {

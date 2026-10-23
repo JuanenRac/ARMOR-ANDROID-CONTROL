@@ -14,7 +14,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import android.util.Base64
 import android.view.MotionEvent
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
@@ -71,9 +70,27 @@ object NodeAddress {
     }
 }
 
-/** The list of the nodes the network node has found, and a box to type an address; choosing one opens its panel. */
+/**
+ * The panel of a node through the server (`/api/v1/nodes/<id>/panel/`): the server relays the node's own page to a signed-in session, so a node can be configured from outside the house, where
+ * its private address does not exist. The address is the server's, with the session the app already has.
+ */
+object NodeServerPanel {
+    private val Id = Regex("^[A-Za-z0-9._-]{1,64}$")
+
+    /** `<origin>/api/v1/nodes/<id>/panel/`, or null when the origin is not a valid server address or the id is not the plain name of a node. */
+    fun address(origin: String, nodeId: String): String? {
+        val endpoint = ServerEndpoint.parse(origin) ?: return null
+        if (!Id.matches(nodeId)) return null
+        return "${endpoint.origin}/api/v1/nodes/${nodeId}/panel/"
+    }
+
+    /** True when [address] is a panel through the server of [origin] (so the page needs the server's session cookie). */
+    fun isViaServer(address: String, origin: String): Boolean = origin.isNotBlank() && address.startsWith(origin.trimEnd('/') + "/api/v1/nodes/")
+}
+
+/** The list of the nodes the network node has found, and a box to type an address; choosing one opens its panel. The nodes the server knows can also be opened through the server, from anywhere. */
 @Composable
-fun NodesScreen(network: NetworkOverview?, recent: List<String>, onOpen: (String) -> Unit) {
+fun NodesScreen(network: NetworkOverview?, recent: List<String>, onOpen: (String) -> Unit, serverNodes: List<String> = emptyList(), onOpenViaServer: (String) -> Unit = {}) {
     var typed by rememberSaveable { mutableStateOf("") }
     val found = remember(network) { NodeFinder.candidates(network, emptyList()) }
     val problem = typed.isNotBlank() && NodeAddress.parse(typed) == null
@@ -97,6 +114,17 @@ fun NodesScreen(network: NetworkOverview?, recent: List<String>, onOpen: (String
                 }
             }
         }
+        if (serverNodes.isNotEmpty()) {
+            item {
+                Panel(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(tr("A través del servidor"), fontWeight = FontWeight.SemiBold)
+                        Text(tr("El servidor abre el panel del nodo por ti, también desde fuera de casa y con datos móviles. Hace falta tener la sesión iniciada."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+                        serverNodes.forEach { id -> TextButton(onClick = { onOpenViaServer(id) }) { Text(id) } }
+                    }
+                }
+            }
+        }
         item { Text(tr("Encontrados en la red"), fontWeight = FontWeight.SemiBold) }
         if (found.isEmpty()) item { Text(tr("El nodo de red no ha encontrado ninguno todavía. Escribe la dirección arriba."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted) }
         items(found) { node ->
@@ -113,16 +141,33 @@ fun NodesScreen(network: NetworkOverview?, recent: List<String>, onOpen: (String
     }
 }
 
-/** What the page of the node can ask of the phone: to save a file it has made (the exported settings), which a WebView does not do by itself. */
-private class SaveBridge(private val context: Context, private val token: String) {
-    /** The bridge is visible to every frame of the page, a frame from another origin included: only the caller that holds this load's token (the script the app itself runs in the main frame) is obeyed. */
-    @JavascriptInterface
-    fun save(name: String, mime: String, base64: String, given: String) {
-        if (given != token) return
-        val safeName = name.replace(Regex("[^A-Za-z0-9._-]"), "_").take(80).ifBlank { "armor-node.json" }
-        val bytes = runCatching { Base64.decode(base64, Base64.DEFAULT) }.getOrNull()
-        val saved = if (bytes == null || bytes.size > 5 * 1024 * 1024) null else runCatching { write(safeName, mime.ifBlank { "application/octet-stream" }, bytes) }.getOrNull()
-        android.os.Handler(android.os.Looper.getMainLooper()).post { Toast.makeText(context, if (saved != null) trf("Guardado en Descargas: %s", safeName) else tr("No se pudo guardar el archivo"), Toast.LENGTH_LONG).show() }
+/** What the page of the node sends to be saved, as it arrives through the message port: a JSON text with the name, the type and the file in base64. */
+internal object SavePayload {
+    const val MAX_BYTES = 5 * 1024 * 1024
+
+    class Saved(val name: String, val mime: String, val bytes: ByteArray)
+
+    /** The file to save, or null when the text is not what the app's own script sends, the data is not base64 or the file is larger than [MAX_BYTES]. */
+    fun parse(text: String): Saved? {
+        val json = runCatching { org.json.JSONObject(text) }.getOrNull() ?: return null
+        val name = json.optString("name").replace(Regex("[^A-Za-z0-9._-]"), "_").take(80).ifBlank { "armor-node.json" }
+        val mime = json.optString("mime").ifBlank { "application/octet-stream" }
+        val data = json.optString("data")
+        if (data.length > MAX_BYTES * 4 / 3 + 8) return null
+        val bytes = runCatching { java.util.Base64.getDecoder().decode(data) }.getOrNull() ?: return null
+        return if (bytes.size > MAX_BYTES) null else Saved(name, mime, bytes)
+    }
+}
+
+/**
+ * Receives the file the page made (the exported settings) through a message port made for that one download. The old way, a bridge object added to the page, was visible to every frame of the
+ * page; a port is handed only to the node's own origin in the main frame, and carries one message.
+ */
+private class SaveSink(private val context: Context) {
+    fun receive(text: String) {
+        val file = SavePayload.parse(text)
+        val saved = file?.let { runCatching { write(it.name, it.mime, it.bytes) }.getOrDefault(false) } ?: false
+        android.os.Handler(android.os.Looper.getMainLooper()).post { Toast.makeText(context, if (saved) trf("Guardado en Descargas: %s", file?.name.orEmpty()) else tr("No se pudo guardar el archivo"), Toast.LENGTH_LONG).show() }
     }
 
     private fun write(name: String, mime: String, bytes: ByteArray): Boolean {
@@ -139,13 +184,14 @@ private class SaveBridge(private val context: Context, private val token: String
 }
 
 /** The node's own panel, full size. [onClose] when the person leaves it (back, with nothing left to go back to). */
-@SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility", "JavascriptInterface")
+@SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility")
 @Composable
-fun NodePanelView(address: String, onClose: () -> Unit) {
+fun NodePanelView(address: String, onClose: () -> Unit, sessionCookie: Pair<String, String>? = null) {
     val context = LocalContext.current
     val host = remember(address) { Uri.parse(address).host.orEmpty() }
     var webView by remember { mutableStateOf<WebView?>(null) }
-    val token = remember(address) { java.util.UUID.randomUUID().toString() }
+    val sink = remember(address) { SaveSink(context) }
+    val originOfNode = remember(address) { Uri.parse(address).let { "${it.scheme}://${it.authority}" } }
     var failed by remember(address) { mutableStateOf(false) }
     var chooser by remember { mutableStateOf<ValueCallback<Array<Uri>>?>(null) }
     // The page asks for a file (the settings to import, a firmware): the phone's own file picker answers.
@@ -173,7 +219,8 @@ fun NodePanelView(address: String, onClose: () -> Unit) {
                     settings.allowContentAccess = false
                     setBackgroundColor(android.graphics.Color.parseColor("#0B1420"))
                     CookieManager.getInstance().setAcceptCookie(true)
-                    addJavascriptInterface(SaveBridge(viewContext, token), "ArmorSave")
+                    // A panel through the server needs the session the app has: the WebView keeps its own cookies, so the session cookie is put there for this server only.
+                    sessionCookie?.let { (name, value) -> CookieManager.getInstance().setCookie(originOfNode, "$name=$value; Path=/; HttpOnly") }
                     // Only the node itself: a link to anywhere else is not followed.
                     webViewClient = object : WebViewClient() {
                         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = request.url.host != host
@@ -187,14 +234,21 @@ fun NodePanelView(address: String, onClose: () -> Unit) {
                             return true
                         }
                     }
-                    // What the page saves (the exported settings are a file made in the page, a blob): fetched here and written to the phone's Downloads.
+                    // What the page saves (the exported settings are a file made in the page, a blob): fetched by a script of the app in the main frame, which answers through a port made for this download.
                     setDownloadListener { url, _, contentDisposition, mimeType, _ ->
                         val name = Regex("""filename\*?=(?:UTF-8'')?"?([^";]+)"?""").find(contentDisposition.orEmpty())?.groupValues?.get(1) ?: "armor-node.json"
                         // A blob made by the page, or a file of the node itself over plain HTTP: both are read by the page's own session and written to Downloads.
                         if (url.startsWith("blob:") || Uri.parse(url).host == host) {
-                            val script = "(function(){var x=new XMLHttpRequest();x.open('GET',${org.json.JSONObject.quote(url)},true);x.responseType='blob';x.onload=function(){var r=new FileReader();" +
-                                "r.onloadend=function(){ArmorSave.save(${org.json.JSONObject.quote(name)},${org.json.JSONObject.quote(mimeType.orEmpty())},String(r.result).split(',')[1]||'',${org.json.JSONObject.quote(token)});};r.readAsDataURL(x.response);};x.send();})();"
+                            val channel = createWebMessageChannel()
+                            channel[0].setWebMessageCallback(object : android.webkit.WebMessagePort.WebMessageCallback() {
+                                override fun onMessage(port: android.webkit.WebMessagePort, message: android.webkit.WebMessage?) { message?.data?.let(sink::receive); port.close() }
+                            })
+                            // the script waits for the port, then fetches and answers once; the port is posted to the node's own origin only
+                            val script = "(function(){window.addEventListener('message',function h(e){if(e.data!=='armor-save-port'||!e.ports||!e.ports[0])return;window.removeEventListener('message',h);var p=e.ports[0];" +
+                                "var x=new XMLHttpRequest();x.open('GET',${org.json.JSONObject.quote(url)},true);x.responseType='blob';x.onload=function(){var r=new FileReader();" +
+                                "r.onloadend=function(){p.postMessage(JSON.stringify({name:${org.json.JSONObject.quote(name)},mime:${org.json.JSONObject.quote(mimeType.orEmpty())},data:String(r.result).split(',')[1]||''}));};r.readAsDataURL(x.response);};x.send();});})();"
                             evaluateJavascript(script, null)
+                            postWebMessage(android.webkit.WebMessage("armor-save-port", arrayOf(channel[1])), Uri.parse(originOfNode))
                         }
                     }
                     // A panel inside a scrolling parent: a finger on it moves the panel, it does not scroll what is around it.

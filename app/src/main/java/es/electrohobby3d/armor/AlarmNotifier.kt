@@ -25,12 +25,21 @@ object AlarmNotifier {
     private const val LAST_EVENT = "last_event|"
 
     @Volatile private var tracker: AlarmTracker? = null
+    @Volatile private var announced: AnnouncedIds? = null
+
+    /** The ids of the events already announced, shared by the open app, the watch and the push messages of this process. */
+    fun announced(context: Context): AnnouncedIds = announced ?: synchronized(this) {
+        announced ?: run {
+            val preferences = context.applicationContext.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+            AnnouncedIds({ key -> preferences.getString(key, null) }, { key, value -> preferences.edit().putString(key, value).apply() }).also { announced = it }
+        }
+    }
 
     /** One tracker per process, so the open app and the background service never announce an event twice. */
     fun tracker(context: Context): AlarmTracker = tracker ?: synchronized(this) {
         tracker ?: run {
             val preferences = context.applicationContext.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
-            AlarmTracker({ origin -> preferences.getLong(LAST_EVENT + origin, -1L) }, { origin, id -> preferences.edit().putLong(LAST_EVENT + origin, id).apply() }).also { tracker = it }
+            AlarmTracker({ origin -> preferences.getLong(LAST_EVENT + origin, -1L) }, { origin, id -> preferences.edit().putLong(LAST_EVENT + origin, id).apply() }, announced = announced(context)).also { tracker = it }
         }
     }
 
@@ -85,6 +94,7 @@ object AlarmNotifier {
 
     /** One polling pass: fetch the newest events and announce the ones that matter. Returns the number announced. */
     fun poll(context: Context, client: ArmorApi, origin: String): Int {
+        if (SharedFeed.appIsReading()) return 0   // the app on screen reads the server and announces; asking the same again from the background would only double the requests
         val tracker = tracker(context)
         val window = client.history(origin, limit = 50)
         val events = freshEvents(tracker.last(origin), window, { after -> client.history(origin, limit = 200, after = after) })

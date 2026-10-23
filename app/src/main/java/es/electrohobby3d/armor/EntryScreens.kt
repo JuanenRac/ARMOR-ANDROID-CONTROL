@@ -49,7 +49,7 @@ fun ArmorSplash(onDone: () -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         Column(Modifier.alpha(appear.value).scale(0.85f + 0.15f * appear.value), horizontalAlignment = Alignment.CenterHorizontally) {
-            ArmorLogo(112.dp)
+            ArmorLogo(size = 112.dp)
             Spacer(Modifier.height(20.dp))
             Text("A.R.M.O.R.", fontSize = 30.sp, fontWeight = FontWeight.Black, letterSpacing = 6.sp, color = ArmorColors.Text)
             Spacer(Modifier.height(6.dp))
@@ -63,7 +63,7 @@ fun ArmorSplash(onDone: () -> Unit) {
 fun RestoringScreen() {
     Box(Modifier.fillMaxSize().background(ArmorColors.Background), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            ArmorLogo(72.dp)
+            ArmorLogo(size = 72.dp)
             CircularProgressIndicator(Modifier.size(28.dp), strokeWidth = 3.dp)
             Text(tr("Conectando con tu servidor…"), color = ArmorColors.Muted)
         }
@@ -83,6 +83,8 @@ fun LoginScreen(
     publicIpNote: Boolean = false,
     /** "Remember me" (off by default): keeps the user and the password sealed on this phone. */
     remember: Boolean = false, onRemember: (Boolean) -> Unit = {},
+    /** The address for away from home (a name that follows the house, or the VPN), optional: with it the app uses the private address at home and this one on mobile data. */
+    awayHost: String = "", awayPort: String = "443", onAwayHost: (String) -> Unit = {}, onAwayPort: (String) -> Unit = {},
 ) {
     var visible by rememberSaveable { mutableStateOf(false) }
     var outsideHelp by rememberSaveable { mutableStateOf(false) }
@@ -95,7 +97,7 @@ fun LoginScreen(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).statusBarsPadding().navigationBarsPadding().imePadding().padding(horizontal = 24.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
         ) {
-            ArmorLogo(84.dp)
+            ArmorLogo(size = 84.dp)
             Spacer(Modifier.height(14.dp))
             Text("A.R.M.O.R.", fontSize = 28.sp, fontWeight = FontWeight.Black, letterSpacing = 5.sp)
             Text(tr("Seguridad de tu perímetro"), color = ArmorColors.Muted, fontSize = 13.sp)
@@ -114,6 +116,18 @@ fun LoginScreen(
                             label = { Text(tr("Puerto")) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         )
                     }
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        OutlinedTextField(
+                            value = awayHost, onValueChange = onAwayHost, modifier = Modifier.weight(1f), singleLine = true,
+                            label = { Text(tr("Fuera de casa (opcional)")) }, placeholder = { Text("https://casa.duckdns.org") }, leadingIcon = { Icon(Icons.Filled.Public, null) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                        )
+                        OutlinedTextField(
+                            value = awayPort, onValueChange = { onAwayPort(it.filter(Char::isDigit).take(5)) }, modifier = Modifier.width(96.dp), singleLine = true,
+                            label = { Text(tr("Puerto")) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        )
+                    }
+                    Text(tr("La app usa la de casa en tu wifi y la de fuera con datos móviles o la VPN; si una no responde, prueba la otra. La de fuera puede dejarse vacía."), color = ArmorColors.Muted, style = MaterialTheme.typography.bodySmall)
                     OutlinedTextField(
                         value = username, onValueChange = onUsername, modifier = Modifier.fillMaxWidth(), singleLine = true,
                         label = { Text(tr("Usuario")) }, leadingIcon = { Icon(Icons.Filled.Person, null) },
@@ -238,7 +252,7 @@ fun AboutDialog(onDismiss: () -> Unit) {
         confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Cerrar")) } },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                ArmorLogo(72.dp)
+                ArmorLogo(size = 72.dp)
                 Text("A.R.M.O.R.", fontSize = 26.sp, fontWeight = FontWeight.Black, letterSpacing = 4.sp)
                 Text(trf("Versión %s", BuildConfig.VERSION_NAME), color = ArmorColors.Cyan, style = MaterialTheme.typography.labelLarge)
                 Text(

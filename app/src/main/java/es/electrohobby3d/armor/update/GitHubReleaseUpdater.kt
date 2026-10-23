@@ -177,7 +177,7 @@ class GitHubReleaseUpdater(private val context: Context) {
 
     /** Android 8+ requires a one-time per-app approval before opening an APK installer. */
     fun canRequestPackageInstalls(): Boolean =
-        Build.VERSION.SDK_INT < Build.VERSION_CODES.O || context.packageManager.canRequestPackageInstalls()
+        context.packageManager.canRequestPackageInstalls()
 
     /** Opens only Android's own per-app unknown-source approval page. */
     fun openInstallPermissionSettings() {

@@ -23,6 +23,11 @@ android { namespace = "es.electrohobby3d.armor"; compileSdk = 37
         buildConfigField("String", "FCM_API_KEY", "\"${firebase["key"] ?: ""}\"")
     }
     buildFeatures { compose = true; buildConfig = true }
+    // The release is shrunk and obfuscated (R8): smaller, and the code that is not used is gone. The rules are in proguard-rules.pro; Firebase and the coroutines bring their own.
+    // Signing is not done here: the APK is signed afterwards with the maintainer's own key, kept outside the repository.
+    buildTypes { release { isMinifyEnabled = true; isShrinkResources = true; proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro") } }
+    // Lint is part of the check: a warning stops the build, so the list of them does not grow back. What is deliberate is written down in lint.xml with its reason.
+    lint { warningsAsErrors = true; abortOnError = true; checkDependencies = false; lintConfig = file("lint.xml") }
 }
 // The version lives in two places the Android tools need (here, and the manifest every other tool reads); a build stops when they differ,
 // so a release can never carry a number the project's own manifest does not say.

@@ -9,7 +9,6 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
-import es.electrohobby3d.armor.network.ArmorApiClient
 import es.electrohobby3d.armor.network.ArmorApiException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,9 +47,12 @@ class AlarmWatcherService : Service() {
     }
 
     private suspend fun watch() {
-        val origin = getSharedPreferences("armor-control", Context.MODE_PRIVATE).getString("origin", "").orEmpty()
+        // The address is read again on every pass: the app moves it between the address of the house and the one for outside as the phone changes place.
+        fun savedOrigin() = getSharedPreferences("armor-control", Context.MODE_PRIVATE).getString("origin", "").orEmpty()
+        var origin = savedOrigin()
         if (ServerEndpoint.parse(origin) == null) { stopWith(tr("Configura el servidor en la app.")); return }
-        val client = ArmorApiClient()
+        TrustPins.install(PreferencesStore(getSharedPreferences("armor-control", Context.MODE_PRIVATE)))
+        val client = SharedFeed.api
         // The phone may have closed the app's process: the watcher carries the session kept by the app.
         val vault = KeyBoxes.sessionVault(this)
         // With the key tied to the unlocking of the phone, the session can be read only after the person has unlocked it: until then the watch waits (and says so by hearing nothing).
@@ -60,6 +62,7 @@ class AlarmWatcherService : Service() {
         var firstFailureAt = 0L
         while (scope.isActive) {
             try {
+                savedOrigin().takeIf { ServerEndpoint.parse(it) != null }?.let { origin = it }
                 AlarmNotifier.poll(this, client, origin)
                 failures = 0
                 firstFailureAt = 0L

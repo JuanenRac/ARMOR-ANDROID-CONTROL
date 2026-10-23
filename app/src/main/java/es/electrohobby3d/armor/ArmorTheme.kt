@@ -83,7 +83,7 @@ fun ArmorTheme(content: @Composable () -> Unit) = MaterialTheme(colorScheme = Sc
 
 /** The mark of the project: a rounded square with the letter A, the same as Studio's. */
 @Composable
-fun ArmorLogo(size: Dp = 40.dp, modifier: Modifier = Modifier) {
+fun ArmorLogo(modifier: Modifier = Modifier, size: Dp = 40.dp) {
     Box(
         modifier.size(size).clip(RoundedCornerShape(size * 0.28f))
             .background(Brush.linearGradient(listOf(Color(0xFF7DF3E4), ArmorColors.CyanDeep)))

@@ -41,7 +41,7 @@ fun MoreMenu(onOpen: (MoreTab) -> Unit, onNodeSetup: () -> Unit, onAbout: () -> 
         if (isAdmin) MenuRow(Icons.Filled.BatteryChargingFull, tr("Mantenimiento de baterías"), tr("Reloj, contadores, reinicio, capacidad y salidas de una batería Pylontech")) { onOpen(MoreTab.Batteries) }
         if (isAdmin) MenuRow(Icons.Filled.SettingsPower, tr("Control de nodos"), tr("Reiniciar, pausar, poner en espera, identificar, diagnosticar y mantenimiento de un nodo o de todos")) { onOpen(MoreTab.NodeControl) }
         MenuRow(Icons.Filled.ElectricBolt, tr("Eléctrica"), tr("Red, circuitos y buses de continua")) { onOpen(MoreTab.Electrical) }
-        MenuRow(Icons.Filled.Shield, tr("Centrales de alarma"), tr("Nodos ARMOR-ALARM: zonas, estado y armado")) { onOpen(MoreTab.AlarmPanels) }
+        MenuRow(Icons.Filled.Shield, tr("Centrales de alarma"), tr("Nodos ARMOR-NODE-ALARM: zonas, estado y armado")) { onOpen(MoreTab.AlarmPanels) }
         MenuRow(Icons.Filled.Router, tr("Red"), tr("Internet, dispositivos y cambios de la red local")) { onOpen(MoreTab.Network) }
         MenuRow(Icons.Filled.Dns, tr("Servicios"), tr("Programas del sistema y nodos de campo, activos o no")) { onOpen(MoreTab.Services) }
         MenuRow(Icons.Filled.MonitorHeart, tr("Salud de los nodos"), tr("Memoria, enlace, reinicios y errores de cada nodo")) { onOpen(MoreTab.NodeHealth) }
@@ -285,6 +285,7 @@ fun SettingsScreen(
                 Button(onClick = { onConnect(draft) }, enabled = valid, modifier = Modifier.fillMaxWidth()) { Icon(Icons.Filled.Refresh, null); Spacer(Modifier.width(8.dp)); Text(tr("Conectar")) }
             }
         }
+        CertificateSection(origin)
         val soundContext = androidx.compose.ui.platform.LocalContext.current
         var speak by rememberSaveable { mutableStateOf(AlarmNotifier.speaksAlarms(soundContext)) }
         Panel(Modifier.fillMaxWidth()) {
@@ -329,6 +330,37 @@ fun SettingsScreen(
                 }
                 Switch(checked = watching, onCheckedChange = onWatching, enabled = authenticated)
             }
+        }
+    }
+}
+
+/**
+ * The certificate of the server: the app remembers the key of the installation's certificate the first time it connects over https and refuses a different one afterwards; here the person can
+ * pair it by pasting the text of the QR code that Studio shows (`armor-pin:...`), which is the only way to trust a private authority, or forget what is kept (after a renewal).
+ */
+@Composable
+private fun CertificateSection(origin: String) {
+    val store = TrustPins.store() ?: return
+    val host = runCatching { java.net.URI(origin).host }.getOrNull().orEmpty()
+    if (host.isBlank()) return
+    var pasted by rememberSaveable { mutableStateOf("") }
+    var count by remember(host) { mutableStateOf(store.pins(host).size) }
+    var note by remember { mutableStateOf<String?>(null) }
+    Panel(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) { Icon(Icons.Filled.VerifiedUser, null, tint = ArmorColors.Cyan); Text(tr("Certificado del servidor"), fontWeight = FontWeight.SemiBold) }
+            Text(tr("La primera vez que se conecta por https, la app recuerda la clave del certificado de tu instalación. Si cambia, no se conecta y te lo dice. También puedes emparejarla pegando el texto del código QR que muestra Studio (armor-pin:…)."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+            Text(if (count == 0) tr("Aún no hay ninguna clave guardada para este servidor.") else trf("Claves guardadas para este servidor: %s", count), style = MaterialTheme.typography.bodySmall)
+            OutlinedTextField(value = pasted, onValueChange = { pasted = it; note = null }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("armor-pin:…") })
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Button(enabled = pasted.isNotBlank(), onClick = {
+                    val parsed = PinStore.parseQr(pasted)
+                    if (parsed == null) note = tr("Ese código no es correcto.")
+                    else { store.add(parsed.second, parsed.first ?: host); count = store.pins(host).size; pasted = ""; note = tr("Servidor emparejado.") }
+                }) { Text(tr("Emparejar")) }
+                OutlinedButton(enabled = count > 0, onClick = { store.clear(host); TrustPins.schemeMemory()?.forget(host); count = 0; note = tr("Certificados olvidados.") }) { Text(tr("Olvidar los certificados guardados")) }
+            }
+            note?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = ArmorColors.Cyan) }
         }
     }
 }

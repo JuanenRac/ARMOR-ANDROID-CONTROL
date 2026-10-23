@@ -46,6 +46,7 @@ class ArmorActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         deviceAuth = AndroidDeviceAuth(this)
         Tr.init(this)
+        TrustPins.install(PreferencesStore(getSharedPreferences("armor-control", Context.MODE_PRIVATE)))
         setContent { ArmorScreen() }
     }
 }
@@ -82,6 +83,16 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     val savedUri = remember(origin) { runCatching { URI(origin) }.getOrNull() }
     var serverHost by rememberSaveable { mutableStateOf(savedUri?.host.orEmpty()) }
     var serverPort by rememberSaveable { mutableStateOf(if (savedUri?.port in 1..65535) savedUri?.port.toString() else "8080") }
+    // The two addresses of the house: the private one used at home and the one for away from home (optional); the place of the phone says which is in use.
+    val addressStore = remember { PreferencesStore(preferences) }
+    val networkWatcher = remember { NetworkWatcher(context) }
+    DisposableEffect(networkWatcher) { networkWatcher.start(); onDispose { networkWatcher.stop() } }
+    val place by networkWatcher.place.collectAsStateWithLifecycle()
+    val networkAvailable by networkWatcher.available.collectAsStateWithLifecycle()
+    val savedAway = remember { ServerAddresses.load(addressStore).away?.let { runCatching { URI(it.origin) }.getOrNull() } }
+    var awayHost by rememberSaveable { mutableStateOf(savedAway?.let { (if (it.scheme == "https") "https://" else "") + it.host }.orEmpty()) }
+    var awayPort by rememberSaveable { mutableStateOf(if ((savedAway?.port ?: -1) in 1..65535) savedAway?.port.toString() else "443") }
+    var addresses by remember { mutableStateOf(ServerAddresses.load(addressStore)) }
     var username by rememberSaveable { mutableStateOf(preferences.getString("user", "") ?: "") }
     var password by rememberSaveable { mutableStateOf("") }
     var section by rememberSaveable { mutableStateOf(Section.Status) }
@@ -172,6 +183,25 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                 viewModel.sessionCookie(currentOrigin)?.let { cookie -> if (cookie != lastSavedCookie) { vault.save(currentOrigin, cookie.first, cookie.second); lastSavedCookie = cookie } }
                 delay(10_000)
             }
+        }
+    }
+    // The phone changed place (home Wi-Fi, mobile data, VPN): the address for the new place is taken, carrying the session over, only if the session holds there. The old address stays otherwise.
+    fun takeAddress(moved: String?) {
+        if (moved == null) return
+        origin = moved
+        preferences.edit().putString("origin", moved).apply()
+        if (watching) AlarmWatcherService.start(context)   // the watch reads the address again
+    }
+    LaunchedEffect(place, state.authenticated, addresses) {
+        if (!state.authenticated || place == NetworkPlace.Unknown) return@LaunchedEffect
+        val wanted = addresses.chosen(place)
+        val now = ServerEndpoint.parse(origin)
+        if (wanted != null && now != null && wanted != now) viewModel.moveTo(now.origin, wanted.origin, ::takeAddress)
+    }
+    // Several passes without an answer of any kind: the address in use may be the wrong one for where the phone is, so the other one is tried (or the person is told what fails).
+    LaunchedEffect(state.silent) {
+        if (state.silent && state.authenticated) viewModel.reach(addresses, place, networkAvailable) { selection ->
+            if (selection is Selection.Reached && selection.endpoint.origin != currentOrigin) viewModel.moveTo(currentOrigin, selection.endpoint.origin, ::takeAddress)
         }
     }
     LaunchedEffect(state.authenticated) {
@@ -299,21 +329,36 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
             if (restoring && !state.authenticated && currentOrigin.isNotBlank()) { RestoringScreen(); return@Surface }
             if (nodeSetup) { NodeSetupScreen(onClose = { nodeSetup = false }); return@Surface }
             if (!state.authenticated) {
-                val loginEndpoint = ServerEndpoint.fromHostAndPort(serverHost, serverPort)
+                val homeEndpoint = if (serverHost.isBlank()) null else ServerEndpoint.fromHostAndPort(serverHost, serverPort)
+                val awayEndpoint = if (awayHost.isBlank()) null else ServerEndpoint.fromHostAndPort(awayHost, awayPort)
+                val typedAddresses = ServerAddresses(homeEndpoint, awayEndpoint)
+                val validAddresses = !typedAddresses.isEmpty && (serverHost.isBlank() || homeEndpoint != null) && (awayHost.isBlank() || awayEndpoint != null)
                 LoginScreen(
                     host = serverHost, port = serverPort, username = username, password = password, busy = state.loading, message = state.message,
                     onHost = { serverHost = it.trim() }, onPort = { serverPort = it }, onUsername = { username = it }, onPassword = { password = it },
-                    onLogin = { loginEndpoint?.let { endpoint ->
-                        origin = endpoint.origin
-                        preferences.edit().putString("origin", endpoint.origin).putString("user", username.trim()).apply()
-                        pendingRemember = if (rememberMe) StoredCredentials(endpoint.origin, username.trim(), password) else null
-                        viewModel.login(endpoint.origin, username, password)
-                        password = ""
-                    } },
-                    canLogin = loginEndpoint != null && username.isNotBlank() && password.isNotBlank(),
+                    onLogin = {
+                        if (validAddresses) {
+                            typedAddresses.save(addressStore)
+                            addresses = typedAddresses
+                            val typedUser = username.trim(); val typedPassword = password; val remembered = rememberMe
+                            // the address for this place is chosen (and the other one tried if it is silent) before the password is sent anywhere
+                            viewModel.reach(typedAddresses, place, networkAvailable) { selection ->
+                                if (selection is Selection.Reached) {
+                                    val endpoint = selection.endpoint
+                                    origin = endpoint.origin
+                                    preferences.edit().putString("origin", endpoint.origin).putString("user", typedUser).apply()
+                                    pendingRemember = if (remembered) StoredCredentials(endpoint.origin, typedUser, typedPassword) else null
+                                    viewModel.login(endpoint.origin, typedUser, typedPassword)
+                                }
+                            }
+                            password = ""
+                        }
+                    },
+                    canLogin = validAddresses && username.isNotBlank() && password.isNotBlank(),
+                    awayHost = awayHost, awayPort = awayPort, onAwayHost = { awayHost = it.trim() }, onAwayPort = { awayPort = it },
                     onNodeSetup = { nodeSetup = true }, onAbout = { about = true },
                     challenge = securityState.loginChallenge != null, code = loginCode, onCode = { loginCode = it },
-                    onSubmitCode = { loginEndpoint?.let { endpoint -> viewModel.submitCode(endpoint.origin, loginCode); loginCode = "" } },
+                    onSubmitCode = { if (currentOrigin.isNotBlank()) { viewModel.submitCode(currentOrigin, loginCode); loginCode = "" } },
                     onCancelCode = { loginCode = ""; viewModel.cancelCode() },
                     needsSecure = ServerEndpoint.needsSecureConnection(serverHost), publicIpNote = ServerEndpoint.usesPublicIpAddress(serverHost), onUseHttps = { serverHost = "https://" + serverHost.removePrefix("http://") },
                     remember = rememberMe, onRemember = { on -> rememberMe = on; if (!on) { credentials.clear(); pendingRemember = null } },
@@ -325,6 +370,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                     topBar = {
                         TopBar(
                             host = savedUri?.host.orEmpty(), armed = state.snapshot.mode == "armed", connected = state.authenticated,
+                            where = if (addresses.home != null && addresses.away != null) ServerEndpoint.parse(origin)?.let { if (addresses.isAway(it)) tr("Fuera de casa") else tr("En casa") }.orEmpty() else "",
                             onProfile = { profile = true }, onAbout = { about = true }, onLogout = { confirmLogout = true },
                         )
                     },
@@ -371,7 +417,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                             Section.Devices -> DevicesScreen(state.devices, onCommand = { device, command -> if (es.electrohobby3d.armor.model.DeviceText.confirmQuestion(device, command) == null) viewModel.command(currentOrigin, device, command) else confirmCommand = device to command }, enabled = validOrigin && !state.loading && !state.readOnly)
                             Section.Cameras -> CamerasScreen(
                                 state.cameras, grid, onGrid = { grid = it }, origin = currentOrigin, viewModel = viewModel, authenticated = state.authenticated,
-                                recordingIds = state.media.activeCameraIds, health = state.cameraHealth, onExpand = { expanded = it }, readOnly = state.readOnly,
+                                recordingIds = state.media.activeCameraIds, health = state.cameraHealth, onExpand = { expanded = it }, readOnly = state.readOnly, away = ServerEndpoint.parse(origin)?.let { addresses.isAway(it) } == true,
                             )
                             Section.More -> when (moreTab) {
                                 null -> MoreMenu(
@@ -456,7 +502,9 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                             preferences.edit().putString("recent_nodes", recentNodes.joinToString(",")).apply()
                                             nodePanel = address
                                         },
-                                    ) else NodePanelView(panel, onClose = { nodePanel = null })
+                                        serverNodes = state.nodeHealth?.nodes?.map { it.nodeId }.orEmpty(),
+                                        onOpenViaServer = { id -> NodeServerPanel.address(currentOrigin, id)?.let { nodePanel = it } },
+                                    ) else NodePanelView(panel, onClose = { nodePanel = null }, sessionCookie = if (NodeServerPanel.isViaServer(panel, currentOrigin)) viewModel.sessionCookie(currentOrigin) else null)
                                 }
                                 MoreTab.Voice -> SubScreen(Icons.Filled.Mic, tr("Asistente"), onBack = { moreTab = null }) {
                                     VoiceScreen(
@@ -485,7 +533,14 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 MoreTab.Settings -> SubScreen(Icons.Filled.Settings, tr("Ajustes"), onBack = { moreTab = null }) {
                                     SettingsScreen(
                                         origin, state.authenticated,
-                                        onConnect = { typed -> ServerEndpoint.parse(typed)?.let { endpoint -> if (state.authenticated && endpoint.origin != currentOrigin) logout(); origin = endpoint.origin; preferences.edit().putString("origin", endpoint.origin).apply(); viewModel.refresh(endpoint.origin) } },
+                                        onConnect = { typed -> ServerEndpoint.parse(typed)?.let { endpoint ->
+                                            if (state.authenticated && endpoint.origin != currentOrigin) logout()
+                                            // the address typed here replaces the one it belongs to: a private one is the address of the house, any other is the one for away
+                                            val isHome = runCatching { ServerEndpoint.isPrivateLanHost(URI(endpoint.origin).host) }.getOrDefault(true)
+                                            addresses = if (isHome) ServerAddresses(endpoint, addresses.away) else ServerAddresses(addresses.home, endpoint)
+                                            addresses.save(addressStore)
+                                            TrustPins.schemeMemory()?.forget(runCatching { URI(endpoint.origin).host }.getOrNull().orEmpty())
+                                            origin = endpoint.origin; preferences.edit().putString("origin", endpoint.origin).apply(); viewModel.refresh(endpoint.origin) } },
                                         watching = watching, onWatching = { on -> watching = on; setWatching(context, preferences, on) { notificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS) } },
                                     )
                                 }
@@ -558,7 +613,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                     onWatching = { on -> watching = on; setWatching(context, preferences, on) { notificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS) } },
                     onLogout = { profile = false; confirmLogout = true }, onDismiss = { profile = false },
                 )
-                expanded?.let { camera -> FullscreenCamera(camera, currentOrigin, viewModel, state.authenticated && !state.readOnly, state.media.activeCameraIds.contains(camera.id), onDismiss = { expanded = null }) }
+                expanded?.let { camera -> FullscreenCamera(camera, currentOrigin, viewModel, state.authenticated && !state.readOnly, state.media.activeCameraIds.contains(camera.id), onDismiss = { expanded = null }, away = ServerEndpoint.parse(origin)?.let { addresses.isAway(it) } == true) }
                 // Startup checks only fetch release metadata from GitHub. The
                 // actual APK transfer and Android's own installer are both
                 // started explicitly by the operator, from this prompt or
@@ -594,10 +649,10 @@ private fun setWatching(context: Context, preferences: android.content.SharedPre
 
 /** The mark and the name, the state of the system, and the three account icons: profile, about and sign out. */
 @Composable
-private fun TopBar(host: String, armed: Boolean, connected: Boolean, onProfile: () -> Unit, onAbout: () -> Unit, onLogout: () -> Unit) {
+private fun TopBar(host: String, armed: Boolean, connected: Boolean, where: String, onProfile: () -> Unit, onAbout: () -> Unit, onLogout: () -> Unit) {
     Column(Modifier.background(ArmorColors.Background).statusBarsPadding()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            ArmorLogo(34.dp)
+            ArmorLogo(size = 34.dp)
             Text("A.R.M.O.R.", fontSize = 20.sp, fontWeight = FontWeight.Black, letterSpacing = 3.sp, modifier = Modifier.weight(1f))
             Row(
                 Modifier.background((if (armed) ArmorColors.Ok else ArmorColors.Amber).copy(alpha = 0.16f), androidx.compose.foundation.shape.RoundedCornerShape(50)).padding(horizontal = 10.dp, vertical = 5.dp),
@@ -610,7 +665,7 @@ private fun TopBar(host: String, armed: Boolean, connected: Boolean, onProfile: 
         Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             StatusDot(if (connected) ArmorColors.Ok else ArmorColors.Alert)
             Spacer(Modifier.width(8.dp))
-            Text(if (connected) host.ifBlank { tr("Conectado") } else tr("Sin conexión"), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+            Text(if (connected) host.ifBlank { tr("Conectado") } + (if (where.isBlank()) "" else " · $where") else tr("Sin conexión"), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
             IconButton(onClick = onProfile) { Icon(Icons.Filled.Person, contentDescription = tr("Mi cuenta"), tint = ArmorColors.Cyan) }
             IconButton(onClick = onAbout) { Icon(Icons.Filled.Info, contentDescription = tr("Acerca de"), tint = ArmorColors.Cyan) }
             IconButton(onClick = onLogout) { Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = tr("Cerrar sesión"), tint = ArmorColors.Alert) }

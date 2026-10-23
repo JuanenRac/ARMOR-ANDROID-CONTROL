@@ -1,7 +1,7 @@
 // ARMOR-ANDROID-CONTROL - the Bluetooth Low Energy link to a field node: finds it, connects, and carries the framed JSON of its configuration channel.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 //
-// The protocol is in ARMOR-RADAR's docs/BLE_PROVISIONING.md and its framing in model/NodeBle.kt (tested on the JVM). This file is the part that needs a radio:
+// The protocol is in ARMOR-NODE-RADAR's docs/BLE_PROVISIONING.md and its framing in model/NodeBle.kt (tested on the JVM). This file is the part that needs a radio:
 // it has been compiled but never run against a node or a phone.
 package es.electrohobby3d.armor
 
@@ -185,6 +185,6 @@ class NodeBleClient(private val context: Context) {
 
     @Suppress("DEPRECATION")
     private fun writeChunk(g: BluetoothGatt, target: BluetoothGattCharacteristic, bytes: ByteArray): Boolean =
-        if (Build.VERSION.SDK_INT >= 33) g.writeCharacteristic(target, bytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) == BluetoothGatt.GATT_SUCCESS
+        if (Build.VERSION.SDK_INT >= 33) g.writeCharacteristic(target, bytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) == android.bluetooth.BluetoothStatusCodes.SUCCESS
         else { target.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT; target.value = bytes; g.writeCharacteristic(target) }
 }

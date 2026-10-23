@@ -38,6 +38,8 @@ private val stopScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Sup
 fun CamerasScreen(
     cameras: List<CameraView>, grid: Int, onGrid: (Int) -> Unit, origin: String, viewModel: ArmorViewModel, authenticated: Boolean,
     recordingIds: Set<String>, health: Map<String, String>, onExpand: (CameraView) -> Unit, readOnly: Boolean = false,
+    /** The phone is away from home (mobile data or the VPN): the pictures are decoded smaller, which is lighter on the phone and on the data plan. */
+    away: Boolean = false,
 ) {
     // [grid] is how many cameras a page shows (each page opens that many live pictures, no more); the arrows go through the rest
     var page by rememberSaveable { mutableIntStateOf(0) }
@@ -57,7 +59,7 @@ fun CamerasScreen(
             columns = GridCells.Fixed(if (grid <= 1) 1 else 2), modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            items(cameras.drop(page * grid).take(grid), key = { it.id }) { camera -> CameraTile(camera, origin, viewModel, authenticated && !readOnly, recordingIds.contains(camera.id), health[camera.id], onExpand) }
+            items(cameras.drop(page * grid).take(grid), key = { it.id }) { camera -> CameraTile(camera, origin, viewModel, authenticated && !readOnly, recordingIds.contains(camera.id), health[camera.id], onExpand, away) }
             if (pages > 1) item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { page = (page - 1).coerceAtLeast(0) }, enabled = page > 0) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Anterior"), tint = ArmorColors.Cyan) }
@@ -86,14 +88,14 @@ private fun GridPicker(grid: Int, choose: (Int) -> Unit) {
 }
 
 @Composable
-private fun CameraTile(camera: CameraView, origin: String, viewModel: ArmorViewModel, operatorReady: Boolean, recording: Boolean, health: String?, expand: (CameraView) -> Unit) {
+private fun CameraTile(camera: CameraView, origin: String, viewModel: ArmorViewModel, operatorReady: Boolean, recording: Boolean, health: String?, expand: (CameraView) -> Unit, away: Boolean) {
     var ptzOpen by remember { mutableStateOf(false) }
     val usable = operatorReady && camera.configured
     Panel(Modifier.fillMaxWidth().height(236.dp), tint = if (health == "offline") ArmorColors.Amber else null) {
         Box(Modifier.weight(1f).fillMaxWidth().background(Color.Black)) {
             when {
                 health == "offline" -> CameraMessage(Icons.Filled.VideocamOff, tr("Sin señal"))
-                camera.configured && camera.liveVideoAvailable -> MjpegFeed(viewModel.mjpegUrl(origin, camera), Modifier.fillMaxSize().clickable { expand(camera) }, sampleSize = 2, resolve = { viewModel.streamUrl(origin, camera) })
+                camera.configured && camera.liveVideoAvailable -> MjpegFeed(viewModel.mjpegUrl(origin, camera), Modifier.fillMaxSize().clickable { expand(camera) }, sampleSize = CameraQuality.sampleSize(2, away), resolve = { viewModel.streamUrl(origin, camera) })
                 else -> CameraMessage(Icons.Filled.VideocamOff, if (camera.configured) tr("Sin vídeo") else tr("Sin configurar"))
             }
             if (recording) Icon(Icons.Filled.FiberManualRecord, null, tint = ArmorColors.Alert, modifier = Modifier.align(Alignment.TopStart).padding(8.dp).size(14.dp))
@@ -118,14 +120,14 @@ private fun CameraMessage(icon: ImageVector, text: String) {
 }
 
 @Composable
-fun FullscreenCamera(camera: CameraView, origin: String, viewModel: ArmorViewModel, unlocked: Boolean, recording: Boolean, onDismiss: () -> Unit) {
+fun FullscreenCamera(camera: CameraView, origin: String, viewModel: ArmorViewModel, unlocked: Boolean, recording: Boolean, onDismiss: () -> Unit, away: Boolean = false) {
     AlertDialog(
         onDismissRequest = onDismiss, containerColor = ArmorColors.SurfaceRaised,
         title = { Text(camera.name) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(Modifier.fillMaxWidth().height(260.dp).clip(RoundedCornerShape(12.dp)).background(Color.Black)) {
-                    if (camera.liveVideoAvailable) MjpegFeed(viewModel.mjpegUrl(origin, camera), Modifier.fillMaxSize(), resolve = { viewModel.streamUrl(origin, camera) }) else CameraMessage(Icons.Filled.VideocamOff, tr("Sin vídeo"))
+                    if (camera.liveVideoAvailable) MjpegFeed(viewModel.mjpegUrl(origin, camera), Modifier.fillMaxSize(), sampleSize = CameraQuality.sampleSize(1, away), resolve = { viewModel.streamUrl(origin, camera) }) else CameraMessage(Icons.Filled.VideocamOff, tr("Sin vídeo"))
                 }
                 PtzPad(enabled = unlocked, action = { viewModel.ptz(origin, camera, it) })
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -183,4 +185,10 @@ private fun PtzPad(enabled: Boolean, action: (String) -> Unit, key: Dp = 48.dp) 
         HoldKey(Icons.Filled.KeyboardArrowDown, tr("Abajo"), "down", enabled, key, action)
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) { HoldKey(Icons.Filled.ZoomOut, tr("Alejar"), "zoomOut", enabled, key, action); HoldKey(Icons.Filled.ZoomIn, tr("Acercar"), "zoomIn", enabled, key, action) }
     }
+}
+
+/** How small the pictures are decoded: the normal size at home, and from outside smaller ones (the stream still comes whole from the server until it offers a lighter profile; this lightens the phone). */
+object CameraQuality {
+    /** [base] is the size at home (1 whole, 2 half, 4 a quarter); away from home it is at least 2 for a full view and at least 4 for a tile of the grid. */
+    fun sampleSize(base: Int, away: Boolean): Int = if (!away) base else if (base <= 1) 2 else maxOf(base, 4)
 }

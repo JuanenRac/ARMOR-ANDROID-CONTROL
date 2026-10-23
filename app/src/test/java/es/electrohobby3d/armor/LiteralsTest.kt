@@ -9,7 +9,7 @@ class LiteralsTest {
     private val text = Regex("""\bText\(\s*"((?:[^"\\]|\\.)*)"""")
     private val hole = Regex("""\$\{[^}]*(\}|$)|\$[A-Za-z_][A-Za-z0-9_]*""")
     /** Names and units that are the same in every language. */
-    private val sameEverywhere = setOf("Electro", "Hobby", "Wi", "Fi", "ms", "Mbit", "kWh", "dBm", "MHz")
+    private val sameEverywhere = setOf("Electro", "Hobby", "Wi", "Fi", "ms", "Mbit", "kWh", "dBm", "MHz", "https", "casa", "duckdns", "org", "armor", "pin")
 
     @Test fun noTextOfTheScreensHasWordsOutsideTr() {
         val found = mutableListOf<String>()

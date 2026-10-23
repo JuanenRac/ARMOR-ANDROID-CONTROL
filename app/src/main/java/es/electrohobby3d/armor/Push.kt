@@ -51,9 +51,23 @@ object Push {
 class PushService : FirebaseMessagingService() {
     override fun onCreate() {
         Push.start(this)
+        TrustPins.install(PreferencesStore(getSharedPreferences("armor-control", Context.MODE_PRIVATE)))
         super.onCreate()
         AlarmNotifier.ensureChannels(this)   // the channels the server names must exist before a message arrives
     }
 
     override fun onNewToken(token: String) { Push.keep(this, token) }
+
+    /**
+     * A message of data only (the server tells which event happened; this phone says it in its own language) or with a notification part that the system shows by itself when the app is out of
+     * sight. The id of the event is what keeps the watch, the open app and the push from saying one event twice. The server this push comes from is the one the app is signed in to.
+     */
+    override fun onMessageReceived(message: com.google.firebase.messaging.RemoteMessage) {
+        Tr.init(this)
+        val origin = getSharedPreferences("armor-control", Context.MODE_PRIVATE).getString("origin", "").orEmpty()
+        if (ServerEndpoint.parse(origin) == null) return
+        val announced = AlarmNotifier.announced(this)
+        if (message.notification != null) { PushEvents.noteShown(message.data, origin, announced); return }
+        PushEvents.notice(message.data, origin, announced)?.let { AlarmNotifier.post(this, it) }
+    }
 }

@@ -1,5 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- The question of the phone's lock (fingerprint, face, PIN) is asked through the system's biometric manager. -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <!-- To know whether the phone is on the home Wi-Fi or on mobile data, and so which of the two addresses of the house to use. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Required only to hand a verified update APK (downloaded from this
          project's own GitHub Releases) to Android's system package
