@@ -1,4 +1,4 @@
-// ARMOR-ANDROID-CONTROL - the alarm panels as the alarm nodes (ARMOR-ALARM) report them: what the server says, its parsing and its Spanish wording.
+// ARMOR-ANDROID-CONTROL - the alarm panels as the alarm nodes (ARMOR-NODE-ALARM) report them: what the server says, its parsing and its Spanish wording.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor.model
 

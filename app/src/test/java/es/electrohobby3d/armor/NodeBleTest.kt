@@ -100,7 +100,7 @@ class NodeBleTest {
     }
 
     @Test fun `the set-up code of a board is the one the firmware and adopt_node make`() {
-        // The vector of ARMOR-RADAR's tests: openssl, the firmware's mapping and adopt_node.py all give GD8VZH4HBM.
+        // The vector of ARMOR-NODE-RADAR's tests: openssl, the firmware's mapping and adopt_node.py all give GD8VZH4HBM.
         val secret = "fleet-secret-for-tests-0123456789"
         assertEquals("GD8VZH4HBM", SetupCode.derive(secret, "a1b2c3d4e5f6"))
         assertEquals("GD8VZH4HBM", SetupCode.derive(secret, "A1:B2:C3:D4:E5:F6"))

@@ -88,7 +88,7 @@ private fun EmptyAlarmPanels() {
         Column(Modifier.fillMaxWidth().padding(28.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
             IconBadge(Icons.Filled.Shield, ArmorColors.Muted, size = 64.dp)
             Text(tr("Aún no hay centrales de alarma"), style = MaterialTheme.typography.titleMedium)
-            Text(tr("Cuando un nodo ARMOR-ALARM publique su estado, aparecerá aquí con sus zonas y sus últimos eventos."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+            Text(tr("Cuando un nodo ARMOR-NODE-ALARM publique su estado, aparecerá aquí con sus zonas y sus últimos eventos."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
         }
     }
 }
