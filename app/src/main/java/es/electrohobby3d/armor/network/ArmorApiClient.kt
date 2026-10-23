@@ -332,8 +332,9 @@ class ArmorApiClient : ArmorApi {
     override fun mjpegUrl(origin: String, id: String): String = "${origin}/api/v1/cameras/${part(id)}/mjpeg"
 
     /** A ticket to watch one camera (every role may ask for it); the address to open is the origin plus the path the server gives. */
-    override fun streamTicket(origin: String, cameraId: String): String {
-        val connection = request(origin, "/api/v1/cameras/${part(cameraId)}/stream-ticket", "POST", mapOf("Accept" to "application/json"), null, setOf(200, 201))
+    override fun streamTicket(origin: String, cameraId: String, quality: String): String {
+        val asked = if (quality in es.electrohobby3d.armor.CameraQuality.QUALITIES) quality else "auto"
+        val connection = request(origin, "/api/v1/cameras/${part(cameraId)}/stream-ticket", "POST", mapOf("Accept" to "application/json", "Content-Type" to "application/json"), JSONObject().put("quality", asked).toString(), setOf(200, 201))
         val path = try { JSONObject(connection.inputStream.bufferedReader().use { it.readText() }).optString("path") } finally { connection.disconnect() }
         require(path.startsWith("/api/v1/cameras/")) { "The server gave no stream ticket" }
         return origin.trimEnd('/') + path

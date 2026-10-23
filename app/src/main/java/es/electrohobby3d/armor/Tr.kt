@@ -30,6 +30,7 @@ object Tr {
         val saved = app.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getString(KEY, null)
         language = pick(saved, Locale.getDefault().language)
         load(app, language)
+        AlarmCodes.init(app)
     }
 
     /** Chooses a language and remembers it. */

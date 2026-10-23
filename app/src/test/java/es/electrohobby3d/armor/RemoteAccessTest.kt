@@ -36,5 +36,8 @@ class RemoteAccessTest {
         assertEquals(4, CameraQuality.sampleSize(2, away = true))
         assertEquals(2, CameraQuality.sampleSize(1, away = true))
         assertEquals(8, CameraQuality.sampleSize(8, away = true))
+        assertEquals("low", CameraQuality.requested(away = true, tile = true))
+        assertEquals("normal", CameraQuality.requested(away = false, tile = true))
+        assertEquals("auto", CameraQuality.requested(away = true, tile = false))
     }
 }

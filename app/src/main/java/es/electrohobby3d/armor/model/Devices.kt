@@ -2,6 +2,8 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor.model
 
+import es.electrohobby3d.armor.AlarmCodes
+import es.electrohobby3d.armor.Tr
 import es.electrohobby3d.armor.tr
 import es.electrohobby3d.armor.trf
 import org.json.JSONObject
@@ -148,7 +150,10 @@ object DeviceText {
         else -> null
     }
 
-    fun alarmText(code: String) = when (code) {
+    /** What the alarm of [code] says: the sentence of the table every client shares, in the language of the app; the phrases below only for a code the table does not have. */
+    fun alarmText(code: String): String = AlarmCodes.text(code, Tr.language) ?: legacyAlarmText(code)
+
+    private fun legacyAlarmText(code: String) = when (code) {
         "solar_cell_soh_abnormal" -> tr("Una celda de un módulo de batería está marcada como anormal por la propia batería"); "solar_module_overcurrent" -> tr("Un módulo de batería lleva más corriente de la que dice admitir")
         "intrusion" -> tr("Intrusión detectada por los radares"); "node_down" -> tr("Un nodo de campo no responde"); "camera_motion" -> tr("Una cámara ha visto movimiento"); "camera_down" -> tr("Una cámara no responde")
         "smoke" -> tr("Humo detectado"); "co" -> tr("Monóxido de carbono detectado"); "gas" -> tr("Gas detectado"); "water_leak" -> tr("Inundación detectada"); "panic" -> tr("Botón de pánico pulsado")

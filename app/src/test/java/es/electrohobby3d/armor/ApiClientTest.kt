@@ -146,6 +146,16 @@ class ApiClientTest {
         }
     }
 
+    @Test fun `the stream ticket asks for the quality that was chosen and an unknown one becomes auto`() {
+        server.reply(200, """{"path":"/api/v1/cameras/c1/stream?ticket=t"}""")
+        client.streamTicket(origin, "c1", "low")
+        assertEquals("""{"quality":"low"}""", server.seen.last().body)
+        client.streamTicket(origin, "c1")
+        assertEquals("""{"quality":"auto"}""", server.seen.last().body)
+        client.streamTicket(origin, "c1", "ultra")
+        assertEquals("""{"quality":"auto"}""", server.seen.last().body)
+    }
+
     @Test fun `the first step of signing in tells a finished sign-in from one that waits for the second factor`() {
         server.reply(201, "{}")
         assertTrue(client.signIn(origin, "ana", "pw") is SignIn.Done)

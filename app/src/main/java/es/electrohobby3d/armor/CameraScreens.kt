@@ -95,7 +95,7 @@ private fun CameraTile(camera: CameraView, origin: String, viewModel: ArmorViewM
         Box(Modifier.weight(1f).fillMaxWidth().background(Color.Black)) {
             when {
                 health == "offline" -> CameraMessage(Icons.Filled.VideocamOff, tr("Sin señal"))
-                camera.configured && camera.liveVideoAvailable -> MjpegFeed(viewModel.mjpegUrl(origin, camera), Modifier.fillMaxSize().clickable { expand(camera) }, sampleSize = CameraQuality.sampleSize(2, away), resolve = { viewModel.streamUrl(origin, camera) })
+                camera.configured && camera.liveVideoAvailable -> MjpegFeed(viewModel.mjpegUrl(origin, camera), Modifier.fillMaxSize().clickable { expand(camera) }, sampleSize = CameraQuality.sampleSize(2, away), resolve = { viewModel.streamUrl(origin, camera, CameraQuality.requested(away, tile = true)) })
                 else -> CameraMessage(Icons.Filled.VideocamOff, if (camera.configured) tr("Sin vídeo") else tr("Sin configurar"))
             }
             if (recording) Icon(Icons.Filled.FiberManualRecord, null, tint = ArmorColors.Alert, modifier = Modifier.align(Alignment.TopStart).padding(8.dp).size(14.dp))
@@ -127,7 +127,7 @@ fun FullscreenCamera(camera: CameraView, origin: String, viewModel: ArmorViewMod
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(Modifier.fillMaxWidth().height(260.dp).clip(RoundedCornerShape(12.dp)).background(Color.Black)) {
-                    if (camera.liveVideoAvailable) MjpegFeed(viewModel.mjpegUrl(origin, camera), Modifier.fillMaxSize(), sampleSize = CameraQuality.sampleSize(1, away), resolve = { viewModel.streamUrl(origin, camera) }) else CameraMessage(Icons.Filled.VideocamOff, tr("Sin vídeo"))
+                    if (camera.liveVideoAvailable) MjpegFeed(viewModel.mjpegUrl(origin, camera), Modifier.fillMaxSize(), sampleSize = CameraQuality.sampleSize(1, away), resolve = { viewModel.streamUrl(origin, camera, CameraQuality.requested(away, tile = false)) }) else CameraMessage(Icons.Filled.VideocamOff, tr("Sin vídeo"))
                 }
                 PtzPad(enabled = unlocked, action = { viewModel.ptz(origin, camera, it) })
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -191,4 +191,13 @@ private fun PtzPad(enabled: Boolean, action: (String) -> Unit, key: Dp = 48.dp) 
 object CameraQuality {
     /** [base] is the size at home (1 whole, 2 half, 4 a quarter); away from home it is at least 2 for a full view and at least 4 for a tile of the grid. */
     fun sampleSize(base: Int, away: Boolean): Int = if (!away) base else if (base <= 1) 2 else maxOf(base, 4)
+
+    /** The qualities the server's stream ticket accepts. */
+    val QUALITIES = setOf("low", "normal", "auto")
+
+    /**
+     * The quality asked of the server for the stream ticket, said explicitly instead of left to its guess: a tile of the grid asks for the lighter picture from outside the house and the
+     * normal one at home; the full view lets the server decide ("auto") because the person came to look closely.
+     */
+    fun requested(away: Boolean, tile: Boolean): String = if (!tile) "auto" else if (away) "low" else "normal"
 }

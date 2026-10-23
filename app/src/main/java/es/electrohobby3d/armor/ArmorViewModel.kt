@@ -673,7 +673,7 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
      * The address to watch a camera at: a stream ticket (the server gives one to every role, and a viewer cannot watch without it), or the plain address when the server cannot give one
      * (an older server, which takes the session cookie).
      */
-    suspend fun streamUrl(origin: String, camera: CameraView): String = withContext(Dispatchers.IO) { runCatching { client.streamTicket(origin, camera.id) }.getOrNull() ?: client.mjpegUrl(origin, camera.id) }
+    suspend fun streamUrl(origin: String, camera: CameraView, quality: String = "auto"): String = withContext(Dispatchers.IO) { runCatching { client.streamTicket(origin, camera.id, quality) }.getOrNull() ?: client.mjpegUrl(origin, camera.id) }
     fun mediaUrl(origin: String, item: es.electrohobby3d.armor.model.MediaItem) = client.mediaUrl(origin, item)
 
     private fun action(origin: String, success: String, operation: suspend () -> Unit) {
