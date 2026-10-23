@@ -83,6 +83,9 @@ class LockCardActions(
     val onSensitive: (Boolean) -> Unit,
     val onOpen: (Boolean) -> Unit,
     val onGrace: (Int) -> Unit,
+    /** The key that seals the session is tied to the unlocking of the phone (off by default). */
+    val keyBound: Boolean = false,
+    val onKeyBound: (Boolean) -> Unit = {},
 )
 
 private fun graceText(seconds: Int): String = when (seconds) {
@@ -112,6 +115,11 @@ fun LockSettingsCard(actions: LockCardActions) {
             )
             if (status.openForced) Text(tr("Tu administrador lo exige en este servidor."), color = ArmorColors.Amber, fontSize = 12.sp)
             if (status.unmet) Text(tr("Lo pide el servidor o lo has pedido tú, pero este teléfono no tiene bloqueo de pantalla: de momento no se pide nada y puedes usar la aplicación."), color = ArmorColors.Amber, fontSize = 12.sp)
+            SwitchRow(
+                tr("Atar la clave de la sesión al desbloqueo del teléfono"), tr("Desactivado por defecto. La sesión guardada y el acceso recordado solo se pueden leer con el teléfono desbloqueado."),
+                checked = actions.keyBound, enabled = status.availability != LockAvailability.None, onChange = actions.onKeyBound,
+            )
+            Text(tr("Aviso: con esto, tras reiniciar el teléfono o si Android cierra la aplicación, la vigilancia de alarmas en segundo plano espera a que desbloquees el teléfono y hasta entonces no recibirás ningún aviso."), color = ArmorColors.Amber, fontSize = 12.sp)
             Text(tr("Cuánto vale una comprobación"), fontWeight = FontWeight.SemiBold)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 LockSettings.GRACE_CHOICES.forEach { seconds ->

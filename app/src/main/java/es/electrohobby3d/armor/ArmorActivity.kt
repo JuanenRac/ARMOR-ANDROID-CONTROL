@@ -63,9 +63,11 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     val context = androidx.compose.ui.platform.LocalContext.current
     val preferences = remember { context.getSharedPreferences("armor-control", Context.MODE_PRIVATE) }
     // The server's session is kept (sealed in the Keystore) so the app opens signed in; the password never is.
-    val vault = remember { SessionVault(PreferencesStore(context.getSharedPreferences("armor-session", Context.MODE_PRIVATE)), KeystoreBox()) }
+    // With the option "tie the key to the unlocking of the phone" (off by default) the key is one Android lets be used only while the phone is unlocked.
+    var keyBound by remember { mutableStateOf(KeyBoxes.bound(context)) }
+    val vault = remember(keyBound) { KeyBoxes.sessionVault(context, keyBound) }
     // "Remember me" is off until the person turns it on: then the user and the password are sealed in the Keystore with a key of their own, for this server only.
-    val credentials = remember { CredentialVault(PreferencesStore(context.getSharedPreferences("armor-credentials", Context.MODE_PRIVATE)), KeystoreBox("armor-credentials")) }
+    val credentials = remember(keyBound) { KeyBoxes.credentialVault(context, keyBound) }
     var rememberMe by rememberSaveable { mutableStateOf(credentials.has()) }
     // The lock of the phone: before the sensitive actions (on by default only when the phone has a fingerprint or a face) and, if the person or the server wants it, to open the app.
     val lockSettings = remember { LockSettings(PreferencesStore(context.getSharedPreferences("armor-control", Context.MODE_PRIVATE))) }
@@ -386,6 +388,8 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                             onSensitive = { on -> changeLock(on, lockPolicy.sensitiveRequired()) { lockSettings.setSensitive(on) } },
                                             onOpen = { on -> changeLock(on, lockPolicy.openRequired()) { lockSettings.openApp = on } },
                                             onGrace = { seconds -> lockSettings.graceSeconds = seconds; lockStatus = lockPolicy.status() },
+                                            keyBound = keyBound,
+                                            onKeyBound = { on -> changeLock(on, true) { KeyBoxes.rebind(context, on); keyBound = on } },
                                         ), onStart = { viewModel.startSecondFactor(currentOrigin, it) }, onEnable = { viewModel.enableSecondFactor(currentOrigin, it) }, onDisable = { viewModel.disableSecondFactor(currentOrigin, it) },
                                         onEndSession = { viewModel.endSession(currentOrigin, it) }, onEndOthers = { viewModel.endOtherSessions(currentOrigin) }, onCheck = { viewModel.checkRemote(currentOrigin) },
                                         remoteActions = RemoteSetupActions(

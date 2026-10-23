@@ -1291,5 +1291,8 @@
  "Pedirlo también para abrir la aplicación": "Ask for it also to open the app",
  "Desactivado por defecto. Siempre queda la salida de entrar con la contraseña.": "Off by default. There is always the way out of signing in with the password.",
  "Lo pide el servidor o lo has pedido tú, pero este teléfono no tiene bloqueo de pantalla: de momento no se pide nada y puedes usar la aplicación.": "The server or you ask for it, but this phone has no screen lock: for now nothing is asked and you can use the app.",
- "Cuánto vale una comprobación": "How long one check counts"
+ "Cuánto vale una comprobación": "How long one check counts",
+ "Atar la clave de la sesión al desbloqueo del teléfono": "Tie the session key to unlocking the phone",
+ "Desactivado por defecto. La sesión guardada y el acceso recordado solo se pueden leer con el teléfono desbloqueado.": "Off by default. The saved session and the remembered sign-in can only be read while the phone is unlocked.",
+ "Aviso: con esto, tras reiniciar el teléfono o si Android cierra la aplicación, la vigilancia de alarmas en segundo plano espera a que desbloquees el teléfono y hasta entonces no recibirás ningún aviso.": "Warning: with this on, after the phone restarts or if Android closes the app, the alarm watch in the background waits until you unlock the phone, and until then you will receive no alerts."
 }

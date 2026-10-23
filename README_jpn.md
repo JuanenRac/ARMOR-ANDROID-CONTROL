@@ -22,7 +22,7 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
-  <img src="https://img.shields.io/badge/Tests-272%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-281%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.7.4-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
@@ -39,14 +39,14 @@
 |---|---|
 | バージョン | `0.7.4` |
 | 成熟度 | 確立 |
-| テスト | 272 (`gradlew testDebugUnitTest`) |
+| テスト | 281 (`gradlew testDebugUnitTest`) |
 | 技術 | Kotlin / Jetpack Compose |
 | 実機での確認 | 実際のスマートフォンで CM5 テストベンチに対して使用。ソーラー・電気・警報盤の画面は実ノードを待っています |
 
 ## 🎯 概要
 
 * **サーバー自身のログインでサインイン：**IP、ポート、ユーザー、パスワード。パスワードは HttpOnly セッションを作ります。スマートフォンに保存されるのは **保存する** にチェックしたときだけです（既定はオフ。ユーザー名とパスワードは Keystore の専用鍵で暗号化され、そのサーバー専用で、チェックを外すと直ちに消去されます）。**viewer** ロールは見るだけで、何かを変更するボタンはすべてオフです。
-* **端末のロックによる保護：** アプリは、警戒の開始・解除、サイレン停止、解錠などの重要な命令の前に、端末自体の指紋・顔・PINを求めます（指紋または顔認証がある端末でのみ初期設定でオン）。オンにすればアプリを開くときにも求めます。管理者はStudioから必須にできますが、あなたが選んだ設定を下げることはできません。画面ロックのない端末が締め出されることはなく、ロック画面にはいつでもパスワードで再ログインする手段があります。
+* **端末のロックによる保護：** アプリは、警戒の開始・解除、サイレン停止、解錠などの重要な命令の前に、端末自体の指紋・顔・PINを求めます（指紋または顔認証がある端末でのみ初期設定でオン）。オンにすればアプリを開くときにも求めます。管理者はStudioから必須にできますが、あなたが選んだ設定を下げることはできません。画面ロックのない端末が締め出されることはなく、ロック画面にはいつでもパスワードで再ログインする手段があります。任意で（既定ではオフ、目立つ警告付き）、保存されたセッションを封じる鍵をスマートフォンのロック解除に結び付けられます。その場合、再起動後はロックを解除するまでバックグラウンドの警報監視が待機します。
 * **カメラモニター：**1〜16 タイル、拡大表示、縦横比を保つライブ MJPEG、範囲を限った PTZ パッド、スナップショットと録画（録画にはビューアーと削除確認付き）。
 * **警戒と解除：**まず**警戒前のチェック**（開いている、無応答、停止しているもの）を行い、解除には PIN。確認する**警報**（待機中のものにはバッジ）、**デバイス**（煙、ガス、浸水、ドア、窓、動き、気候、プラグ、照明、サイレン、鍵、シャッター、門扉・ガレージドアのモーター、給湯器）の状態とオン / オフ / 切り替え。
 * **あなたに届く警報：**重大度ごとの音、任意の**音声警報**、ノードが HIGH になった、カメラが無応答、デバイス警報、（警戒中に）ノードがオフラインになった通知、そして**鳴っている警報盤はスマートフォンを起こします**。バックグラウンド監視は再起動後も残り、サーバー停止中は間隔を空けます。
@@ -91,7 +91,7 @@ ARMOR-ANDROID-CONTROL/
 **必要なもの:** JDK 17+, Android SDK（compile SDK 37）, Android 8.0+ のスマートフォン（minSdk 26）
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 272 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 281 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 

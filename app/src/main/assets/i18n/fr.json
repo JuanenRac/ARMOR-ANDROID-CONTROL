@@ -1291,5 +1291,8 @@
  "Pedirlo también para abrir la aplicación": "L'exiger aussi pour ouvrir l'application",
  "Desactivado por defecto. Siempre queda la salida de entrar con la contraseña.": "Désactivé par défaut. Il reste toujours la sortie de se connecter avec le mot de passe.",
  "Lo pide el servidor o lo has pedido tú, pero este teléfono no tiene bloqueo de pantalla: de momento no se pide nada y puedes usar la aplicación.": "Le serveur ou toi l'exigez, mais ce téléphone n'a pas de verrouillage d'écran : pour l'instant rien n'est demandé et tu peux utiliser l'application.",
- "Cuánto vale una comprobación": "Combien de temps une vérification compte"
+ "Cuánto vale una comprobación": "Combien de temps une vérification compte",
+ "Atar la clave de la sesión al desbloqueo del teléfono": "Lier la clé de la session au déverrouillage du téléphone",
+ "Desactivado por defecto. La sesión guardada y el acceso recordado solo se pueden leer con el teléfono desbloqueado.": "Désactivé par défaut. La session enregistrée et la connexion mémorisée ne peuvent être lues que téléphone déverrouillé.",
+ "Aviso: con esto, tras reiniciar el teléfono o si Android cierra la aplicación, la vigilancia de alarmas en segundo plano espera a que desbloquees el teléfono y hasta entonces no recibirás ningún aviso.": "Attention : avec ceci activé, après un redémarrage du téléphone ou si Android ferme l'application, la surveillance des alarmes en arrière-plan attend que vous déverrouilliez le téléphone, et d'ici là vous ne recevrez aucune alerte."
 }

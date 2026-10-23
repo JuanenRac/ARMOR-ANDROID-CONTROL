@@ -1291,5 +1291,8 @@
  "Pedirlo también para abrir la aplicación": "打开应用时也要求验证",
  "Desactivado por defecto. Siempre queda la salida de entrar con la contraseña.": "默认关闭。始终可以改用密码登录作为退路。",
  "Lo pide el servidor o lo has pedido tú, pero este teléfono no tiene bloqueo de pantalla: de momento no se pide nada y puedes usar la aplicación.": "服务器或你已要求启用，但这部手机没有屏幕锁定：目前不会要求验证，你可以使用应用。",
- "Cuánto vale una comprobación": "一次验证的有效时长"
+ "Cuánto vale una comprobación": "一次验证的有效时长",
+ "Atar la clave de la sesión al desbloqueo del teléfono": "将会话密钥与手机解锁绑定",
+ "Desactivado por defecto. La sesión guardada y el acceso recordado solo se pueden leer con el teléfono desbloqueado.": "默认关闭。已保存的会话和记住的登录信息只有在手机解锁时才能读取。",
+ "Aviso: con esto, tras reiniciar el teléfono o si Android cierra la aplicación, la vigilancia de alarmas en segundo plano espera a que desbloquees el teléfono y hasta entonces no recibirás ningún aviso.": "注意：开启后，手机重启或 Android 关闭应用后，后台报警监控会等到您解锁手机才恢复，在此之前不会收到任何提醒。"
 }

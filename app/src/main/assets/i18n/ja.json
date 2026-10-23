@@ -1291,5 +1291,8 @@
  "Pedirlo también para abrir la aplicación": "アプリを開くときにも求める",
  "Desactivado por defecto. Siempre queda la salida de entrar con la contraseña.": "初期設定ではオフです。パスワードでログインするという逃げ道は常に残ります。",
  "Lo pide el servidor o lo has pedido tú, pero este teléfono no tiene bloqueo de pantalla: de momento no se pide nada y puedes usar la aplicación.": "サーバーまたはあなたが求めていますが、この端末には画面ロックがないため、今は何も求めず、アプリを利用できます。",
- "Cuánto vale una comprobación": "確認が有効な時間"
+ "Cuánto vale una comprobación": "確認が有効な時間",
+ "Atar la clave de la sesión al desbloqueo del teléfono": "セッションの鍵をスマートフォンのロック解除に結び付ける",
+ "Desactivado por defecto. La sesión guardada y el acceso recordado solo se pueden leer con el teléfono desbloqueado.": "既定ではオフです。保存されたセッションと記憶したサインインは、スマートフォンのロックを解除している間だけ読み取れます。",
+ "Aviso: con esto, tras reiniciar el teléfono o si Android cierra la aplicación, la vigilancia de alarmas en segundo plano espera a que desbloquees el teléfono y hasta entonces no recibirás ningún aviso.": "注意：これをオンにすると、スマートフォンの再起動後やAndroidがアプリを終了した後は、バックグラウンドの警報監視がロック解除まで待機し、それまで通知は届きません。"
 }

@@ -22,7 +22,7 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
-  <img src="https://img.shields.io/badge/Tests-272%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-281%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.7.4-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
@@ -39,14 +39,14 @@
 |---|---|
 | Versão | `0.7.4` |
 | Maturidade | Estabelecido |
-| Testes | 272 (`gradlew testDebugUnitTest`) |
+| Testes | 281 (`gradlew testDebugUnitTest`) |
 | Tecnologia | Kotlin / Jetpack Compose |
 | Em hardware real | Usada num telemóvel real contra a bancada de testes do CM5; os ecrãs solar, elétrico e de centrais de alarme esperam nós reais |
 
 ## 🎯 Visão geral
 
 * **Acesso com o login do próprio servidor:** IP, porta, utilizador e palavra-passe; a palavra-passe cria uma sessão HttpOnly; só fica guardada no telemóvel se marcar **Lembrar-me** (desligado por defeito: utilizador e palavra-passe cifrados com uma chave própria do Keystore, só para esse servidor, e esquecidos assim que desmarcar). Um papel **viewer** só observa: todo o botão que altera algo está desligado.
-* **Bloqueio com o telemóvel:** a aplicação pede a impressão digital, o rosto ou o PIN do próprio telemóvel antes de armar, desarmar, silenciar uma sirene, desbloquear e as outras ordens críticas (ativado por predefinição só se o telemóvel tiver impressão digital ou rosto) e, se o ativares, para abrir a aplicação. O teu administrador pode exigi-lo a partir do Studio mas nunca baixar o que escolheste; um telemóvel sem bloqueio de ecrã nunca fica de fora e o ecrã bloqueado oferece sempre iniciar sessão de novo com a palavra-passe.
+* **Bloqueio com o telemóvel:** a aplicação pede a impressão digital, o rosto ou o PIN do próprio telemóvel antes de armar, desarmar, silenciar uma sirene, desbloquear e as outras ordens críticas (ativado por predefinição só se o telemóvel tiver impressão digital ou rosto) e, se o ativares, para abrir a aplicação. O teu administrador pode exigi-lo a partir do Studio mas nunca baixar o que escolheste; um telemóvel sem bloqueio de ecrã nunca fica de fora e o ecrã bloqueado oferece sempre iniciar sessão de novo com a palavra-passe. Opcionalmente (desativado por defeito, com um aviso visível) a chave que sela a sessão guardada pode ser ligada ao desbloqueio do telemóvel; então a vigilância de alarmes em segundo plano espera, depois de um reinício, que desbloqueie o telemóvel.
 * **Monitor de câmaras:** de 1 a 16 mosaicos, uma vista ampliada, MJPEG em direto que mantém a proporção, um comando PTZ limitado, fotografias e gravações, com visualizador e confirmação de apagamento das gravações.
 * **Armar e desarmar,** depois de uma **verificação antes de armar** (o que está aberto, mudo ou em baixo) e com o PIN para desarmar; **alarmes** a reconhecer, com um distintivo para os que esperam; **dispositivos** (fumo, gás, inundação, porta, janela, movimento, clima, tomadas, luzes, sirenes, fechaduras, estores, motores de portão e garagem, esquentadores) com o seu estado e Ligar / Desligar / Alternar.
 * **Alarmes que o alcançam:** um som para cada gravidade, um **alarme falado** opcional, avisos de um nó que chega a ALTO, uma câmara muda, um alarme de dispositivo e (armado) um nó desligado, e **uma central que toca acorda o telemóvel**; a vigilância em segundo plano sobrevive a um reinício e recua quando o servidor está em baixo.
@@ -91,7 +91,7 @@ ARMOR-ANDROID-CONTROL/
 **Requisitos:** JDK 17+, o SDK do Android (compile SDK 37), um telemóvel com Android 8.0+ (minSdk 26)
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 272 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 281 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 

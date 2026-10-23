@@ -1291,5 +1291,8 @@
  "Pedirlo también para abrir la aplicación": "Pedi-lo também para abrir a aplicação",
  "Desactivado por defecto. Siempre queda la salida de entrar con la contraseña.": "Desativado por predefinição. Fica sempre a saída de iniciar sessão com a palavra-passe.",
  "Lo pide el servidor o lo has pedido tú, pero este teléfono no tiene bloqueo de pantalla: de momento no se pide nada y puedes usar la aplicación.": "Foi pedido pelo servidor ou por ti, mas este telemóvel não tem bloqueio de ecrã: por agora não se pede nada e podes usar a aplicação.",
- "Cuánto vale una comprobación": "Quanto tempo vale uma verificação"
+ "Cuánto vale una comprobación": "Quanto tempo vale uma verificação",
+ "Atar la clave de la sesión al desbloqueo del teléfono": "Ligar a chave da sessão ao desbloqueio do telemóvel",
+ "Desactivado por defecto. La sesión guardada y el acceso recordado solo se pueden leer con el teléfono desbloqueado.": "Desativado por defeito. A sessão guardada e o acesso memorizado só podem ser lidos com o telemóvel desbloqueado.",
+ "Aviso: con esto, tras reiniciar el teléfono o si Android cierra la aplicación, la vigilancia de alarmas en segundo plano espera a que desbloquees el teléfono y hasta entonces no recibirás ningún aviso.": "Aviso: com isto ativado, depois de reiniciar o telemóvel ou se o Android fechar a aplicação, a vigilância de alarmes em segundo plano espera que desbloqueie o telemóvel e até lá não receberá nenhum aviso."
 }

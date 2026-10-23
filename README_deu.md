@@ -22,14 +22,14 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
-  <img src="https://img.shields.io/badge/Tests-272%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-281%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.7.4-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
 ---
 
-**Ehrlichkeitsprüfung - was heute läuft:** Die Regeln für Adresssicherheit, Alarmentscheidung, Alarmwächter, Übersetzung und die Nur-Lese-Rolle sind von 272 Unit-Tests abgedeckt, und die App baut (`gradlew testDebugUnitTest assembleDebug`). Sie läuft auf einem echten Telefon gegen den CM5-Testaufbau: Anmeldung, Kameramonitor, Scharfschalten und Alarme, Radar, die Einrichtung eines Knotens per Bluetooth und die Updates von GitHub sind im Einsatz. **Noch nicht** bewiesen: die Solar-, Elektro- und Alarmzentralen-Bildschirme mit echten Geräten (es gibt nur einen Radarknoten), Push über Firebase (es ist in der App und braucht ein eigenes Firebase-Projekt; es wurde noch nicht auf einem Handy erprobt) und die Alarmüberwachung im Hintergrund unter den Akkuregeln jedes Herstellers.
+**Ehrlichkeitsprüfung - was heute läuft:** Die Regeln für Adresssicherheit, Alarmentscheidung, Alarmwächter, Übersetzung und die Nur-Lese-Rolle sind von 281 Unit-Tests abgedeckt, und die App baut (`gradlew testDebugUnitTest assembleDebug`). Sie läuft auf einem echten Telefon gegen den CM5-Testaufbau: Anmeldung, Kameramonitor, Scharfschalten und Alarme, Radar, die Einrichtung eines Knotens per Bluetooth und die Updates von GitHub sind im Einsatz. **Noch nicht** bewiesen: die Solar-, Elektro- und Alarmzentralen-Bildschirme mit echten Geräten (es gibt nur einen Radarknoten), Push über Firebase (es ist in der App und braucht ein eigenes Firebase-Projekt; es wurde noch nicht auf einem Handy erprobt) und die Alarmüberwachung im Hintergrund unter den Akkuregeln jedes Herstellers.
 
 ---
 
@@ -39,14 +39,14 @@
 |---|---|
 | Version | `0.7.4` |
 | Reifegrad | Etabliert |
-| Tests | 272 (`gradlew testDebugUnitTest`) |
+| Tests | 281 (`gradlew testDebugUnitTest`) |
 | Technik | Kotlin / Jetpack Compose |
 | Auf echter Hardware | Auf einem echten Telefon gegen den CM5-Testaufbau im Einsatz; die Solar-, Elektro- und Alarmzentralen-Bildschirme warten auf echte Knoten |
 
 ## 🎯 Überblick
 
 * **Anmeldung mit dem Login des Servers selbst:** IP, Port, Benutzer und Passwort; das Passwort erzeugt eine HttpOnly-Sitzung; es wird nur auf dem Telefon gespeichert, wenn Sie **Merken** ankreuzen (standardmäßig aus: Benutzer und Passwort mit einem eigenen Keystore-Schlüssel versiegelt, nur für diesen Server, und sofort vergessen, sobald Sie den Haken entfernen). Eine Rolle **Viewer** sieht nur an: Jede Schaltfläche, die etwas ändert, ist aus.
-* **Sperre mit dem Telefon:** Die App verlangt Fingerabdruck, Gesicht oder PIN des Telefons selbst vor dem Scharfschalten, Entschärfen, Stummschalten einer Sirene, Entsperren und den anderen kritischen Befehlen (standardmäßig nur aktiv, wenn das Telefon Fingerabdruck oder Gesicht hat) und, wenn du es einschaltest, zum Öffnen der App. Dein Administrator kann es in Studio verlangen, aber nie unter deine Wahl senken; ein Telefon ohne Bildschirmsperre wird nie ausgesperrt, und der gesperrte Bildschirm bietet immer die erneute Anmeldung mit dem Passwort an.
+* **Sperre mit dem Telefon:** Die App verlangt Fingerabdruck, Gesicht oder PIN des Telefons selbst vor dem Scharfschalten, Entschärfen, Stummschalten einer Sirene, Entsperren und den anderen kritischen Befehlen (standardmäßig nur aktiv, wenn das Telefon Fingerabdruck oder Gesicht hat) und, wenn du es einschaltest, zum Öffnen der App. Dein Administrator kann es in Studio verlangen, aber nie unter deine Wahl senken; ein Telefon ohne Bildschirmsperre wird nie ausgesperrt, und der gesperrte Bildschirm bietet immer die erneute Anmeldung mit dem Passwort an. Optional (standardmäßig aus, mit sichtbarem Hinweis) lässt sich der Schlüssel, der die gespeicherte Sitzung versiegelt, an das Entsperren des Telefons binden; dann wartet die Alarmüberwachung im Hintergrund nach einem Neustart, bis Sie das Telefon entsperren.
 * **Kameramonitor:** 1 bis 16 Kacheln, eine vergrößerte Ansicht, Live-MJPEG mit erhaltenem Seitenverhältnis, ein begrenztes PTZ-Pad, Schnappschüsse und Aufnahmen, mit Betrachter und Löschbestätigung für Aufnahmen.
 * **Scharf- und Unscharfschalten** nach einer **Prüfung vor dem Scharfschalten** (was offen, stumm oder ausgefallen ist) und mit der PIN zum Unscharfschalten; **Alarme** zum Quittieren, mit einem Zähler für wartende; **Geräte** (Rauch, Gas, Wasser, Tür, Fenster, Bewegung, Klima, Steckdosen, Lichter, Sirenen, Schlösser, Rollläden, Tor- und Garagenantriebe, Warmwasserbereiter) mit Zustand und Ein / Aus / Umschalten.
 * **Alarme, die Sie erreichen:** ein Ton für jede Stufe, ein optionaler **gesprochener Alarm**, Benachrichtigungen bei einem Knoten, der HOCH erreicht, einer stummen Kamera, einem Gerätealarm und (scharf) einem Offline-Knoten, und **eine Zentrale, die läutet, weckt das Telefon**; die Hintergrundüberwachung übersteht einen Neustart und hält sich zurück, wenn der Server aus ist.
@@ -91,7 +91,7 @@ ARMOR-ANDROID-CONTROL/
 **Voraussetzungen:** JDK 17+, das Android-SDK (compile SDK 37), ein Android-8.0+-Telefon (minSdk 26)
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 272 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 281 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 

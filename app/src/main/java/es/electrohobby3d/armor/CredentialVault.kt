@@ -20,6 +20,7 @@ class CredentialVault(private val store: KeyValueStore, private val box: SecretB
     /** The sign-in kept for [origin], or null when there is none, it is for another server, or it cannot be read (then it is dropped). */
     fun load(origin: String): StoredCredentials? {
         val sealed = store.get(KEY) ?: return null
+        if (!box.usable()) return null   // the phone is locked and the key wants it unlocked: what is kept stays kept
         val parts = box.open(sealed)?.split("\n", limit = 3) ?: run { store.remove(KEY); return null }
         if (parts.size != 3 || parts[0] != origin) return null
         return StoredCredentials(parts[0], parts[1], parts[2])
@@ -30,5 +31,5 @@ class CredentialVault(private val store: KeyValueStore, private val box: SecretB
 
     fun clear() { store.remove(KEY) }
 
-    private companion object { const val KEY = "credentials" }
+    companion object { const val KEY = "credentials" }
 }

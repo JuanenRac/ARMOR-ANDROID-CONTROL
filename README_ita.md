@@ -22,7 +22,7 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
-  <img src="https://img.shields.io/badge/Tests-272%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-281%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.7.4-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
@@ -39,14 +39,14 @@
 |---|---|
 | Versione | `0.7.4` |
 | Maturità | Consolidato |
-| Test | 272 (`gradlew testDebugUnitTest`) |
+| Test | 281 (`gradlew testDebugUnitTest`) |
 | Tecnologia | Kotlin / Jetpack Compose |
 | Su hardware reale | Usata su un vero telefono contro il banco di prova CM5; le schermate solare, elettrica e delle centrali d'allarme attendono nodi reali |
 
 ## 🎯 Panoramica
 
 * **Accesso con il login del server stesso:** IP, porta, utente e password; la password crea una sessione HttpOnly; viene memorizzata sul telefono solo se spunti **Ricordami** (disattivato per impostazione predefinita: utente e password sigillati con una chiave propria del Keystore, solo per quel server, dimenticati appena togli la spunta). Un ruolo **viewer** guarda soltanto: ogni pulsante che cambia qualcosa è spento.
-* **Blocco con il telefono:** l'app chiede impronta, volto o PIN del telefono stesso prima di inserire, disinserire, silenziare una sirena, sbloccare e per gli altri ordini critici (attivo per impostazione predefinita solo se il telefono ha impronta o volto) e, se lo attivi, per aprire l'app. Il tuo amministratore può richiederlo da Studio ma mai abbassare ciò che hai scelto; un telefono senza blocco schermo non viene mai lasciato fuori e la schermata bloccata offre sempre di accedere di nuovo con la password.
+* **Blocco con il telefono:** l'app chiede impronta, volto o PIN del telefono stesso prima di inserire, disinserire, silenziare una sirena, sbloccare e per gli altri ordini critici (attivo per impostazione predefinita solo se il telefono ha impronta o volto) e, se lo attivi, per aprire l'app. Il tuo amministratore può richiederlo da Studio ma mai abbassare ciò che hai scelto; un telefono senza blocco schermo non viene mai lasciato fuori e la schermata bloccata offre sempre di accedere di nuovo con la password. In via facoltativa (disattivata per impostazione predefinita, con un avviso ben visibile) la chiave che sigilla la sessione salvata può essere legata allo sblocco del telefono; in tal caso la sorveglianza degli allarmi in background, dopo un riavvio, attende che tu sblocchi il telefono.
 * **Monitor delle telecamere:** da 1 a 16 riquadri, una vista ingrandita, MJPEG dal vivo che mantiene il rapporto dell'immagine, una pulsantiera PTZ limitata, istantanee e registrazioni, con visualizzatore e conferma di cancellazione delle registrazioni.
 * **Inserire e disinserire,** dopo un **controllo prima di inserire** (cosa è aperto, muto o fermo) e con il PIN per disinserire; **allarmi** da riconoscere, con un badge per quelli in attesa; **dispositivi** (fumo, gas, allagamento, porta, finestra, movimento, clima, prese, luci, sirene, serrature, tapparelle, motori di cancello e garage, scaldabagni) con il loro stato e Accendi / Spegni / Alterna.
 * **Allarmi che ti raggiungono:** un suono per ogni gravità, un **allarme parlato** facoltativo, notifiche per un nodo che arriva ad ALTO, una telecamera muta, un allarme di dispositivo e (a impianto inserito) un nodo offline, e **una centrale che suona sveglia il telefono**; la sorveglianza in background sopravvive a un riavvio e rallenta quando il server è fermo.
@@ -91,7 +91,7 @@ ARMOR-ANDROID-CONTROL/
 **Requisiti:** JDK 17+, l'SDK Android (compile SDK 37), un telefono Android 8.0+ (minSdk 26)
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 272 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 281 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 

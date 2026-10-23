@@ -21,6 +21,11 @@ interface SecretBox {
     fun seal(plain: String): String
     /** The text, or null when it was not sealed by this box (a new phone, a restored backup, tampering). */
     fun open(sealed: String): String?
+    /**
+     * False while this box cannot open anything for a reason that will pass (a key tied to the unlocking of the phone, and the phone is locked): what is kept is then left alone,
+     * not taken for unreadable and dropped.
+     */
+    fun usable(): Boolean = true
 }
 
 /** The few places the vault writes. */
@@ -36,16 +41,27 @@ class PreferencesStore(private val preferences: SharedPreferences) : KeyValueSto
     override fun remove(key: String) { preferences.edit().remove(key).apply() }
 }
 
-/** AES-GCM with a key made inside the Android Keystore the first time it is needed. */
-class KeystoreBox(private val alias: String = "armor-session") : SecretBox {
+/**
+ * AES-GCM with a key made inside the Android Keystore the first time it is needed. With [bindToUnlock] (an option of the person, off by default) the key is also one that Android lets
+ * be used only while the phone is unlocked (from Android 9), so a stolen phone that is switched on but locked gives nothing; the price is that nothing sealed with it can be read in the
+ * background until the phone is unlocked, which [deviceLocked] says.
+ */
+class KeystoreBox(private val alias: String = "armor-session", private val bindToUnlock: Boolean = false, private val deviceLocked: () -> Boolean = { false }) : SecretBox {
+    companion object {
+        /** Forgets a key (the one of the other way of keeping the secrets, once they have been sealed again with the new one). */
+        fun deleteKey(alias: String) { runCatching { KeyStore.getInstance("AndroidKeyStore").apply { load(null) }.deleteEntry(alias) } }
+    }
+
+    override fun usable(): Boolean = !(bindToUnlock && deviceLocked())
+
     @Synchronized private fun key(): SecretKey {   // the app and its service may ask for it at the same moment, the first time
         val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
         (store.getKey(alias, null) as? SecretKey)?.let { return it }
         val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
-        generator.init(
-            KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
-                .setBlockModes(KeyProperties.BLOCK_MODE_GCM).setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE).setKeySize(256).build(),
-        )
+        val spec = KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+            .setBlockModes(KeyProperties.BLOCK_MODE_GCM).setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE).setKeySize(256)
+        if (bindToUnlock && android.os.Build.VERSION.SDK_INT >= 28) spec.setUnlockedDeviceRequired(true)
+        generator.init(spec.build())
         return generator.generateKey()
     }
 
@@ -75,12 +91,16 @@ class SessionVault(private val store: KeyValueStore, private val box: SecretBox)
     /** The session kept for [origin], or null when there is none, it is for another server, or it cannot be read. */
     fun load(origin: String): StoredSession? {
         val sealed = store.get(KEY) ?: return null
+        if (!box.usable()) return null   // the phone is locked and the key wants it unlocked: what is kept stays kept
         val parts = box.open(sealed)?.split("\n", limit = 3) ?: run { store.remove(KEY); return null }
         if (parts.size != 3 || parts[0] != origin) return null
         return StoredSession(parts[0], parts[1], parts[2])
     }
 
+    /** True when a session is kept, whether or not it can be read now. */
+    fun has(): Boolean = store.get(KEY) != null
+
     fun clear() { store.remove(KEY) }
 
-    private companion object { const val KEY = "session" }
+    companion object { const val KEY = "session" }
 }

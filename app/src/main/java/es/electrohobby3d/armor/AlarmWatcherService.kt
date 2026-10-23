@@ -52,7 +52,10 @@ class AlarmWatcherService : Service() {
         if (ServerEndpoint.parse(origin) == null) { stopWith(tr("Configura el servidor en la app.")); return }
         val client = ArmorApiClient()
         // The phone may have closed the app's process: the watcher carries the session kept by the app.
-        SessionVault(PreferencesStore(getSharedPreferences("armor-session", Context.MODE_PRIVATE)), KeystoreBox()).load(origin)?.let { client.restoreSessionCookie(origin, it.name, it.value) }
+        val vault = KeyBoxes.sessionVault(this)
+        // With the key tied to the unlocking of the phone, the session can be read only after the person has unlocked it: until then the watch waits (and says so by hearing nothing).
+        while (scope.isActive && vault.has() && !KeyBoxes.sessionBox(this).usable()) delay(WAIT_FOR_UNLOCK_MS)
+        vault.load(origin)?.let { client.restoreSessionCookie(origin, it.name, it.value) }
         var failures = 0
         var firstFailureAt = 0L
         while (scope.isActive) {
@@ -94,6 +97,7 @@ class AlarmWatcherService : Service() {
 
     companion object {
         private const val INTERVAL_MS = 10_000L
+        private const val WAIT_FOR_UNLOCK_MS = 15_000L
         private const val MAX_BACKOFF_MS = 60_000L
         private const val UNREACHABLE_AFTER = 6
 

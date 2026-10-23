@@ -1291,5 +1291,8 @@
  "Pedirlo también para abrir la aplicación": "Auch zum Öffnen der App verlangen",
  "Desactivado por defecto. Siempre queda la salida de entrar con la contraseña.": "Standardmäßig aus. Es bleibt immer der Ausweg, sich mit dem Passwort anzumelden.",
  "Lo pide el servidor o lo has pedido tú, pero este teléfono no tiene bloqueo de pantalla: de momento no se pide nada y puedes usar la aplicación.": "Der Server oder du verlangst es, aber dieses Telefon hat keine Bildschirmsperre: Vorerst wird nichts abgefragt und du kannst die App nutzen.",
- "Cuánto vale una comprobación": "Wie lange eine Prüfung gilt"
+ "Cuánto vale una comprobación": "Wie lange eine Prüfung gilt",
+ "Atar la clave de la sesión al desbloqueo del teléfono": "Sitzungsschlüssel an das Entsperren des Telefons binden",
+ "Desactivado por defecto. La sesión guardada y el acceso recordado solo se pueden leer con el teléfono desbloqueado.": "Standardmäßig aus. Die gespeicherte Sitzung und die gemerkte Anmeldung lassen sich nur bei entsperrtem Telefon lesen.",
+ "Aviso: con esto, tras reiniciar el teléfono o si Android cierra la aplicación, la vigilancia de alarmas en segundo plano espera a que desbloquees el teléfono y hasta entonces no recibirás ningún aviso.": "Achtung: Wenn dies an ist, wartet die Alarmüberwachung im Hintergrund nach einem Neustart des Telefons oder wenn Android die App beendet, bis Sie das Telefon entsperren; bis dahin erhalten Sie keine Meldungen."
 }

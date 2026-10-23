@@ -17,7 +17,9 @@ class BootReceiver : BroadcastReceiver() {
         if (!preferences.getBoolean("watch", false)) return
         val origin = preferences.getString("origin", "").orEmpty()
         if (ServerEndpoint.parse(origin) == null) return
-        if (SessionVault(PreferencesStore(context.getSharedPreferences("armor-session", Context.MODE_PRIVATE)), KeystoreBox()).load(origin) == null) return
+        // With the key tied to the unlocking of the phone the session cannot be read yet (the phone has just started): the watch starts and waits for the unlocking.
+        val vault = KeyBoxes.sessionVault(context)
+        if (if (KeyBoxes.bound(context)) !vault.has() else vault.load(origin) == null) return
         runCatching { AlarmWatcherService.start(context) }
     }
 }
