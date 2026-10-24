@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here.
 
-## [Unreleased]
+## [0.7.5] - One table of alarm codes for every client and the quality of the camera picture is asked for explicitly
 
 - **One table of alarm codes for every client:** the sentence of each alarm code (58 of them, in the eight languages, including the one about a public name that no longer points home) is read from a copy of the table that the server and Studio share, kept equal by a test; the phrases of the app are used only for a code the table lacks.
 - **The quality of the camera picture is asked for explicitly:** a tile of the grid asks the server for the lighter picture from outside the house and the normal one at home, the full view lets the server decide.
