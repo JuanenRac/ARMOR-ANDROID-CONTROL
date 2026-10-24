@@ -43,6 +43,23 @@
 | Tecnología | Kotlin / Jetpack Compose |
 | En hardware real | Usada en un móvil real contra el banco de pruebas de la CM5; las pantallas solar, eléctrica y de centrales de alarma esperan nodos reales |
 
+## 🚦 Estado del proyecto
+
+Cada línea es una parte de este repositorio y la luz dice hasta dónde llega hoy. Se escribe con lo que el repositorio puede demostrar (pruebas, compilaciones, ejecuciones), no con lo previsto.
+
+🟢 Hecho y verificado · 🟡 Funciona, con límites conocidos · 🟠 Hecho a medias o sin verificar · 🔴 Sin hacer o sin funcionar
+
+| Área | Estado | Qué significa aquí |
+|---|---|---|
+| Software | 🟢 | La app compila (`gradlew testDebugUnitTest assembleDebug`) y funciona en un móvil real contra el banco de pruebas CM5. |
+| Pruebas | 🟢 | Pasan 324 pruebas unitarias (`gradlew testDebugUnitTest`): seguridad de las direcciones, decisión de alarma, vigilante de alarmas, traducciones y rol de solo lectura. |
+| Interfaz | 🟡 | El inicio de sesión, el monitor de cámaras, el armado y las alarmas y el radar se usan en un móvil real; la configuración de un nodo por Bluetooth no se ha confirmado con un nodo real, y las pantallas solar, eléctrica y de panel de alarma no han visto equipos reales. |
+| Hardware | 🟡 | Se usa en un móvil real contra el banco de pruebas CM5; la vigilancia de alarmas en segundo plano bajo las reglas de batería de cada fabricante no está probada. |
+| Seguridad | 🟡 | Las reglas de seguridad de direcciones y de rol de solo lectura están cubiertas por pruebas unitarias; no ha habido una revisión independiente. |
+| Actualizaciones | 🟡 | Las actualizaciones desde GitHub se usan en el móvil. |
+| Integración | 🟠 | El push mediante Firebase está en la app pero necesita un proyecto Firebase propio y no se ha probado en un móvil. |
+| Documentación | 🟢 | Ocho idiomas y el historial de cambios están al día. |
+
 ## 🎯 Descripción general
 
 * **Acceso con el login del propio servidor:** IP, puerto, usuario y contraseña; la contraseña crea una sesión HttpOnly; solo se guarda en el móvil si marcas **Recordarme** (apagado por defecto: usuario y contraseña sellados con una clave propia del Keystore, solo para ese servidor, y se olvidan en cuanto la desmarcas). Un rol **viewer** solo mira: todo botón que cambia algo está apagado.

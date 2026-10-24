@@ -43,6 +43,23 @@
 | Tecnologia | Kotlin / Jetpack Compose |
 | Su hardware reale | Usata su un vero telefono contro il banco di prova CM5; le schermate solare, elettrica e delle centrali d'allarme attendono nodi reali |
 
+## 🚦 Stato del progetto
+
+Ogni riga è una parte di questo repository e il semaforo dice a che punto è oggi. È scritta in base a ciò che il repository può mostrare (test, compilazioni, esecuzioni), non a ciò che è previsto.
+
+🟢 Fatto e verificato · 🟡 Funziona, con limiti noti · 🟠 Fatto a metà o non ancora verificato · 🔴 Non fatto o non funzionante
+
+| Area | Stato | Cosa significa qui |
+|---|---|---|
+| Software | 🟢 | L'app compila (`gradlew testDebugUnitTest assembleDebug`) e gira su un telefono reale contro il banco di prova CM5. |
+| Test | 🟢 | Superano 324 test unitari (`gradlew testDebugUnitTest`): sicurezza degli indirizzi, decisione di allarme, sorvegliante degli allarmi, traduzioni e ruolo di sola lettura. |
+| Interfaccia | 🟡 | L'accesso, il monitor delle telecamere, l'inserimento e gli allarmi e il radar sono in uso su un telefono reale; la configurazione di un nodo via Bluetooth non è stata confermata con un nodo reale e le schermate solare, elettrica e della centralina d'allarme non hanno incontrato apparecchiature reali. |
+| Hardware | 🟡 | Usata su un telefono reale contro il banco di prova CM5; la sorveglianza degli allarmi in background con le regole di batteria di ogni produttore non è provata. |
+| Sicurezza | 🟡 | Le regole di sicurezza degli indirizzi e del ruolo di sola lettura sono coperte da test unitari; non c'è stata una revisione indipendente. |
+| Aggiornamenti | 🟡 | Gli aggiornamenti da GitHub sono in uso sul telefono. |
+| Integrazione | 🟠 | Il push tramite Firebase è nell'app ma richiede un progetto Firebase proprio e non è stato provato su un telefono. |
+| Documentazione | 🟢 | Otto lingue e il registro delle modifiche sono aggiornati. |
+
 ## 🎯 Panoramica
 
 * **Accesso con il login del server stesso:** IP, porta, utente e password; la password crea una sessione HttpOnly; viene memorizzata sul telefono solo se spunti **Ricordami** (disattivato per impostazione predefinita: utente e password sigillati con una chiave propria del Keystore, solo per quel server, dimenticati appena togli la spunta). Un ruolo **viewer** guarda soltanto: ogni pulsante che cambia qualcosa è spento.

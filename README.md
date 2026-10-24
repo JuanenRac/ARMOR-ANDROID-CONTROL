@@ -43,6 +43,23 @@
 | Stack | Kotlin / Jetpack Compose |
 | On real hardware | Used on a real phone against the CM5 test bench; the solar, electrical and alarm-panel screens wait for real nodes |
 
+## 🚦 Project status
+
+Each line is one part of this repository and the light says how far it is today. It is written from what the repository can show (tests, builds, runs), not from what is planned.
+
+🟢 Done and verified · 🟡 Works, with known limits · 🟠 Partly done or not verified yet · 🔴 Not done or not working
+
+| Area | State | What it means here |
+|---|---|---|
+| Software | 🟢 | The app builds (`gradlew testDebugUnitTest assembleDebug`) and runs on a real phone against the CM5 test bench. |
+| Tests | 🟢 | 324 unit tests pass (`gradlew testDebugUnitTest`): endpoint safety, alarm decision, alarm watcher, translations and the read-only role. |
+| Interface | 🟡 | Sign-in, the camera monitor, arming and alarms and the radar are in use on a real phone; the Bluetooth set-up of a node has not been confirmed against a real node, and the solar, electrical and alarm-panel screens have not met real equipment. |
+| Hardware | 🟡 | Used on a real phone against the CM5 test bench; the background alarm watch under the battery rules of every phone maker is not proven. |
+| Security | 🟡 | The endpoint-safety and read-only-role rules are covered by unit tests; there has been no independent review. |
+| Updates | 🟡 | The updates from GitHub are in use on the phone. |
+| Integration | 🟠 | Push through Firebase is in the app but needs a Firebase project of its own and has not been tried on a phone. |
+| Documentation | 🟢 | Eight languages and the changelog are up to date. |
+
 ## 🎯 Overview
 
 * **Sign in with the server's own login:** IP, port, user and password; the password creates an HttpOnly session; it is stored on the phone only if you tick **Remember me** (off by default: user and password sealed with a Keystore key of their own, for that server only, forgotten the moment you untick it). A **viewer** role only looks: every button that changes something is off.
