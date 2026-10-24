@@ -100,7 +100,8 @@ ARMOR-ANDROID-CONTROL/
 │   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, DeviceLock.kt, PhoneLock.kt, LockScreens.kt, PinDialog.kt, MjpegFeed.kt, AlarmCodes.kt
 │   ├── network/   model/   update/
 │   └── assets/i18n/   en, es (the source phrases), de, fr, it, ja, zh, pt
-├── docs/CLIENT_BOUNDARY.md, PUSH_NOTIFICATIONS.md   (the Firebase steps, in eight languages)
+├── docs/CLIENT_BOUNDARY.md, PUSH_NOTIFICATIONS.md (the Firebase steps, in eight languages), BENCH_TESTS.md
+├── tools/   capture_fixtures.mjs (takes fixtures from a real server), the shared CI checks (armor_ci_validate.py, armor_project_tool.py, _armor_readme_parity.py)
 └── app/src/test/   endpoint-safety, plain-words, node-protocol, solar-model, translation and role tests
 ```
 
