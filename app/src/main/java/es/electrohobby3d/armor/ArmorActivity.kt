@@ -407,6 +407,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 services = state.services, onServices = { section = Section.More; moreTab = MoreTab.Services },
                                 recording = state.media.activeCameraIds.size, onRecordings = { section = Section.More; moreTab = MoreTab.Evidence; viewModel.loadMedia(currentOrigin) },
                                 security = securityState, onSecurity = { section = Section.More; moreTab = MoreTab.Security; viewModel.loadSecurity(currentOrigin) },
+                                nodeHealth = state.nodeHealth, onNodeHealth = { section = Section.More; moreTab = MoreTab.NodeHealth; viewModel.reloadNodeHealth(currentOrigin) },
                             )
                             Section.Radar -> RadarScreen(state.site, state.siteLoaded, state.snapshot.nodes, onReload = { reloadSite++ })
                             Section.Alarms -> AlarmsScreen(
@@ -504,6 +505,12 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                         },
                                         serverNodes = state.nodeHealth?.nodes?.map { it.nodeId }.orEmpty(),
                                         onOpenViaServer = { id -> NodeServerPanel.address(currentOrigin, id)?.let { nodePanel = it } },
+                                        onForget = { address ->
+                                            recentNodes = recentNodes.filter { it != address }
+                                            preferences.edit().putString("recent_nodes", recentNodes.joinToString(",")).apply()
+                                        },
+                                        onScan = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading,
+                                        canForgetServerNode = state.authenticated && state.isAdmin, onForgetServerNode = { id -> viewModel.forgetNode(currentOrigin, id) },
                                     ) else NodePanelView(panel, onClose = { nodePanel = null }, sessionCookie = if (NodeServerPanel.isViaServer(panel, currentOrigin)) viewModel.sessionCookie(currentOrigin) else null)
                                 }
                                 MoreTab.Voice -> SubScreen(Icons.Filled.Mic, tr("Asistente"), onBack = { moreTab = null }) {

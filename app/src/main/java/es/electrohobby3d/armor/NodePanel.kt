@@ -34,7 +34,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -49,6 +58,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.layout.size
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import es.electrohobby3d.armor.model.NetworkOverview
@@ -88,12 +98,30 @@ object NodeServerPanel {
     fun isViaServer(address: String, origin: String): Boolean = origin.isNotBlank() && address.startsWith(origin.trimEnd('/') + "/api/v1/nodes/")
 }
 
-/** The list of the nodes the network node has found, and a box to type an address; choosing one opens its panel. The nodes the server knows can also be opened through the server, from anywhere. */
+/**
+ * The list of the nodes the network node has found, and a box to type an address; choosing one opens its panel. The nodes the server knows can also be opened through the server, from anywhere.
+ * A node saved from an earlier visit can be forgotten ([onForget]), and the network can be searched again ([onScan]) when the network node reports.
+ */
 @Composable
-fun NodesScreen(network: NetworkOverview?, recent: List<String>, onOpen: (String) -> Unit, serverNodes: List<String> = emptyList(), onOpenViaServer: (String) -> Unit = {}) {
+fun NodesScreen(
+    network: NetworkOverview?, recent: List<String>, onOpen: (String) -> Unit, serverNodes: List<String> = emptyList(), onOpenViaServer: (String) -> Unit = {},
+    onForget: (String) -> Unit = {}, onScan: () -> Unit = {}, scanning: Boolean = false,
+    canForgetServerNode: Boolean = false, onForgetServerNode: (String) -> Unit = {},
+) {
+    var toForget by rememberSaveable { mutableStateOf<String?>(null) }
     var typed by rememberSaveable { mutableStateOf("") }
     val found = remember(network) { NodeFinder.candidates(network, emptyList()) }
     val problem = typed.isNotBlank() && NodeAddress.parse(typed) == null
+    val hasWatcher = network?.nodes?.any { !it.stale } == true
+    toForget?.let { id ->
+        AlertDialog(
+            onDismissRequest = { toForget = null },
+            title = { Text(tr("Olvidar nodo")) },
+            text = { Text(id + "\n\n" + tr("Se borran sus avisos de salud en el servidor. Si el nodo sigue encendido, volverá a aparecer.")) },
+            confirmButton = { TextButton(onClick = { toForget = null; onForgetServerNode(id) }) { Text(tr("Olvidar nodo"), color = ArmorColors.Alert) } },
+            dismissButton = { TextButton(onClick = { toForget = null }) { Text(tr("Cancelar")) } },
+        )
+    }
     LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             Text(
@@ -107,10 +135,15 @@ fun NodesScreen(network: NetworkOverview?, recent: List<String>, onOpen: (String
                     Text(tr("Dirección del nodo"), fontWeight = FontWeight.SemiBold)
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                         OutlinedTextField(typed, { typed = it.take(24) }, Modifier.weight(1f), singleLine = true, placeholder = { Text("192.168.0.235") }, isError = problem)
-                        Button(onClick = { NodeAddress.parse(typed)?.let(onOpen) }, enabled = NodeAddress.parse(typed) != null) { Text(tr("Abrir")) }
+                        Button(onClick = { NodeAddress.parse(typed)?.let(onOpen) }, enabled = NodeAddress.parse(typed) != null) { Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = tr("Abrir")) }
                     }
                     if (problem) Text(tr("Escribe una dirección de tu red, como 192.168.0.235."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
-                    recent.forEach { address -> TextButton(onClick = { onOpen(address) }) { Text(address.removePrefix("http://").trimEnd('/')) } }
+                    recent.forEach { address ->
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            TextButton(onClick = { onOpen(address) }, modifier = Modifier.weight(1f)) { Text(address.removePrefix("http://").trimEnd('/'), modifier = Modifier.fillMaxWidth()) }
+                            IconButton(onClick = { onForget(address) }) { Icon(Icons.Filled.Delete, contentDescription = tr("Borrar nodo guardado"), tint = ArmorColors.Alert) }
+                        }
+                    }
                 }
             }
         }
@@ -120,12 +153,26 @@ fun NodesScreen(network: NetworkOverview?, recent: List<String>, onOpen: (String
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(tr("A través del servidor"), fontWeight = FontWeight.SemiBold)
                         Text(tr("El servidor abre el panel del nodo por ti, también desde fuera de casa y con datos móviles. Hace falta tener la sesión iniciada."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
-                        serverNodes.forEach { id -> TextButton(onClick = { onOpenViaServer(id) }) { Text(id) } }
+                        serverNodes.forEach { id ->
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                TextButton(onClick = { onOpenViaServer(id) }, modifier = Modifier.weight(1f)) { Text(id, modifier = Modifier.fillMaxWidth()) }
+                                if (canForgetServerNode) IconButton(onClick = { toForget = id }) { Icon(Icons.Filled.Delete, contentDescription = tr("Olvidar nodo"), tint = ArmorColors.Alert) }
+                            }
+                        }
                     }
                 }
             }
         }
-        item { Text(tr("Encontrados en la red"), fontWeight = FontWeight.SemiBold) }
+        item {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(tr("Encontrados en la red"), fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                Button(onClick = onScan, enabled = hasWatcher && !scanning) {
+                    if (scanning) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    else Icon(Icons.Filled.Search, contentDescription = tr("Buscar en la red"))
+                }
+            }
+            if (!hasWatcher) Text(tr("El nodo de red no informa, así que no hay con qué buscar."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+        }
         if (found.isEmpty()) item { Text(tr("El nodo de red no ha encontrado ninguno todavía. Escribe la dirección arriba."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted) }
         items(found) { node ->
             Panel(Modifier.fillMaxWidth(), onClick = { NodeAddress.parse(node.ip)?.let(onOpen) }) {
@@ -134,7 +181,7 @@ fun NodesScreen(network: NetworkOverview?, recent: List<String>, onOpen: (String
                         Text(node.nodeId ?: node.hostname ?: node.ip, fontWeight = FontWeight.Medium)
                         Text(listOfNotNull(node.ip, node.mac, node.vendor, if (!node.online) tr("no responde ahora") else null).joinToString(" · "), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
                     }
-                    Text(tr("Configurar"), color = ArmorColors.Cyan)
+                    IconButton(onClick = { NodeAddress.parse(node.ip)?.let(onOpen) }) { Icon(Icons.Filled.Settings, contentDescription = tr("Configurar"), tint = ArmorColors.Cyan) }
                 }
             }
         }

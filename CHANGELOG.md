@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [0.7.6] - Every kind of node in the status screen, and the nodes screen with icons, search and forget
+
+- **The status screen counts every kind of node, not only the radar ones:** "Nodes online" counts the radar, solar, electrical, alarm and wall-panel nodes together (the radar stream and the health every node reports, a node that is in both counted once), a new "Nodes by kind" line gives the figure of each kind, and the nodes that are not radar ones are listed under "Other nodes".
+- **The nodes screen (Set up nodes) has buttons with icons:** a bin next to every saved node address removes it, "Open" and "Set up" are icon buttons, and a search button asks the network node to look again, with a progress ring while it searches.
+- **A node the server still lists although it was taken away can be forgotten:** a bin next to each node in "Through the server" asks for confirmation and removes the node and its health warnings (an administrator only; a node the server no longer knows is not a failure).
+- The new texts are in the eight languages.
+
 ## [0.7.5] - One table of alarm codes for every client and the quality of the camera picture is asked for explicitly
 
 - **One table of alarm codes for every client:** the sentence of each alarm code (58 of them, in the eight languages, including the one about a public name that no longer points home) is read from a copy of the table that the server and Studio share, kept equal by a test; the phrases of the app are used only for a code the table lacks.

@@ -314,6 +314,9 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
     /** Asks the network node to sweep now, for the node finder (Solar, Electrical and Radar screens); a failure is shown as a message. */
     fun scanNetworkNow(origin: String) = mutating(origin, tr("Búsqueda en la red iniciada")) { client.scanNetworkNow(origin) }
 
+    /** Forgets a node the server still lists although it was taken away, and reads the health of the nodes again. */
+    fun forgetNode(origin: String, id: String) = mutating(origin, tr("Nodo olvidado")) { client.forgetNode(origin, id); pollNodeHealth(origin) }
+
     /** Looks for a place by name (Open-Meteo's geocoding); empty for fewer than two characters. */
     fun searchPlaces(query: String) {
         val ticket = ++placeTicket

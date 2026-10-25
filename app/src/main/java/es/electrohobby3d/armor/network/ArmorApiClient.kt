@@ -188,6 +188,10 @@ class ArmorApiClient : ArmorApi {
         request(origin, "/api/v1/network/commands", "POST", mapOf("Content-Type" to "application/json"), JSONObject(mapOf("type" to "scan_now")).toString(), setOf(200, 201, 202)).disconnect()
     }
 
+    override fun forgetNode(origin: String, id: String) {
+        request(origin, "/api/v1/node-health/${part(id)}", "DELETE", emptyMap(), null, setOf(204, 404)).disconnect()
+    }
+
     override fun devices(origin: String): List<SiteDevice> = getJson(origin, "/api/v1/devices").optJSONArray("devices").asObjects().mapNotNull(DeviceParser::device)
     /** [command] is "on", "off" or "toggle"; the server refuses it for a sensor. */
     override fun commandDevice(origin: String, id: String, command: String, confirm: Boolean) {

@@ -41,6 +41,7 @@ class CachingApi(
     override fun commandDevice(origin: String, id: String, command: String, confirm: Boolean) = try { inner.commandDevice(origin, id, command, confirm) } finally { clear() }
     override fun voiceCommand(origin: String, text: String, language: String, confirmation: String?) = try { inner.voiceCommand(origin, text, language, confirmation) } finally { clear() }
     override fun closeStudioSession(origin: String) = try { inner.closeStudioSession(origin) } finally { clear() }
+    override fun forgetNode(origin: String, id: String) = try { inner.forgetNode(origin, id) } finally { clear() }
 
     /** Forgets what is remembered (the address changed, the person signed out). */
     fun clear() { synchronized(statuses) { statuses.clear() }; synchronized(histories) { histories.clear() } }

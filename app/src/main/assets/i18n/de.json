@@ -1312,5 +1312,12 @@
  "No se puede llegar a casa ni por la red de casa ni desde fuera. Comprueba la wifi o los datos del teléfono, y que el servidor está encendido.": "Das Zuhause ist weder über das Heimnetz noch von außen erreichbar. Prüfen Sie WLAN oder Mobilfunkdaten des Telefons und ob der Server eingeschaltet ist.",
  "El certificado del servidor ha cambiado y no coincide con el que se guardó. Si lo has renovado, vuelve a emparejar el servidor desde los ajustes; si no, alguien podría estar interceptando la conexión.": "Das Zertifikat des Servers hat sich geändert und passt nicht zu dem gespeicherten. Wenn Sie es erneuert haben, koppeln Sie den Server in den Einstellungen neu; andernfalls könnte jemand die Verbindung abfangen.",
  "A través del servidor": "Über den Server",
- "El servidor abre el panel del nodo por ti, también desde fuera de casa y con datos móviles. Hace falta tener la sesión iniciada.": "Der Server öffnet das Panel des Knotens für Sie, auch von außerhalb des Hauses und mit Mobilfunkdaten. Sie müssen angemeldet sein."
+ "El servidor abre el panel del nodo por ti, también desde fuera de casa y con datos móviles. Hace falta tener la sesión iniciada.": "Der Server öffnet das Panel des Knotens für Sie, auch von außerhalb des Hauses und mit Mobilfunkdaten. Sie müssen angemeldet sein.",
+ "Borrar nodo guardado": "Gespeicherten Knoten entfernen",
+ "Buscar en la red": "Im Netzwerk suchen",
+ "Olvidar nodo": "Knoten vergessen",
+ "Se borran sus avisos de salud en el servidor. Si el nodo sigue encendido, volverá a aparecer.": "Seine Gesundheitswarnungen werden auf dem Server gelöscht. Ist der Knoten noch eingeschaltet, erscheint er wieder.",
+ "Nodo olvidado": "Knoten vergessen",
+ "Nodos por tipo": "Knoten nach Art",
+ "Otros nodos": "Weitere Knoten"
 }

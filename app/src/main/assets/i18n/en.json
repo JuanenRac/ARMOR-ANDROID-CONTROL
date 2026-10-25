@@ -1312,5 +1312,12 @@
  "No se puede llegar a casa ni por la red de casa ni desde fuera. Comprueba la wifi o los datos del teléfono, y que el servidor está encendido.": "Home cannot be reached, neither through the home network nor from outside. Check the Wi-Fi or the data of the phone, and that the server is on.",
  "El certificado del servidor ha cambiado y no coincide con el que se guardó. Si lo has renovado, vuelve a emparejar el servidor desde los ajustes; si no, alguien podría estar interceptando la conexión.": "The server's certificate has changed and does not match the one that was saved. If you renewed it, pair the server again from the settings; if not, someone could be intercepting the connection.",
  "A través del servidor": "Through the server",
- "El servidor abre el panel del nodo por ti, también desde fuera de casa y con datos móviles. Hace falta tener la sesión iniciada.": "The server opens the node panel for you, also from outside the house and on mobile data. You must be signed in."
+ "El servidor abre el panel del nodo por ti, también desde fuera de casa y con datos móviles. Hace falta tener la sesión iniciada.": "The server opens the node panel for you, also from outside the house and on mobile data. You must be signed in.",
+ "Borrar nodo guardado": "Remove saved node",
+ "Buscar en la red": "Search the network",
+ "Olvidar nodo": "Forget node",
+ "Se borran sus avisos de salud en el servidor. Si el nodo sigue encendido, volverá a aparecer.": "Its health warnings are deleted on the server. If the node is still on, it will appear again.",
+ "Nodo olvidado": "Node forgotten",
+ "Nodos por tipo": "Nodes by kind",
+ "Otros nodos": "Other nodes"
 }

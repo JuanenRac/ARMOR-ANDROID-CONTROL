@@ -66,6 +66,8 @@ interface ArmorApi {
     fun services(origin: String): es.electrohobby3d.armor.model.ServicesOverview
     /** Asks the network node to sweep the network now, for the node finder. */
     fun scanNetworkNow(origin: String)
+    /** Forgets a node that was taken away, with its health warnings (an administrator only; a node the server no longer knows is not a failure). */
+    fun forgetNode(origin: String, id: String) {}
     fun devices(origin: String): List<SiteDevice>
     /** [command] is "on", "off" or "toggle"; the server refuses it for a sensor. */
     fun commandDevice(origin: String, id: String, command: String, confirm: Boolean = false)

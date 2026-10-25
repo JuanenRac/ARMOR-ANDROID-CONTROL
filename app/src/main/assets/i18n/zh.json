@@ -1312,5 +1312,12 @@
  "No se puede llegar a casa ni por la red de casa ni desde fuera. Comprueba la wifi o los datos del teléfono, y que el servidor está encendido.": "既无法通过家庭网络，也无法从外部连接到家里。请检查手机的 Wi-Fi 或移动数据，并确认服务器已开机。",
  "El certificado del servidor ha cambiado y no coincide con el que se guardó. Si lo has renovado, vuelve a emparejar el servidor desde los ajustes; si no, alguien podría estar interceptando la conexión.": "服务器的证书已更改，与保存的不一致。如果您更新过证书，请在设置中重新配对服务器；否则可能有人正在拦截连接。",
  "A través del servidor": "通过服务器",
- "El servidor abre el panel del nodo por ti, también desde fuera de casa y con datos móviles. Hace falta tener la sesión iniciada.": "服务器会替您打开节点面板，在家外和使用移动数据时也可以。需要先登录。"
+ "El servidor abre el panel del nodo por ti, también desde fuera de casa y con datos móviles. Hace falta tener la sesión iniciada.": "服务器会替您打开节点面板，在家外和使用移动数据时也可以。需要先登录。",
+ "Borrar nodo guardado": "删除已保存的节点",
+ "Buscar en la red": "在网络中搜索",
+ "Olvidar nodo": "忘记节点",
+ "Se borran sus avisos de salud en el servidor. Si el nodo sigue encendido, volverá a aparecer.": "服务器上该节点的健康警告将被删除。如果节点仍在运行，它会再次出现。",
+ "Nodo olvidado": "已忘记节点",
+ "Nodos por tipo": "按类型统计的节点",
+ "Otros nodos": "其他节点"
 }

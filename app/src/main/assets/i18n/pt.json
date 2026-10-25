@@ -1312,5 +1312,12 @@
  "No se puede llegar a casa ni por la red de casa ni desde fuera. Comprueba la wifi o los datos del teléfono, y que el servidor está encendido.": "Não é possível chegar a casa, nem pela rede de casa nem de fora. Verifique a Wi-Fi ou os dados do telemóvel e se o servidor está ligado.",
  "El certificado del servidor ha cambiado y no coincide con el que se guardó. Si lo has renovado, vuelve a emparejar el servidor desde los ajustes; si no, alguien podría estar interceptando la conexión.": "O certificado do servidor mudou e não coincide com o que foi guardado. Se o renovou, volte a emparelhar o servidor nas definições; se não, alguém pode estar a intercetar a ligação.",
  "A través del servidor": "Através do servidor",
- "El servidor abre el panel del nodo por ti, también desde fuera de casa y con datos móviles. Hace falta tener la sesión iniciada.": "O servidor abre o painel do nó por si, também a partir de fora de casa e com dados móveis. É preciso ter a sessão iniciada."
+ "El servidor abre el panel del nodo por ti, también desde fuera de casa y con datos móviles. Hace falta tener la sesión iniciada.": "O servidor abre o painel do nó por si, também a partir de fora de casa e com dados móveis. É preciso ter a sessão iniciada.",
+ "Borrar nodo guardado": "Remover nó guardado",
+ "Buscar en la red": "Procurar na rede",
+ "Olvidar nodo": "Esquecer nó",
+ "Se borran sus avisos de salud en el servidor. Si el nodo sigue encendido, volverá a aparecer.": "Os seus avisos de saúde são apagados no servidor. Se o nó ainda estiver ligado, voltará a aparecer.",
+ "Nodo olvidado": "Nó esquecido",
+ "Nodos por tipo": "Nós por tipo",
+ "Otros nodos": "Outros nós"
 }

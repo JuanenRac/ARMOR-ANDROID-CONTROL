@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Blinds
 import androidx.compose.material.icons.filled.Fence
 import androidx.compose.material.icons.filled.Garage
+import androidx.compose.material.icons.filled.Hub
 import androidx.compose.material.icons.filled.HotTub
 import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
@@ -64,9 +65,11 @@ fun StatusScreen(
     services: es.electrohobby3d.armor.model.ServicesOverview? = null, onServices: () -> Unit = {},
     recording: Int = 0, onRecordings: () -> Unit = {},
     security: SecurityUiState = SecurityUiState(), onSecurity: () -> Unit = {},
+    nodeHealth: es.electrohobby3d.armor.model.NodeHealthOverview? = null, onNodeHealth: () -> Unit = {},
 ) {
     val attention = devices.count { DeviceText.problem(it) != null }
-    val nodesOnline = nodes.count { it.online }
+    // every kind of node (radar, solar, electrical, alarm, wall panel), not only the radar nodes of the live stream
+    val census = es.electrohobby3d.armor.model.NodeCensus.of(nodes, nodeHealth)
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         ScreenTitle(Icons.Filled.Shield, tr("Estado"), if (updated.isBlank()) tr("Esperando datos") else trf("Actualizado a las %s", Friendly.clock(updated))) {
             IconButton(onClick = onRefresh, enabled = enabled) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
@@ -90,8 +93,13 @@ fun StatusScreen(
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             StatTile(Icons.Filled.Sensors, devices.size.toString(), if (attention > 0) trf("%s con aviso", attention) else tr("Dispositivos"), if (attention > 0) ArmorColors.Amber else ArmorColors.Cyan, Modifier.weight(1f), onDevices)
-            StatTile(Icons.Filled.Radar, "${nodesOnline}/${nodes.size}", tr("Nodos en línea"), if (nodes.isNotEmpty() && nodesOnline < nodes.size) ArmorColors.Amber else ArmorColors.Cyan, Modifier.weight(1f), onRadar)
+            StatTile(Icons.Filled.Hub, "${census.online}/${census.total}", tr("Nodos en línea"), if (census.total > 0 && census.online < census.total) ArmorColors.Amber else ArmorColors.Cyan, Modifier.weight(1f), if (nodeHealth != null && !nodeHealth.isEmpty) onNodeHealth else onRadar)
         }
+        if (census.families.isNotEmpty()) StatusLink(
+            Icons.Filled.Hub, tr("Nodos por tipo"),
+            census.families.joinToString(" · ") { entry -> "${es.electrohobby3d.armor.model.NodeHealthText.family(entry.family)} ${entry.online}/${entry.total}" },
+            if (census.silent.isNotEmpty()) ArmorColors.Amber else null, if (nodeHealth != null && !nodeHealth.isEmpty) onNodeHealth else onRadar,
+        )
         if (solar != null && !solar.isEmpty) Panel(Modifier.fillMaxWidth(), tint = if (solar.totals.stale > 0) ArmorColors.Amber else null, onClick = onSolar) {
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 IconBadge(Icons.Filled.WbSunny, if (solar.totals.stale > 0) ArmorColors.Amber else ArmorColors.Cyan, size = 40.dp)
@@ -145,6 +153,11 @@ fun StatusScreen(
             Text(tr("Radares"), style = MaterialTheme.typography.titleMedium, color = ArmorColors.Muted)
             nodes.forEach { node -> NodeRow(node) }
         }
+        val others = census.entries.filter { it.family != "radar" }
+        if (others.isNotEmpty()) {
+            Text(tr("Otros nodos"), style = MaterialTheme.typography.titleMedium, color = ArmorColors.Muted)
+            others.forEach { entry -> OtherNodeRow(entry) }
+        }
     }
 }
 
@@ -169,6 +182,23 @@ private fun StatTile(icon: ImageVector, value: String, label: String, tint: Colo
             IconBadge(icon, tint, size = 40.dp)
             Text(value, fontSize = 28.sp, fontWeight = FontWeight.Bold, lineHeight = 30.sp)
             Text(label, style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+/** A node that is not a radar one (solar, electrical, alarm panel, wall panel): its name, its kind and whether it answers. */
+@Composable
+private fun OtherNodeRow(entry: es.electrohobby3d.armor.model.CensusEntry) {
+    Panel(Modifier.fillMaxWidth(), tint = if (entry.online) null else ArmorColors.Amber) {
+        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            IconBadge(Icons.Filled.Sensors, if (entry.online) ArmorColors.Cyan else ArmorColors.Muted, size = 40.dp)
+            Column(Modifier.weight(1f)) {
+                Text(entry.id, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    StatusDot(if (entry.online) ArmorColors.Ok else ArmorColors.Muted, 8.dp)
+                    Text(es.electrohobby3d.armor.model.NodeHealthText.family(entry.family) + " · " + (if (entry.online) tr("En línea") else tr("Sin señal")), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                }
+            }
         }
     }
 }
