@@ -287,22 +287,16 @@ fun SettingsScreen(
         }
         CertificateSection(origin)
         val soundContext = androidx.compose.ui.platform.LocalContext.current
-        var speak by rememberSaveable { mutableStateOf(AlarmNotifier.speaksAlarms(soundContext)) }
+        AlarmSoundsSection()
+        AlarmVoiceSection()
         Panel(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(tr("Sonidos y voz de las alarmas"), fontWeight = FontWeight.SemiBold)
-                Text(tr("Las alarmas críticas suenan como una alarma, las altas como un aviso fuerte y los avisos como una notificación. Cada gravedad tiene su propio canal: puedes elegir su sonido, su vibración o silenciarla en los ajustes del móvil."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                Text(tr("Las alarmas críticas suenan como una alarma, las altas como un aviso fuerte y los avisos como una notificación. La vibración y el modo No molestar de cada gravedad se ajustan en los ajustes del móvil."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                 Button(onClick = {
                     AlarmNotifier.ensureChannels(soundContext)
                     soundContext.startActivity(android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, soundContext.packageName).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
-                }, modifier = Modifier.fillMaxWidth()) { Text(tr("Elegir el sonido de cada gravedad")) }
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Column(Modifier.weight(1f)) {
-                        Text(tr("Decir la alarma en voz alta"))
-                        Text(tr("Con la voz del móvil, para las críticas y las altas."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
-                    }
-                    Switch(checked = speak, onCheckedChange = { speak = it; AlarmNotifier.setSpeaksAlarms(soundContext, it) })
-                }
+                }, modifier = Modifier.fillMaxWidth()) { Text(tr("Abrir los ajustes de avisos del móvil")) }
             }
         }
 
@@ -369,17 +363,7 @@ private fun NoticeSettingsSection() {
     }
 }
 
-private fun kindTitle(kind: String): String = when (kind) {
-    "alert" -> tr("Alertas del radar")
-    "camera" -> tr("Cámaras sin respuesta")
-    "node" -> tr("Nodos fuera de línea o en silencio")
-    "alarm.device" -> tr("Alarmas de dispositivos")
-    "alarm.solar" -> tr("Alarmas de la instalación solar")
-    "alarm.electrical" -> tr("Alarmas eléctricas")
-    "alarm.network" -> tr("Alarmas de red")
-    "alarm.alarm" -> tr("Alarmas de las centrales")
-    else -> tr("Otras alarmas")
-}
+private fun kindTitle(kind: String): String = noticeKindTitle(kind)
 
 
 /**

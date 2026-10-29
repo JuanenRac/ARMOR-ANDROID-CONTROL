@@ -75,14 +75,35 @@ object AlarmNotifier {
         val decision = NoticePreferences.load(context).decide(notice)
         if (decision == NoticeDecision.HIDE) return
         ensureChannels(context)
-        val channel = if (decision == NoticeDecision.SILENT) QUIET_CHANNEL else when (notice.severity) { "critical" -> CRITICAL_CHANNEL; "warning" -> WARNING_CHANNEL; else -> ALARM_CHANNEL }
+        val channel = if (decision == NoticeDecision.SILENT) QUIET_CHANNEL else channelOf(context, notice)
         val notification = Notification.Builder(context, channel)
             .setSmallIcon(android.R.drawable.ic_dialog_alert)
             .setContentTitle(notice.title).setContentText(notice.text)
             .setCategory(Notification.CATEGORY_ALARM).setAutoCancel(true).setContentIntent(openApp(context))
             .build()
         context.getSystemService(NotificationManager::class.java).notify(NOTICE_BASE + (notice.id % 10_000).toInt(), notification)
-        if (decision == NoticeDecision.SHOW && notice.severity != "warning" && speaksAlarms(context)) AlarmSpeaker.say(context, "${notice.title}. ${notice.text}")
+        if (decision == NoticeDecision.SHOW && speaksAlarms(context) && VoicePreferences.load(context).speaks(notice.severity)) AlarmSpeaker.say(context, "${notice.title}. ${notice.text}")
+    }
+
+    /**
+     * The channel of a notice: the one of its severity, or, when the person chose another sound for its kind or its severity, a channel of its own with that sound (the sound of a channel cannot be
+     * changed once it exists, so each sound has its own, with the same loudness and vibration as the channel of the severity).
+     */
+    private fun channelOf(context: Context, notice: AlarmNotice): String {
+        val choice = SoundPreferences.load(context).choiceFor(notice.severity, notice.kind)
+        val id = SoundSettings.channelFor(notice.severity, choice)
+        if (choice.isDefault || choice.uri.isBlank()) return id
+        val manager = context.getSystemService(NotificationManager::class.java)
+        if (manager.getNotificationChannel(id) == null) {
+            val critical = notice.severity == "critical"
+            val importance = if (notice.severity == "warning") NotificationManager.IMPORTANCE_DEFAULT else NotificationManager.IMPORTANCE_HIGH
+            manager.createNotificationChannel(NotificationChannel(id, if (critical) tr("Alarmas críticas") else if (notice.severity == "warning") tr("Avisos") else tr("Alarmas de A.R.M.O.R."), importance).apply {
+                description = tr("Con el sonido que has elegido en los ajustes de la app.")
+                setSound(android.net.Uri.parse(choice.uri), AlarmSounds.audioAttributes(notice.severity))
+                if (critical) { enableVibration(true); vibrationPattern = longArrayOf(0, 600, 300, 600, 300, 900); setBypassDnd(true) }
+            })
+        }
+        return id
     }
 
     /** Whether the phone says an alarm aloud as well as showing it (off by default). */
