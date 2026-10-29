@@ -23,7 +23,7 @@
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Lingue">
   <img src="https://img.shields.io/badge/Tests-342%20passing-2ea44f.svg" alt="Test">
-  <img src="https://img.shields.io/badge/Version-0.7.7-0f6cbd.svg" alt="Versione">
+  <img src="https://img.shields.io/badge/Version-0.7.8-0f6cbd.svg" alt="Versione">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturità">
 </p>
 
@@ -37,7 +37,7 @@
 
 | | |
 |---|---|
-| Versione | `0.7.7` |
+| Versione | `0.7.8` |
 | Maturità | Consolidato |
 | Ruolo | Client operatore Android per ARMOR-SERVER (famiglia: Clients, padre: ARMOR-SERVER) |
 | Tecnologia | Kotlin / Jetpack Compose, Android 8.0+ |

@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.7.8] - Notice settings, sounds and voice of the alarms, a window for each lens and the language of the phone in a push
+
 - **A new Firebase token reaches the server at once:** when Firebase rotates the token of the phone, the app tells the server right away from the background, using the session it keeps (if the phone is locked behind the unlock-bound key, or the server does not answer, the token waits for the next start of the app as before). Until now the server went on pushing to a token that no longer existed until the app was opened.
 - **The phone says its language when it registers for push:** the server then tells the notice of an alarm in the language of the app (one of the eight); the documentation of the push says so in the eight languages.
 - **The sound and the voice of the alarms are chosen inside the app:** a sound for each severity and, above it, one for each kind of notice (radar alerts, cameras, nodes, devices, solar, electrical, network, alarm panels), taken from the sounds of the phone or from a file of the person's own (under 3 MB, kept in the notification sounds of the phone), each with a play button to hear it; and the voice that says the alarms (woman, man or any, child, adult or senior, plain, action hero or dark lord, the speed, and whether the low-severity notices are said too) with a button to test it. Everything is in the eight languages and covered by unit tests.
