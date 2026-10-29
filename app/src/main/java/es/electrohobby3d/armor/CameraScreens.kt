@@ -43,7 +43,8 @@ fun CamerasScreen(
 ) {
     // [grid] is how many cameras a page shows (each page opens that many live pictures, no more); the arrows go through the rest
     var page by rememberSaveable { mutableIntStateOf(0) }
-    val pages = if (cameras.isEmpty()) 1 else (cameras.size + grid - 1) / grid
+    val windows = withLensWindows(cameras)
+    val pages = if (windows.isEmpty()) 1 else (windows.size + grid - 1) / grid
     if (page >= pages) page = pages - 1
     Column(Modifier.fillMaxSize()) {
         ScreenTitle(Icons.Filled.Videocam, tr("Cámaras"), if (cameras.isEmpty()) null else trf("%s en el servidor", cameras.size)) { GridPicker(grid, onGrid) }
@@ -59,7 +60,7 @@ fun CamerasScreen(
             columns = GridCells.Fixed(if (grid <= 1) 1 else 2), modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            items(cameras.drop(page * grid).take(grid), key = { it.id }) { camera -> CameraTile(camera, origin, viewModel, authenticated && !readOnly, recordingIds.contains(camera.id), health[camera.id], onExpand, away) }
+            items(withLensWindows(cameras).drop(page * grid).take(grid), key = { it.id }) { camera -> CameraTile(camera, origin, viewModel, authenticated && !readOnly, recordingIds.contains(camera.serverId), health[camera.serverId], onExpand, away) }
             if (pages > 1) item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { page = (page - 1).coerceAtLeast(0) }, enabled = page > 0) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Anterior"), tint = ArmorColors.Cyan) }
@@ -88,21 +89,23 @@ private fun GridPicker(grid: Int, choose: (Int) -> Unit) {
 }
 
 @Composable
-private fun CameraTile(camera: CameraView, origin: String, viewModel: ArmorViewModel, operatorReady: Boolean, recording: Boolean, health: String?, expand: (CameraView) -> Unit, away: Boolean) {
+private fun CameraTile(window: CameraView, origin: String, viewModel: ArmorViewModel, operatorReady: Boolean, recording: Boolean, health: String?, expand: (CameraView) -> Unit, away: Boolean) {
+    // what the buttons and the picture ask of the server is about the real camera; the window only decides which half of the picture it shows
+    val camera = window.copy(id = window.serverId)
     var ptzOpen by remember { mutableStateOf(false) }
     val usable = operatorReady && camera.configured
     Panel(Modifier.fillMaxWidth().height(236.dp), tint = if (health == "offline") ArmorColors.Amber else null) {
         Box(Modifier.weight(1f).fillMaxWidth().background(Color.Black)) {
             when {
                 health == "offline" -> CameraMessage(Icons.Filled.VideocamOff, tr("Sin señal"))
-                camera.configured && camera.liveVideoAvailable -> MjpegFeed(viewModel.mjpegUrl(origin, camera), Modifier.fillMaxSize().clickable { expand(camera) }, sampleSize = CameraQuality.sampleSize(2, away), resolve = { viewModel.streamUrl(origin, camera, CameraQuality.requested(away, tile = true)) })
+                camera.configured && camera.liveVideoAvailable -> MjpegFeed(viewModel.mjpegUrl(origin, camera), Modifier.fillMaxSize().clickable { expand(camera) }, half = window.lens, sampleSize = CameraQuality.sampleSize(2, away), resolve = { viewModel.streamUrl(origin, camera, CameraQuality.requested(away, tile = true)) })
                 else -> CameraMessage(Icons.Filled.VideocamOff, if (camera.configured) tr("Sin vídeo") else tr("Sin configurar"))
             }
             if (recording) Icon(Icons.Filled.FiberManualRecord, null, tint = ArmorColors.Alert, modifier = Modifier.align(Alignment.TopStart).padding(8.dp).size(14.dp))
             if (ptzOpen) Box(Modifier.align(Alignment.BottomEnd).padding(6.dp)) { PtzPad(enabled = usable, action = { viewModel.ptz(origin, camera, it) }, key = 34.dp, pan = camera.canPanTilt, zoom = camera.canZoom) }
         }
         Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 2.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(camera.name, Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
+            Text(window.name, Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
             if (camera.hasMovement) IconButton(onClick = { ptzOpen = !ptzOpen }, enabled = usable, modifier = Modifier.size(38.dp)) { Icon(Icons.Filled.OpenWith, contentDescription = tr("Mover la cámara"), tint = if (ptzOpen) ArmorColors.Cyan else ArmorColors.Muted) }
             IconButton(onClick = { viewModel.snapshot(origin, camera) }, enabled = usable, modifier = Modifier.size(38.dp)) { Icon(Icons.Filled.PhotoCamera, contentDescription = tr("Foto"), tint = ArmorColors.Muted) }
             IconButton(onClick = { viewModel.toggleRecording(origin, camera) }, enabled = usable, modifier = Modifier.size(38.dp)) { Icon(if (recording) Icons.Filled.Stop else Icons.Filled.FiberManualRecord, contentDescription = if (recording) tr("Parar") else tr("Grabar"), tint = ArmorColors.Alert) }

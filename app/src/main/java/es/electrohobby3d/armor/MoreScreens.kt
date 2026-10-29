@@ -306,6 +306,7 @@ fun SettingsScreen(
             }
         }
 
+        NoticeSettingsSection()
         Panel(Modifier.fillMaxWidth()) {
             val languageContext = androidx.compose.ui.platform.LocalContext.current
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -333,6 +334,53 @@ fun SettingsScreen(
         }
     }
 }
+
+/** Which notices the phone shows and how: nothing at all, without sound, and which severities and kinds of notice are wanted. Kept at once, read by the app, the watch and the push messages. */
+@Composable
+private fun NoticeSettingsSection() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var settings by remember { mutableStateOf(NoticePreferences.load(context)) }
+    fun change(next: NoticeSettings) { settings = next; NoticePreferences.save(context, next) }
+    @Composable fun NoticeSwitch(title: String, note: String?, checked: Boolean, enabled: Boolean = true, onChange: (Boolean) -> Unit) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.weight(1f)) {
+                Text(title)
+                if (note != null) Text(note, style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+            }
+            Switch(checked = checked, onCheckedChange = onChange, enabled = enabled)
+        }
+    }
+    Panel(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(tr("Qué avisos quiero"), fontWeight = FontWeight.SemiBold)
+            Text(tr("Todo queda siempre en el historial; aquí eliges de qué te avisa el móvil. Una alarma crítica (humo, gas, agua, pánico) avisa siempre, salvo que silencies todos los avisos."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+            NoticeSwitch(tr("Silenciar todos los avisos"), tr("No aparece ninguna notificación."), settings.muted) { change(settings.copy(muted = it)) }
+            NoticeSwitch(tr("Avisos sin sonido"), tr("Aparecen sin sonido ni vibración y el móvil no los dice en voz alta (las críticas siguen sonando)."), settings.silent, enabled = !settings.muted) { change(settings.copy(silent = it)) }
+            Text(tr("Avisarme de"), fontWeight = FontWeight.SemiBold)
+            Text(tr("Por gravedad"), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+            NoticeSwitch(tr("Altas"), null, "high" !in settings.mutedSeverities, enabled = !settings.muted) { change(settings.withSeverity("high", off = !it)) }
+            NoticeSwitch(tr("Avisos (gravedad baja)"), null, "warning" !in settings.mutedSeverities, enabled = !settings.muted) { change(settings.withSeverity("warning", off = !it)) }
+            Text(tr("Por tipo"), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+            NoticeKinds.CHOICES.forEach { kind ->
+                NoticeSwitch(kindTitle(kind), null, kind !in settings.mutedKinds, enabled = !settings.muted) { change(settings.withKind(kind, off = !it)) }
+            }
+            Text(tr("Los avisos que el servidor envía con la app cerrada los muestra el sistema por su cuenta; para poder filtrarlos aquí, el servidor tiene que enviarlos como datos (ARMOR_FCM_DATA_ONLY=1)."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+        }
+    }
+}
+
+private fun kindTitle(kind: String): String = when (kind) {
+    "alert" -> tr("Alertas del radar")
+    "camera" -> tr("Cámaras sin respuesta")
+    "node" -> tr("Nodos fuera de línea o en silencio")
+    "alarm.device" -> tr("Alarmas de dispositivos")
+    "alarm.solar" -> tr("Alarmas de la instalación solar")
+    "alarm.electrical" -> tr("Alarmas eléctricas")
+    "alarm.network" -> tr("Alarmas de red")
+    "alarm.alarm" -> tr("Alarmas de las centrales")
+    else -> tr("Otras alarmas")
+}
+
 
 /**
  * The certificate of the server: the app remembers the key of the installation's certificate the first time it connects over https and refuses a different one afterwards; here the person can

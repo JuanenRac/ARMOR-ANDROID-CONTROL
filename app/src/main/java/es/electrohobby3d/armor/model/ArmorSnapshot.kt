@@ -24,6 +24,15 @@ data class CameraView(
     /** What the camera can do, as the operator noted it in Studio: null when it never said (every button is shown, as before). */
     val ptz: Boolean? = null,
     val zoom: Boolean? = null,
+    /** "split": the stream carries two lenses, one above the other, and the app shows them in two windows. */
+    val layout: String? = null,
+    /** The name of the lens when the camera is one lens of a body with several, and the address of the camera's own web page. */
+    val lensName: String? = null,
+    val webUrl: String? = null,
+    /** Which half of the picture this window shows (a window of a camera with two lenses in one stream; see [withLensWindows]). */
+    val lens: es.electrohobby3d.armor.LensHalf = es.electrohobby3d.armor.LensHalf.WHOLE,
+    /** The real camera behind a window (the identifier the server knows). */
+    val sourceId: String? = null,
 ) {
     val configured: Boolean get() = host.isNotBlank() && (hasCredentials || rtspPath.isNotBlank() || snapshotUrl.isNotBlank())
 

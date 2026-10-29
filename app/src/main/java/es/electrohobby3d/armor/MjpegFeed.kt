@@ -37,7 +37,7 @@ class Backoff {
  * [sampleSize] 2 or 4 decodes a picture at half or a quarter of its size: a grid of sixteen tiles does not need sixteen full-size pictures at once. The stream stops while the app is out of
  * sight, a dropped stream is asked for again after 1, 2, 4... seconds (30 at most) instead of staying dead, and two bitmaps are decoded in turn so that each picture does not allocate a new one.
  */
-fun MjpegFeed(url: String, modifier: Modifier = Modifier, sampleSize: Int = 1, resolve: (suspend (String) -> String)? = null) {
+fun MjpegFeed(url: String, modifier: Modifier = Modifier, sampleSize: Int = 1, resolve: (suspend (String) -> String)? = null, half: LensHalf = LensHalf.WHOLE) {
     val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     var inSight by remember { mutableStateOf(owner.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED)) }
     DisposableEffect(owner) {
@@ -92,13 +92,20 @@ fun MjpegFeed(url: String, modifier: Modifier = Modifier, sampleSize: Int = 1, r
             is MjpegState.Failure -> Text(current.message, color = MaterialTheme.colorScheme.error)
             is MjpegState.Frame -> Canvas(Modifier.fillMaxSize()) {
                 val image = current.bitmap.asImageBitmap()
-                val scale = minOf(size.width / image.width, size.height / image.height)
-                val width = image.width * scale; val height = image.height * scale
-                drawImage(image, dstOffset = androidx.compose.ui.unit.IntOffset(((size.width - width) / 2).toInt(), ((size.height - height) / 2).toInt()), dstSize = androidx.compose.ui.unit.IntSize(width.toInt(), height.toInt()))
+                // a camera with two lenses in one picture shows one half of it in each window: only that half is drawn, whole inside the window
+                val shownHeight = if (half == LensHalf.WHOLE) image.height else image.height / 2
+                val fromY = if (half == LensHalf.LOWER) image.height - shownHeight else 0
+                val scale = minOf(size.width / image.width, size.height / shownHeight)
+                val width = image.width * scale; val height = shownHeight * scale
+                drawImage(image, srcOffset = androidx.compose.ui.unit.IntOffset(0, fromY), srcSize = androidx.compose.ui.unit.IntSize(image.width, shownHeight),
+                    dstOffset = androidx.compose.ui.unit.IntOffset(((size.width - width) / 2).toInt(), ((size.height - height) / 2).toInt()), dstSize = androidx.compose.ui.unit.IntSize(width.toInt(), height.toInt()))
             }
         }
     }
 }
+
+/** Which part of the picture a window shows: all of it, or the upper or the lower lens of a camera that has two lenses in one stream. */
+enum class LensHalf { WHOLE, UPPER, LOWER }
 
 private const val MAX_JPEG_BYTES = 8 * 1024 * 1024
 

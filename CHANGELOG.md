@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **Which notices the phone shows is chosen in the settings:** silence all of them, show them without sound or vibration (and without saying them aloud), and switch off by severity (high, low) or by kind (radar alerts, cameras that do not answer, nodes offline or silent, and the alarms of devices, solar, electrical, network and the alarm panels). A critical alarm always notifies unless every notice is silenced. The server's own push messages that the system shows by itself can only be filtered when the server sends them as data.
+- **A camera with two lenses in one stream is two windows of the camera list:** each shows its half of the picture with its lens named, and the buttons act on the real camera.
 - **The layout of the README is checked in the CI:** the validator runs the shared `tools/universal_readme_check.py` and lists, as a warning, what differs from the universal layout of the README.
 - **The Overview of the README keeps its bullets apart:** two bullets that ran together are separate again, in the eight languages.
 - **The pictures of the README come from shared tools:** `tools/make_architecture.py` draws `images/architecture.svg` from `docs/architecture.json` and `tools/make_structure.py` draws the Repository Structure (the text tree and the animated picture) from `docs/structure.json`; both measure every text, and `--check` fails when a picture, its description or the code it points to disagree. They are vendored from ARMOR-COMMON like the shared CI checks.

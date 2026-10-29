@@ -20,6 +20,8 @@ object AlarmNotifier {
     private const val SERVER_CRITICAL_CHANNEL = "armor_critical"
     private const val SERVER_WARNING_CHANNEL = "armor_warning"
     const val WATCH_CHANNEL = "armor_watch"
+    /** Where a notice goes when the person asked for them without sound: shown, but with no sound and no vibration. */
+    const val QUIET_CHANNEL = "armor_alarm_quiet"
     private const val SPEAK = "speak_alarms"
     private const val PREFERENCES = "armor-control"
     private const val LAST_EVENT = "last_event|"
@@ -56,6 +58,7 @@ object AlarmNotifier {
             setBypassDnd(true)
         })
         for (id in listOf(WARNING_CHANNEL, SERVER_WARNING_CHANNEL)) manager.createNotificationChannel(NotificationChannel(id, tr("Avisos"), NotificationManager.IMPORTANCE_DEFAULT).apply { description = tr("Avisos menos graves: batería baja, un dispositivo sin respuesta.") })
+        manager.createNotificationChannel(NotificationChannel(QUIET_CHANNEL, tr("Avisos sin sonido"), NotificationManager.IMPORTANCE_LOW).apply { description = tr("Los avisos que has pedido sin sonido ni vibración."); setSound(null, null); enableVibration(false) })
         manager.createNotificationChannel(NotificationChannel(WATCH_CHANNEL, tr("Vigilancia en segundo plano"), NotificationManager.IMPORTANCE_LOW).apply { description = tr("Aviso permanente mientras la vigilancia está activa") })
     }
 
@@ -68,15 +71,18 @@ object AlarmNotifier {
 
     fun post(context: Context, notice: AlarmNotice) {
         if (!canNotify(context)) return
+        // What the person chose comes first: some notices are not wanted at all, and some are wanted without sound.
+        val decision = NoticePreferences.load(context).decide(notice)
+        if (decision == NoticeDecision.HIDE) return
         ensureChannels(context)
-        val channel = when (notice.severity) { "critical" -> CRITICAL_CHANNEL; "warning" -> WARNING_CHANNEL; else -> ALARM_CHANNEL }
+        val channel = if (decision == NoticeDecision.SILENT) QUIET_CHANNEL else when (notice.severity) { "critical" -> CRITICAL_CHANNEL; "warning" -> WARNING_CHANNEL; else -> ALARM_CHANNEL }
         val notification = Notification.Builder(context, channel)
             .setSmallIcon(android.R.drawable.ic_dialog_alert)
             .setContentTitle(notice.title).setContentText(notice.text)
             .setCategory(Notification.CATEGORY_ALARM).setAutoCancel(true).setContentIntent(openApp(context))
             .build()
         context.getSystemService(NotificationManager::class.java).notify(NOTICE_BASE + (notice.id % 10_000).toInt(), notification)
-        if (notice.severity != "warning" && speaksAlarms(context)) AlarmSpeaker.say(context, "${notice.title}. ${notice.text}")
+        if (decision == NoticeDecision.SHOW && notice.severity != "warning" && speaksAlarms(context)) AlarmSpeaker.say(context, "${notice.title}. ${notice.text}")
     }
 
     /** Whether the phone says an alarm aloud as well as showing it (off by default). */
