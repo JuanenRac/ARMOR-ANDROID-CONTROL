@@ -299,8 +299,9 @@ class ArmorApiClient : ArmorApi {
     }
 
     /** Tells the server the token Firebase gave this phone, so that it can push alarms to it (a server with push off answers 409, which is not a failure of the app). */
-    override fun registerPush(origin: String, token: String) {
-        request(origin, "/api/v1/push/register", "POST", mapOf("Content-Type" to "application/json"), JSONObject().put("token", token).toString(), setOf(200, 201, 409)).disconnect()
+    override fun registerPush(origin: String, token: String, language: String) {
+        val body = JSONObject().put("token", token).apply { if (language.isNotBlank()) put("language", language) }
+        request(origin, "/api/v1/push/register", "POST", mapOf("Content-Type" to "application/json"), body.toString(), setOf(200, 201, 409)).disconnect()
     }
 
     /** Takes the phone's token back (it signs out): by POST, because some HTTP stacks send no body with DELETE. */

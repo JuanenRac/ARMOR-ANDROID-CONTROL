@@ -285,6 +285,10 @@ class ApiClientTest {
         client.unregisterPush(origin, "tok")
         assertEquals(listOf("POST" to "/api/v1/push/register", "POST" to "/api/v1/push/unregister"), server.seen.map { it.method to it.path })
         assertEquals("tok", JSONObject(server.seen[1].body).getString("token"))
+        assertFalse("no language was given, none is sent", JSONObject(server.seen[0].body).has("language"))
+        server.reply(200, "{}")
+        client.registerPush(origin, "tok", "pt")
+        assertEquals("pt", JSONObject(server.seen[2].body).getString("language"))
         server.reply(500, "{}")
         assertEquals(500, failure { client.registerPush(origin, "tok") }.code)
     }

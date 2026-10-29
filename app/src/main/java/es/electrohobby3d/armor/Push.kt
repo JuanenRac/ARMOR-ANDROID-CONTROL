@@ -56,7 +56,16 @@ class PushService : FirebaseMessagingService() {
         AlarmNotifier.ensureChannels(this)   // the channels the server names must exist before a message arrives
     }
 
-    override fun onNewToken(token: String) { Push.keep(this, token) }
+    /**
+     * Firebase rotated the token. It is kept, and told to the server at once when the phone still holds a session it can read (the signed-in one the app or the watch kept): otherwise the
+     * server would go on pushing to a token that no longer exists until the app is opened. When the session cannot be read yet (a phone locked behind the unlock-bound key) or the server
+     * does not answer, the token waits for the next start of the app, as before.
+     */
+    override fun onNewToken(token: String) {
+        Push.keep(this, token)
+        val app = applicationContext
+        Thread { runCatching { PushRegistration.registerNow(app, token) } }.apply { isDaemon = true; name = "armor-push-register" }.start()
+    }
 
     /**
      * A message of data only (the server tells which event happened; this phone says it in its own language) or with a notification part that the system shows by itself when the app is out of
@@ -69,5 +78,23 @@ class PushService : FirebaseMessagingService() {
         val announced = AlarmNotifier.announced(this)
         if (message.notification != null) { PushEvents.noteShown(message.data, origin, announced); return }
         PushEvents.notice(message.data, origin, announced)?.let { AlarmNotifier.post(this, it) }
+    }
+}
+
+/** Tells the server a new token without the app on screen. */
+object PushRegistration {
+    /** True when the server took it (or has push off). False when there is nothing to do it with: no server saved, no session kept, or a key that cannot be used while the phone is locked. */
+    fun registerNow(context: Context, token: String, api: es.electrohobby3d.armor.network.ArmorApi = SharedFeed.api): Boolean {
+        val preferences = context.getSharedPreferences("armor-control", Context.MODE_PRIVATE)
+        val origin = preferences.getString("origin", "").orEmpty()
+        if (ServerEndpoint.parse(origin) == null) return false
+        TrustPins.install(PreferencesStore(preferences))
+        val vault = KeyBoxes.sessionVault(context)
+        if (!vault.has() || !KeyBoxes.sessionBox(context).usable()) return false
+        val saved = vault.load(origin) ?: return false
+        Tr.init(context)
+        api.restoreSessionCookie(origin, saved.name, saved.value)
+        api.registerPush(origin, token, Tr.voiceLanguage())
+        return true
     }
 }

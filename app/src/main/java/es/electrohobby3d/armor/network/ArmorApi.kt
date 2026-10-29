@@ -105,8 +105,8 @@ interface ArmorApi {
     fun ddnsRemove(origin: String): RemoteSetup
     /** Forgets the session cookie held here, whatever the server says (a logout with the server down). */
     fun forgetSession(origin: String)
-    /** Tells the server the token Firebase gave this phone, so that it can push alarms to it (a server with push off answers 409, which is not a failure of the app). */
-    fun registerPush(origin: String, token: String)
+    /** Tells the server the token Firebase gave this phone, so that it can push alarms to it (a server with push off answers 409, which is not a failure of the app). `language` is the one the app is in: the server tells the notice of an alarm in it. */
+    fun registerPush(origin: String, token: String, language: String = "")
     /** Takes the phone's token back (it signs out): by POST, because some HTTP stacks send no body with DELETE. */
     fun unregisterPush(origin: String, token: String)
     fun closeStudioSession(origin: String)
