@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The layout of the README is checked in the CI:** the validator runs the shared `tools/universal_readme_check.py` and lists, as a warning, what differs from the universal layout of the README.
+- **The Overview of the README keeps its bullets apart:** two bullets that ran together are separate again, in the eight languages.
 - **The pictures of the README come from shared tools:** `tools/make_architecture.py` draws `images/architecture.svg` from `docs/architecture.json` and `tools/make_structure.py` draws the Repository Structure (the text tree and the animated picture) from `docs/structure.json`; both measure every text, and `--check` fails when a picture, its description or the code it points to disagree. They are vendored from ARMOR-COMMON like the shared CI checks.
 
 ## [0.7.7] - The movement buttons follow what the camera can do
