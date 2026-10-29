@@ -1,0 +1,477 @@
+{
+  "repo": "ARMOR-ANDROID-CONTROL",
+  "ecosystem": "armor",
+  "svg": "en",
+  "cards": [
+    {
+      "name": "app/src/main/java/es/electrohobby3d/armor/",
+      "tree": {
+        "en": "the app: screens, rules, network and updates",
+        "es": "la app: pantallas, reglas, red y actualizaciones",
+        "de": "die App: Bildschirme, Regeln, Netz und Updates",
+        "fr": "l'app : écrans, règles, réseau et mises à jour",
+        "it": "l'app: schermate, regole, rete e aggiornamenti",
+        "ja": "アプリ：画面、ルール、ネットワーク、更新",
+        "zh": "应用：界面、规则、网络与更新",
+        "pt": "a app: ecrãs, regras, rede e atualizações"
+      },
+      "span": 3,
+      "accent": "a",
+      "rows": [
+        {
+          "desc": {
+            "en": "ArmorActivity, *Screens.kt: the shell and the screens",
+            "es": "ArmorActivity, *Screens.kt: el armazón y las pantallas",
+            "de": "ArmorActivity, *Screens.kt: Rahmen und Bildschirme",
+            "fr": "ArmorActivity, *Screens.kt : le cadre et les écrans",
+            "it": "ArmorActivity, *Screens.kt: il guscio e le schermate",
+            "ja": "ArmorActivity、*Screens.kt：骨格と画面",
+            "zh": "ArmorActivity、*Screens.kt：外壳与界面",
+            "pt": "ArmorActivity, *Screens.kt: o invólucro e os ecrãs"
+          }
+        },
+        {
+          "desc": {
+            "en": "NodeBleClient, NodeSetupScreen, NodePanel: nodes over Bluetooth",
+            "es": "NodeBleClient, NodeSetupScreen, NodePanel: nodos por Bluetooth",
+            "de": "NodeBleClient, NodeSetupScreen, NodePanel: Knoten per Bluetooth",
+            "fr": "NodeBleClient, NodeSetupScreen, NodePanel : nœuds en Bluetooth",
+            "it": "NodeBleClient, NodeSetupScreen, NodePanel: nodi via Bluetooth",
+            "ja": "NodeBleClient、NodeSetupScreen、NodePanel：Bluetooth のノード",
+            "zh": "NodeBleClient、NodeSetupScreen、NodePanel：蓝牙节点",
+            "pt": "NodeBleClient, NodeSetupScreen, NodePanel: nós por Bluetooth"
+          }
+        },
+        {
+          "desc": {
+            "en": "ArmorViewModel, Friendly, Tr: state, plain words, languages",
+            "es": "ArmorViewModel, Friendly, Tr: estado, palabras sencillas, idiomas",
+            "de": "ArmorViewModel, Friendly, Tr: Zustand, einfache Worte, Sprachen",
+            "fr": "ArmorViewModel, Friendly, Tr : état, mots simples, langues",
+            "it": "ArmorViewModel, Friendly, Tr: stato, parole semplici, lingue",
+            "ja": "ArmorViewModel、Friendly、Tr：状態、平易な言葉、言語",
+            "zh": "ArmorViewModel、Friendly、Tr：状态、通俗措辞、语言",
+            "pt": "ArmorViewModel, Friendly, Tr: estado, palavras simples, línguas"
+          }
+        },
+        {
+          "desc": {
+            "en": "Alarm*.kt, BootReceiver, Push: banner, voice, watch, push",
+            "es": "Alarm*.kt, BootReceiver, Push: banner, voz, vigilancia, push",
+            "de": "Alarm*.kt, BootReceiver, Push: Banner, Stimme, Überwachung, Push",
+            "fr": "Alarm*.kt, BootReceiver, Push : bandeau, voix, surveillance, push",
+            "it": "Alarm*.kt, BootReceiver, Push: banner, voce, sorveglianza, push",
+            "ja": "Alarm*.kt、BootReceiver、Push：バナー、音声、監視、プッシュ",
+            "zh": "Alarm*.kt、BootReceiver、Push：横幅、语音、监视、推送",
+            "pt": "Alarm*.kt, BootReceiver, Push: faixa, voz, vigilância, push"
+          }
+        },
+        {
+          "desc": {
+            "en": "ServerEndpoint, SessionVault, DeviceLock, CertificatePins: safety",
+            "es": "ServerEndpoint, SessionVault, DeviceLock, CertificatePins: seguridad",
+            "de": "ServerEndpoint, SessionVault, DeviceLock, CertificatePins: Sicherheit",
+            "fr": "ServerEndpoint, SessionVault, DeviceLock, CertificatePins : sécurité",
+            "it": "ServerEndpoint, SessionVault, DeviceLock, CertificatePins: sicurezza",
+            "ja": "ServerEndpoint、SessionVault、DeviceLock、CertificatePins：安全",
+            "zh": "ServerEndpoint、SessionVault、DeviceLock、CertificatePins：安全",
+            "pt": "ServerEndpoint, SessionVault, DeviceLock, CertificatePins: segurança"
+          }
+        },
+        {
+          "desc": {
+            "en": "model/, network/, update/: models, server client, updater",
+            "es": "model/, network/, update/: modelos, cliente del servidor, actualizador",
+            "de": "model/, network/, update/: Modelle, Server-Client, Updater",
+            "fr": "model/, network/, update/ : modèles, client du serveur, mise à jour",
+            "it": "model/, network/, update/: modelli, client del server, aggiornamento",
+            "ja": "model/、network/、update/：モデル、サーバークライアント、更新",
+            "zh": "model/、network/、update/：模型、服务器客户端、更新",
+            "pt": "model/, network/, update/: modelos, cliente do servidor, atualizador"
+          }
+        }
+      ]
+    },
+    {
+      "name": "app/src/main/assets/",
+      "span": 2,
+      "tree": {
+        "en": "eight language tables, alarm codes, weather map",
+        "es": "ocho tablas de idioma, códigos de alarma, mapa del tiempo",
+        "de": "acht Sprachtabellen, Alarmcodes, Wetterkarte",
+        "fr": "huit tables de langue, codes d'alarme, carte météo",
+        "it": "otto tabelle di lingua, codici di allarme, mappa meteo",
+        "ja": "8 言語の表、アラームコード、天気マップ",
+        "zh": "八种语言表、报警代码、天气地图",
+        "pt": "oito tabelas de língua, códigos de alarme, mapa do tempo"
+      },
+      "rows": [
+        {
+          "desc": {
+            "en": "i18n/: one table per language, 1345 phrases each",
+            "es": "i18n/: una tabla por idioma, 1345 frases cada una",
+            "de": "i18n/: eine Tabelle je Sprache, je 1345 Sätze",
+            "fr": "i18n/ : une table par langue, 1345 phrases chacune",
+            "it": "i18n/: una tabella per lingua, 1345 frasi ciascuna",
+            "ja": "i18n/：言語ごとの表、各 1345 フレーズ",
+            "zh": "i18n/：每种语言一张表，各 1345 条",
+            "pt": "i18n/: uma tabela por língua, 1345 frases cada"
+          }
+        },
+        {
+          "desc": {
+            "en": "alarm_codes.json, weather_radar.html, leaflet/",
+            "es": "alarm_codes.json, weather_radar.html, leaflet/",
+            "de": "alarm_codes.json, weather_radar.html, leaflet/",
+            "fr": "alarm_codes.json, weather_radar.html, leaflet/",
+            "it": "alarm_codes.json, weather_radar.html, leaflet/",
+            "ja": "alarm_codes.json、weather_radar.html、leaflet/",
+            "zh": "alarm_codes.json、weather_radar.html、leaflet/",
+            "pt": "alarm_codes.json, weather_radar.html, leaflet/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "app/src/test/",
+      "span": 1,
+      "tree": {
+        "en": "342 tests and a fake server",
+        "es": "342 pruebas y un servidor falso",
+        "de": "342 Tests und ein Fake-Server",
+        "fr": "342 tests et un faux serveur",
+        "it": "342 test e un server finto",
+        "ja": "342 件のテストと擬似サーバー",
+        "zh": "342 个测试和一个模拟服务器",
+        "pt": "342 testes e um servidor falso"
+      },
+      "rows": [
+        {
+          "desc": {
+            "en": "46 files, FakeServer",
+            "es": "46 ficheros, FakeServer",
+            "de": "46 Dateien, FakeServer",
+            "fr": "46 fichiers, FakeServer",
+            "it": "46 file, FakeServer",
+            "ja": "46 ファイル、FakeServer",
+            "zh": "46 个文件、FakeServer",
+            "pt": "46 ficheiros, FakeServer"
+          }
+        }
+      ]
+    },
+    {
+      "name": "docs/",
+      "span": 1,
+      "tree": {
+        "en": "the guides of this repository",
+        "es": "las guías de este repositorio",
+        "de": "die Anleitungen dieses Repositorys",
+        "fr": "les guides de ce dépôt",
+        "it": "le guide di questo repository",
+        "ja": "このリポジトリのガイド",
+        "zh": "本仓库的指南",
+        "pt": "os guias deste repositório"
+      },
+      "rows": [
+        {
+          "name": "CLIENT_BOUNDARY.md",
+          "desc": {
+            "en": "the client's limits",
+            "es": "los límites del cliente",
+            "de": "die Grenzen des Clients",
+            "fr": "les limites du client",
+            "it": "i confini del client",
+            "ja": "クライアントの境界",
+            "zh": "客户端的边界",
+            "pt": "os limites do cliente"
+          }
+        },
+        {
+          "name": "PUSH_NOTIFICATIONS.md",
+          "desc": {
+            "en": "the Firebase steps",
+            "es": "los pasos de Firebase",
+            "de": "die Firebase-Schritte",
+            "fr": "les étapes Firebase",
+            "it": "i passi di Firebase",
+            "ja": "Firebase の手順",
+            "zh": "Firebase 步骤",
+            "pt": "os passos do Firebase"
+          }
+        },
+        {
+          "name": "BENCH_TESTS.md",
+          "desc": {
+            "en": "bench tests",
+            "es": "pruebas de banco",
+            "de": "Prüfstandtests",
+            "fr": "essais de banc",
+            "it": "prove al banco",
+            "ja": "ベンチテスト",
+            "zh": "台架测试",
+            "pt": "testes de bancada"
+          }
+        }
+      ]
+    },
+    {
+      "name": "tools/",
+      "span": 1,
+      "tree": {
+        "en": "the shared CI checks and project tooling",
+        "es": "las comprobaciones de CI compartidas y las herramientas del proyecto",
+        "de": "die gemeinsamen CI-Prüfungen und Projektwerkzeuge",
+        "fr": "les contrôles CI partagés et les outils du projet",
+        "it": "i controlli CI condivisi e gli strumenti del progetto",
+        "ja": "共通の CI チェックとプロジェクトツール",
+        "zh": "共享的 CI 检查和项目工具",
+        "pt": "as verificações de CI partilhadas e as ferramentas do projeto"
+      },
+      "rows": [
+        {
+          "name": "capture_fixtures.mjs",
+          "desc": {
+            "en": "takes fixtures from a real server",
+            "es": "toma datos de prueba de un servidor real",
+            "de": "holt Testdaten von einem echten Server",
+            "fr": "prend des données d'un vrai serveur",
+            "it": "prende dati da un server reale",
+            "ja": "実サーバーから試験データを取得",
+            "zh": "从真实服务器获取测试数据",
+            "pt": "tira dados de um servidor real"
+          }
+        },
+        {
+          "name": "armor_ci_validate.py",
+          "desc": {
+            "en": "the CI validation",
+            "es": "la validación de CI",
+            "de": "die CI-Prüfung",
+            "fr": "la validation CI",
+            "it": "la validazione CI",
+            "ja": "CI 検証",
+            "zh": "CI 验证",
+            "pt": "a validação de CI"
+          }
+        }
+      ]
+    },
+    {
+      "name": ".github/ images/",
+      "kind": "group",
+      "span": 3,
+      "columns": 2,
+      "rows": [
+        {
+          "name": ".github/",
+          "desc": {
+            "en": "CI workflow, issue and pull-request templates",
+            "es": "flujo de CI y plantillas de issues y pull requests",
+            "de": "CI-Workflow sowie Vorlagen für Issues und Pull Requests",
+            "fr": "workflow CI et modèles d'issues et de pull requests",
+            "it": "workflow CI e modelli per issue e pull request",
+            "ja": "CI ワークフローと Issue・Pull Request のテンプレート",
+            "zh": "CI 工作流以及 Issue 和 Pull Request 模板",
+            "pt": "fluxo de CI e modelos de issues e pull requests"
+          }
+        },
+        {
+          "name": "images/",
+          "desc": {
+            "en": "banner, icon and the two pictures of this README",
+            "es": "banner, icono y las dos imágenes de este README",
+            "de": "Banner, Symbol und die zwei Bilder dieses READMEs",
+            "fr": "bannière, icône et les deux images de ce README",
+            "it": "banner, icona e le due immagini di questo README",
+            "ja": "バナー、アイコン、この README の 2 つの図",
+            "zh": "横幅、图标和本 README 的两幅图",
+            "pt": "faixa, ícone e as duas imagens deste README"
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "Files at the root",
+        "es": "Ficheros en la raíz",
+        "de": "Dateien im Wurzelverzeichnis",
+        "fr": "Fichiers à la racine",
+        "it": "File nella radice",
+        "ja": "ルートのファイル",
+        "zh": "根目录的文件",
+        "pt": "Ficheiros na raiz"
+      },
+      "kind": "group",
+      "span": 3,
+      "columns": 2,
+      "rows": [
+        {
+          "name": "build.sh  build.bat",
+          "tree_name": "build.sh build.bat",
+          "desc": {
+            "en": "build through the shared project workflow",
+            "es": "compilar con el flujo de proyecto compartido",
+            "de": "Build über den gemeinsamen Projekt-Workflow",
+            "fr": "build par le flux de projet partagé",
+            "it": "build tramite il flusso di progetto condiviso",
+            "ja": "共通のプロジェクトワークフローでビルド",
+            "zh": "通过共享的项目工作流构建",
+            "pt": "compilar pelo fluxo de projeto partilhado"
+          }
+        },
+        {
+          "name": "test.sh  test.bat",
+          "tree_name": "test.sh test.bat",
+          "desc": {
+            "en": "run the tests through the shared workflow",
+            "es": "ejecutar las pruebas con el flujo compartido",
+            "de": "Tests über den gemeinsamen Workflow ausführen",
+            "fr": "lancer les tests par le flux partagé",
+            "it": "eseguire i test tramite il flusso condiviso",
+            "ja": "共通のワークフローでテストを実行",
+            "zh": "通过共享工作流运行测试",
+            "pt": "executar os testes pelo fluxo partilhado"
+          }
+        },
+        {
+          "name": "run.sh  run.bat",
+          "tree_name": "run.sh run.bat",
+          "desc": {
+            "en": "start through the shared project workflow",
+            "es": "arrancar con el flujo de proyecto compartido",
+            "de": "Start über den gemeinsamen Projekt-Workflow",
+            "fr": "démarrer par le flux de projet partagé",
+            "it": "avvio tramite il flusso di progetto condiviso",
+            "ja": "共通のプロジェクトワークフローで起動",
+            "zh": "通过共享的项目工作流启动",
+            "pt": "arrancar pelo fluxo de projeto partilhado"
+          }
+        },
+        {
+          "name": "armor.project.json",
+          "desc": {
+            "en": "manifest: version, role, maturity, build command",
+            "es": "manifiesto: versión, rol, madurez, comando de build",
+            "de": "Manifest: Version, Rolle, Reifegrad, Build-Befehl",
+            "fr": "manifeste : version, rôle, maturité, commande de build",
+            "it": "manifesto: versione, ruolo, maturità, comando di build",
+            "ja": "マニフェスト：バージョン、役割、成熟度、ビルドコマンド",
+            "zh": "清单：版本、角色、成熟度、构建命令",
+            "pt": "manifesto: versão, função, maturidade, comando de build"
+          }
+        },
+        {
+          "name": "CHANGELOG.md",
+          "desc": {
+            "en": "what changed in each version",
+            "es": "qué cambió en cada versión",
+            "de": "was sich in jeder Version geändert hat",
+            "fr": "ce qui a changé à chaque version",
+            "it": "cosa è cambiato in ogni versione",
+            "ja": "各バージョンの変更点",
+            "zh": "每个版本的变化",
+            "pt": "o que mudou em cada versão"
+          }
+        },
+        {
+          "name": "SECURITY.md  SUPPORT.md  LICENSE",
+          "tree_name": "SECURITY.md SUPPORT.md LICENSE",
+          "desc": {
+            "en": "security policy, support and license",
+            "es": "política de seguridad, soporte y licencia",
+            "de": "Sicherheitsrichtlinie, Support und Lizenz",
+            "fr": "politique de sécurité, support et licence",
+            "it": "politica di sicurezza, supporto e licenza",
+            "ja": "セキュリティポリシー、サポート、ライセンス",
+            "zh": "安全策略、支持和许可证",
+            "pt": "política de segurança, apoio e licença"
+          }
+        },
+        {
+          "name": "CONTRIBUTING.md  CODE_OF_CONDUCT.md",
+          "tree_name": "CONTRIBUTING.md CODE_OF_CONDUCT.md",
+          "desc": {
+            "en": "how to contribute and the code of conduct",
+            "es": "cómo contribuir y el código de conducta",
+            "de": "Mitwirkung und Verhaltenskodex",
+            "fr": "comment contribuer et le code de conduite",
+            "it": "come contribuire e il codice di condotta",
+            "ja": "貢献方法と行動規範",
+            "zh": "如何贡献与行为准则",
+            "pt": "como contribuir e o código de conduta"
+          }
+        },
+        {
+          "name": "build.gradle.kts  settings.gradle.kts",
+          "desc": {
+            "en": "the Gradle build of the project",
+            "es": "la compilación Gradle del proyecto",
+            "de": "der Gradle-Build des Projekts",
+            "fr": "le build Gradle du projet",
+            "it": "la build Gradle del progetto",
+            "ja": "プロジェクトの Gradle ビルド",
+            "zh": "项目的 Gradle 构建",
+            "pt": "a compilação Gradle do projeto"
+          },
+          "tree_name": "build.gradle.kts settings.gradle.kts"
+        },
+        {
+          "name": "gradle.properties",
+          "desc": {
+            "en": "Gradle settings",
+            "es": "ajustes de Gradle",
+            "de": "Gradle-Einstellungen",
+            "fr": "réglages Gradle",
+            "it": "impostazioni di Gradle",
+            "ja": "Gradle の設定",
+            "zh": "Gradle 设置",
+            "pt": "definições do Gradle"
+          }
+        },
+        {
+          "name": "gradlew  gradlew.bat  gradle/",
+          "desc": {
+            "en": "the Gradle wrapper",
+            "es": "el envoltorio de Gradle",
+            "de": "der Gradle-Wrapper",
+            "fr": "l'enveloppe Gradle",
+            "it": "il wrapper di Gradle",
+            "ja": "Gradle ラッパー",
+            "zh": "Gradle 包装器",
+            "pt": "o wrapper do Gradle"
+          },
+          "tree_name": "gradlew gradlew.bat gradle/"
+        },
+        {
+          "name": "build-test.sh  build-test.bat",
+          "desc": {
+            "en": "run the tests through the shared workflow",
+            "es": "ejecutar las pruebas con el flujo compartido",
+            "de": "Tests über den gemeinsamen Workflow ausführen",
+            "fr": "lancer les tests par le flux partagé",
+            "it": "eseguire i test tramite il flusso condiviso",
+            "ja": "共通のワークフローでテストを実行",
+            "zh": "通过共享工作流运行测试",
+            "pt": "executar os testes pelo fluxo partilhado"
+          },
+          "tree_name": "build-test.sh build-test.bat"
+        },
+        {
+          "name": ".gitattributes  .gitignore",
+          "desc": {
+            "en": "Git settings",
+            "es": "ajustes de Git",
+            "de": "Git-Einstellungen",
+            "fr": "réglages Git",
+            "it": "impostazioni di Git",
+            "ja": "Git の設定",
+            "zh": "Git 设置",
+            "pt": "definições do Git"
+          },
+          "tree_name": ".gitattributes .gitignore"
+        }
+      ]
+    }
+  ]
+}

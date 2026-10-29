@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="images/ARMOR_BANNER.svg" alt="ARMOR-ANDROID-CONTROL banner" width="100%">
+  <img src="images/ARMOR_BANNER.svg" alt="Banner di ARMOR-ANDROID-CONTROL" width="100%">
 </p>
 
 # 📱 ARMOR-ANDROID-CONTROL
@@ -18,18 +18,18 @@
 ### Client mobile da operatore per ARMOR-SERVER: allarmi, telecamere, radar, energia, la rete e la configurazione dei nodi, in otto lingue
 
 <p align="center">
-  <img src="https://img.shields.io/badge/License-GPL%203.0-blue.svg" alt="GPL 3.0">
-  <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
+  <img src="https://img.shields.io/badge/License-GPL%203.0--or--later-blue.svg" alt="GPL 3.0 o successiva">
+  <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Linguaggio">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
-  <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
-  <img src="https://img.shields.io/badge/Tests-331%20passing-2ea44f.svg" alt="Tests">
-  <img src="https://img.shields.io/badge/Version-0.7.7-0f6cbd.svg" alt="Version">
-  <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
+  <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Lingue">
+  <img src="https://img.shields.io/badge/Tests-342%20passing-2ea44f.svg" alt="Test">
+  <img src="https://img.shields.io/badge/Version-0.7.7-0f6cbd.svg" alt="Versione">
+  <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturità">
 </p>
 
 ---
 
-**Controllo di onestà - cosa funziona oggi:** Le regole di sicurezza dell'indirizzo, di decisione degli allarmi, del guardiano degli allarmi, di traduzione e del ruolo di sola lettura sono coperte da 331 test unitari e l'app si compila (`gradlew testDebugUnitTest assembleDebug`). Funziona su un vero telefono contro il banco di prova CM5: l'accesso, il monitor delle telecamere, l'inserimento e gli allarmi, il radar, la configurazione di un nodo via Bluetooth e gli aggiornamenti da GitHub sono in uso. Ciò che **non** è ancora provato: le schermate solare, elettrica e delle centrali d'allarme con apparecchi reali (esiste solo un nodo radar), il push tramite Firebase (è nell'app e richiede un progetto Firebase proprio; non è ancora stato provato su un telefono) e la sorveglianza degli allarmi in background sotto le regole di batteria di ogni produttore.
+**Controllo di onestà - cosa funziona oggi:** Le regole di sicurezza dell'indirizzo, di decisione degli allarmi, del guardiano degli allarmi, di traduzione e del ruolo di sola lettura sono coperte da 342 test unitari e l'app si compila (`gradlew testDebugUnitTest assembleDebug`). Funziona su un vero telefono contro il banco di prova CM5: l'accesso, il monitor delle telecamere, l'inserimento e gli allarmi, il radar, la configurazione di un nodo via Bluetooth e gli aggiornamenti da GitHub sono in uso. Ciò che **non** è ancora provato: le schermate solare, elettrica e delle centrali d'allarme con apparecchi reali (esiste solo un nodo radar), il push tramite Firebase (è nell'app e richiede un progetto Firebase proprio; non è ancora stato provato su un telefono) e la sorveglianza degli allarmi in background sotto le regole di batteria di ogni produttore.
 
 ---
 
@@ -39,9 +39,15 @@
 |---|---|
 | Versione | `0.7.7` |
 | Maturità | Consolidato |
-| Test | 331 (`gradlew testDebugUnitTest`) |
-| Tecnologia | Kotlin / Jetpack Compose |
+| Ruolo | Client operatore Android per ARMOR-SERVER (famiglia: Clients, padre: ARMOR-SERVER) |
+| Tecnologia | Kotlin / Jetpack Compose, Android 8.0+ |
+| Test | 342 (`gradlew testDebugUnitTest`) |
+| Lingue | 8 (1345 frasi per lingua, ogni frase verificata in tutte le tabelle) |
+| Gira su | Un telefono con Android 8.0+ (minSdk 26) |
 | Su hardware reale | Usata su un vero telefono contro il banco di prova CM5; le schermate solare, elettrica e delle centrali d'allarme attendono nodi reali |
+| Licenza | GPL-3.0-or-later |
+
+**Vai a:** [Panoramica](#-panoramica) · [Architettura](#-architettura) · [Sicurezza](#-sicurezza-e-protezione) · [Interfacce](#-interfacce) · [Configurazione](#-configurazione) · [Avvio rapido](#-avvio-rapido) · [Test](#-test) · [Problemi](#-risoluzione-dei-problemi) · [Struttura](#-struttura-del-repository) · [Correlati](#-progetti-correlati)
 
 ## 🚦 Stato del progetto
 
@@ -52,7 +58,7 @@ Ogni riga è una parte di questo repository e il semaforo dice a che punto è og
 | Area | Stato | Cosa significa qui |
 |---|---|---|
 | Software | 🟢 | L'app compila (`gradlew testDebugUnitTest assembleDebug`) e gira su un telefono reale contro il banco di prova CM5. |
-| Test | 🟢 | Superano 331 test unitari (`gradlew testDebugUnitTest`): sicurezza degli indirizzi, decisione di allarme, sorvegliante degli allarmi, traduzioni e ruolo di sola lettura. |
+| Test | 🟢 | Superano 342 test unitari (`gradlew testDebugUnitTest`): sicurezza degli indirizzi, decisione di allarme, sorvegliante degli allarmi, traduzioni e ruolo di sola lettura. |
 | Interfaccia | 🟡 | L'accesso, il monitor delle telecamere, l'inserimento e gli allarmi e il radar sono in uso su un telefono reale; la configurazione di un nodo via Bluetooth non è stata confermata con un nodo reale e le schermate solare, elettrica e della centralina d'allarme non hanno incontrato apparecchiature reali. |
 | Hardware | 🟡 | Usata su un telefono reale contro il banco di prova CM5; la sorveglianza degli allarmi in background con le regole di batteria di ogni produttore non è provata. |
 | Sicurezza | 🟡 | Le regole di sicurezza degli indirizzi e del ruolo di sola lettura sono coperte da test unitari; non c'è stata una revisione indipendente. |
@@ -89,33 +95,157 @@ Ogni riga è una parte di questo repository e il semaforo dice a che punto è og
 
 ARMOR-ANDROID-CONTROL è la finestra del telefono sullo stesso [ARMOR-SERVER](https://github.com/JuanenRac/ARMOR-SERVER) usato da [ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUDIO): legge e ordina attraverso di esso e nient'altro. È dove gli allarmi ti seguono (una centrale che suona sveglia il telefono), dove interroghi l'assistente a voce, e lo strumento per configurare un nuovo nodo via Bluetooth sul campo, accanto ad esso.
 
-## 📂 Struttura del repository
+| Nome | Come | A cosa serve |
+|---|---|---|
+| ARMOR-SERVER | HTTP `/api/v1` (55 paths), MJPEG | Tutto ciò che l'app legge e ordina |
+| Nodi di campo | Bluetooth (`ARMOR-xxxxxx`) | Configura un nuovo nodo stando accanto a esso |
+| GitHub | HTTPS | Controlla e scarica l'aggiornamento firmato dell'app stessa |
+| Open-Meteo | HTTPS | Le previsioni, la qualità dell'aria e la ricerca dei luoghi pubbliche della mappa meteo |
 
-```text
-ARMOR-ANDROID-CONTROL/
-├── app/src/main/java/es/electrohobby3d/armor/
-│   ├── ArmorActivity.kt (the shell), EntryScreens.kt, HomeScreens.kt, CameraScreens.kt, RadarScreens.kt, DevicePanels.kt, MoreScreens.kt
-│   ├── SolarScreens.kt, ElectricalScreens.kt, AlarmPanelScreens.kt, NetworkScreens.kt, ServicesScreens.kt, NodeControlScreens.kt, WeatherScreens.kt, VoiceScreens.kt, MediaViewer.kt
-│   ├── NodeBleClient.kt, NodeSetupScreen.kt, NodeFinderScreens.kt, NodePanel.kt   configure a node over Bluetooth (the protocol is in model/NodeBle.kt)
-│   ├── ArmorViewModel.kt, Friendly.kt, AlarmPolicy.kt, AlarmBanner.kt, AlarmNotifier.kt, AlarmSpeaker.kt, AlarmWatcherService.kt, BootReceiver.kt
-│   ├── Tr.kt (the eight languages), ArmorTheme.kt, ServerEndpoint.kt, SessionVault.kt, DeviceLock.kt, PhoneLock.kt, LockScreens.kt, PinDialog.kt, MjpegFeed.kt, AlarmCodes.kt
-│   ├── network/   model/   update/
-│   └── assets/i18n/   en, es (the source phrases), de, fr, it, ja, zh, pt
-├── docs/CLIENT_BOUNDARY.md, PUSH_NOTIFICATIONS.md (the Firebase steps, in eight languages), BENCH_TESTS.md
-├── tools/   capture_fixtures.mjs (takes fixtures from a real server), the shared CI checks (armor_ci_validate.py, armor_project_tool.py, _armor_readme_parity.py)
-└── app/src/test/   endpoint-safety, plain-words, node-protocol, solar-model, translation and role tests
-```
+## 🏛️ Architettura
 
-## 🛠️ Ambiente di sviluppo
+<p align="center">
+  <img src="images/architecture.svg" alt="Architettura di ARMOR-ANDROID-CONTROL: chi lo chiama, cosa contiene e da cosa dipende" width="100%">
+</p>
 
-**Requisiti:** JDK 17+, l'SDK Android (compile SDK 37), un telefono Android 8.0+ (minSdk 26)
+## 🔒 Sicurezza e protezione
+
+| Minaccia | Difesa |
+|---|---|
+| Una password salvata sul telefono | Solo con *Ricordami* (spento di default): utente e password sigillati con una chiave Keystore propria, solo per quel server, dimenticati appena lo togli; nessun backup (`allowBackup=false`) |
+| HTTP in chiaro verso Internet | Consentito solo verso un *letterale* IPv4 di rete privata o loopback; un host come `10.attacker.example` o un indirizzo con zero iniziale (`010.0.0.1` si legge ottale) è rifiutato; l'http in chiaro è rifiutato per un host raggiunto via https |
+| Un uomo nel mezzo su https | La fiducia sono le autorità del sistema più quelle installate sul telefono; la chiave del certificato dell'installazione è ricordata la prima volta (o associata dal testo del QR di Studio) e una diversa è rifiutata |
+| Un ordine critico con il telefono in altre mani | L'impronta, il volto o il PIN del telefono prima di inserire, disinserire, silenziare una sirena, sbloccare e gli altri ordini critici (attivo di default solo se il telefono ha impronta o volto); l'amministratore può imporlo da Studio, mai abbassare la tua scelta; un telefono senza blocco schermo non resta mai escluso |
+| Un visualizzatore cambia qualcosa | Il ruolo *visualizzatore* vede tutto ma ogni pulsante che cambia qualcosa è spento (test di ruolo) |
+| Un PIN di disinserimento errato | Il PIN va al server solo per disinserire; `wrong_pin`, `pin_locked`, `pin_not_set` ed `elevation_required` sono tradotti in parole semplici |
+| Un falso aggiornamento dell'app | Gli SHA-256 dei certificati di firma (storico) dell'app installata e del candidato sono confrontati prima di chiamare l'installer di Android; se non ne condividono nessuno, lo dice chiaramente |
+| Un allarme che il telefono non vede | Un servizio in primo piano (`AlarmWatcherService`) interroga ogni 10 s, attende 15 s lo sblocco, rallenta fino a 60 s, dice *irraggiungibile* dopo 6 errori, sopravvive al riavvio; un allarme più vecchio di 15 minuti non viene annunciato |
+| Una password di telecamera sul telefono | Le telecamere si vedono dal flusso del server: l'app non ha password di telecamera né indirizzo RTSP |
+
+### Permessi
+
+`INTERNET`, `ACCESS_NETWORK_STATE`: il server. `USE_BIOMETRIC`: il blocco del telefono. `POST_NOTIFICATIONS`: gli allarmi. `FOREGROUND_SERVICE` (+ `DATA_SYNC`, `SPECIAL_USE`) e `RECEIVE_BOOT_COMPLETED`: la sorveglianza degli allarmi. `REQUEST_INSTALL_PACKAGES`: l'aggiornamento dell'app. `BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT`: la configurazione di un nodo; `BLUETOOTH`, `BLUETOOTH_ADMIN` e `ACCESS_FINE_LOCATION` solo fino ad Android 11 (`maxSdkVersion=30`), per la ricerca Bluetooth.
+
+Non c'è stata una revisione di sicurezza indipendente. Leggi [docs/CLIENT_BOUNDARY.md](docs/CLIENT_BOUNDARY.md) e [SECURITY.md](SECURITY.md).
+
+## 🔌 Interfacce
+
+| Parte | Cosa imposta |
+|---|---|
+| ARMOR-SERVER | 55 percorsi distinti di `/api/v1` in `network/ArmorApiClient.kt` (l'interfaccia è `network/ArmorApi.kt`); il radar si legge ogni 1,5 s; le telecamere in MJPEG tramite il server |
+| Due indirizzi | Quella privata sul Wi-Fi di casa e quella per fuori (dati mobili o VPN), scelte in base a dove si trova il telefono; se una tace si prova l'altra e il messaggio dice cosa fallisce |
+| Bluetooth | Trova i nodi che annunciano `ARMOR-xxxxxx`, crea l'amministratore di uno nuovo o accede con il PIN del nodo, cerca reti Wi-Fi e imposta il nome, il Wi-Fi o un indirizzo fisso e il broker; il protocollo è `model/NodeBle.kt`; un cercatore di nodi elenca quelli già in rete |
+| Voce | `POST /api/v1/voice/command`: una lista chiusa di comandi in otto lingue, con una conferma legata a te (`model/Voice.kt`, `VoiceScreens.kt`) |
+| Push | `PushService`: allarmi come messaggi con soli dati, annunciati una volta sia che arrivino via push sia via sorveglianza; i passi di Firebase sono in [docs/PUSH_NOTIFICATIONS.md](docs/PUSH_NOTIFICATIONS.md) (otto lingue) |
+
+## ⚙️ Configurazione
+
+| Nome | Valore | Cosa imposta |
+|---|---|---|
+| `compileSdk` / `targetSdk` / `minSdk` | 37 / 37 / 26 | Android 8.0 o successivo sul telefono |
+| `versionName` | = `armor.project.json` | La build fallisce se manifesto e versione differiscono |
+| JDK / Android SDK | 17+ / 37 | Per compilare l'app ed eseguire i test |
+
+Nell'app (non nei file): la lingua (le otto o seguire il telefono), i due indirizzi, *Ricordami*, il blocco del telefono, l'allarme parlato e le notifiche, in *Altro > Impostazioni*. Limiti nel codice: la sorveglianza interroga ogni 10 s, rallenta fino a 60 s e ignora gli allarmi più vecchi di 15 minuti.
+
+## 🚀 Avvio rapido
+
+**Requisiti:** JDK 17+, l'SDK Android (compile SDK 37), un telefono con Android 8.0+ (minSdk 26).
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 331 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 342 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
 Le versioni sono pubblicate su GitHub, da dove l'app stessa cerca gli aggiornamenti; l'APK è firmato con la chiave di rilascio propria del responsabile, conservata fuori dal repository, e l'app confronta il certificato di firma di un download con il proprio prima di passare il file al programma di installazione di Android. Vedi il [confine del client](docs/CLIENT_BOUNDARY.md).
+
+## 🧪 Test
+
+```powershell
+.\gradlew.bat testDebugUnitTest
+python -I tools/armor_ci_validate.py
+```
+
+| Parte | Test | Cosa copre |
+|---|---|---|
+| Allarmi | 67 | `AlarmPolicy`, `AlarmBanner`, `AlarmPanels`, `AlarmCodes`, `AlarmRoute`, `NoticeFilter`, `PushEvents`, `DevicesAndAlarms` |
+| Collegamento al server, lettura, dati di prova | 59 | `ApiClient`, `ApiError`, `ServerFixtures`, `ParsersTolerant`, `SavePayload`, `JsonText`, `Preflight`, `SharedFeed`, `Connections` |
+| View model e ruoli | 41 | `ArmorViewModel`, `Viewer`, `ArmProfiles`, `NodeCensus`, `NodeHealth` |
+| Blocco, deposito sessione, chiavi | 38 | `DeviceLock`, `SessionVault`, `CredentialVault`, `KeyBinding`, `Security` |
+| Sicurezza degli indirizzi, certificati | 32 | `ServerEndpoint`, `ServerAddresses`, `Literals`, `NodeAddress`, `CertificatePins`, `RemoteAccess` |
+| Energia e rete | 34 | `Solar`, `Battery`, `Electrical`, `Network` |
+| Nodi via Bluetooth, controllo dei nodi | 26 | `NodeBle`, `NodeControl` |
+| Aggiornamenti da GitHub | 17 | `GitHubReleaseUpdaterHttpFailure`, `SignerCheck`, `SemanticVersion`, `ReleaseMetadataParser` |
+| Radar e telecamere | 14 | `RadarGeometry`, `CameraTraits`, `CameraLenses` |
+| Traduzioni, parole semplici, voce | 14 | `Tr`, `Friendly`, `Voice` |
+
+342 test in 46 file, eseguiti con `testDebugUnitTest`; un server finto (`FakeServer.kt`) e dati presi da un server reale (`tools/capture_fixtures.mjs`) li alimentano. Si verifica che ogni frase sia nelle otto tabelle di lingua.
+
+## 🏗️ Compilazione e rilascio
+
+Le versioni sono pubblicate su GitHub, da dove l'app stessa controlla gli aggiornamenti; l'app cerca l'asset `ARMOR-ANDROID-CONTROL-release.apk`. L'APK è firmato con la chiave di rilascio del manutentore, tenuta fuori dal repository, e l'app confronta il certificato di firma di un download con il proprio prima di passare il file all'installer di Android. Il `versionCode` sale prima di ogni APK, altrimenti Android non lo tratta come aggiornamento.
+
+## 🩺 Risoluzione dei problemi
+
+| Vedi | Perché | Fai |
+|---|---|---|
+| `wrong_pin`, `pin_locked`, `pin_not_set`, `elevation_required` | Il server rifiuta il PIN di disinserimento o chiede una nuova prova d'identità | Digita di nuovo il PIN, attendi la fine del blocco o conferma la tua identità |
+| L'accesso dice che non può proseguire | L'indirizzo è fuori casa e non ha https (l'http in chiaro è rifiutato) | Segui la guida: una VPN, o un indirizzo pubblico con https |
+| La connessione è rifiutata dopo aver funzionato | La chiave del certificato dell'installazione è cambiata | Associa di nuovo con il testo del QR di Studio se l'hai cambiato di proposito |
+| Gli allarmi arrivano in ritardo o non arrivano in background | Le regole di batteria del produttore fermano la sorveglianza; il push richiede un progetto Firebase proprio | Escludi l'app dal risparmio batteria; segui [docs/PUSH_NOTIFICATIONS.md](docs/PUSH_NOTIFICATIONS.md) |
+| L'aggiornamento è rifiutato | Il certificato di firma del download non ne condivide nessuno con l'app installata | Non installarlo; prendi l'APK dalle versioni di questo repository |
+
+## 📂 Struttura del repository
+
+<p align="center">
+  <img src="images/repository-structure.svg" alt="Struttura del repository di ARMOR-ANDROID-CONTROL" width="100%">
+</p>
+
+<details>
+<summary>Versione testuale dell'albero</summary>
+
+```text
+ARMOR-ANDROID-CONTROL/
+├── app/src/main/java/es/electrohobby3d/armor/   l'app: schermate, regole, rete e aggiornamenti
+├── app/src/main/assets/                         otto tabelle di lingua, codici di allarme, mappa meteo
+├── app/src/test/                                342 test e un server finto
+├── docs/                                        le guide di questo repository
+├── tools/                                       i controlli CI condivisi e gli strumenti del progetto
+├── .github/                                     workflow CI e modelli per issue e pull request
+├── images/                                      banner, icona e le due immagini di questo README
+├── build.sh build.bat                           build tramite il flusso di progetto condiviso
+├── test.sh test.bat                             eseguire i test tramite il flusso condiviso
+├── run.sh run.bat                               avvio tramite il flusso di progetto condiviso
+├── armor.project.json                           manifesto: versione, ruolo, maturità, comando di build
+├── CHANGELOG.md                                 cosa è cambiato in ogni versione
+├── SECURITY.md SUPPORT.md LICENSE               politica di sicurezza, supporto e licenza
+├── CONTRIBUTING.md CODE_OF_CONDUCT.md           come contribuire e il codice di condotta
+├── build.gradle.kts settings.gradle.kts         la build Gradle del progetto
+├── gradle.properties                            impostazioni di Gradle
+├── gradlew gradlew.bat gradle/                  il wrapper di Gradle
+├── build-test.sh build-test.bat                 eseguire i test tramite il flusso condiviso
+└── .gitattributes .gitignore                    impostazioni di Git
+```
+
+</details>
+
+## 🗺️ Roadmap e limiti noti
+
+**Limiti noti oggi**
+
+* Le schermate di solare, elettrico e centrale di allarme non hanno incontrato apparecchiature reali (esiste solo un nodo radar).
+* La configurazione Bluetooth di un nodo non è stata confermata con un nodo reale, e il push via Firebase non è stato provato su un telefono.
+* La sorveglianza degli allarmi in background con le regole di batteria di ogni produttore non è dimostrata.
+* Nessuna revisione di sicurezza indipendente.
+
+**Prossimi passi**
+
+* Provare le schermate di solare, elettrico e centrale di allarme con nodi reali, e la configurazione Bluetooth con un nodo reale.
+* Provare il push via Firebase con il progetto proprio di un'installazione, e la sorveglianza degli allarmi su più produttori.
+
+## 🌍 Lingue
+
+Il README e i testi esistono in inglese, spagnolo, francese, italiano, tedesco, cinese, giapponese e portoghese europeo.
 
 ## 🔗 Progetti correlati
 
@@ -141,15 +271,22 @@ Le versioni sono pubblicate su GitHub, da dove l'app stessa cerca gli aggiorname
 * **[ARMOR-UPDATER](https://github.com/JuanenRac/ARMOR-UPDATER)** - Rileva, installa e aggiorna i repository stessi dell'ecosistema
 * **[ARMOR-DOCS](https://github.com/JuanenRac/ARMOR-DOCS)** - Architettura, base di sicurezza e matrice delle capacità
 
-## 📚 Documentazione e comunità
+## 📚 Documentazione
 
-Dove leggere di più:
-
+* [Confini del client](docs/CLIENT_BOUNDARY.md): cosa fa e non fa mai il client
+* [Notifiche push](docs/PUSH_NOTIFICATIONS.md): i passi di Firebase, in otto lingue
+* [Prove al banco](docs/BENCH_TESTS.md): verifiche con un telefono reale
 * [Matrice delle capacità: cosa è provato e cosa no](https://github.com/JuanenRac/ARMOR-DOCS/blob/main/docs/CAPABILITY_MATRIX.md)
 * [Catalogo dei progetti: versioni e dipendenze tra i repository](https://github.com/JuanenRac/ARMOR-DOCS/blob/main/docs/PROJECT_CATALOG.md)
 * [Cronologia delle modifiche di questo repository](CHANGELOG.md)
-* [Licenza (GPL-3.0-or-later)](LICENSE)
-* Domande, idee e segnalazioni: electrohobby3d@gmail.com
+
+## 🤝 Contribuire e comunità
+
+* Prima di una pull request esegui `.\gradlew.bat testDebugUnitTest` and `python -I tools/armor_ci_validate.py`: deve passare. Vedi [CONTRIBUTING.md](CONTRIBUTING.md) e il [codice di condotta](CODE_OF_CONDUCT.md).
+* Il README esiste in otto lingue ed è generato dalle sorgenti in ARMOR-DOCS: una modifica al testo si fa lì.
+* Una modifica a un messaggio tra componenti parte da ARMOR-COMMON.
+* Non descrivere come funzionante su una scheda ciò che è stato solo compilato.
+* Segnala una vulnerabilità in privato: [SECURITY.md](SECURITY.md). Domande, idee e segnalazioni: electrohobby3d@gmail.com ([SUPPORT.md](SUPPORT.md)).
 
 ## 👤 AUTORE
 

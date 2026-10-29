@@ -1,0 +1,228 @@
+{
+  "repo": "ARMOR-ANDROID-CONTROL",
+  "ecosystem": "armor",
+  "tagline": "The phone window on ARMOR-SERVER: alarms that follow you, cameras, radar, energy, the network and the set-up of nodes over Bluetooth.",
+  "description": "ARMOR-ANDROID-CONTROL reads and orders through ARMOR-SERVER and nothing else, except Bluetooth to set up a node, GitHub for its own updates and a public weather service. The rules are covered by 342 unit tests; the app runs on a real phone against the CM5 test bench; push through Firebase and the screens for solar, electrical and alarm-panel equipment have not met real hardware.",
+  "columns": [
+    "WHO USES IT",
+    "THIS REPOSITORY",
+    "WHAT IT TALKS TO"
+  ],
+  "nodes": [
+    {
+      "id": "user",
+      "column": 0,
+      "level": "external",
+      "title": "The operator",
+      "lines": [
+        "an Android 8.0+ phone at home",
+        "or away, with the server's",
+        "own login"
+      ]
+    },
+    {
+      "id": "studio",
+      "column": 0,
+      "level": "external",
+      "title": "ARMOR-STUDIO",
+      "lines": [
+        "shows the QR text that pairs the",
+        "key of the installation's",
+        "certificate with the phone"
+      ]
+    },
+    {
+      "id": "screens",
+      "column": 1,
+      "level": "tested",
+      "title": "Screens",
+      "lines": [
+        "Compose: sign-in, home, cameras,",
+        "radar 2D and 3D, energy, network,",
+        "alarm panels, node control"
+      ],
+      "code": [
+        "app/src/main/java/es/electrohobby3d/armor/ArmorActivity.kt",
+        "app/src/main/java/es/electrohobby3d/armor/HomeScreens.kt"
+      ]
+    },
+    {
+      "id": "vm",
+      "column": 1,
+      "level": "tested",
+      "title": "ViewModel, network/",
+      "lines": [
+        "one reading of the server shared",
+        "by the open app and the watch;",
+        "55 paths of /api/v1"
+      ],
+      "code": [
+        "app/src/main/java/es/electrohobby3d/armor/ArmorViewModel.kt",
+        "app/src/main/java/es/electrohobby3d/armor/network/ArmorApiClient.kt"
+      ]
+    },
+    {
+      "id": "lock",
+      "column": 1,
+      "level": "contract",
+      "title": "Lock, vault, trust",
+      "lines": [
+        "phone lock before critical orders,",
+        "sealed session, certificate key,",
+        "private-network-only plain http"
+      ],
+      "code": [
+        "app/src/main/java/es/electrohobby3d/armor/DeviceLock.kt",
+        "app/src/main/java/es/electrohobby3d/armor/SessionVault.kt",
+        "app/src/main/java/es/electrohobby3d/armor/ServerEndpoint.kt",
+        "app/src/main/java/es/electrohobby3d/armor/CertificatePins.kt"
+      ]
+    },
+    {
+      "id": "watch",
+      "column": 1,
+      "level": "config",
+      "title": "Alarm watch, push",
+      "lines": [
+        "foreground service that survives a",
+        "reboot; push needs a Firebase",
+        "project of the installation"
+      ],
+      "code": [
+        "app/src/main/java/es/electrohobby3d/armor/AlarmWatcherService.kt",
+        "app/src/main/java/es/electrohobby3d/armor/Push.kt"
+      ]
+    },
+    {
+      "id": "ble",
+      "column": 1,
+      "level": "tested",
+      "title": "NodeBleClient",
+      "lines": [
+        "finds ARMOR-xxxxxx nodes and",
+        "sets name, Wi-Fi, broker;",
+        "not tried on a real node"
+      ],
+      "code": [
+        "app/src/main/java/es/electrohobby3d/armor/NodeBleClient.kt",
+        "app/src/main/java/es/electrohobby3d/armor/model/NodeBle.kt"
+      ]
+    },
+    {
+      "id": "upd",
+      "column": 1,
+      "level": "contract",
+      "title": "update/",
+      "lines": [
+        "checks GitHub releases, compares",
+        "the signing certificate, then",
+        "calls Android's installer"
+      ],
+      "code": [
+        "app/src/main/java/es/electrohobby3d/armor/update/SignerCheck.kt",
+        "app/src/main/java/es/electrohobby3d/armor/update/GitHubReleaseUpdater.kt"
+      ]
+    },
+    {
+      "id": "server",
+      "column": 2,
+      "level": "external",
+      "title": "ARMOR-SERVER",
+      "lines": [
+        "the only address it reads and",
+        "orders through: two addresses,",
+        "home and away"
+      ]
+    },
+    {
+      "id": "nodes",
+      "column": 2,
+      "level": "untested",
+      "title": "Field nodes (Bluetooth)",
+      "lines": [
+        "only a radar node exists; the",
+        "solar, electrical and alarm",
+        "screens have not met real nodes"
+      ]
+    },
+    {
+      "id": "github",
+      "column": 2,
+      "level": "external",
+      "title": "GitHub, weather, push",
+      "lines": [
+        "the signed APK of each version;",
+        "the public weather map; push",
+        "messages with data only"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "user",
+      "to": "screens",
+      "label": "",
+      "level": "tested"
+    },
+    {
+      "from": "studio",
+      "to": "lock",
+      "label": "QR",
+      "level": "contract"
+    },
+    {
+      "from": "screens",
+      "to": "vm",
+      "label": "",
+      "level": "tested"
+    },
+    {
+      "from": "screens",
+      "to": "lock",
+      "label": "",
+      "level": "tested"
+    },
+    {
+      "from": "vm",
+      "to": "watch",
+      "label": "",
+      "level": "tested"
+    },
+    {
+      "from": "lock",
+      "to": "ble",
+      "label": "",
+      "level": "tested"
+    },
+    {
+      "from": "watch",
+      "to": "upd",
+      "label": "",
+      "level": "tested"
+    },
+    {
+      "from": "vm",
+      "to": "server",
+      "label": "HTTP",
+      "level": "contract"
+    },
+    {
+      "from": "ble",
+      "to": "nodes",
+      "label": "BLE",
+      "level": "untested"
+    },
+    {
+      "from": "upd",
+      "to": "github",
+      "label": "HTTPS",
+      "level": "contract"
+    },
+    {
+      "from": "watch",
+      "to": "github",
+      "label": "",
+      "level": "config"
+    }
+  ]
+}
