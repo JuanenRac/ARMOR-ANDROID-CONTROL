@@ -22,14 +22,14 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
-  <img src="https://img.shields.io/badge/Tests-324%20passing-2ea44f.svg" alt="Tests">
-  <img src="https://img.shields.io/badge/Version-0.7.6-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Tests-331%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Version-0.7.7-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
 ---
 
-**诚实性检查 - 今天真正能运行的部分:** 地址安全、报警决策、报警监视器、翻译和只读角色的规则由 324 个单元测试覆盖，应用可以构建（`gradlew testDebugUnitTest assembleDebug`）。它在真实手机上对照 CM5 测试台运行：登录、摄像头监视器、布防和报警、雷达、通过蓝牙设置节点以及从 GitHub 更新都在使用中。**尚未**证明的是：使用真实设备的太阳能、电气和报警主机界面（目前只有雷达节点）、通过 Firebase 的推送（应用中已包含，需要自己的 Firebase 项目；尚未在手机上试过），以及在各手机厂商电池规则下的后台报警监视。
+**诚实性检查 - 今天真正能运行的部分:** 地址安全、报警决策、报警监视器、翻译和只读角色的规则由 331 个单元测试覆盖，应用可以构建（`gradlew testDebugUnitTest assembleDebug`）。它在真实手机上对照 CM5 测试台运行：登录、摄像头监视器、布防和报警、雷达、通过蓝牙设置节点以及从 GitHub 更新都在使用中。**尚未**证明的是：使用真实设备的太阳能、电气和报警主机界面（目前只有雷达节点）、通过 Firebase 的推送（应用中已包含，需要自己的 Firebase 项目；尚未在手机上试过），以及在各手机厂商电池规则下的后台报警监视。
 
 ---
 
@@ -37,9 +37,9 @@
 
 | | |
 |---|---|
-| 版本 | `0.7.6` |
+| 版本 | `0.7.7` |
 | 成熟度 | 成熟 |
-| 测试 | 324 (`gradlew testDebugUnitTest`) |
+| 测试 | 331 (`gradlew testDebugUnitTest`) |
 | 技术栈 | Kotlin / Jetpack Compose |
 | 真实硬件 | 在真实手机上对照 CM5 测试台使用；太阳能、电气和报警主机界面在等待真实节点 |
 
@@ -52,7 +52,7 @@
 | 领域 | 状态 | 在这里的含义 |
 |---|---|---|
 | 软件 | 🟢 | 应用可以构建（`gradlew testDebugUnitTest assembleDebug`），并在真实手机上对 CM5 测试台运行。 |
-| 测试 | 🟢 | 324 项单元测试通过（`gradlew testDebugUnitTest`）：地址安全、报警判定、报警监视、翻译和只读角色。 |
+| 测试 | 🟢 | 331 项单元测试通过（`gradlew testDebugUnitTest`）：地址安全、报警判定、报警监视、翻译和只读角色。 |
 | 界面 | 🟡 | 登录、摄像头监视、布防与报警和雷达已在真实手机上使用；通过蓝牙设置节点尚未在真实节点上确认，光伏、电气和报警面板界面也尚未接触真实设备。 |
 | 硬件 | 🟡 | 已在真实手机上对 CM5 测试台使用；各手机厂商电池规则下的后台报警监视尚未证明。 |
 | 安全 | 🟡 | 地址安全和只读角色规则有单元测试覆盖；没有经过独立审查。 |
@@ -110,7 +110,7 @@ ARMOR-ANDROID-CONTROL/
 **环境要求:** JDK 17+, Android SDK（compile SDK 37）, Android 8.0+ 手机（minSdk 26）
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 324 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 331 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 

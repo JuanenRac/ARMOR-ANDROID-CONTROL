@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here.
 
-## [Unreleased]
+## [0.7.7] - The movement buttons follow what the camera can do
 
 - **The movement buttons follow what the camera can do:** a camera that Studio says is fixed shows no movement button, one that only zooms shows only the zoom, and one that never said keeps every button.
 
