@@ -99,11 +99,11 @@ private fun CameraTile(camera: CameraView, origin: String, viewModel: ArmorViewM
                 else -> CameraMessage(Icons.Filled.VideocamOff, if (camera.configured) tr("Sin vídeo") else tr("Sin configurar"))
             }
             if (recording) Icon(Icons.Filled.FiberManualRecord, null, tint = ArmorColors.Alert, modifier = Modifier.align(Alignment.TopStart).padding(8.dp).size(14.dp))
-            if (ptzOpen) Box(Modifier.align(Alignment.BottomEnd).padding(6.dp)) { PtzPad(enabled = usable, action = { viewModel.ptz(origin, camera, it) }, key = 34.dp) }
+            if (ptzOpen) Box(Modifier.align(Alignment.BottomEnd).padding(6.dp)) { PtzPad(enabled = usable, action = { viewModel.ptz(origin, camera, it) }, key = 34.dp, pan = camera.canPanTilt, zoom = camera.canZoom) }
         }
         Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 2.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(camera.name, Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
-            IconButton(onClick = { ptzOpen = !ptzOpen }, enabled = usable, modifier = Modifier.size(38.dp)) { Icon(Icons.Filled.OpenWith, contentDescription = tr("Mover la cámara"), tint = if (ptzOpen) ArmorColors.Cyan else ArmorColors.Muted) }
+            if (camera.hasMovement) IconButton(onClick = { ptzOpen = !ptzOpen }, enabled = usable, modifier = Modifier.size(38.dp)) { Icon(Icons.Filled.OpenWith, contentDescription = tr("Mover la cámara"), tint = if (ptzOpen) ArmorColors.Cyan else ArmorColors.Muted) }
             IconButton(onClick = { viewModel.snapshot(origin, camera) }, enabled = usable, modifier = Modifier.size(38.dp)) { Icon(Icons.Filled.PhotoCamera, contentDescription = tr("Foto"), tint = ArmorColors.Muted) }
             IconButton(onClick = { viewModel.toggleRecording(origin, camera) }, enabled = usable, modifier = Modifier.size(38.dp)) { Icon(if (recording) Icons.Filled.Stop else Icons.Filled.FiberManualRecord, contentDescription = if (recording) tr("Parar") else tr("Grabar"), tint = ArmorColors.Alert) }
             IconButton(onClick = { expand(camera) }, enabled = camera.configured, modifier = Modifier.size(38.dp)) { Icon(Icons.Filled.OpenInFull, contentDescription = tr("Ampliar"), tint = ArmorColors.Muted) }
@@ -129,7 +129,7 @@ fun FullscreenCamera(camera: CameraView, origin: String, viewModel: ArmorViewMod
                 Box(Modifier.fillMaxWidth().height(260.dp).clip(RoundedCornerShape(12.dp)).background(Color.Black)) {
                     if (camera.liveVideoAvailable) MjpegFeed(viewModel.mjpegUrl(origin, camera), Modifier.fillMaxSize(), sampleSize = CameraQuality.sampleSize(1, away), resolve = { viewModel.streamUrl(origin, camera, CameraQuality.requested(away, tile = false)) }) else CameraMessage(Icons.Filled.VideocamOff, tr("Sin vídeo"))
                 }
-                PtzPad(enabled = unlocked, action = { viewModel.ptz(origin, camera, it) })
+                if (camera.hasMovement) PtzPad(enabled = unlocked, action = { viewModel.ptz(origin, camera, it) }, pan = camera.canPanTilt, zoom = camera.canZoom)
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     FilledTonalButton(onClick = { viewModel.snapshot(origin, camera) }, enabled = unlocked) { Icon(Icons.Filled.PhotoCamera, null); Spacer(Modifier.width(8.dp)); Text(tr("Foto")) }
                     FilledTonalButton(onClick = { viewModel.toggleRecording(origin, camera) }, enabled = unlocked) {
@@ -172,18 +172,18 @@ private fun HoldKey(icon: ImageVector, description: String, command: String, ena
 }
 
 @Composable
-private fun PtzPad(enabled: Boolean, action: (String) -> Unit, key: Dp = 48.dp) {
+private fun PtzPad(enabled: Boolean, action: (String) -> Unit, key: Dp = 48.dp, pan: Boolean = true, zoom: Boolean = true) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        HoldKey(Icons.Filled.KeyboardArrowUp, tr("Arriba"), "up", enabled, key, action)
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        if (pan) HoldKey(Icons.Filled.KeyboardArrowUp, tr("Arriba"), "up", enabled, key, action)
+        if (pan) Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             HoldKey(Icons.AutoMirrored.Filled.ArrowBack, tr("Izquierda"), "left", enabled, key, action)
             Box(Modifier.size(key).clip(RoundedCornerShape(10.dp)).background(ArmorColors.Surface).clickable(enabled = enabled) { action("stop") }, contentAlignment = Alignment.Center) {
                 Icon(Icons.Filled.Stop, contentDescription = tr("Parar"), tint = ArmorColors.Muted, modifier = Modifier.size(key * 0.5f))
             }
             HoldKey(Icons.AutoMirrored.Filled.ArrowForward, tr("Derecha"), "right", enabled, key, action)
         }
-        HoldKey(Icons.Filled.KeyboardArrowDown, tr("Abajo"), "down", enabled, key, action)
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) { HoldKey(Icons.Filled.ZoomOut, tr("Alejar"), "zoomOut", enabled, key, action); HoldKey(Icons.Filled.ZoomIn, tr("Acercar"), "zoomIn", enabled, key, action) }
+        if (pan) HoldKey(Icons.Filled.KeyboardArrowDown, tr("Abajo"), "down", enabled, key, action)
+        if (zoom) Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) { HoldKey(Icons.Filled.ZoomOut, tr("Alejar"), "zoomOut", enabled, key, action); HoldKey(Icons.Filled.ZoomIn, tr("Acercar"), "zoomIn", enabled, key, action) }
     }
 }
 

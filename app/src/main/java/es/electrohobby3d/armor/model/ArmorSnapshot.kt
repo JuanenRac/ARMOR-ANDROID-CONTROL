@@ -21,8 +21,18 @@ data class CameraView(
     val rtspPort: Int,
     val hasCredentials: Boolean,
     val liveVideoAvailable: Boolean,
+    /** What the camera can do, as the operator noted it in Studio: null when it never said (every button is shown, as before). */
+    val ptz: Boolean? = null,
+    val zoom: Boolean? = null,
 ) {
     val configured: Boolean get() = host.isNotBlank() && (hasCredentials || rtspPath.isNotBlank() || snapshotUrl.isNotBlank())
+
+    /** Whether the lens turns, and whether it zooms: a camera that never said keeps both. */
+    val canPanTilt: Boolean get() = ptz != false
+    val canZoom: Boolean get() = zoom != false
+
+    /** A fixed camera with no zoom has nothing to move, so its movement button is not drawn at all. */
+    val hasMovement: Boolean get() = canPanTilt || canZoom
 }
 
 data class MediaItem(val id: String, val cameraId: String, val kind: String, val file: String, val createdAt: String, val bytes: Long)

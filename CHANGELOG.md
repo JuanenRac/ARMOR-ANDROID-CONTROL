@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here.
 
+## [Unreleased]
+
+- **The movement buttons follow what the camera can do:** a camera that Studio says is fixed shows no movement button, one that only zooms shows only the zoom, and one that never said keeps every button.
+
 ## [0.7.6] - Every kind of node in the status screen, and the nodes screen with icons, search and forget
 
 - **The status screen counts every kind of node, not only the radar ones:** "Nodes online" counts the radar, solar, electrical, alarm and wall-panel nodes together (the radar stream and the health every node reports, a node that is in both counted once), a new "Nodes by kind" line gives the figure of each kind, and the nodes that are not radar ones are listed under "Other nodes".

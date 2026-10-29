@@ -78,7 +78,7 @@ class ArmorApiClient : ArmorApi {
         .map { CameraHealth(it.optStr("id"), it.optStr("status", "unknown")) }.filter { it.id.isNotBlank() }
 
     override fun cameraViews(origin: String): List<CameraView> = getJson(origin, "/api/v1/camera-views").optJSONArray("cameras").asObjects().filter { it.optStr("id").isNotBlank() }.map { camera ->
-        CameraView(camera.optStr("id"), camera.optStr("name", camera.optStr("id")), camera.optStr("host"), camera.optStr("snapshotUrl"), camera.optStr("rtspPath"), camera.optInt("onvifPort", 80), camera.optInt("rtspPort", 554), camera.optBoolean("hasCredentials"), camera.optBoolean("liveVideoAvailable"))
+        CameraView(camera.optStr("id"), camera.optStr("name", camera.optStr("id")), camera.optStr("host"), camera.optStr("snapshotUrl"), camera.optStr("rtspPath"), camera.optInt("onvifPort", 80), camera.optInt("rtspPort", 554), camera.optBoolean("hasCredentials"), camera.optBoolean("liveVideoAvailable"), if (camera.has("ptz")) camera.optBoolean("ptz") else null, if (camera.has("zoom")) camera.optBoolean("zoom") else null)
     }
 
     /** Arm or disarm the system; the server audits it with the signed-in user's name. Disarming carries the PIN of the user when there is one to type. */
