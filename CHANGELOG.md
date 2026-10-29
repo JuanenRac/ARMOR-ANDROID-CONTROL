@@ -4,6 +4,7 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The banner of an alarm takes the person to the screen that handles it:** what a camera raised opens the cameras, a device's the devices, solar equipment's the inverters or the batteries, an electrical node's the electrical screen, the network's the network and an alarm panel's the panels, as Studio does.
 - **Which notices the phone shows is chosen in the settings:** silence all of them, show them without sound or vibration (and without saying them aloud), and switch off by severity (high, low) or by kind (radar alerts, cameras that do not answer, nodes offline or silent, and the alarms of devices, solar, electrical, network and the alarm panels). A critical alarm always notifies unless every notice is silenced. The server's own push messages that the system shows by itself can only be filtered when the server sends them as data.
 - **A camera with two lenses in one stream is two windows of the camera list:** each shows its half of the picture with its lens named, and the buttons act on the real camera.
 - **The layout of the README is checked in the CI:** the validator runs the shared `tools/universal_readme_check.py` and lists, as a warning, what differs from the universal layout of the README.
