@@ -95,6 +95,7 @@ object PushRegistration {
         Tr.init(context)
         api.restoreSessionCookie(origin, saved.name, saved.value)
         api.registerPush(origin, token, Tr.voiceLanguage())
+        WatchPace.markRegistered(context, origin)
         return true
     }
 }

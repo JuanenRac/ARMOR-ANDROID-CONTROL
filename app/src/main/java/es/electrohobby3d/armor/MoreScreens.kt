@@ -300,6 +300,7 @@ fun SettingsScreen(
             }
         }
 
+        WatchPaceSection()
         NoticeSettingsSection()
         Panel(Modifier.fillMaxWidth()) {
             val languageContext = androidx.compose.ui.platform.LocalContext.current
@@ -324,6 +325,27 @@ fun SettingsScreen(
                     Text(tr("Te avisa de alertas altas, cámaras sin señal y alarmas siempre; de nodos caídos o en silencio, solo con el sistema armado."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                 }
                 Switch(checked = watching, onCheckedChange = onWatching, enabled = authenticated)
+            }
+        }
+    }
+}
+
+/** How often the background watch looks at the server while the push alerts work (see [WatchPace]); the fast pace comes back by itself if the push fails. */
+@Composable
+private fun WatchPaceSection() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var seconds by remember { mutableStateOf(WatchPace.slowSeconds(context)) }
+    Panel(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(tr("Vigilancia con avisos push"), fontWeight = FontWeight.SemiBold)
+            Text(tr("Con los avisos push funcionando, la vigilancia en segundo plano solo mira el servidor de vez en cuando; si el push falla, vuelve al ritmo rápido (cada 10 s). Con 10 s no se reduce nada: es el ritmo de siempre."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+            Text(tr("Con push activo, comprobar cada"), style = MaterialTheme.typography.bodySmall)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                WatchPace.SLOW_CHOICES_S.forEach { choice ->
+                    val label = trf("%s s", choice)
+                    if (choice == seconds) Button(onClick = {}, modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp)) { Text(label) }
+                    else OutlinedButton(onClick = { WatchPace.setSlowSeconds(context, choice); seconds = choice }, modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp)) { Text(label) }
+                }
             }
         }
     }

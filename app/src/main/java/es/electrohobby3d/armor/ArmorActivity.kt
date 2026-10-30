@@ -141,7 +141,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     // Off unless the person turned it on: nothing asks GitHub on its own otherwise.
     LaunchedEffect(Unit) { if (checkUpdatesOnStart) updateViewModel.checkForUpdate() }
     LaunchedEffect(state.authenticated, currentOrigin) {
-        if (state.authenticated && currentOrigin.isNotBlank() && Push.available) Push.token(context.applicationContext) { viewModel.registerPush(currentOrigin, it) }
+        if (state.authenticated && currentOrigin.isNotBlank() && Push.available) Push.token(context.applicationContext) { token -> val sentTo = currentOrigin; viewModel.registerPush(sentTo, token) { WatchPace.markRegistered(context.applicationContext, sentTo) } }
     }
     // What the server asks of the lock is kept, so it also holds when the app opens before the sign-in.
     LaunchedEffect(state.deviceLock, state.authenticated) {

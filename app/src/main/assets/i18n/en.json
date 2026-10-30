@@ -1376,5 +1376,8 @@
  "Alarma de prueba. Humo detectado en la cocina.": "Test alarm. Smoke detected in the kitchen.",
  "Con el sonido que has elegido en los ajustes de la app.": "With the sound you chose in the settings of the app.",
  "Las alarmas críticas suenan como una alarma, las altas como un aviso fuerte y los avisos como una notificación. La vibración y el modo No molestar de cada gravedad se ajustan en los ajustes del móvil.": "Critical alarms sound like an alarm, high ones like a strong notice and notices like a notification. The vibration and Do Not Disturb of each severity are set in the settings of the phone.",
- "Abrir los ajustes de avisos del móvil": "Open the notification settings of the phone"
+ "Abrir los ajustes de avisos del móvil": "Open the notification settings of the phone",
+ "Vigilancia con avisos push": "Watch with push alerts",
+ "Con los avisos push funcionando, la vigilancia en segundo plano solo mira el servidor de vez en cuando; si el push falla, vuelve al ritmo rápido (cada 10 s). Con 10 s no se reduce nada: es el ritmo de siempre.": "While push alerts work, the background watch only looks at the server now and then; if the push fails, it goes back to the fast pace (every 10 s). With 10 s nothing is reduced: it is the usual pace.",
+ "Con push activo, comprobar cada": "With push active, check every"
 }

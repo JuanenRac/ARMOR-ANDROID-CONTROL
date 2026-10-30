@@ -22,14 +22,14 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Linguaggio">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Lingue">
-  <img src="https://img.shields.io/badge/Tests-342%20passing-2ea44f.svg" alt="Test">
+  <img src="https://img.shields.io/badge/Tests-367%20passing-2ea44f.svg" alt="Test">
   <img src="https://img.shields.io/badge/Version-0.7.8-0f6cbd.svg" alt="Versione">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturità">
 </p>
 
 ---
 
-**Controllo di onestà - cosa funziona oggi:** Le regole di sicurezza dell'indirizzo, di decisione degli allarmi, del guardiano degli allarmi, di traduzione e del ruolo di sola lettura sono coperte da 342 test unitari e l'app si compila (`gradlew testDebugUnitTest assembleDebug`). Funziona su un vero telefono contro il banco di prova CM5: l'accesso, il monitor delle telecamere, l'inserimento e gli allarmi, il radar, la configurazione di un nodo via Bluetooth e gli aggiornamenti da GitHub sono in uso. Ciò che **non** è ancora provato: le schermate solare, elettrica e delle centrali d'allarme con apparecchi reali (esiste solo un nodo radar), il push tramite Firebase (è nell'app e richiede un progetto Firebase proprio; non è ancora stato provato su un telefono) e la sorveglianza degli allarmi in background sotto le regole di batteria di ogni produttore.
+**Controllo di onestà - cosa funziona oggi:** Le regole di sicurezza dell'indirizzo, di decisione degli allarmi, del guardiano degli allarmi, di traduzione e del ruolo di sola lettura sono coperte da 367 test unitari e l'app si compila (`gradlew testDebugUnitTest assembleDebug`). Funziona su un vero telefono contro il banco di prova CM5: l'accesso, il monitor delle telecamere, l'inserimento e gli allarmi, il radar, la configurazione di un nodo via Bluetooth e gli aggiornamenti da GitHub sono in uso. Ciò che **non** è ancora provato: le schermate solare, elettrica e delle centrali d'allarme con apparecchi reali (esiste solo un nodo radar), il push tramite Firebase (è nell'app e richiede un progetto Firebase proprio; non è ancora stato provato su un telefono) e la sorveglianza degli allarmi in background sotto le regole di batteria di ogni produttore.
 
 ---
 
@@ -41,7 +41,7 @@
 | Maturità | Consolidato |
 | Ruolo | Client operatore Android per ARMOR-SERVER (famiglia: Clients, padre: ARMOR-SERVER) |
 | Tecnologia | Kotlin / Jetpack Compose, Android 8.0+ |
-| Test | 342 (`gradlew testDebugUnitTest`) |
+| Test | 367 (`gradlew testDebugUnitTest`) |
 | Lingue | 8 (1345 frasi per lingua, ogni frase verificata in tutte le tabelle) |
 | Gira su | Un telefono con Android 8.0+ (minSdk 26) |
 | Su hardware reale | Usata su un vero telefono contro il banco di prova CM5; le schermate solare, elettrica e delle centrali d'allarme attendono nodi reali |
@@ -58,7 +58,7 @@ Ogni riga è una parte di questo repository e il semaforo dice a che punto è og
 | Area | Stato | Cosa significa qui |
 |---|---|---|
 | Software | 🟢 | L'app compila (`gradlew testDebugUnitTest assembleDebug`) e gira su un telefono reale contro il banco di prova CM5. |
-| Test | 🟢 | Superano 342 test unitari (`gradlew testDebugUnitTest`): sicurezza degli indirizzi, decisione di allarme, sorvegliante degli allarmi, traduzioni e ruolo di sola lettura. |
+| Test | 🟢 | Superano 367 test unitari (`gradlew testDebugUnitTest`): sicurezza degli indirizzi, decisione di allarme, sorvegliante degli allarmi, traduzioni e ruolo di sola lettura. |
 | Interfaccia | 🟡 | L'accesso, il monitor delle telecamere, l'inserimento e gli allarmi e il radar sono in uso su un telefono reale; la configurazione di un nodo via Bluetooth non è stata confermata con un nodo reale e le schermate solare, elettrica e della centralina d'allarme non hanno incontrato apparecchiature reali. |
 | Hardware | 🟡 | Usata su un telefono reale contro il banco di prova CM5; la sorveglianza degli allarmi in background con le regole di batteria di ogni produttore non è provata. |
 | Sicurezza | 🟡 | Le regole di sicurezza degli indirizzi e del ruolo di sola lettura sono coperte da test unitari; non c'è stata una revisione indipendente. |
@@ -153,7 +153,7 @@ Nell'app (non nei file): la lingua (le otto o seguire il telefono), i due indiri
 **Requisiti:** JDK 17+, l'SDK Android (compile SDK 37), un telefono con Android 8.0+ (minSdk 26).
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 342 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 367 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
@@ -179,7 +179,7 @@ python -I tools/armor_ci_validate.py
 | Radar e telecamere | 14 | `RadarGeometry`, `CameraTraits`, `CameraLenses` |
 | Traduzioni, parole semplici, voce | 14 | `Tr`, `Friendly`, `Voice` |
 
-342 test in 46 file, eseguiti con `testDebugUnitTest`; un server finto (`FakeServer.kt`) e dati presi da un server reale (`tools/capture_fixtures.mjs`) li alimentano. Si verifica che ogni frase sia nelle otto tabelle di lingua.
+367 test in 47 file, eseguiti con `testDebugUnitTest`; un server finto (`FakeServer.kt`) e dati presi da un server reale (`tools/capture_fixtures.mjs`) li alimentano. Si verifica che ogni frase sia nelle otto tabelle di lingua.
 
 ## 🏗️ Compilazione e rilascio
 
@@ -208,7 +208,7 @@ Le versioni sono pubblicate su GitHub, da dove l'app stessa controlla gli aggior
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/   l'app: schermate, regole, rete e aggiornamenti
 ├── app/src/main/assets/                         otto tabelle di lingua, codici di allarme, mappa meteo
-├── app/src/test/                                342 test e un server finto
+├── app/src/test/                                367 test e un server finto
 ├── docs/                                        le guide di questo repository
 ├── tools/                                       i controlli CI condivisi e gli strumenti del progetto
 ├── .github/                                     workflow CI e modelli per issue e pull request

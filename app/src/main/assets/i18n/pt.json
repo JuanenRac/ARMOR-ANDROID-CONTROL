@@ -1376,5 +1376,8 @@
  "Alarma de prueba. Humo detectado en la cocina.": "Alarme de teste. Fumo detetado na cozinha.",
  "Con el sonido que has elegido en los ajustes de la app.": "Com o som que escolheste nas definições da app.",
  "Las alarmas críticas suenan como una alarma, las altas como un aviso fuerte y los avisos como una notificación. La vibración y el modo No molestar de cada gravedad se ajustan en los ajustes del móvil.": "Os alarmes críticos soam como um alarme, os altos como um aviso forte e os avisos como uma notificação. A vibração e o modo Não incomodar de cada gravidade ajustam-se nas definições do telemóvel.",
- "Abrir los ajustes de avisos del móvil": "Abrir as definições de avisos do telemóvel"
+ "Abrir los ajustes de avisos del móvil": "Abrir as definições de avisos do telemóvel",
+ "Vigilancia con avisos push": "Vigilância com avisos push",
+ "Con los avisos push funcionando, la vigilancia en segundo plano solo mira el servidor de vez en cuando; si el push falla, vuelve al ritmo rápido (cada 10 s). Con 10 s no se reduce nada: es el ritmo de siempre.": "Enquanto os avisos push funcionam, a vigilância em segundo plano só consulta o servidor de vez em quando; se o push falhar, volta ao ritmo rápido (a cada 10 s). Com 10 s nada se reduz: é o ritmo de sempre.",
+ "Con push activo, comprobar cada": "Com push ativo, verificar a cada"
 }

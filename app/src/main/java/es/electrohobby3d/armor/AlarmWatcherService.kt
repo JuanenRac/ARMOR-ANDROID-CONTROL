@@ -34,7 +34,8 @@ class AlarmWatcherService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Tr.init(this)
-        val notification = AlarmNotifier.watchNotification(this, trf("Comprobando eventos cada %s s", INTERVAL_MS / 1000))
+        val savedOrigin = getSharedPreferences("armor-control", Context.MODE_PRIVATE).getString("origin", "").orEmpty()
+        val notification = AlarmNotifier.watchNotification(this, trf("Comprobando eventos cada %s s", WatchPace.nextIntervalMs(this, savedOrigin) / 1000))
         // From Android 14 the watch is a "special use" service, which Android 15 does not stop after six hours as it does a data-sync one.
         when {
             Build.VERSION.SDK_INT >= 34 -> startForeground(AlarmNotifier.WATCH_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
@@ -76,14 +77,17 @@ class AlarmWatcherService : Service() {
             }
             // A server that stays unreachable is itself worth knowing about, once.
             if (failures == UNREACHABLE_AFTER) AlarmNotifier.post(this, AlarmNotice(System.currentTimeMillis() % 1_000_000, tr("Servidor sin respuesta"), trf("ARMOR-SERVER no responde desde hace %s s", (System.currentTimeMillis() - firstFailureAt) / 1000)))
-            delay(nextDelayMs(failures))
+            delay(nextDelayMs(failures, origin))
         }
     }
 
-    /** The normal interval while all goes well; after failures it doubles (up to a minute) with a little jitter, so a server that is down is not hammered. */
-    private fun nextDelayMs(failures: Int): Long {
-        if (failures == 0) return INTERVAL_MS
-        val backoff = (INTERVAL_MS shl failures.coerceAtMost(3)).coerceAtMost(MAX_BACKOFF_MS)
+    /**
+     * The normal interval while all goes well: a slow one (the person's choice) while the push messages work, the fast one when they do not (see [WatchPace]). After failures it doubles
+     * (up to a minute) with a little jitter, so a server that is down is not hammered.
+     */
+    private fun nextDelayMs(failures: Int, origin: String): Long {
+        if (failures == 0) return WatchPace.nextIntervalMs(this, origin)
+        val backoff = (WatchPace.FAST_MS shl failures.coerceAtMost(3)).coerceAtMost(MAX_BACKOFF_MS)
         return backoff + Random.nextLong(0, 1_000)
     }
 
@@ -99,7 +103,6 @@ class AlarmWatcherService : Service() {
     override fun onDestroy() { scope.cancel(); super.onDestroy() }
 
     companion object {
-        private const val INTERVAL_MS = 10_000L
         private const val WAIT_FOR_UNLOCK_MS = 15_000L
         private const val MAX_BACKOFF_MS = 60_000L
         private const val UNREACHABLE_AFTER = 6

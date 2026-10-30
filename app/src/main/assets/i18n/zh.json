@@ -1376,5 +1376,8 @@
  "Alarma de prueba. Humo detectado en la cocina.": "测试警报。厨房检测到烟雾。",
  "Con el sonido que has elegido en los ajustes de la app.": "使用你在应用设置中选择的声音。",
  "Las alarmas críticas suenan como una alarma, las altas como un aviso fuerte y los avisos como una notificación. La vibración y el modo No molestar de cada gravedad se ajustan en los ajustes del móvil.": "严重警报像闹钟一样响，高级警报像强提醒，一般提示像普通通知。各严重程度的振动和勿扰模式在手机的设置中调整。",
- "Abrir los ajustes de avisos del móvil": "打开手机的通知设置"
+ "Abrir los ajustes de avisos del móvil": "打开手机的通知设置",
+ "Vigilancia con avisos push": "推送提醒下的监视",
+ "Con los avisos push funcionando, la vigilancia en segundo plano solo mira el servidor de vez en cuando; si el push falla, vuelve al ritmo rápido (cada 10 s). Con 10 s no se reduce nada: es el ritmo de siempre.": "推送提醒正常时，后台监视只偶尔查看服务器；推送失败时会恢复为快速间隔（每 10 秒）。选择 10 秒则不做任何减少，保持原有频率。",
+ "Con push activo, comprobar cada": "推送有效时的检查间隔"
 }

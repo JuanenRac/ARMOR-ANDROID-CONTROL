@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The background watch asks the server less often while the push alerts work:** with push available, the token taken by the server and no event found by the watch that the push failed to bring in the last six hours, the watch looks at the server every 120 seconds instead of every 10; Settings > Watch with push alerts chooses 10 (the usual pace), 60, 120, 300 or 600 seconds. An event more than 90 seconds old that only the watch announces brings back the fast pace for six hours. The text is in the eight languages.
+
 ## [0.7.8] - Notice settings, sounds and voice of the alarms, a window for each lens and the language of the phone in a push
 
 - **A new Firebase token reaches the server at once:** when Firebase rotates the token of the phone, the app tells the server right away from the background, using the session it keeps (if the phone is locked behind the unlock-bound key, or the server does not answer, the token waits for the next start of the app as before). Until now the server went on pushing to a token that no longer existed until the app was opened.

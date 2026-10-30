@@ -22,14 +22,14 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
-  <img src="https://img.shields.io/badge/Tests-342%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-367%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.7.8-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
 ---
 
-**Verificação de honestidade - o que funciona hoje:** As regras de segurança do endereço, de decisão de alarmes, do vigia de alarmes, de tradução e do papel só de leitura estão cobertas por 342 testes unitários e a aplicação compila (`gradlew testDebugUnitTest assembleDebug`). Funciona num telemóvel real contra a bancada de testes do CM5: o acesso, o monitor de câmaras, o armar e os alarmes, o radar, a configuração de um nó por Bluetooth e as atualizações a partir do GitHub estão em uso. O que **ainda não** está provado: os ecrãs solar, elétrico e de centrais de alarme com equipamentos reais (só existe um nó radar), o push por Firebase (está na aplicação e precisa de um projeto Firebase próprio; ainda não foi experimentado num telemóvel) e a vigilância de alarmes em segundo plano sob as regras de bateria de cada fabricante.
+**Verificação de honestidade - o que funciona hoje:** As regras de segurança do endereço, de decisão de alarmes, do vigia de alarmes, de tradução e do papel só de leitura estão cobertas por 367 testes unitários e a aplicação compila (`gradlew testDebugUnitTest assembleDebug`). Funciona num telemóvel real contra a bancada de testes do CM5: o acesso, o monitor de câmaras, o armar e os alarmes, o radar, a configuração de um nó por Bluetooth e as atualizações a partir do GitHub estão em uso. O que **ainda não** está provado: os ecrãs solar, elétrico e de centrais de alarme com equipamentos reais (só existe um nó radar), o push por Firebase (está na aplicação e precisa de um projeto Firebase próprio; ainda não foi experimentado num telemóvel) e a vigilância de alarmes em segundo plano sob as regras de bateria de cada fabricante.
 
 ---
 
@@ -41,7 +41,7 @@
 | Maturidade | Estabelecido |
 | Função | Cliente de operador Android para o ARMOR-SERVER (família: Clients, pai: ARMOR-SERVER) |
 | Tecnologia | Kotlin / Jetpack Compose, Android 8.0+ |
-| Testes | 342 (`gradlew testDebugUnitTest`) |
+| Testes | 367 (`gradlew testDebugUnitTest`) |
 | Línguas | 8 (1345 frases por língua, cada frase verificada em todas as tabelas) |
 | Funciona em | Um telemóvel com Android 8.0+ (minSdk 26) |
 | Em hardware real | Usada num telemóvel real contra a bancada de testes do CM5; os ecrãs solar, elétrico e de centrais de alarme esperam nós reais |
@@ -58,7 +58,7 @@ Cada linha é uma parte deste repositório e a luz diz até onde chega hoje. É 
 | Área | Estado | O que significa aqui |
 |---|---|---|
 | Software | 🟢 | A app compila (`gradlew testDebugUnitTest assembleDebug`) e funciona num telemóvel real contra a bancada de testes CM5. |
-| Testes | 🟢 | Passam 342 testes unitários (`gradlew testDebugUnitTest`): segurança dos endereços, decisão de alarme, vigilante de alarmes, traduções e papel só de leitura. |
+| Testes | 🟢 | Passam 367 testes unitários (`gradlew testDebugUnitTest`): segurança dos endereços, decisão de alarme, vigilante de alarmes, traduções e papel só de leitura. |
 | Interface | 🟡 | O início de sessão, o monitor de câmaras, o armar e os alarmes e o radar estão em uso num telemóvel real; a configuração de um nó por Bluetooth não foi confirmada com um nó real, e os ecrãs solar, elétrico e de painel de alarme não encontraram equipamentos reais. |
 | Hardware | 🟡 | Usada num telemóvel real contra a bancada de testes CM5; a vigilância de alarmes em segundo plano sob as regras de bateria de cada fabricante não está provada. |
 | Segurança | 🟡 | As regras de segurança dos endereços e do papel só de leitura estão cobertas por testes unitários; não houve revisão independente. |
@@ -153,7 +153,7 @@ Na app (não em ficheiros): a língua (as oito ou seguir o telemóvel), os dois 
 **Requisitos:** JDK 17+, o Android SDK (compile SDK 37), um telemóvel com Android 8.0+ (minSdk 26).
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 342 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 367 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
@@ -179,7 +179,7 @@ python -I tools/armor_ci_validate.py
 | Radar e câmaras | 14 | `RadarGeometry`, `CameraTraits`, `CameraLenses` |
 | Traduções, palavras simples, voz | 14 | `Tr`, `Friendly`, `Voice` |
 
-342 testes em 46 ficheiros, executados com `testDebugUnitTest`; um servidor falso (`FakeServer.kt`) e dados tirados de um servidor real (`tools/capture_fixtures.mjs`) alimentam-nos. Verifica-se que cada frase está nas oito tabelas de língua.
+367 testes em 47 ficheiros, executados com `testDebugUnitTest`; um servidor falso (`FakeServer.kt`) e dados tirados de um servidor real (`tools/capture_fixtures.mjs`) alimentam-nos. Verifica-se que cada frase está nas oito tabelas de língua.
 
 ## 🏗️ Compilação e publicação
 
@@ -208,7 +208,7 @@ As versões são publicadas no GitHub, de onde a própria app verifica as atuali
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/   a app: ecrãs, regras, rede e atualizações
 ├── app/src/main/assets/                         oito tabelas de língua, códigos de alarme, mapa do tempo
-├── app/src/test/                                342 testes e um servidor falso
+├── app/src/test/                                367 testes e um servidor falso
 ├── docs/                                        os guias deste repositório
 ├── tools/                                       as verificações de CI partilhadas e as ferramentas do projeto
 ├── .github/                                     fluxo de CI e modelos de issues e pull requests

@@ -6,6 +6,7 @@ The software of these checks is done and tested on a computer; what is left need
 |---|---|---|---|
 | Set up a node over Bluetooth | the APK and a real radar node | open "Set up a node" and configure it | the real node is configured |
 | One notification | a phone and a Firebase project | arm, raise an alarm with the app in the background and with it open | exactly one notification with the alarm sound in both cases (the server must send data-only messages with an event id) |
+| Pace of the watch with push | a phone, a Firebase project and the app watching in the background | sign in so the server takes the token, wait for the watch to slow down (the notice of the watch says its interval), raise an alarm, then block the push (airplane mode with Wi-Fi on, or revoke the token) and raise another | the first alarm is announced once by the push; with the push blocked the watch finds the second after at most the slow interval, and from then on looks every 10 s for six hours |
 | New token | a phone and a Firebase project | clear the data of Google Play services | the server receives the new token without opening the app |
 | Memory with six cameras | a phone | show six cameras in a grid for 10 minutes and run `adb shell dumpsys meminfo es.electrohobby3d.armor` | memory does not grow and the app does not close |
 | HTTPS to the CM5 | the CM5 with its own certificate authority | sign in over HTTPS, then turn cleartext off except for the allowed domains | the app still connects |

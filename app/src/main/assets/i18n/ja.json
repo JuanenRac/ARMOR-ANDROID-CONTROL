@@ -1376,5 +1376,8 @@
  "Alarma de prueba. Humo detectado en la cocina.": "テストアラームです。キッチンで煙を検知しました。",
  "Con el sonido que has elegido en los ajustes de la app.": "アプリの設定で選んだ音で鳴ります。",
  "Las alarmas críticas suenan como una alarma, las altas como un aviso fuerte y los avisos como una notificación. La vibración y el modo No molestar de cada gravedad se ajustan en los ajustes del móvil.": "重大なアラームはアラームのように、高いものは強めの通知のように、注意は通常の通知のように鳴ります。各重大度の振動とおやすみモードは端末の設定で調整します。",
- "Abrir los ajustes de avisos del móvil": "端末の通知設定を開く"
+ "Abrir los ajustes de avisos del móvil": "端末の通知設定を開く",
+ "Vigilancia con avisos push": "プッシュ通知による監視",
+ "Con los avisos push funcionando, la vigilancia en segundo plano solo mira el servidor de vez en cuando; si el push falla, vuelve al ritmo rápido (cada 10 s). Con 10 s no se reduce nada: es el ritmo de siempre.": "プッシュ通知が動作している間は、バックグラウンドの監視はときどきサーバーを確認するだけです。プッシュが失敗すると、速い間隔（10 秒ごと）に戻ります。10 秒を選ぶと何も減らず、従来どおりの間隔です。",
+ "Con push activo, comprobar cada": "プッシュが有効なときの確認間隔"
 }

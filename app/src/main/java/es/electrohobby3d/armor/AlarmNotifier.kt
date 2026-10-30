@@ -128,8 +128,15 @@ object AlarmNotifier {
         val armed = client.status(origin).mode == "armed"
         val notices = tracker.claim(origin, events, armed)
         notices.forEach { post(context, it) }
+        // An event the push should have brought long ago and that only the watch found: the push cannot be trusted for a while, and the watch goes back to the fast pace.
+        val health = WatchPace.health(context, origin)
+        val now = System.currentTimeMillis()
+        if (notices.any { notice -> events.any { it.id == notice.id && WatchPace.isMiss(health, eventAgeMs(it.at, now), now) } }) WatchPace.markMiss(context, now)
         return notices.size
     }
+
+    /** How old an event is by its time (ISO 8601); unknown counts as new, so a time that cannot be read never makes the watch distrust the push. */
+    internal fun eventAgeMs(at: String, now: Long): Long = runCatching { now - java.time.Instant.parse(at).toEpochMilli() }.getOrDefault(0L)
 
     const val WATCH_ID = 4201
     private const val NOTICE_BASE = 5000

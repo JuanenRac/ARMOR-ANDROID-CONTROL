@@ -496,9 +496,9 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
     @Volatile private var pushToken: String? = null
 
     /** Registers this phone's push token with the server (once signed in); kept to take it back at sign-out. */
-    fun registerPush(origin: String, token: String) {
+    fun registerPush(origin: String, token: String, onRegistered: () -> Unit = {}) {
         pushToken = token
-        viewModelScope.launch(Dispatchers.IO) { runCatching { client.registerPush(origin, token, Tr.voiceLanguage()) } }
+        viewModelScope.launch(Dispatchers.IO) { runCatching { client.registerPush(origin, token, Tr.voiceLanguage()) }.onSuccess { onRegistered() } }
     }
 
     /** The session cookie as it stands now, for the vault. */

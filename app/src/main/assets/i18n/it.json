@@ -1376,5 +1376,8 @@
  "Alarma de prueba. Humo detectado en la cocina.": "Allarme di prova. Fumo rilevato in cucina.",
  "Con el sonido que has elegido en los ajustes de la app.": "Con il suono scelto nelle impostazioni dell'app.",
  "Las alarmas críticas suenan como una alarma, las altas como un aviso fuerte y los avisos como una notificación. La vibración y el modo No molestar de cada gravedad se ajustan en los ajustes del móvil.": "Gli allarmi critici suonano come un allarme, gli alti come un avviso forte e gli avvisi come una notifica. La vibrazione e la modalità Non disturbare di ogni gravità si regolano nelle impostazioni del telefono.",
- "Abrir los ajustes de avisos del móvil": "Apri le impostazioni delle notifiche del telefono"
+ "Abrir los ajustes de avisos del móvil": "Apri le impostazioni delle notifiche del telefono",
+ "Vigilancia con avisos push": "Sorveglianza con avvisi push",
+ "Con los avisos push funcionando, la vigilancia en segundo plano solo mira el servidor de vez en cuando; si el push falla, vuelve al ritmo rápido (cada 10 s). Con 10 s no se reduce nada: es el ritmo de siempre.": "Finché gli avvisi push funzionano, la sorveglianza in background controlla il server solo ogni tanto; se il push fallisce, torna al ritmo veloce (ogni 10 s). Con 10 s non si riduce nulla: è il ritmo di sempre.",
+ "Con push activo, comprobar cada": "Con il push attivo, controlla ogni"
 }
