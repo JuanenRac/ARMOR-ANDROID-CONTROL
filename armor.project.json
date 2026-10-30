@@ -14,6 +14,7 @@
   ],
   "deployment_target": "Android 8+",
   "maturity": "established",
+  "evidence": "bench",
   "family": "Clients",
   "parent": "ARMOR-SERVER",
   "native_version": "0.7.8",
