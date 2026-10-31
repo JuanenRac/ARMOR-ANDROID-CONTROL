@@ -4,6 +4,7 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **An alarm panel that does not confirm the arming mode is told in the alarm list:** the alarm `mode_panel_sync_failed` reads in the language of the app from the shared table of alarm sentences (the copy in the assets is the one of the contract).
 - **The home screen shows what the alarm panels did about the arming mode:** when the server asks the panels to arm with the profile of the mode (`panel_sync`), the app reads it and says waiting, confirmed, or not confirmed (listing the panels that refused, did not answer or could not be asked); it shows nothing against a server that does not send it, and never shows a panel as confirmed before the server does. The texts are in the eight languages.
 
 - **Arming in a mode runs the check before arming:** when the system is disarmed and a mode is chosen in the picker (Away, Home or Night), the app first asks the server what would leave the perimeter blind or noisy and shows it, as the plain arm and the console do; with nothing found, or no answer, the server decides as before. A switch between modes of an armed system is not an arm and is not checked.

@@ -21,6 +21,7 @@ class AlarmCodesTest {
         val table = AlarmCodes.parse(asset.readText(Charsets.UTF_8))
         assertTrue("the table has 58 codes or more, it has ${table.size}", table.size >= 58)
         assertTrue(table.containsKey("network_dns_stale"))
+        assertTrue(table.containsKey("mode_panel_sync_failed"))
         for ((code, texts) in table) for (language in languages) assertTrue("$code in $language", !texts[language].isNullOrBlank())
     }
 
