@@ -18,6 +18,8 @@ data class Alarm(
     val raisedAt: String,
     val acknowledgedBy: String?,
     val cleared: Boolean,
+    /** The plain facts the alarm carries (which device, which port, which panel...), in the order the server sent them; a value that is not a text, a number or a yes/no is kept as the text it came as. */
+    val detail: Map<String, Any> = emptyMap(),
 ) {
     val acknowledged: Boolean get() = acknowledgedBy != null
 }
@@ -49,7 +51,19 @@ object DeviceParser {
             severity = json.optStr("severity", "warning"), code = json.optStr("code"), raisedAt = json.optStr("raised_at"),
             acknowledgedBy = if (json.has("acknowledged_at") && !json.isNull("acknowledged_at")) json.optStr("acknowledged_by", "").ifBlank { "?" } else null,
             cleared = json.has("cleared_at") && !json.isNull("cleared_at"),
+            detail = facts(json.optJSONObject("detail")),
         )
+    }
+
+    /** The facts of an alarm: text, numbers and yes/no as they are; anything else (a list, an object, a null) as the text it came as, so no fact is lost. */
+    internal fun facts(raw: JSONObject?): Map<String, Any> {
+        if (raw == null) return emptyMap()
+        val out = LinkedHashMap<String, Any>()
+        raw.keys().forEach { key ->
+            val value = raw.opt(key)
+            out[key] = when (value) { is Boolean, is String, is Int, is Long, is Double -> value; null, JSONObject.NULL -> ""; else -> value.toString() }
+        }
+        return out
     }
 
     fun device(json: JSONObject): SiteDevice? {

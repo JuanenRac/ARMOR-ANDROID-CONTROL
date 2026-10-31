@@ -22,14 +22,14 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Lenguaje">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Idiomas">
-  <img src="https://img.shields.io/badge/Tests-377%20passing-2ea44f.svg" alt="Pruebas">
+  <img src="https://img.shields.io/badge/Tests-386%20passing-2ea44f.svg" alt="Pruebas">
   <img src="https://img.shields.io/badge/Version-0.7.8-0f6cbd.svg" alt="Versión">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Madurez">
 </p>
 
 ---
 
-**Comprobación de honestidad - qué funciona hoy:** Las reglas de seguridad de la dirección, de decisión de alarmas, del vigilante de alarmas, de traducción y del rol de solo lectura están cubiertas por 377 tests unitarios y la app compila (`gradlew testDebugUnitTest assembleDebug`). Funciona en un móvil real contra el banco de pruebas de la CM5: el acceso, el monitor de cámaras, el armado y las alarmas, el radar, la configuración de un nodo por Bluetooth y las actualizaciones desde GitHub están en uso. Lo que **todavía no** está probado: las pantallas solar, eléctrica y de centrales de alarma con equipos reales (solo existe un nodo radar), el push por Firebase (está en la app y necesita un proyecto Firebase propio; aún no se ha probado en un móvil) y la vigilancia de alarmas en segundo plano bajo las reglas de batería de cada fabricante.
+**Comprobación de honestidad - qué funciona hoy:** Las reglas de seguridad de la dirección, de decisión de alarmas, del vigilante de alarmas, de traducción y del rol de solo lectura están cubiertas por 386 tests unitarios y la app compila (`gradlew testDebugUnitTest assembleDebug`). Funciona en un móvil real contra el banco de pruebas de la CM5: el acceso, el monitor de cámaras, el armado y las alarmas, el radar, la configuración de un nodo por Bluetooth y las actualizaciones desde GitHub están en uso. Lo que **todavía no** está probado: las pantallas solar, eléctrica y de centrales de alarma con equipos reales (solo existe un nodo radar), el push por Firebase (está en la app y necesita un proyecto Firebase propio; aún no se ha probado en un móvil) y la vigilancia de alarmas en segundo plano bajo las reglas de batería de cada fabricante.
 
 ---
 
@@ -41,7 +41,7 @@
 | Madurez | Establecido |
 | Función | Cliente de operador Android para ARMOR-SERVER (familia: Clients, padre: ARMOR-SERVER) |
 | Tecnología | Kotlin / Jetpack Compose, Android 8.0+ |
-| Pruebas | 377 (`gradlew testDebugUnitTest`) |
+| Pruebas | 386 (`gradlew testDebugUnitTest`) |
 | Idiomas | 8 (1345 frases por idioma, cada frase comprobada en todas las tablas) |
 | Funciona en | Un móvil con Android 8.0+ (minSdk 26) |
 | En hardware real | Usada en un móvil real contra el banco de pruebas de la CM5; las pantallas solar, eléctrica y de centrales de alarma esperan nodos reales |
@@ -58,7 +58,7 @@ Cada línea es una parte de este repositorio y la luz dice hasta dónde llega ho
 | Área | Estado | Qué significa aquí |
 |---|---|---|
 | Software | 🟢 | La app compila (`gradlew testDebugUnitTest assembleDebug`) y funciona en un móvil real contra el banco de pruebas CM5. |
-| Pruebas | 🟢 | Pasan 377 pruebas unitarias (`gradlew testDebugUnitTest`): seguridad de las direcciones, decisión de alarma, vigilante de alarmas, traducciones y rol de solo lectura. |
+| Pruebas | 🟢 | Pasan 386 pruebas unitarias (`gradlew testDebugUnitTest`): seguridad de las direcciones, decisión de alarma, vigilante de alarmas, traducciones y rol de solo lectura. |
 | Interfaz | 🟡 | El inicio de sesión, el monitor de cámaras, el armado y las alarmas y el radar se usan en un móvil real; la configuración de un nodo por Bluetooth no se ha confirmado con un nodo real, y las pantallas solar, eléctrica y de panel de alarma no han visto equipos reales. |
 | Hardware | 🟡 | Se usa en un móvil real contra el banco de pruebas CM5; la vigilancia de alarmas en segundo plano bajo las reglas de batería de cada fabricante no está probada. |
 | Seguridad | 🟡 | Las reglas de seguridad de direcciones y de rol de solo lectura están cubiertas por pruebas unitarias; no ha habido una revisión independiente. |
@@ -89,6 +89,7 @@ Cada línea es una parte de este repositorio y la luz dice hasta dónde llega ho
 * **Mantenimiento de baterías (administradores):** las operaciones sencillas en una batería Pylontech - reloj, contadores y registros, reinicio, capacidad, prueba de MOSFET, fallo de fusible, salidas - en los mismos dos pasos que Studio (el servidor hace que el nodo lea la batería, la pantalla muestra exactamente lo que se hará y luego "Hacerlo ahora" con el número de serie escrito otra vez), con el resultado y lo que cambió; los límites, el firmware y la consola de experto se quedan en Studio.
 * **Control de los nodos (administradores):** Más > Control de nodos da las mismas operaciones que Studio - reiniciar, pausar, reanudar, poner en espera (trabajo apagado, sigue conectado), identificar, diagnóstico y mantenimiento activado o desactivado - a un nodo o a todos, pidiendo que se escriba de nuevo el nombre del nodo (o la palabra RESTART, PAUSE o STANDBY para todos) y la prueba de identidad nueva, mostrando hasta dónde llegó cada nodo y avisando de que una central de alarma o un radar en pausa o en espera dejan la casa sin proteger. No existe restablecimiento de fábrica, borrado ni sueño profundo.
 * **Una ventana de alarma en la app abierta:** mientras una alarma espera a una persona, un aviso sobre todas las pantallas menos la de alarmas late (rojo y rápido si es crítica, ámbar en las demás, quieto si el móvil tiene las animaciones apagadas), dice cuál es la peor alarma y cuántas esperan, y deja usar la app por debajo; puede abrir las alarmas, confirmar desde el aviso o cerrarse hasta que llegue otra alarma.
+* **El detalle de una alarma:** al tocar una alarma se abre su detalle (gravedad, origen, hora, estado) y todos los hechos que trae (qué dispositivo, qué puerto, qué centrales no confirmaron el modo de armado y qué respondió cada una) con su etiqueta en el idioma de la app, de la tabla que comparte el contrato; un hecho que la tabla no conoce se muestra tal como llega, así que una alarma nunca se oculta.
 * **Desde fuera de casa:** dos direcciones (la privada en la wifi de casa, la de fuera con datos móviles o la VPN) elegidas según dónde esté el teléfono, probando la otra si una no responde y con un mensaje que dice qué falla; la clave del certificado de la instalación se recuerda la primera vez (o se empareja con el texto del QR de Studio) y una distinta se rechaza, y se rechaza el http plano a un servidor al que ya se llegó por https; el panel de un nodo puede abrirse a través del servidor; las alarmas pueden llegar como push solo con datos, anunciadas una vez lleguen por push o por la vigilancia; la app abierta y la vigilancia comparten una lectura del servidor; las cámaras se paran fuera de pantalla y vuelven con esperas crecientes.
 * **Avisos a tu medida, con sonidos y una voz propios:** en los ajustes, silenciar todos los avisos, mostrarlos sin sonido ni vibración (y sin decirlos en voz alta) y desactivarlos por gravedad (alta, baja) o por tipo (alertas del radar, cámaras que no responden, nodos desconectados o callados, y las alarmas de dispositivos, solar, eléctrico, red y paneles de alarma); una alarma crítica siempre avisa salvo que se silencien todos. Un sonido para cada gravedad y cada tipo de aviso, de los sonidos del móvil o de un fichero propio (menos de 3 MB), cada uno con un botón de reproducir; y la voz que dice las alarmas (mujer, hombre o cualquiera; niño, adulto o mayor; normal, héroe de acción o señor oscuro; velocidad; y si también se dicen los avisos de gravedad baja) con un botón de prueba.
 * **Un banner que te lleva a la pantalla correcta y una vigilancia más tranquila:** el banner de una alarma abre la pantalla que la atiende (cámaras, dispositivos, inversores o baterías, la pantalla eléctrica, la red o los paneles de alarma); el móvil dice su idioma al registrarse para push y el servidor escribe el aviso en él, y un token nuevo de Firebase llega al servidor enseguida desde segundo plano. Una cámara con dos lentes en una sola transmisión son dos ventanas de la lista de cámaras. Mientras los avisos push funcionan, la vigilancia en segundo plano consulta al servidor cada 120 s en lugar de cada 10 (*Ajustes > Vigilancia con avisos push*: 10, 60, 120, 300 o 600 s).
@@ -156,7 +157,7 @@ En la app (no en ficheros): el idioma (los ocho o seguir al móvil), las dos dir
 **Requisitos:** JDK 17+, el SDK de Android (compile SDK 37), un móvil con Android 8.0+ (minSdk 26).
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 377 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 386 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
@@ -171,7 +172,7 @@ python -I tools/armor_ci_validate.py
 
 | Parte | Pruebas | Qué cubre |
 |---|---|---|
-| Alarmas | 67 | `AlarmPolicy`, `AlarmBanner`, `AlarmPanels`, `AlarmCodes`, `AlarmRoute`, `NoticeFilter`, `PushEvents`, `DevicesAndAlarms` |
+| Alarmas | 74 | `AlarmPolicy`, `AlarmBanner`, `AlarmPanels`, `AlarmCodes`, `AlarmFacts`, `AlarmRoute`, `NoticeFilter`, `PushEvents`, `DevicesAndAlarms` |
 | Enlace con el servidor, lectura, datos de prueba | 59 | `ApiClient`, `ApiError`, `ServerFixtures`, `ParsersTolerant`, `SavePayload`, `JsonText`, `Preflight`, `SharedFeed`, `Connections` |
 | Modelo de vista y roles | 41 | `ArmorViewModel`, `Viewer`, `ArmProfiles`, `NodeCensus`, `NodeHealth` |
 | Bloqueo, almacén de sesión, claves | 38 | `DeviceLock`, `SessionVault`, `CredentialVault`, `KeyBinding`, `Security` |
@@ -182,7 +183,7 @@ python -I tools/armor_ci_validate.py
 | Radar y cámaras | 14 | `RadarGeometry`, `CameraTraits`, `CameraLenses` |
 | Traducciones, palabras sencillas, voz | 14 | `Tr`, `Friendly`, `Voice` |
 
-377 pruebas en 47 ficheros, con `testDebugUnitTest`; un servidor falso (`FakeServer.kt`) y datos tomados de un servidor real (`tools/capture_fixtures.mjs`) las alimentan. Se comprueba que cada frase esté en las ocho tablas de idioma.
+386 pruebas en 54 ficheros, con `testDebugUnitTest`; un servidor falso (`FakeServer.kt`) y datos tomados de un servidor real (`tools/capture_fixtures.mjs`) las alimentan. Se comprueba que cada frase esté en las ocho tablas de idioma.
 
 ## 🏗️ Compilación y publicación
 
@@ -211,7 +212,7 @@ Las versiones se publican en GitHub, desde donde la propia app comprueba las act
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/   la app: pantallas, reglas, red y actualizaciones
 ├── app/src/main/assets/                         ocho tablas de idioma, códigos de alarma, mapa del tiempo
-├── app/src/test/                                377 pruebas y un servidor falso
+├── app/src/test/                                386 pruebas y un servidor falso
 ├── docs/                                        las guías de este repositorio
 ├── tools/                                       las comprobaciones de CI compartidas y las herramientas del proyecto
 ├── .github/                                     flujo de CI y plantillas de issues y pull requests

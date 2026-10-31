@@ -22,14 +22,14 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Sprache">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Sprachen">
-  <img src="https://img.shields.io/badge/Tests-377%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-386%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.7.8-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Reifegrad">
 </p>
 
 ---
 
-**Ehrlichkeitsprüfung - was heute läuft:** Die Regeln für Adresssicherheit, Alarmentscheidung, Alarmwächter, Übersetzung und die Nur-Lese-Rolle sind von 377 Unit-Tests abgedeckt, und die App baut (`gradlew testDebugUnitTest assembleDebug`). Sie läuft auf einem echten Telefon gegen den CM5-Testaufbau: Anmeldung, Kameramonitor, Scharfschalten und Alarme, Radar, die Einrichtung eines Knotens per Bluetooth und die Updates von GitHub sind im Einsatz. **Noch nicht** bewiesen: die Solar-, Elektro- und Alarmzentralen-Bildschirme mit echten Geräten (es gibt nur einen Radarknoten), Push über Firebase (es ist in der App und braucht ein eigenes Firebase-Projekt; es wurde noch nicht auf einem Handy erprobt) und die Alarmüberwachung im Hintergrund unter den Akkuregeln jedes Herstellers.
+**Ehrlichkeitsprüfung - was heute läuft:** Die Regeln für Adresssicherheit, Alarmentscheidung, Alarmwächter, Übersetzung und die Nur-Lese-Rolle sind von 386 Unit-Tests abgedeckt, und die App baut (`gradlew testDebugUnitTest assembleDebug`). Sie läuft auf einem echten Telefon gegen den CM5-Testaufbau: Anmeldung, Kameramonitor, Scharfschalten und Alarme, Radar, die Einrichtung eines Knotens per Bluetooth und die Updates von GitHub sind im Einsatz. **Noch nicht** bewiesen: die Solar-, Elektro- und Alarmzentralen-Bildschirme mit echten Geräten (es gibt nur einen Radarknoten), Push über Firebase (es ist in der App und braucht ein eigenes Firebase-Projekt; es wurde noch nicht auf einem Handy erprobt) und die Alarmüberwachung im Hintergrund unter den Akkuregeln jedes Herstellers.
 
 ---
 
@@ -41,7 +41,7 @@
 | Reifegrad | Etabliert |
 | Rolle | Android-Bedienclient für ARMOR-SERVER (Familie: Clients, übergeordnet: ARMOR-SERVER) |
 | Technik | Kotlin / Jetpack Compose, Android 8.0+ |
-| Tests | 377 (`gradlew testDebugUnitTest`) |
+| Tests | 386 (`gradlew testDebugUnitTest`) |
 | Sprachen | 8 (1345 Sätze je Sprache, jeder Satz in allen Tabellen geprüft) |
 | Läuft auf | Ein Telefon mit Android 8.0+ (minSdk 26) |
 | Auf echter Hardware | Auf einem echten Telefon gegen den CM5-Testaufbau im Einsatz; die Solar-, Elektro- und Alarmzentralen-Bildschirme warten auf echte Knoten |
@@ -58,7 +58,7 @@ Jede Zeile ist ein Teil dieses Repositorys, und die Ampel sagt, wie weit er heut
 | Bereich | Stand | Was das hier bedeutet |
 |---|---|---|
 | Software | 🟢 | Die App wird gebaut (`gradlew testDebugUnitTest assembleDebug`) und läuft auf einem echten Telefon gegen den CM5-Prüfstand. |
-| Tests | 🟢 | 377 Unit-Tests bestehen (`gradlew testDebugUnitTest`): Adresssicherheit, Alarmentscheidung, Alarmüberwachung, Übersetzungen und die Nur-Lese-Rolle. |
+| Tests | 🟢 | 386 Unit-Tests bestehen (`gradlew testDebugUnitTest`): Adresssicherheit, Alarmentscheidung, Alarmüberwachung, Übersetzungen und die Nur-Lese-Rolle. |
 | Oberfläche | 🟡 | Anmeldung, Kameramonitor, Scharfschalten und Alarme sowie das Radar sind auf einem echten Telefon im Einsatz; die Bluetooth-Einrichtung eines Knotens ist an einem echten Knoten nicht bestätigt, und die Bildschirme für Solar, Elektrik und Alarmzentrale sind noch keinen echten Geräten begegnet. |
 | Hardware | 🟡 | Auf einem echten Telefon gegen den CM5-Prüfstand genutzt; die Alarmüberwachung im Hintergrund unter den Akkuregeln jedes Herstellers ist nicht belegt. |
 | Sicherheit | 🟡 | Die Regeln für Adresssicherheit und die Nur-Lese-Rolle sind durch Unit-Tests abgedeckt; es gab keine unabhängige Prüfung. |
@@ -89,6 +89,7 @@ Jede Zeile ist ein Teil dieses Repositorys, und die Ampel sagt, wie weit er heut
 * **Batteriewartung (Administratoren):** die einfachen Operationen an einer Pylontech-Batterie - Uhr, Zähler und Protokolle, Neustart, Kapazität, MOSFET-Test, Sicherungsfehler, Ausgänge - in denselben zwei Schritten wie in Studio (der Server lässt den Knoten die Batterie lesen, der Bildschirm zeigt genau, was getan wird, dann "Jetzt ausführen" mit nochmals eingetippter Seriennummer), mit Ergebnis und Änderungen; Grenzwerte, Firmware und Expertenkonsole bleiben in Studio.
 * **Steuerung der Knoten (Administratoren):** Mehr > Knotensteuerung bietet dieselben Operationen wie Studio - Neustart, Pause, Fortsetzen, Standby (Arbeit aus, bleibt verbunden), Identifizieren, Diagnose und Wartung ein oder aus - für einen Knoten oder alle, verlangt die erneute Eingabe des Knotennamens (oder des Wortes RESTART, PAUSE oder STANDBY für alle) und den frischen Identitätsnachweis, zeigt, wie weit jeder Knoten ist, und warnt, dass eine pausierte oder im Standby befindliche Alarmzentrale oder ein Radar das Haus ungeschützt lässt. Es gibt kein Zurücksetzen auf Werkseinstellungen, kein Löschen und keinen Tiefschlaf.
 * **Ein Alarmfenster in der geöffneten App:** Solange ein Alarm auf eine Person wartet, pulsiert über jedem Bildschirm außer dem der Alarme ein Banner (rot und schnell bei kritischen, bernsteinfarben bei den übrigen, ruhig, wenn das Telefon die Animationen abgeschaltet hat), nennt den schlimmsten Alarm und wie viele warten und lässt die App darunter bedienen; es kann die Alarme öffnen, direkt bestätigen oder bis zum nächsten Alarm geschlossen werden.
+* **Das Detail eines Alarms:** Tippt man einen Alarm an, öffnet sich sein Detail (Schweregrad, Quelle, Uhrzeit, Zustand) mit allen Fakten, die er trägt (welches Gerät, welcher Port, welche Zentralen den Scharfschaltmodus nicht bestätigt haben und was jede geantwortet hat), jeweils mit ihrer Bezeichnung in der Sprache der App aus der vom Vertrag geteilten Tabelle; ein Fakt, den die Tabelle nicht kennt, wird so angezeigt, wie er kommt, sodass nie ein Alarm verborgen wird.
 * **Von außerhalb des Hauses:** zwei Adressen (die private im Heim-WLAN, die für unterwegs mit Mobilfunkdaten oder VPN), gewählt nach dem Aufenthaltsort des Telefons; antwortet eine nicht, wird die andere versucht, und eine Meldung sagt, was fehlschlägt; der Schlüssel des Zertifikats der Installation wird beim ersten Mal gemerkt (oder mit dem Text des QR-Codes von Studio gekoppelt) und ein anderer abgelehnt, und einfaches http wird für einen Server abgelehnt, der schon per https erreicht wurde; das Panel eines Knotens lässt sich über den Server öffnen; Alarme können als reine Daten-Push eintreffen und werden einmal gemeldet, ob per Push oder durch die Überwachung; die geöffnete App und die Überwachung teilen sich eine Abfrage des Servers; die Kamera-Streams stoppen außerhalb des Bildschirms und kommen mit wachsenden Wartezeiten zurück.
 * **Meldungen nach Wunsch, mit eigenen Tönen und einer eigenen Stimme:** In den Einstellungen lassen sich alle Meldungen stummschalten, ohne Ton und Vibration zeigen (und nicht vorlesen) und nach Schweregrad (hoch, niedrig) oder Art (Radar-Alarme, Kameras ohne Antwort, Knoten offline oder still sowie die Alarme von Geräten, Solar, Elektro, Netzwerk und Alarmpanels) abschalten; ein kritischer Alarm meldet sich immer, außer wenn alle Meldungen stumm sind. Ein Ton für jeden Schweregrad und jede Art von Meldung, aus den Tönen des Telefons oder aus einer eigenen Datei (unter 3 MB), jeweils mit Abspielknopf; und die Stimme, die die Alarme spricht (Frau, Mann oder egal; Kind, Erwachsener oder Senior; sachlich, Actionheld oder dunkler Lord; Tempo; ob auch Meldungen niedrigen Schweregrads gesprochen werden) mit Testknopf.
 * **Ein Banner, das zum richtigen Bildschirm führt, und eine ruhigere Überwachung:** Das Banner eines Alarms öffnet den Bildschirm, der ihn bearbeitet (Kameras, Geräte, Wechselrichter oder Batterien, der Elektro-Bildschirm, das Netzwerk oder die Alarmpanels); das Telefon nennt dem Server beim Push-Registrieren seine Sprache, damit die Meldung darin geschrieben wird, und ein neues Firebase-Token erreicht den Server sofort aus dem Hintergrund. Eine Kamera mit zwei Objektiven in einem Stream sind zwei Fenster der Kameraliste. Solange die Push-Meldungen funktionieren, fragt die Hintergrundüberwachung den Server alle 120 s statt alle 10 s (*Einstellungen > Überwachung mit Push-Meldungen*: 10, 60, 120, 300 oder 600 s).
@@ -156,7 +157,7 @@ In der App (nicht in Dateien): die Sprache (die acht oder dem Telefon folgen), d
 **Voraussetzungen:** JDK 17+, das Android SDK (compile SDK 37), ein Telefon mit Android 8.0+ (minSdk 26).
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 377 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 386 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
@@ -171,7 +172,7 @@ python -I tools/armor_ci_validate.py
 
 | Teil | Tests | Was sie abdeckt |
 |---|---|---|
-| Alarme | 67 | `AlarmPolicy`, `AlarmBanner`, `AlarmPanels`, `AlarmCodes`, `AlarmRoute`, `NoticeFilter`, `PushEvents`, `DevicesAndAlarms` |
+| Alarme | 74 | `AlarmPolicy`, `AlarmBanner`, `AlarmPanels`, `AlarmCodes`, `AlarmFacts`, `AlarmRoute`, `NoticeFilter`, `PushEvents`, `DevicesAndAlarms` |
 | Serververbindung, Auswertung, Testdaten | 59 | `ApiClient`, `ApiError`, `ServerFixtures`, `ParsersTolerant`, `SavePayload`, `JsonText`, `Preflight`, `SharedFeed`, `Connections` |
 | View-Model und Rollen | 41 | `ArmorViewModel`, `Viewer`, `ArmProfiles`, `NodeCensus`, `NodeHealth` |
 | Sperre, Sitzungstresor, Schlüssel | 38 | `DeviceLock`, `SessionVault`, `CredentialVault`, `KeyBinding`, `Security` |
@@ -182,7 +183,7 @@ python -I tools/armor_ci_validate.py
 | Radar und Kameras | 14 | `RadarGeometry`, `CameraTraits`, `CameraLenses` |
 | Übersetzungen, einfache Worte, Sprache | 14 | `Tr`, `Friendly`, `Voice` |
 
-377 Tests in 47 Dateien, ausgeführt mit `testDebugUnitTest`; ein Fake-Server (`FakeServer.kt`) und von einem echten Server geholte Daten (`tools/capture_fixtures.mjs`) speisen sie. Es wird geprüft, dass jeder Satz in den acht Sprachtabellen steht.
+386 Tests in 54 Dateien, ausgeführt mit `testDebugUnitTest`; ein Fake-Server (`FakeServer.kt`) und von einem echten Server geholte Daten (`tools/capture_fixtures.mjs`) speisen sie. Es wird geprüft, dass jeder Satz in den acht Sprachtabellen steht.
 
 ## 🏗️ Build und Veröffentlichung
 
@@ -211,7 +212,7 @@ Releases werden auf GitHub veröffentlicht, von wo die App selbst nach Updates s
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/   die App: Bildschirme, Regeln, Netz und Updates
 ├── app/src/main/assets/                         acht Sprachtabellen, Alarmcodes, Wetterkarte
-├── app/src/test/                                377 Tests und ein Fake-Server
+├── app/src/test/                                386 Tests und ein Fake-Server
 ├── docs/                                        die Anleitungen dieses Repositorys
 ├── tools/                                       die gemeinsamen CI-Prüfungen und Projektwerkzeuge
 ├── .github/                                     CI-Workflow sowie Vorlagen für Issues und Pull Requests

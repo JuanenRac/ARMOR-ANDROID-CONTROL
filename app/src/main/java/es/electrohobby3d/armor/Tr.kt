@@ -31,6 +31,7 @@ object Tr {
         language = pick(saved, Locale.getDefault().language)
         load(app, language)
         AlarmCodes.init(app)
+        AlarmFacts.init(app)
     }
 
     /** Chooses a language and remembers it. */

@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The detail of an alarm:** touching an alarm in the list (active or closed) opens its detail with the severity, the source, the time, the state and every fact the alarm carries (the device, the port, the panels that did not confirm the arming mode and what each answered...) with its label in the language of the app. The labels are the table of the contract (`alarm_facts.json`, a copy of the one in ARMOR-COMMON kept equal by a test); a fact the table does not know is shown with its key as it comes, so no alarm and no fact is hidden. The two new buttons are labelled for screen readers.
+
 - **An alarm panel that does not confirm the arming mode is told in the alarm list:** the alarm `mode_panel_sync_failed` reads in the language of the app from the shared table of alarm sentences (the copy in the assets is the one of the contract).
 - **The home screen shows what the alarm panels did about the arming mode:** when the server asks the panels to arm with the profile of the mode (`panel_sync`), the app reads it and says waiting, confirmed, or not confirmed (listing the panels that refused, did not answer or could not be asked); it shows nothing against a server that does not send it, and never shows a panel as confirmed before the server does. The texts are in the eight languages.
 

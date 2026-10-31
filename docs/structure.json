@@ -120,14 +120,14 @@
         },
         {
           "desc": {
-            "en": "alarm_codes.json, weather_radar.html, leaflet/",
-            "es": "alarm_codes.json, weather_radar.html, leaflet/",
-            "de": "alarm_codes.json, weather_radar.html, leaflet/",
-            "fr": "alarm_codes.json, weather_radar.html, leaflet/",
-            "it": "alarm_codes.json, weather_radar.html, leaflet/",
-            "ja": "alarm_codes.json、weather_radar.html、leaflet/",
-            "zh": "alarm_codes.json、weather_radar.html、leaflet/",
-            "pt": "alarm_codes.json, weather_radar.html, leaflet/"
+            "en": "alarm_*.json, weather_radar.html, leaflet/",
+            "es": "alarm_*.json, weather_radar.html, leaflet/",
+            "de": "alarm_*.json, weather_radar.html, leaflet/",
+            "fr": "alarm_*.json, weather_radar.html, leaflet/",
+            "it": "alarm_*.json, weather_radar.html, leaflet/",
+            "ja": "alarm_*.json、weather_radar.html、leaflet/",
+            "zh": "alarm_*.json、weather_radar.html、leaflet/",
+            "pt": "alarm_*.json, weather_radar.html, leaflet/"
           }
         }
       ]

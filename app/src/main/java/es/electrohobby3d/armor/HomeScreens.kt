@@ -2,6 +2,7 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -247,6 +248,11 @@ private fun severityColor(severity: String) = when (severity) { "critical" -> Ar
 fun AlarmsScreen(active: List<Alarm>, closed: List<Alarm>, devices: List<SiteDevice>, cameraNames: Map<String, String>, onAcknowledge: (Alarm) -> Unit, onAcknowledgeAll: () -> Unit, enabled: Boolean, solarNames: Map<String, String> = emptyMap()) {
     val pending = active.count { !it.acknowledged }
     var showClosed by rememberSaveable { mutableStateOf(false) }
+    var detailId by rememberSaveable { mutableStateOf<String?>(null) }
+    val detailOf = (active + closed).firstOrNull { it.id == detailId }
+    detailOf?.let { open ->
+        AlarmDetailDialog(open, alarmSourceName(open, devices, cameraNames, solarNames), canConfirm = enabled, onConfirm = onAcknowledge, onDismiss = { detailId = null })
+    }
     LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
         item {
             ScreenTitle(Icons.Filled.NotificationsActive, tr("Alarmas"), if (pending == 0) tr("Todo en calma") else if (pending == 1) tr("1 necesita atención") else trf("%s necesitan atención", pending)) {
@@ -264,7 +270,7 @@ fun AlarmsScreen(active: List<Alarm>, closed: List<Alarm>, devices: List<SiteDev
         }
         items(active, key = { it.id }) { alarm ->
             val tint = if (alarm.acknowledged || alarm.cleared) ArmorColors.Muted else severityColor(alarm.severity)
-            Panel(Modifier.fillMaxWidth(), tint = if (alarm.acknowledged) null else tint) {
+            Panel(Modifier.fillMaxWidth().clickable(onClickLabel = tr("Ver detalles de la alarma")) { detailId = alarm.id }, tint = if (alarm.acknowledged) null else tint) {
                 Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     IconBadge(if (alarm.cleared) Icons.Filled.CheckCircle else Icons.Filled.Warning, tint, size = 44.dp)
                     Column(Modifier.weight(1f)) {
@@ -272,7 +278,7 @@ fun AlarmsScreen(active: List<Alarm>, closed: List<Alarm>, devices: List<SiteDev
                         DeviceText.alarmHelp(alarm.code)?.let { help -> Text(help, style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted) }
                         Text("${alarmSourceName(alarm, devices, cameraNames, solarNames)} · ${Friendly.dayAndClock(alarm.raisedAt)}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                         Text(
-                            if (alarm.acknowledged) (if (alarm.cleared) trf("Vista por %s", alarm.acknowledgedBy) else trf("Vista por %s · sigue activa", alarm.acknowledgedBy)) else if (alarm.cleared) tr("Ya terminó · falta confirmarla") else tr("Activa ahora"),
+                            alarmStateText(alarm),
                             style = MaterialTheme.typography.labelSmall, color = if (alarm.acknowledged) ArmorColors.Muted else tint,
                         )
                     }
@@ -288,7 +294,7 @@ fun AlarmsScreen(active: List<Alarm>, closed: List<Alarm>, devices: List<SiteDev
             }
         }
         if (showClosed) items(closed.take(30), key = { "c-" + it.id }) { alarm ->
-            Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(Modifier.fillMaxWidth().clickable(onClickLabel = tr("Ver detalles de la alarma")) { detailId = alarm.id }.padding(horizontal = 4.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Icon(Icons.Filled.CheckCircle, null, tint = ArmorColors.Muted, modifier = Modifier.size(18.dp))
                 Text("${DeviceText.alarmText(alarm.code)} · ${alarmSourceName(alarm, devices, cameraNames, solarNames)} · ${Friendly.dayAndClock(alarm.raisedAt)}", style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
             }
