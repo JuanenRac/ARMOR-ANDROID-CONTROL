@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **Arming in a mode runs the check before arming:** when the system is disarmed and a mode is chosen in the picker (Away, Home or Night), the app first asks the server what would leave the perimeter blind or noisy and shows it, as the plain arm and the console do; with nothing found, or no answer, the server decides as before. A switch between modes of an armed system is not an arm and is not checked.
+
 - **Arming modes of the server (Away, Home, Night):** while the server has the arming modes on, the arm button of the status screen opens a picker to arm in a mode, switch between modes or disarm. A mode with nothing assigned asks to be confirmed (the server refuses it otherwise), a change to a mode that defends less than the one in force asks for the PIN like a disarm, and the status says which mode is in force. With the modes off, or against an older server, the app arms and disarms exactly as before. The phrases are in the eight languages. The picker does not run the check before arming that a plain arm shows.
 
 - **The lights of Project status follow the evidence of the manifest:** the manifest says how far the repository has been shown to work (`evidence`: `host-test`, `simulator`, `bench` or `field`) and the validator fails when a light is above what that evidence and the maturity allow (`tools/status_lights.py`), so a green that never ran on real hardware cannot come back.

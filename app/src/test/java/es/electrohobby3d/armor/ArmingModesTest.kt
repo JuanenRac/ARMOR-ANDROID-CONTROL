@@ -5,6 +5,8 @@ package es.electrohobby3d.armor
 import es.electrohobby3d.armor.model.ArmingModeException
 import es.electrohobby3d.armor.model.ArmingModeText
 import es.electrohobby3d.armor.model.ArmingModesParser
+import es.electrohobby3d.armor.model.Preflight
+import es.electrohobby3d.armor.model.PreflightIssue
 import es.electrohobby3d.armor.network.ArmorApiClient
 import org.json.JSONObject
 import org.junit.After
@@ -67,6 +69,18 @@ class ArmingModesTest {
         assertEquals(ArmingStage.Pin("home", "pin_not_set"), nextArmingStage("home", "pin_not_set", pinTyped = false))
         assertNull(nextArmingStage("home", "failed", pinTyped = false))
         assertNull(nextArmingStage("home", "modes_disabled", pinTyped = false))
+    }
+
+    @Test fun armingInAModeFromDisarmedRunsTheSameCheckAsAPlainArm() {
+        val blind = Preflight(false, listOf(PreflightIssue("node", "block", "node_offline", "radar-1", null)))
+        val noisy = Preflight(true, listOf(PreflightIssue("zone", "warn", "zone_open", "panel-1", "Z3")))
+        assertEquals(ArmingStage.Check("home", blind), checkStage("home", systemArmed = false, check = blind))
+        assertEquals(ArmingStage.Check("night", noisy), checkStage("night", systemArmed = false, check = noisy))
+        // nothing found, no answer (an older server or no network): the server decides, the picker goes on
+        assertNull(checkStage("home", systemArmed = false, check = Preflight(true, emptyList())))
+        assertNull(checkStage("home", systemArmed = false, check = null))
+        // a switch between modes of an armed system is not an arm: no check, as in the console
+        assertNull(checkStage("night", systemArmed = true, check = blind))
     }
 
     private lateinit var server: FakeServer

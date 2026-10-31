@@ -32,14 +32,24 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import es.electrohobby3d.armor.model.ArmingModeText
 import es.electrohobby3d.armor.model.ArmingModesView
+import es.electrohobby3d.armor.model.Preflight
+import es.electrohobby3d.armor.model.PreflightText
 import kotlinx.coroutines.launch
 
-/** Where the picker is: choosing, asking to confirm a mode with nothing assigned, or asking for the PIN. */
+/** Where the picker is: choosing, showing what the check before arming found, asking to confirm a mode with nothing assigned, or asking for the PIN. */
 internal sealed interface ArmingStage {
     data object Pick : ArmingStage
+    data class Check(val mode: String, val check: Preflight) : ArmingStage
     data class Confirm(val mode: String) : ArmingStage
     data class Pin(val mode: String, val problem: String? = null) : ArmingStage
 }
+
+/**
+ * The check before arming applies to an arm from disarmed, as to a plain arm (a switch between modes is not an arm): the picker shows what it found when it found something and goes straight
+ * to the server when the perimeter is fine or the check could not be had. Null means: go on and arm.
+ */
+internal fun checkStage(mode: String, systemArmed: Boolean, check: Preflight?): ArmingStage.Check? =
+    if (!systemArmed && check != null && check.issues.isNotEmpty()) ArmingStage.Check(mode, check) else null
 
 /**
  * The next stage after the server refused with [reason] while arming [mode]; null when the picker has nothing more to ask (the message is shown). [pinTyped] says that a PIN was already
@@ -55,6 +65,7 @@ internal fun nextArmingStage(mode: String, reason: String, pinTyped: Boolean): A
 internal fun ArmingModeDialog(
     modes: ArmingModesView, armed: Boolean,
     arm: suspend (mode: String, pin: String?, confirmUnassigned: Boolean) -> Pair<String, String>?,
+    preflight: suspend () -> Preflight?,
     onDisarm: () -> Unit, onDismiss: () -> Unit,
 ) {
     var stage by remember { mutableStateOf<ArmingStage>(ArmingStage.Pick) }
@@ -75,7 +86,31 @@ internal fun ArmingModeDialog(
             if (next != null) { stage = next; if (next is ArmingStage.Pin) pin = "" } else problem = refusal.second
         }
     }
+    fun begin(mode: String) {
+        scope.launch {
+            busy = true; problem = null
+            val found = if (armed) null else preflight()
+            busy = false
+            val check = checkStage(mode, armed, found)
+            if (check != null) stage = check else attempt(mode, null, false)
+        }
+    }
     when (val shown = stage) {
+        is ArmingStage.Check -> AlertDialog(
+            onDismissRequest = onDismiss, containerColor = ArmorColors.SurfaceRaised,
+            icon = { IconBadge(Icons.Filled.Shield, if (shown.check.ready) ArmorColors.Ok else ArmorColors.Amber, size = 56.dp) },
+            title = { Text(trf("Armar: %s", ArmingModeText.name(shown.mode))) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    shown.check.issues.forEach { issue ->
+                        Text((if (issue.blocks) "⛔ " else "⚠ ") + PreflightText.describe(issue), style = MaterialTheme.typography.bodySmall, color = if (issue.blocks) ArmorColors.Amber else ArmorColors.Muted)
+                    }
+                    problem?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = ArmorColors.Alert) }
+                }
+            },
+            confirmButton = { Button(enabled = !busy, onClick = { attempt(shown.mode, null, false) }) { Text(if (shown.check.ready) tr("Armar") else tr("Armar igualmente")) } },
+            dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Cancelar")) } },
+        )
         is ArmingStage.Pin -> AlertDialog(
             onDismissRequest = onDismiss, containerColor = ArmorColors.SurfaceRaised,
             icon = { IconBadge(Icons.Filled.Shield, ArmorColors.Amber, size = 56.dp) },
@@ -121,7 +156,7 @@ internal fun ArmingModeDialog(
                     Text(tr("Fuera de casa defiende todo. En casa y Noche, solo lo que marcaste en el diseñador de alarma de Studio."))
                     modes.armable.forEach { mode ->
                         val here = mode == modes.current
-                        OutlinedButton(onClick = { attempt(mode, null, false) }, enabled = !busy && !here, modifier = Modifier.fillMaxWidth()) {
+                        OutlinedButton(onClick = { begin(mode) }, enabled = !busy && !here, modifier = Modifier.fillMaxWidth()) {
                             Column {
                                 Text(if (here) ArmingModeText.name(mode) else if (armed) trf("Cambiar a %s", ArmingModeText.name(mode)) else trf("Armar: %s", ArmingModeText.name(mode)))
                                 Text(if (here) tr("en vigor") else ArmingModeText.defends(modes, mode), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)

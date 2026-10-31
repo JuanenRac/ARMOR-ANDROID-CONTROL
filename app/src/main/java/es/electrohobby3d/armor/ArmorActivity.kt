@@ -570,6 +570,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                     ArmingModeDialog(
                         modes = modes, armed = state.snapshot.mode == "armed",
                         arm = { mode, pin, confirm -> viewModel.armInMode(currentOrigin, mode, pin, confirm) },
+                        preflight = { viewModel.preflight(currentOrigin) },
                         onDisarm = { armingPicker = false; confirmMode = "disarmed" }, onDismiss = { armingPicker = false },
                     )
                 }
