@@ -53,13 +53,13 @@
 <rect x="360" y="482" width="3" height="114" rx="1.5" fill="#00E5FF"><animate attributeName="opacity" values="0.55;1;0.55" dur="4s" begin="0.6s" repeatCount="indefinite"/></rect>
 <text x="382" y="502" font-family="'JetBrains Mono','Cascadia Code','SFMono-Regular',Consolas,'Liberation Mono',monospace" font-size="19" font-weight="700" fill="#F2F6FA" text-anchor="start">app/src/main/assets/</text>
 <line x1="382" y1="516" x2="853.667" y2="516" stroke="#00E5FF" stroke-opacity="0.35" stroke-width="1"/>
-<text x="382" y="548" font-family="'JetBrains Mono','Cascadia Code','SFMono-Regular',Consolas,'Liberation Mono',monospace" font-size="13.5" font-weight="400" fill="#C9D4DF" text-anchor="start">i18n/: one table per language, 1345 phrases each</text>
+<text x="382" y="548" font-family="'JetBrains Mono','Cascadia Code','SFMono-Regular',Consolas,'Liberation Mono',monospace" font-size="13.5" font-weight="400" fill="#C9D4DF" text-anchor="start">i18n/: one table per language, 1381 phrases each</text>
 <text x="382" y="572" font-family="'JetBrains Mono','Cascadia Code','SFMono-Regular',Consolas,'Liberation Mono',monospace" font-size="13.5" font-weight="400" fill="#C9D4DF" text-anchor="start">alarm_codes.json, weather_radar.html, leaflet/</text>
 <rect x="896.667" y="468" width="243.333" height="142" rx="10" fill="url(#card)" stroke="#1E2A36" stroke-width="1"/>
 <rect x="896.667" y="482" width="3" height="114" rx="1.5" fill="#3D9BFF"><animate attributeName="opacity" values="0.55;1;0.55" dur="4s" begin="1.2s" repeatCount="indefinite"/></rect>
 <text x="918.667" y="502" font-family="'JetBrains Mono','Cascadia Code','SFMono-Regular',Consolas,'Liberation Mono',monospace" font-size="19" font-weight="700" fill="#F2F6FA" text-anchor="start">app/src/test/</text>
 <line x1="918.667" y1="516" x2="1122" y2="516" stroke="#3D9BFF" stroke-opacity="0.35" stroke-width="1"/>
-<text x="918.667" y="548" font-family="'JetBrains Mono','Cascadia Code','SFMono-Regular',Consolas,'Liberation Mono',monospace" font-size="13.5" font-weight="400" fill="#C9D4DF" text-anchor="start">46 files, FakeServer</text>
+<text x="918.667" y="548" font-family="'JetBrains Mono','Cascadia Code','SFMono-Regular',Consolas,'Liberation Mono',monospace" font-size="13.5" font-weight="400" fill="#C9D4DF" text-anchor="start">53 files, FakeServer</text>
 <rect x="360" y="640" width="243.333" height="190" rx="10" fill="url(#card)" stroke="#1E2A36" stroke-width="1"/>
 <rect x="360" y="654" width="3" height="162" rx="1.5" fill="#00FF88"><animate attributeName="opacity" values="0.55;1;0.55" dur="4s" begin="1.8s" repeatCount="indefinite"/></rect>
 <text x="382" y="674" font-family="'JetBrains Mono','Cascadia Code','SFMono-Regular',Consolas,'Liberation Mono',monospace" font-size="19" font-weight="700" fill="#F2F6FA" text-anchor="start">docs/</text>

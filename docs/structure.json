@@ -108,14 +108,14 @@
       "rows": [
         {
           "desc": {
-            "en": "i18n/: one table per language, 1345 phrases each",
-            "es": "i18n/: una tabla por idioma, 1345 frases cada una",
-            "de": "i18n/: eine Tabelle je Sprache, je 1345 Sätze",
-            "fr": "i18n/ : une table par langue, 1345 phrases chacune",
-            "it": "i18n/: una tabella per lingua, 1345 frasi ciascuna",
-            "ja": "i18n/：言語ごとの表、各 1345 フレーズ",
-            "zh": "i18n/：每种语言一张表，各 1345 条",
-            "pt": "i18n/: uma tabela por língua, 1345 frases cada"
+            "en": "i18n/: one table per language, 1381 phrases each",
+            "es": "i18n/: una tabla por idioma, 1381 frases cada una",
+            "de": "i18n/: eine Tabelle je Sprache, je 1381 Sätze",
+            "fr": "i18n/ : une table par langue, 1381 phrases chacune",
+            "it": "i18n/: una tabella per lingua, 1381 frasi ciascuna",
+            "ja": "i18n/：言語ごとの表、各 1381 フレーズ",
+            "zh": "i18n/：每种语言一张表，各 1381 条",
+            "pt": "i18n/: uma tabela por língua, 1381 frases cada"
           }
         },
         {
@@ -136,26 +136,26 @@
       "name": "app/src/test/",
       "span": 1,
       "tree": {
-        "en": "342 tests and a fake server",
-        "es": "342 pruebas y un servidor falso",
-        "de": "342 Tests und ein Fake-Server",
-        "fr": "342 tests et un faux serveur",
-        "it": "342 test e un server finto",
-        "ja": "342 件のテストと擬似サーバー",
-        "zh": "342 个测试和一个模拟服务器",
-        "pt": "342 testes e um servidor falso"
+        "en": "367 tests and a fake server",
+        "es": "367 pruebas y un servidor falso",
+        "de": "367 Tests und ein Fake-Server",
+        "fr": "367 tests et un faux serveur",
+        "it": "367 test e un server finto",
+        "ja": "367 件のテストと擬似サーバー",
+        "zh": "367 个测试和一个模拟服务器",
+        "pt": "367 testes e um servidor falso"
       },
       "rows": [
         {
           "desc": {
-            "en": "46 files, FakeServer",
-            "es": "46 ficheros, FakeServer",
-            "de": "46 Dateien, FakeServer",
-            "fr": "46 fichiers, FakeServer",
-            "it": "46 file, FakeServer",
-            "ja": "46 ファイル、FakeServer",
-            "zh": "46 个文件、FakeServer",
-            "pt": "46 ficheiros, FakeServer"
+            "en": "53 files, FakeServer",
+            "es": "53 ficheros, FakeServer",
+            "de": "53 Dateien, FakeServer",
+            "fr": "53 fichiers, FakeServer",
+            "it": "53 file, FakeServer",
+            "ja": "53 ファイル、FakeServer",
+            "zh": "53 个文件、FakeServer",
+            "pt": "53 ficheiros, FakeServer"
           }
         }
       ]

@@ -6,6 +6,7 @@ All notable changes to this project are documented here.
 
 - **The lights of Project status follow the evidence of the manifest:** the manifest says how far the repository has been shown to work (`evidence`: `host-test`, `simulator`, `bench` or `field`) and the validator fails when a light is above what that evidence and the maturity allow (`tools/status_lights.py`), so a green that never ran on real hardware cannot come back.
 - **The background watch asks the server less often while the push alerts work:** with push available, the token taken by the server and no event found by the watch that the push failed to bring in the last six hours, the watch looks at the server every 120 seconds instead of every 10; Settings > Watch with push alerts chooses 10 (the usual pace), 60, 120, 300 or 600 seconds. An event more than 90 seconds old that only the watch announces brings back the fast pace for six hours. The text is in the eight languages.
+- **The documentation covers the choice of notices, the sounds and voice, the banner and the watch pace:** the README (eight languages) describes the notice settings, a sound for each severity and kind, the voice of the alarms, the banner that opens the right screen, the language sent with the push registration, the two-lens camera windows and the slower background watch while push alerts work; the structure counts 367 tests and 1381 phrases.
 
 ## [0.7.8] - Notice settings, sounds and voice of the alarms, a window for each lens and the language of the phone in a push
 
