@@ -10,7 +10,14 @@ data class ArmorSnapshot(
     val nodes: List<FieldNode> = emptyList(),
     /** The arming mode in force ("disarmed", "away", "home", "night") while the server has the arming modes on; null otherwise. */
     val armingMode: String? = null,
+    /** What the alarm panels did about that mode (only while the server syncs the modes to the panels); null otherwise. */
+    val panelSync: PanelSyncView? = null,
 )
+
+/** [status] is "none", "pending", "confirmed" or "failed"; only the server's "confirmed" is shown as confirmed. */
+data class PanelSyncView(val status: String, val profile: String, val nodes: List<PanelSyncNode> = emptyList())
+/** [status]: "pending", "confirmed", "refused", "timeout" or "unavailable"; [reason] is the code the server gives. */
+data class PanelSyncNode(val id: String, val status: String, val reason: String? = null)
 
 /** Deliberately excludes camera passwords: only ARMOR-SERVER holds them. */
 data class CameraView(

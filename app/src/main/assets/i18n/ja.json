@@ -1401,5 +1401,13 @@
  "Vigila lo marcado para este modo.": "このモードで指定したものを監視します。",
  "Modo fuera de casa": "外出",
  "Modo en casa": "在宅",
- "Modo noche": "夜間"
+ "Modo noche": "夜間",
+ "Paneles de alarma: esperando que confirmen el perfil %s.": "アラームパネル: プロファイル%sの確認を待っています。",
+ "Paneles de alarma: confirmaron el perfil %s.": "アラームパネル: プロファイル%sを確認しました。",
+ "Los paneles de alarma no confirmaron el perfil %s. El servidor defiende el modo; revisa los paneles o elige el modo otra vez.": "アラームパネルがプロファイル%sを確認しませんでした。サーバーはモードを守っています。パネルを確認するか、モードをもう一度選んでください。",
+ "Ningún panel de alarma conocido: no se pidió a ninguno.": "既知のアラームパネルがないため、どのパネルにも要求していません。",
+ "confirmado": "確認済み",
+ "rechazado": "拒否",
+ "no se pudo preguntar": "要求できませんでした",
+ "esperando": "待機中"
 }

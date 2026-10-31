@@ -5,6 +5,7 @@ package es.electrohobby3d.armor
 import es.electrohobby3d.armor.model.ArmingModeException
 import es.electrohobby3d.armor.model.ArmingModeText
 import es.electrohobby3d.armor.model.ArmingModesParser
+import es.electrohobby3d.armor.model.PanelSyncText
 import es.electrohobby3d.armor.model.Preflight
 import es.electrohobby3d.armor.model.PreflightIssue
 import es.electrohobby3d.armor.network.ArmorApiClient
@@ -126,5 +127,24 @@ class ArmingModesTest {
         server.reply(200, answer)
         assertTrue(client.armingModes(server.origin).enabled)
         assertEquals("/api/v1/alarm/modes", server.seen.single().path)
+    }
+
+    @Test fun whatThePanelsDidAboutTheModeIsReadAsTheServerSaysItAndNeverShownAsConfirmedBeforeTheServerSaysSo() {
+        server.reply(200, """{"mode":"armed","arming_mode":"home","revision":2,"nodes":{},"panel_sync":{"mode":"home","profile":"stay","status":"pending","by":"ana","started_at":"x","nodes":[{"node_id":"alarm-1","status":"pending"}]}}""")
+        val pending = client.status(server.origin).panelSync!!
+        assertEquals(listOf("pending", "stay", "alarm-1"), listOf(pending.status, pending.profile, pending.nodes.single().id))
+        assertTrue(PanelSyncText.line(pending).orEmpty().contains("stay"))
+        assertTrue("a pending report lists no problem", PanelSyncText.problems(pending).isEmpty())
+        server.reply(200, """{"mode":"armed","arming_mode":"home","revision":3,"nodes":{},"panel_sync":{"mode":"home","profile":"stay","status":"failed","by":"ana","started_at":"x",
+            "nodes":[{"node_id":"alarm-1","status":"refused","reason":"zones_open"},{"node_id":"alarm-2","status":"confirmed"},{"node_id":"alarm-3","status":"unavailable","reason":"node_commands_off"}]}}""")
+        val failed = client.status(server.origin).panelSync!!
+        assertEquals("failed", failed.status)
+        assertEquals(listOf("alarm-1: refused (zones_open)", "alarm-3: could not be asked (node_commands_off)").size, PanelSyncText.problems(failed).size)
+        assertTrue(PanelSyncText.problems(failed).none { it.startsWith("alarm-2") })
+        server.reply(200, """{"mode":"armed","revision":4,"nodes":{}}""")
+        assertNull("a server without the sync says nothing", client.status(server.origin).panelSync)
+        assertNull(PanelSyncText.line(null))
+        server.reply(200, """{"mode":"armed","revision":4,"nodes":{},"panel_sync":{"status":"surprise","profile":"x","nodes":[]}}""")
+        assertNull("an unknown status is not shown", client.status(server.origin).panelSync)
     }
 }

@@ -61,7 +61,7 @@ class ArmorApiClient : ArmorApi {
                 FieldNode(id, node.optBoolean("online"), if (node.isNull("lux")) null else node.optDouble("lux"), node.optInt("target_count"), node.optStr("alert_level", "normal"), node.optBoolean("stale"), SiteParser.targets(node))
             }
         }.toList()
-        ArmorSnapshot(root.optStr("mode", "disarmed"), root.optLong("revision"), root.optStr("updated_at"), nodes, root.optStr("arming_mode").takeIf { it.isNotBlank() })
+        ArmorSnapshot(root.optStr("mode", "disarmed"), root.optLong("revision"), root.optStr("updated_at"), nodes, root.optStr("arming_mode").takeIf { it.isNotBlank() }, es.electrohobby3d.armor.model.PanelSyncParser.parse(root.optJSONObject("panel_sync")))
     }
 
     /** The newest events first; [before] is an event id (only older events are returned). With [after] the events that came after that id, oldest first (a client that polls misses none). */

@@ -1401,5 +1401,13 @@
  "Vigila lo marcado para este modo.": "Surveille ce qui est marqué pour ce mode.",
  "Modo fuera de casa": "Absent",
  "Modo en casa": "À la maison",
- "Modo noche": "Nuit"
+ "Modo noche": "Nuit",
+ "Paneles de alarma: esperando que confirmen el perfil %s.": "Centrales d'alarme : en attente de la confirmation du profil %s.",
+ "Paneles de alarma: confirmaron el perfil %s.": "Centrales d'alarme : le profil %s a été confirmé.",
+ "Los paneles de alarma no confirmaron el perfil %s. El servidor defiende el modo; revisa los paneles o elige el modo otra vez.": "Les centrales d'alarme n'ont pas confirmé le profil %s. Le serveur protège le mode ; vérifiez les centrales ou choisissez à nouveau le mode.",
+ "Ningún panel de alarma conocido: no se pidió a ninguno.": "Aucune centrale d'alarme connue : aucune n'a été sollicitée.",
+ "confirmado": "confirmé",
+ "rechazado": "refusé",
+ "no se pudo preguntar": "n'a pas pu être sollicité",
+ "esperando": "en attente"
 }

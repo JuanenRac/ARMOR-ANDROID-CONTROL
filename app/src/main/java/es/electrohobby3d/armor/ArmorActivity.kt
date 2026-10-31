@@ -396,7 +396,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                         }
                         when (section) {
                             Section.Status -> StatusScreen(
-                                armed = state.snapshot.mode == "armed", armingMode = state.snapshot.armingMode.takeIf { state.armingModes?.enabled == true }, updated = state.snapshot.updatedAt, nodes = state.snapshot.nodes, cameras = state.cameras.size,
+                                armed = state.snapshot.mode == "armed", armingMode = state.snapshot.armingMode.takeIf { state.armingModes?.enabled == true }, panelSync = state.snapshot.panelSync.takeIf { state.armingModes?.enabled == true }, updated = state.snapshot.updatedAt, nodes = state.snapshot.nodes, cameras = state.cameras.size,
                                 camerasDown = state.cameraHealth.count { it.value == "offline" }, pendingAlarms = state.alarms.count { !it.acknowledged }, devices = state.devices,
                                 onMode = { if (!viewModel.viewerRefused()) { if (state.armingModes?.enabled == true) armingPicker = true else confirmMode = if (state.snapshot.mode == "armed") "disarmed" else "armed" } }, onAlarms = { section = Section.Alarms },
                                 onDevices = { section = Section.Devices }, onCameras = { section = Section.Cameras }, onRadar = { section = Section.Radar },

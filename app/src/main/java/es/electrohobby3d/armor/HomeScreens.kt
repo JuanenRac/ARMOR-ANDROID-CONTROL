@@ -68,6 +68,8 @@ fun StatusScreen(
     nodeHealth: es.electrohobby3d.armor.model.NodeHealthOverview? = null, onNodeHealth: () -> Unit = {},
     /** The arming mode in force while the server has the arming modes on ("away", "home", "night"); null otherwise. */
     armingMode: String? = null,
+    /** What the alarm panels did about that mode (null unless the server syncs the modes to the panels). */
+    panelSync: es.electrohobby3d.armor.model.PanelSyncView? = null,
 ) {
     val attention = devices.count { DeviceText.problem(it) != null }
     // every kind of node (radar, solar, electrical, alarm, wall panel), not only the radar nodes of the live stream
@@ -87,6 +89,14 @@ fun StatusScreen(
                     onClick = onMode, enabled = enabled, modifier = Modifier.size(56.dp),
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = if (armed) ArmorColors.Amber else ArmorColors.Ok, contentColor = Color(0xFF041014)),
                 ) { Icon(Icons.Filled.PowerSettingsNew, contentDescription = if (armed) tr("Desarmar") else tr("Armar"), modifier = Modifier.size(30.dp)) }
+            }
+        }
+        es.electrohobby3d.armor.model.PanelSyncText.line(panelSync)?.let { line ->
+            Panel(Modifier.fillMaxWidth(), tint = if (panelSync?.status == "failed") ArmorColors.Amber else null) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(line, style = MaterialTheme.typography.bodyMedium)
+                    es.electrohobby3d.armor.model.PanelSyncText.problems(panelSync).forEach { Text(it, style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted) }
+                }
             }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {

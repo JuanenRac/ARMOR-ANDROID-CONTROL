@@ -57,3 +57,39 @@ object ArmingModeText {
         else -> tr("No se pudo cambiar el modo.")
     }
 }
+
+/** What the alarm panels did about the arming mode (POST /api/v1/mode, GET /api/v1/status): read as the server says it, so a panel that did not confirm is never shown as confirmed. */
+object PanelSyncParser {
+    private val STATUS = setOf("none", "pending", "confirmed", "failed")
+    fun parse(root: JSONObject?): PanelSyncView? {
+        if (root == null) return null
+        val status = root.optString("status").takeIf { it in STATUS } ?: return null
+        val nodes = buildList {
+            root.optJSONArray("nodes")?.let { array ->
+                for (i in 0 until array.length()) array.optJSONObject(i)?.let { node ->
+                    add(PanelSyncNode(node.optString("node_id"), node.optString("status", "pending"), node.optString("reason").takeIf { it.isNotBlank() }))
+                }
+            }
+        }
+        return PanelSyncView(status, root.optString("profile"), nodes)
+    }
+}
+
+object PanelSyncText {
+    /** One line for the home screen; null when there is nothing to say. */
+    fun line(view: PanelSyncView?): String? = if (view == null) null else when (view.status) {
+        "pending" -> trf("Paneles de alarma: esperando que confirmen el perfil %s.", view.profile)
+        "confirmed" -> trf("Paneles de alarma: confirmaron el perfil %s.", view.profile)
+        "failed" -> trf("Los paneles de alarma no confirmaron el perfil %s. El servidor defiende el modo; revisa los paneles o elige el modo otra vez.", view.profile)
+        "none" -> tr("Ningún panel de alarma conocido: no se pidió a ninguno.")
+        else -> null
+    }
+    fun node(node: PanelSyncNode): String {
+        val state = when (node.status) {
+            "confirmed" -> tr("confirmado"); "refused" -> tr("rechazado"); "timeout" -> tr("sin respuesta"); "unavailable" -> tr("no se pudo preguntar"); else -> tr("esperando")
+        }
+        return "${node.id}: $state" + (node.reason?.takeIf { it != node.status }?.let { " ($it)" } ?: "")
+    }
+    /** The panels that did not confirm (to list under a failure). */
+    fun problems(view: PanelSyncView?): List<String> = view?.takeIf { it.status == "failed" }?.nodes?.filter { it.status != "confirmed" }?.map(::node) ?: emptyList()
+}
