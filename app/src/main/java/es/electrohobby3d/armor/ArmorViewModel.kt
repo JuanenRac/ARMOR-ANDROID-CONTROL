@@ -60,7 +60,9 @@ data class MonitorUiState(
     val solar: es.electrohobby3d.armor.model.SolarOverview? = null,
     /** The alarm panels (ARMOR-NODE-ALARM nodes); null until the server has answered (an older server never does). */
     val alarmPanels: es.electrohobby3d.armor.model.AlarmPanelsOverview? = null,
-    /** The arming modes the server keeps (Away, Home, Night, the owner's own). */
+    /** The arming modes of the server (Away, Home, Night); null until it has answered, and while it is off (or an older server) the app arms and disarms as it always did. */
+    val armingModes: es.electrohobby3d.armor.model.ArmingModesView? = null,
+    /** The arming modes of the alarm panels (Away, Home, Night, the owner's own). */
     val armProfiles: List<es.electrohobby3d.armor.model.ArmProfileView> = emptyList(),
     /** The devices and apps that connect to the server; null until the server has answered (an older server never does). */
     val connections: List<es.electrohobby3d.armor.model.ConnectionClient>? = null,
@@ -607,8 +609,9 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
             val solar = runCatching { client.solar(origin) }.getOrNull()
             val electrical = runCatching { client.electrical(origin) }.getOrNull()
             val network = runCatching { client.network(origin) }.getOrNull()
+            val armingModes = runCatching { client.armingModes(origin) }.getOrNull()
             _state.update { it.copy(
-                solar = solar ?: it.solar, electrical = electrical ?: it.electrical, network = network ?: it.network,
+                solar = solar ?: it.solar, electrical = electrical ?: it.electrical, network = network ?: it.network, armingModes = armingModes ?: it.armingModes,
                 snapshot = status, cameras = cameras, events = mergeEvents(window, it.events), cameraHealth = health,
                 alarms = alarms?.first ?: it.alarms, closedAlarms = alarms?.second ?: it.closedAlarms, devices = devices ?: it.devices, silent = false,
             ) }
@@ -637,6 +640,33 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
             mutating(origin, if (mode == "armed") tr("Sistema ARMADO") else tr("Sistema DESARMADO")) {
                 require(_state.value.authenticated) { "Sign in first" }
                 _state.update { it.copy(snapshot = client.setMode(origin, mode, pin)) }
+            }
+        }
+    }
+
+    /**
+     * Arms in a mode of the server (Away, Home or Night). Returns null when it was done, else the refusal as a pair of its reason ("no_zones_assigned", "wrong_pin", ... or "failed") and its
+     * words, so that the picker can ask for the PIN or for the confirmation and ask again. A phone that asks for its lock before arming is asked first.
+     */
+    suspend fun armInMode(origin: String, mode: String, pin: String? = null, confirmUnassigned: Boolean = false): Pair<String, String>? {
+        if (viewerRefused()) return "viewer" to tr("Tu usuario solo puede mirar: no puede cambiar nada.")
+        val gate = sensitiveGate
+        if (gate != null && !gate.allow(tr("Armar el sistema"))) return "gate" to tr("No se ha confirmado con el bloqueo del teléfono: no se ha hecho nada.")
+        return withContext(Dispatchers.IO) {
+            try {
+                require(_state.value.authenticated) { "Sign in first" }
+                val snapshot = client.setArmingMode(origin, mode, pin, confirmUnassigned)
+                val modes = runCatching { client.armingModes(origin) }.getOrNull()
+                _state.update { it.copy(snapshot = snapshot, armingModes = modes ?: it.armingModes, message = trf("Sistema armado: %s", es.electrohobby3d.armor.model.ArmingModeText.name(mode))) }
+                null
+            } catch (error: es.electrohobby3d.armor.model.ArmingModeException) {
+                error.reason to error.message.orEmpty()
+            } catch (error: ElevationRequiredException) {   // from outside the house: the password again, then the same arming by itself
+                retryAfterElevation = { armInMode(origin, mode, pin, confirmUnassigned) }
+                _security.update { it.copy(elevationNeeded = true, elevationError = null) }
+                "elevation" to ""
+            } catch (error: Exception) {
+                "failed" to (error.message ?: tr("No se pudo cambiar el modo."))
             }
         }
     }

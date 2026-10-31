@@ -61,7 +61,7 @@ class ArmorApiClient : ArmorApi {
                 FieldNode(id, node.optBoolean("online"), if (node.isNull("lux")) null else node.optDouble("lux"), node.optInt("target_count"), node.optStr("alert_level", "normal"), node.optBoolean("stale"), SiteParser.targets(node))
             }
         }.toList()
-        ArmorSnapshot(root.optStr("mode", "disarmed"), root.optLong("revision"), root.optStr("updated_at"), nodes)
+        ArmorSnapshot(root.optStr("mode", "disarmed"), root.optLong("revision"), root.optStr("updated_at"), nodes, root.optStr("arming_mode").takeIf { it.isNotBlank() })
     }
 
     /** The newest events first; [before] is an event id (only older events are returned). With [after] the events that came after that id, oldest first (a client that polls misses none). */
@@ -90,6 +90,31 @@ class ArmorApiClient : ArmorApi {
             request(origin, "/api/v1/mode", "POST", mapOf("Content-Type" to "application/json"), body.toString(), setOf(200)).disconnect()
         } catch (error: ArmorApiException) {
             throw pinFailure(error) ?: error
+        }
+        return status(origin)
+    }
+
+    /** The arming modes of the server (Away, Home, Night); an older server has no such route and the call fails. */
+    override fun armingModes(origin: String): es.electrohobby3d.armor.model.ArmingModesView = es.electrohobby3d.armor.model.ArmingModesParser.parse(getJson(origin, "/api/v1/alarm/modes"))
+
+    /**
+     * Arm in a mode ("away", "home" or "night"). A mode that defends nothing is refused unless [confirmUnassigned]; a change to a mode that defends less than the current one needs the
+     * PIN, like a disarm. A refusal is an [es.electrohobby3d.armor.model.ArmingModeException] with the reason.
+     */
+    override fun setArmingMode(origin: String, mode: String, pin: String?, confirmUnassigned: Boolean): ArmorSnapshot {
+        require(mode == "away" || mode == "home" || mode == "night") { "El modo es away, home o night" }
+        val body = JSONObject().put("mode", mode)
+        if (!pin.isNullOrEmpty()) body.put("pin", pin)
+        if (confirmUnassigned) body.put("confirm_unassigned", true)
+        try {
+            request(origin, "/api/v1/mode", "POST", mapOf("Content-Type" to "application/json"), body.toString(), setOf(200)).disconnect()
+        } catch (error: ArmorApiException) {
+            val code = error.apiError.code
+            if (code in setOf("no_zones_assigned", "modes_disabled", "wrong_pin", "pin_locked", "pin_not_set")) {
+                val words = if (code.startsWith("pin_") || code == "wrong_pin") es.electrohobby3d.armor.model.AlarmPanelText.pinRefusal(code, error.message.orEmpty()) else es.electrohobby3d.armor.model.ArmingModeText.refusal(code)
+                throw es.electrohobby3d.armor.model.ArmingModeException(code, words, error.code)
+            }
+            throw error
         }
         return status(origin)
     }

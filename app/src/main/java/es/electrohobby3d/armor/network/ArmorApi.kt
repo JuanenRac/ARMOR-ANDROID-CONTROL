@@ -27,6 +27,8 @@ interface ArmorApi {
     fun cameraViews(origin: String): List<CameraView>
     /** Arm or disarm the system; the server audits it with the signed-in user's name. Disarming carries the PIN of the user when there is one to type. */
     fun setMode(origin: String, mode: String, pin: String? = null): ArmorSnapshot
+    fun armingModes(origin: String): es.electrohobby3d.armor.model.ArmingModesView
+    fun setArmingMode(origin: String, mode: String, pin: String? = null, confirmUnassigned: Boolean = false): ArmorSnapshot
     /** Active alarms first (raised and not yet cleared, or cleared but waiting for a person), then the closed record. */
     fun alarms(origin: String): Pair<List<Alarm>, List<Alarm>>
     fun acknowledgeAlarm(origin: String, id: String)

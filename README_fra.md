@@ -22,14 +22,14 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Langage">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Langues">
-  <img src="https://img.shields.io/badge/Tests-367%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-376%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.7.8-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturité">
 </p>
 
 ---
 
-**Vérification d'honnêteté - ce qui fonctionne aujourd'hui :** Les règles de sécurité de l'adresse, de décision d'alarme, de veilleur d'alarmes, de traduction et de rôle en lecture seule sont couvertes par 367 tests unitaires et l'application se compile (`gradlew testDebugUnitTest assembleDebug`). Elle fonctionne sur un vrai téléphone contre le banc de test CM5 : la connexion, le moniteur de caméras, l'armement et les alarmes, le radar, la configuration d'un nœud en Bluetooth et les mises à jour depuis GitHub sont utilisés. Ce qui n'est **pas** encore prouvé : les écrans solaire, électrique et centrales d'alarme avec du vrai matériel (seul un nœud radar existe), le push via Firebase (il est dans l'application et demande un projet Firebase propre ; il n'a pas encore été essayé sur un téléphone) et la veille d'alarmes en arrière-plan sous les règles de batterie de chaque fabricant.
+**Vérification d'honnêteté - ce qui fonctionne aujourd'hui :** Les règles de sécurité de l'adresse, de décision d'alarme, de veilleur d'alarmes, de traduction et de rôle en lecture seule sont couvertes par 376 tests unitaires et l'application se compile (`gradlew testDebugUnitTest assembleDebug`). Elle fonctionne sur un vrai téléphone contre le banc de test CM5 : la connexion, le moniteur de caméras, l'armement et les alarmes, le radar, la configuration d'un nœud en Bluetooth et les mises à jour depuis GitHub sont utilisés. Ce qui n'est **pas** encore prouvé : les écrans solaire, électrique et centrales d'alarme avec du vrai matériel (seul un nœud radar existe), le push via Firebase (il est dans l'application et demande un projet Firebase propre ; il n'a pas encore été essayé sur un téléphone) et la veille d'alarmes en arrière-plan sous les règles de batterie de chaque fabricant.
 
 ---
 
@@ -41,7 +41,7 @@
 | Maturité | Établi |
 | Rôle | Client opérateur Android pour ARMOR-SERVER (famille : Clients, parent : ARMOR-SERVER) |
 | Technologie | Kotlin / Jetpack Compose, Android 8.0+ |
-| Tests | 367 (`gradlew testDebugUnitTest`) |
+| Tests | 376 (`gradlew testDebugUnitTest`) |
 | Langues | 8 (1345 phrases par langue, chaque phrase vérifiée dans toutes les tables) |
 | Fonctionne sur | Un téléphone Android 8.0+ (minSdk 26) |
 | Sur matériel réel | Utilisée sur un vrai téléphone contre le banc de test CM5 ; les écrans solaire, électrique et centrales d'alarme attendent de vrais nœuds |
@@ -58,7 +58,7 @@ Chaque ligne est une partie de ce dépôt et le feu dit où elle en est aujourd'
 | Domaine | État | Ce que cela veut dire ici |
 |---|---|---|
 | Logiciel | 🟢 | L'application compile (`gradlew testDebugUnitTest assembleDebug`) et tourne sur un vrai téléphone contre le banc d'essai CM5. |
-| Tests | 🟢 | 367 tests unitaires réussissent (`gradlew testDebugUnitTest`) : sécurité des adresses, décision d'alarme, veilleur d'alarmes, traductions et rôle en lecture seule. |
+| Tests | 🟢 | 376 tests unitaires réussissent (`gradlew testDebugUnitTest`) : sécurité des adresses, décision d'alarme, veilleur d'alarmes, traductions et rôle en lecture seule. |
 | Interface | 🟡 | La connexion, le moniteur de caméras, l'armement et les alarmes et le radar sont utilisés sur un vrai téléphone ; la configuration d'un nœud par Bluetooth n'a pas été confirmée avec un vrai nœud, et les écrans solaire, électrique et de centrale d'alarme n'ont pas vu de vrais équipements. |
 | Matériel | 🟡 | Utilisée sur un vrai téléphone contre le banc d'essai CM5 ; la veille d'alarmes en arrière-plan sous les règles de batterie de chaque fabricant n'est pas prouvée. |
 | Sécurité | 🟡 | Les règles de sécurité des adresses et du rôle en lecture seule sont couvertes par des tests unitaires ; il n'y a pas eu de revue indépendante. |
@@ -92,6 +92,7 @@ Chaque ligne est une partie de ce dépôt et le feu dit où elle en est aujourd'
 * **Depuis l'extérieur :** deux adresses (la privée sur le Wi-Fi de la maison, celle de l'extérieur avec les données mobiles ou le VPN) choisies selon où est le téléphone, l'autre étant essayée si l'une ne répond pas, avec un message qui dit ce qui échoue ; la clé du certificat de l'installation est retenue la première fois (ou appairée avec le texte du QR de Studio) et une autre est refusée, et le http simple est refusé pour un serveur déjà joint en https ; le panneau d'un nœud peut s'ouvrir via le serveur ; les alarmes peuvent arriver en push de données seules, annoncées une fois qu'elles viennent du push ou de la surveillance ; l'app ouverte et la surveillance partagent une lecture du serveur ; les flux des caméras s'arrêtent hors de l'écran et reviennent avec des attentes croissantes.
 * **Des notices à votre mesure, avec des sons et une voix à vous :** dans les réglages, couper toutes les notices, les afficher sans son ni vibration (et sans les dire à voix haute) et les désactiver par gravité (haute, basse) ou par type (alertes radar, caméras qui ne répondent pas, nœuds hors ligne ou muets, et les alarmes des appareils, du solaire, de l'électrique, du réseau et des panneaux d'alarme) ; une alarme critique notifie toujours sauf si toutes les notices sont coupées. Un son pour chaque gravité et chaque type de notice, pris parmi les sons du téléphone ou dans un fichier à vous (moins de 3 Mo), chacun avec un bouton d'écoute ; et la voix qui dit les alarmes (femme, homme ou indifférent ; enfant, adulte ou senior ; neutre, héros d'action ou seigneur obscur ; vitesse ; et si les notices de gravité basse sont dites aussi) avec un bouton d'essai.
 * **Une bannière qui mène au bon écran et une surveillance plus calme :** la bannière d'une alarme ouvre l'écran qui la traite (caméras, appareils, onduleurs ou batteries, l'écran électrique, le réseau ou les panneaux d'alarme) ; le téléphone indique sa langue au serveur quand il s'inscrit au push pour que la notice soit écrite dans cette langue, et un nouveau jeton Firebase arrive tout de suite au serveur depuis l'arrière-plan. Une caméra à deux objectifs dans un seul flux fait deux fenêtres de la liste des caméras. Tant que les alertes push fonctionnent, la surveillance en arrière-plan interroge le serveur toutes les 120 s au lieu de 10 (*Réglages > Surveillance avec alertes push* : 10, 60, 120, 300 ou 600 s).
+* **Modes d'armement du serveur (Absent, À la maison, Nuit) :** quand le serveur a les modes d'armement activés (Studio, Configuration > Sécurité), le bouton d'armement de l'écran d'état ouvre un sélecteur pour armer dans un mode, passer de l'un à l'autre ou désarmer ; un mode sans rien d'attribué demande une confirmation, un passage à un mode qui protège moins demande le PIN comme un désarmement, et l'état montre le mode en vigueur. Modes éteints, l'application arme et désarme comme avant.
 
 ## 🧩 Rôle dans A.R.M.O.R.
 
@@ -155,7 +156,7 @@ Dans l'app (pas dans des fichiers) : la langue (les huit ou suivre le téléphon
 **Prérequis:** JDK 17+, le SDK Android (compile SDK 37), un téléphone Android 8.0+ (minSdk 26).
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 367 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 376 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
@@ -181,7 +182,7 @@ python -I tools/armor_ci_validate.py
 | Radar et caméras | 14 | `RadarGeometry`, `CameraTraits`, `CameraLenses` |
 | Traductions, mots simples, voix | 14 | `Tr`, `Friendly`, `Voice` |
 
-367 tests dans 47 fichiers, lancés avec `testDebugUnitTest` ; un faux serveur (`FakeServer.kt`) et des données prises sur un vrai serveur (`tools/capture_fixtures.mjs`) les alimentent. On vérifie que chaque phrase figure dans les huit tables de langue.
+376 tests dans 47 fichiers, lancés avec `testDebugUnitTest` ; un faux serveur (`FakeServer.kt`) et des données prises sur un vrai serveur (`tools/capture_fixtures.mjs`) les alimentent. On vérifie que chaque phrase figure dans les huit tables de langue.
 
 ## 🏗️ Compilation et publication
 
@@ -210,7 +211,7 @@ Les versions sont publiées sur GitHub, d'où l'app vérifie elle-même les mise
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/   l'app : écrans, règles, réseau et mises à jour
 ├── app/src/main/assets/                         huit tables de langue, codes d'alarme, carte météo
-├── app/src/test/                                367 tests et un faux serveur
+├── app/src/test/                                376 tests et un faux serveur
 ├── docs/                                        les guides de ce dépôt
 ├── tools/                                       les contrôles CI partagés et les outils du projet
 ├── .github/                                     workflow CI et modèles d'issues et de pull requests

@@ -66,6 +66,8 @@ fun StatusScreen(
     recording: Int = 0, onRecordings: () -> Unit = {},
     security: SecurityUiState = SecurityUiState(), onSecurity: () -> Unit = {},
     nodeHealth: es.electrohobby3d.armor.model.NodeHealthOverview? = null, onNodeHealth: () -> Unit = {},
+    /** The arming mode in force while the server has the arming modes on ("away", "home", "night"); null otherwise. */
+    armingMode: String? = null,
 ) {
     val attention = devices.count { DeviceText.problem(it) != null }
     // every kind of node (radar, solar, electrical, alarm, wall panel), not only the radar nodes of the live stream
@@ -78,8 +80,8 @@ fun StatusScreen(
             Row(Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 IconBadge(if (armed) Icons.Filled.Shield else Icons.Filled.LockOpen, if (armed) ArmorColors.Ok else ArmorColors.Amber, size = 64.dp)
                 Column(Modifier.weight(1f)) {
-                    Text(if (armed) tr("Armado") else tr("Desarmado"), style = MaterialTheme.typography.headlineSmall)
-                    Text(if (armed) tr("Puertas, ventanas y movimiento vigilados.") else tr("Solo humo, gas, agua y pánico avisan."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                    Text(es.electrohobby3d.armor.model.ArmingModeText.armedTitle(armed, armingMode), style = MaterialTheme.typography.headlineSmall)
+                    Text(if (armed && armingMode != null && armingMode != "away") tr("Vigila lo marcado para este modo.") else if (armed) tr("Puertas, ventanas y movimiento vigilados.") else tr("Solo humo, gas, agua y pánico avisan."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                 }
                 FilledIconButton(
                     onClick = onMode, enabled = enabled, modifier = Modifier.size(56.dp),

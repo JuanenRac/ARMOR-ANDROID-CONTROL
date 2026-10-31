@@ -22,14 +22,14 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
-  <img src="https://img.shields.io/badge/Tests-367%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-376%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.7.8-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
 ---
 
-**诚实性检查 - 今天真正能运行的部分：** 地址安全、报警决策、报警监视器、翻译和只读角色的规则由 367 个单元测试覆盖，应用可以构建（`gradlew testDebugUnitTest assembleDebug`）。它在真实手机上对照 CM5 测试台运行：登录、摄像头监视器、布防和报警、雷达、通过蓝牙设置节点以及从 GitHub 更新都在使用中。**尚未**证明的是：使用真实设备的太阳能、电气和报警主机界面（目前只有雷达节点）、通过 Firebase 的推送（应用中已包含，需要自己的 Firebase 项目；尚未在手机上试过），以及在各手机厂商电池规则下的后台报警监视。
+**诚实性检查 - 今天真正能运行的部分：** 地址安全、报警决策、报警监视器、翻译和只读角色的规则由 376 个单元测试覆盖，应用可以构建（`gradlew testDebugUnitTest assembleDebug`）。它在真实手机上对照 CM5 测试台运行：登录、摄像头监视器、布防和报警、雷达、通过蓝牙设置节点以及从 GitHub 更新都在使用中。**尚未**证明的是：使用真实设备的太阳能、电气和报警主机界面（目前只有雷达节点）、通过 Firebase 的推送（应用中已包含，需要自己的 Firebase 项目；尚未在手机上试过），以及在各手机厂商电池规则下的后台报警监视。
 
 ---
 
@@ -41,7 +41,7 @@
 | 成熟度 | 成熟 |
 | 角色 | ARMOR-SERVER 的 Android 操作客户端（家族：Clients，上级：ARMOR-SERVER） |
 | 技术栈 | Kotlin / Jetpack Compose, Android 8.0+ |
-| 测试 | 367 (`gradlew testDebugUnitTest`) |
+| 测试 | 376 (`gradlew testDebugUnitTest`) |
 | 语言 | 8（每种语言 1345 条，每条都在所有表中检查） |
 | 运行位置 | Android 8.0+ 手机（minSdk 26） |
 | 真实硬件 | 在真实手机上对照 CM5 测试台使用；太阳能、电气和报警主机界面在等待真实节点 |
@@ -58,7 +58,7 @@
 | 领域 | 状态 | 在这里的含义 |
 |---|---|---|
 | 软件 | 🟢 | 应用可以构建（`gradlew testDebugUnitTest assembleDebug`），并在真实手机上对 CM5 测试台运行。 |
-| 测试 | 🟢 | 367 项单元测试通过（`gradlew testDebugUnitTest`）：地址安全、报警判定、报警监视、翻译和只读角色。 |
+| 测试 | 🟢 | 376 项单元测试通过（`gradlew testDebugUnitTest`）：地址安全、报警判定、报警监视、翻译和只读角色。 |
 | 界面 | 🟡 | 登录、摄像头监视、布防与报警和雷达已在真实手机上使用；通过蓝牙设置节点尚未在真实节点上确认，光伏、电气和报警面板界面也尚未接触真实设备。 |
 | 硬件 | 🟡 | 已在真实手机上对 CM5 测试台使用；各手机厂商电池规则下的后台报警监视尚未证明。 |
 | 安全 | 🟡 | 地址安全和只读角色规则有单元测试覆盖；没有经过独立审查。 |
@@ -92,6 +92,7 @@
 * **在家外使用：** 两个地址（家中 Wi-Fi 使用内网地址，移动数据或 VPN 使用外出地址），按手机所在位置选择；一个没有响应时尝试另一个，并提示哪里出了问题；安装证书的密钥在首次连接时记住（或用 Studio 二维码的文本配对），不同的密钥会被拒绝，对曾通过 https 访问过的服务器拒绝普通 http；可以通过服务器打开节点的面板；警报可以作为仅含数据的推送到达，无论经由推送还是后台监控，只播报一次；打开的应用与后台监控共用一次服务器读取；摄像头画面离开屏幕即停止，并以逐渐增长的等待时间恢复。
 * **可自选声音与语音的通知:** 在设置中可以静音所有通知、不带声音和振动地显示（也不朗读），并按严重程度（高、低）或类型（雷达警报、无响应的摄像头、离线或沉默的节点，以及设备、太阳能、电气、网络和报警面板的报警）关闭；除非所有通知都被静音，否则严重报警一定会通知。每种严重程度和每种通知类型都可选声音，来自手机自带声音或自己的文件（小于 3 MB），各带播放按钮；朗读报警的语音（女声、男声或任意；儿童、成人或老人；平实、动作英雄或黑暗领主；语速；以及是否也朗读低严重程度的通知）带有试听按钮。
 * **直达正确屏幕的横幅与更安静的监视:** 报警横幅会打开处理它的屏幕（摄像头、设备、逆变器或电池、电气屏幕、网络或报警面板）；手机在注册推送时告诉服务器它的语言，通知就用该语言书写，新的 Firebase 令牌会立刻从后台送达服务器。同一路流中有两个镜头的摄像头在摄像头列表中是两个窗口。推送提醒正常工作时，后台监视每 120 秒而不是每 10 秒询问一次服务器（*设置 > 推送提醒下的监视*：10、60、120、300 或 600 秒）。
+* **服务器的布防模式（离家、在家、夜间）：** 当服务器启用了布防模式（Studio 的 配置 > 安全）时，状态页的布防按钮会打开选择器，可按模式布防、切换或撤防；未分配任何内容的模式需要确认，切换到保护范围更小的模式需要像撤防一样输入 PIN，状态页会显示当前生效的模式。模式关闭时，应用的布防和撤防与以往相同。
 
 ## 🧩 在 A.R.M.O.R. 中的角色
 
@@ -155,7 +156,7 @@ ARMOR-ANDROID-CONTROL 是手机上通往 [ARMOR-STUDIO](https://github.com/Juane
 **要求:** JDK 17+、Android SDK（compile SDK 37）、Android 8.0+ 手机（minSdk 26）。
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 367 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 376 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
@@ -181,7 +182,7 @@ python -I tools/armor_ci_validate.py
 | 雷达与摄像头 | 14 | `RadarGeometry`, `CameraTraits`, `CameraLenses` |
 | 翻译、通俗措辞、语音 | 14 | `Tr`, `Friendly`, `Voice` |
 
-47 个文件共 367 个测试，用 `testDebugUnitTest` 运行；由模拟服务器（`FakeServer.kt`）和从真实服务器获取的数据（`tools/capture_fixtures.mjs`）驱动。还会检查每条短语都在八张语言表中。
+47 个文件共 376 个测试，用 `testDebugUnitTest` 运行；由模拟服务器（`FakeServer.kt`）和从真实服务器获取的数据（`tools/capture_fixtures.mjs`）驱动。还会检查每条短语都在八张语言表中。
 
 ## 🏗️ 构建与发布
 
@@ -210,7 +211,7 @@ python -I tools/armor_ci_validate.py
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/   应用：界面、规则、网络与更新
 ├── app/src/main/assets/                         八种语言表、报警代码、天气地图
-├── app/src/test/                                367 个测试和一个模拟服务器
+├── app/src/test/                                376 个测试和一个模拟服务器
 ├── docs/                                        本仓库的指南
 ├── tools/                                       共享的 CI 检查和项目工具
 ├── .github/                                     CI 工作流以及 Issue 和 Pull Request 模板

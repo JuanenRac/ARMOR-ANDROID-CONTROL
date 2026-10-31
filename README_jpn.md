@@ -22,14 +22,14 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
-  <img src="https://img.shields.io/badge/Tests-367%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-376%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.7.8-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
 ---
 
-**正直さのチェック - 今日動いているもの:** アドレスの安全性、警報の判断、警報ウォッチャー、翻訳、読み取り専用ロールのルールは 367 件のユニットテストでカバーされ、アプリはビルドできます（`gradlew testDebugUnitTest assembleDebug`）。実際のスマートフォンで CM5 テストベンチに対して動作し、サインイン、カメラモニター、警戒と警報、レーダー、Bluetooth でのノード設定、GitHub からのアップデートが使われています。**まだ**証明されていないもの：実機でのソーラー・電気・警報盤の画面（存在するのはレーダーノードのみ）、Firebase 経由のプッシュ（アプリには入っており、独自の Firebase プロジェクトが必要です。実機ではまだ試していません）、各メーカーのバッテリー規則下でのバックグラウンド警報監視。
+**正直さのチェック - 今日動いているもの:** アドレスの安全性、警報の判断、警報ウォッチャー、翻訳、読み取り専用ロールのルールは 376 件のユニットテストでカバーされ、アプリはビルドできます（`gradlew testDebugUnitTest assembleDebug`）。実際のスマートフォンで CM5 テストベンチに対して動作し、サインイン、カメラモニター、警戒と警報、レーダー、Bluetooth でのノード設定、GitHub からのアップデートが使われています。**まだ**証明されていないもの：実機でのソーラー・電気・警報盤の画面（存在するのはレーダーノードのみ）、Firebase 経由のプッシュ（アプリには入っており、独自の Firebase プロジェクトが必要です。実機ではまだ試していません）、各メーカーのバッテリー規則下でのバックグラウンド警報監視。
 
 ---
 
@@ -41,7 +41,7 @@
 | 成熟度 | 確立 |
 | 役割 | ARMOR-SERVER 用の Android オペレーター向けクライアント（ファミリー：Clients、親：ARMOR-SERVER） |
 | 技術 | Kotlin / Jetpack Compose, Android 8.0+ |
-| テスト | 367 (`gradlew testDebugUnitTest`) |
+| テスト | 376 (`gradlew testDebugUnitTest`) |
 | 言語 | 8（言語ごとに 1345 フレーズ、すべての表で検査） |
 | 動作環境 | Android 8.0+ の電話（minSdk 26） |
 | 実機での確認 | 実際のスマートフォンで CM5 テストベンチに対して使用。ソーラー・電気・警報盤の画面は実ノードを待っています |
@@ -58,7 +58,7 @@
 | 領域 | 状態 | ここでの意味 |
 |---|---|---|
 | ソフトウェア | 🟢 | アプリはビルドでき（`gradlew testDebugUnitTest assembleDebug`）、実機のスマートフォンで CM5 テストベンチに対して動作しています。 |
-| テスト | 🟢 | 367 件のユニットテストが通ります（`gradlew testDebugUnitTest`）：接続先の安全性、警報の判定、警報の監視、翻訳、読み取り専用ロール。 |
+| テスト | 🟢 | 376 件のユニットテストが通ります（`gradlew testDebugUnitTest`）：接続先の安全性、警報の判定、警報の監視、翻訳、読み取り専用ロール。 |
 | インターフェース | 🟡 | サインイン、カメラモニター、警戒と警報、レーダーは実機のスマートフォンで使われています。Bluetooth でのノード設定は実機のノードではまだ確認しておらず、太陽光・電気・警報パネルの画面も実機の機器とは接続していません。 |
 | ハードウェア | 🟡 | 実機のスマートフォンで CM5 テストベンチに対して使っています。各メーカーのバッテリー規則の下でのバックグラウンド警報監視は確認できていません。 |
 | セキュリティ | 🟡 | 接続先の安全性と読み取り専用ロールの規則はユニットテストでカバーされています。独立したレビューはありません。 |
@@ -92,6 +92,7 @@
 * **外出先から：** 2 つのアドレス（自宅の Wi-Fi ではプライベートなもの、モバイルデータまたは VPN では外出先用）を端末の場所に応じて選び、一方が応答しなければもう一方を試し、何が失敗したかを表示します。インストールの証明書の鍵は初回に記憶（または Studio の QR のテキストでペアリング）し、異なる鍵は拒否します。一度 https で接続したサーバーへの平文 http は拒否します。ノードのパネルはサーバー経由で開けます。警報はデータのみのプッシュとして届くことがあり、プッシュでも監視でも 1 度だけ通知します。開いているアプリとバックグラウンド監視はサーバーの読み取りを共有します。カメラの映像は画面外で停止し、待ち時間を延ばしながら再開します。
 * **音と声まで選べる通知:** 設定で、すべての通知を消す、音や振動なし（読み上げもなし）で表示する、重大度（高・低）や種類（レーダー警報、応答しないカメラ、オフラインまたは無応答のノード、デバイス・ソーラー・電気・ネットワーク・アラームパネルのアラーム）ごとにオフにする、ができます。重大なアラームは、すべての通知を消していない限り必ず通知されます。重大度ごと・通知の種類ごとの音を、電話の音または自分のファイル（3 MB 未満）から選べ、それぞれ再生ボタン付きです。アラームを読み上げる声（女性・男性・どちらでも、子ども・大人・高齢者、標準・アクションヒーロー・ダークロード、速度、低重大度の通知も読み上げるか）もテストボタン付きで選べます。
 * **正しい画面へ導くバナーと、静かになった監視:** アラームのバナーは、それを扱う画面（カメラ、デバイス、インバーターまたはバッテリー、電気画面、ネットワーク、アラームパネル）を開きます。電話はプッシュ登録時に自分の言語をサーバーに伝え、通知はその言語で書かれ、新しい Firebase トークンはバックグラウンドからすぐサーバーに届きます。1 本のストリームに 2 つのレンズがあるカメラは、カメラ一覧で 2 つのウィンドウになります。プッシュ通知が働いている間、バックグラウンド監視は 10 秒ではなく 120 秒ごとにサーバーへ問い合わせます（*設定 > プッシュ通知による監視*：10、60、120、300、600 秒）。
+* **サーバーの警戒モード（外出・在宅・夜間）:** サーバーで警戒モードが有効（Studio の 設定 > セキュリティ）のとき、状態画面の警戒ボタンがモードの選択画面を開き、モードを選んで警戒したり、切り替えたり、解除したりできます。何も割り当てられていないモードは確認を求め、守る範囲が狭いモードへの切り替えは解除と同じようにPINを求め、状態画面には適用中のモードが表示されます。モードがオフならアプリはこれまでどおり警戒と解除だけを行います。
 
 ## 🧩 A.R.M.O.R. での役割
 
@@ -155,7 +156,7 @@ ARMOR-ANDROID-CONTROL は [ARMOR-STUDIO](https://github.com/JuanenRac/ARMOR-STUD
 **必要なもの:** JDK 17+、Android SDK（compile SDK 37）、Android 8.0+ の電話（minSdk 26）。
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 367 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 376 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
@@ -181,7 +182,7 @@ python -I tools/armor_ci_validate.py
 | レーダーとカメラ | 14 | `RadarGeometry`, `CameraTraits`, `CameraLenses` |
 | 翻訳、平易な言葉、音声 | 14 | `Tr`, `Friendly`, `Voice` |
 
-47 ファイル 367 件のテストを `testDebugUnitTest` で実行します。擬似サーバー（`FakeServer.kt`）と実サーバーから取得したデータ（`tools/capture_fixtures.mjs`）を使います。すべてのフレーズが 8 つの言語表にあることも検査します。
+47 ファイル 376 件のテストを `testDebugUnitTest` で実行します。擬似サーバー（`FakeServer.kt`）と実サーバーから取得したデータ（`tools/capture_fixtures.mjs`）を使います。すべてのフレーズが 8 つの言語表にあることも検査します。
 
 ## 🏗️ ビルドとリリース
 
@@ -210,7 +211,7 @@ python -I tools/armor_ci_validate.py
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/   アプリ：画面、ルール、ネットワーク、更新
 ├── app/src/main/assets/                         8 言語の表、アラームコード、天気マップ
-├── app/src/test/                                367 件のテストと擬似サーバー
+├── app/src/test/                                376 件のテストと擬似サーバー
 ├── docs/                                        このリポジトリのガイド
 ├── tools/                                       共通の CI チェックとプロジェクトツール
 ├── .github/                                     CI ワークフローと Issue・Pull Request のテンプレート

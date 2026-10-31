@@ -8,6 +8,8 @@ data class ArmorSnapshot(
     val revision: Long = 0,
     val updatedAt: String = "",
     val nodes: List<FieldNode> = emptyList(),
+    /** The arming mode in force ("disarmed", "away", "home", "night") while the server has the arming modes on; null otherwise. */
+    val armingMode: String? = null,
 )
 
 /** Deliberately excludes camera passwords: only ARMOR-SERVER holds them. */

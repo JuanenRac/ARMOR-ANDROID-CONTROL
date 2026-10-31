@@ -107,6 +107,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     }
     var weatherRestored by rememberSaveable { mutableStateOf(false) }
     var confirmMode by remember { mutableStateOf<String?>(null) }
+    var armingPicker by remember { mutableStateOf(false) }   // the picker of the arming modes of the server (Away, Home, Night), while the server has them on
     var confirmCommand by remember { mutableStateOf<Pair<es.electrohobby3d.armor.model.SiteDevice, String>?>(null) }   // a command to a device that asks first (a circuit of the board, a critical one)
     var grid by rememberSaveable { mutableIntStateOf(4) }
     var expanded by remember { mutableStateOf<CameraView?>(null) }
@@ -395,9 +396,9 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                         }
                         when (section) {
                             Section.Status -> StatusScreen(
-                                armed = state.snapshot.mode == "armed", updated = state.snapshot.updatedAt, nodes = state.snapshot.nodes, cameras = state.cameras.size,
+                                armed = state.snapshot.mode == "armed", armingMode = state.snapshot.armingMode.takeIf { state.armingModes?.enabled == true }, updated = state.snapshot.updatedAt, nodes = state.snapshot.nodes, cameras = state.cameras.size,
                                 camerasDown = state.cameraHealth.count { it.value == "offline" }, pendingAlarms = state.alarms.count { !it.acknowledged }, devices = state.devices,
-                                onMode = { if (!viewModel.viewerRefused()) confirmMode = if (state.snapshot.mode == "armed") "disarmed" else "armed" }, onAlarms = { section = Section.Alarms },
+                                onMode = { if (!viewModel.viewerRefused()) { if (state.armingModes?.enabled == true) armingPicker = true else confirmMode = if (state.snapshot.mode == "armed") "disarmed" else "armed" } }, onAlarms = { section = Section.Alarms },
                                 onDevices = { section = Section.Devices }, onCameras = { section = Section.Cameras }, onRadar = { section = Section.Radar },
                                 onRefresh = { viewModel.refresh(currentOrigin) }, enabled = validOrigin && !state.loading,
                                 solar = state.solar, onSolar = { section = Section.More; moreTab = MoreTab.Solar },
@@ -564,6 +565,13 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                             }
                         }
                     }
+                }
+                if (armingPicker) state.armingModes?.takeIf { it.enabled }?.let { modes ->
+                    ArmingModeDialog(
+                        modes = modes, armed = state.snapshot.mode == "armed",
+                        arm = { mode, pin, confirm -> viewModel.armInMode(currentOrigin, mode, pin, confirm) },
+                        onDisarm = { armingPicker = false; confirmMode = "disarmed" }, onDismiss = { armingPicker = false },
+                    )
                 }
                 confirmMode?.let { mode ->
                     val arming = mode == "armed"
