@@ -114,12 +114,14 @@ private const val MAX_JPEG_BYTES = 8 * 1024 * 1024
  * Cutting at the first FFD9 (the end of a picture) was wrong for a picture that carries a thumbnail (an EXIF block holds a whole small JPEG with its own end marker): the frame came out truncated.
  * Null when the stream ends or the picture is larger than [MAX_JPEG_BYTES].
  */
-private fun readJpeg(input: BufferedInputStream): ByteArray? {
+internal fun readJpeg(input: java.io.InputStream): ByteArray? {
     val out = java.io.ByteArrayOutputStream(64 * 1024)
     var previous = -1
+    var searched = 0
     while (true) {
         val value = input.read()
         if (value < 0) return null
+        if (++searched > MAX_JPEG_BYTES) return null   // a stream that never shows a picture is not read to its end
         if (previous == 0xff && value == 0xd8) { out.write(0xff); out.write(0xd8); break }
         previous = value
     }
@@ -142,7 +144,8 @@ private fun readJpeg(input: BufferedInputStream): ByteArray? {
                 if (value < 0) return null
                 if (value != 0xff) { out.write(value); if (out.size() > MAX_JPEG_BYTES) return null; continue }
                 var next = input.read()
-                while (next == 0xff) next = input.read()
+                var fills = 0
+                while (next == 0xff) { if (++fills > MAX_JPEG_BYTES) return null; next = input.read() }
                 if (next < 0) return null
                 if (next == 0x00 || next in 0xd0..0xd7) { out.write(0xff); out.write(next); continue }
                 marker = next
@@ -153,13 +156,15 @@ private fun readJpeg(input: BufferedInputStream): ByteArray? {
 }
 
 /** The code of the next marker (the byte after an FF that is not a fill FF or a stuffed zero), or null at the end of the stream. */
-private fun nextMarker(input: BufferedInputStream): Int? {
+internal fun nextMarker(input: java.io.InputStream): Int? {
+    var searched = 0
     while (true) {
         val value = input.read()
         if (value < 0) return null
+        if (++searched > MAX_JPEG_BYTES) return null   // between two segments of a picture there is nothing: a long run of anything else is not a picture
         if (value != 0xff) continue
         var next = input.read()
-        while (next == 0xff) next = input.read()
+        while (next == 0xff) { if (++searched > MAX_JPEG_BYTES) return null; next = input.read() }
         if (next < 0) return null
         if (next != 0x00) return next
     }

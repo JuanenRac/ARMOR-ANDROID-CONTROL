@@ -27,7 +27,7 @@ class WeatherApiClient {
         connection.setRequestProperty("Accept", "application/json")
         try {
             if (connection.responseCode != 200) throw IllegalStateException("HTTP ${connection.responseCode}")
-            return JSONObject(connection.inputStream.bufferedReader().readText())
+            return JSONObject(connection.inputStream.use { BoundedRead.text(it) })
         } finally { connection.disconnect() }
     }
 

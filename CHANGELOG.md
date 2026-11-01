@@ -4,6 +4,10 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **Every answer is read up to a limit:** the answers of the server (8 MiB of JSON, 16 MB for the picture of the heat map), of the weather service and of the release check are no longer read to their end whatever their length; one over the limit fails like a lost connection, and the start of an error answer (4 KiB) is all that is read to name the cause.
+- **The MJPEG reader gives up on a stream that shows no picture:** looking for the start of a picture, or for the next segment of one, stops after the size of the biggest picture accepted instead of reading a stream without end.
+- Tests: 412 (before 405).
+
 ## [0.8.0.1] - The detail of every alarm shows its help text and the Gradle cache speeds up the CI
 
 - **The detail of every alarm shows its help text:** the shared table now has the help of all the alarm codes (what it means and what to check), in the language of the person; the tests read the real table.

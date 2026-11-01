@@ -264,7 +264,7 @@ class ArmorApiClient : ArmorApi {
     override fun signIn(origin: String, username: String, password: String): SignIn {
         val connection = request(origin, "/api/v1/studio/session", "POST", mapOf("Content-Type" to "application/json", "Accept" to "application/json"), JSONObject(mapOf("username" to username, "password" to password)).toString(), setOf(200, 201))
         return try {
-            val body = runCatching { JSONObject(connection.inputStream.bufferedReader().use { it.readText() }) }.getOrDefault(JSONObject())
+            val body = runCatching { JSONObject(BoundedRead.text(connection.inputStream)) }.getOrDefault(JSONObject())
             if (body.optBoolean("totp_required") && body.optString("challenge").isNotBlank()) SignIn.NeedsCode(body.optString("challenge")) else SignIn.Done
         } finally { connection.disconnect() }
     }
@@ -280,7 +280,7 @@ class ArmorApiClient : ArmorApi {
         val query = (if (camera.isNullOrBlank()) "" else "camera=${part(camera)}&") + "scale=8"
         val map = getJson(origin, "/api/v1/vision/heatmap?${query}&format=json")
         val picture = request(origin, "/api/v1/vision/heatmap?${query}&format=png", "GET", mapOf("Accept" to "image/png"), null, setOf(200))
-        val bytes = try { picture.inputStream.use { it.readBytes() } } finally { picture.disconnect() }
+        val bytes = try { picture.inputStream.use { BoundedRead.bytes(it, BoundedRead.PICTURE_LIMIT) } } finally { picture.disconnect() }
         return es.electrohobby3d.armor.model.ReportsParser.heatmap(map, bytes.takeIf { it.size in 8..16_000_000 })
     }
     override fun mySessions(origin: String): List<SessionInfo> = SecurityParser.sessions(getJson(origin, "/api/v1/studio/sessions"))
@@ -289,11 +289,11 @@ class ArmorApiClient : ArmorApi {
     override fun totpState(origin: String): TotpInfo = SecurityParser.totp(getJson(origin, "/api/v1/studio/totp"))
     override fun totpSetup(origin: String, password: String): Pair<String, String> {
         val connection = request(origin, "/api/v1/studio/totp/setup", "POST", mapOf("Content-Type" to "application/json", "Accept" to "application/json"), JSONObject(mapOf("password" to password)).toString(), setOf(200))
-        return try { JSONObject(connection.inputStream.bufferedReader().use { it.readText() }).let { it.optString("secret") to it.optString("uri") } } finally { connection.disconnect() }
+        return try { JSONObject(BoundedRead.text(connection.inputStream)).let { it.optString("secret") to it.optString("uri") } } finally { connection.disconnect() }
     }
     override fun totpEnable(origin: String, code: String): List<String> {
         val connection = request(origin, "/api/v1/studio/totp/enable", "POST", mapOf("Content-Type" to "application/json", "Accept" to "application/json"), JSONObject(mapOf("code" to code)).toString(), setOf(200))
-        return try { SecurityParser.codes(JSONObject(connection.inputStream.bufferedReader().use { it.readText() })) } finally { connection.disconnect() }
+        return try { SecurityParser.codes(JSONObject(BoundedRead.text(connection.inputStream))) } finally { connection.disconnect() }
     }
     override fun totpDisable(origin: String, password: String) {
         request(origin, "/api/v1/studio/totp", "DELETE", mapOf("Content-Type" to "application/json"), JSONObject(mapOf("password" to password)).toString(), setOf(204)).disconnect()
@@ -374,7 +374,7 @@ class ArmorApiClient : ArmorApi {
     override fun streamTicket(origin: String, cameraId: String, quality: String): String {
         val asked = if (quality in es.electrohobby3d.armor.CameraQuality.QUALITIES) quality else "auto"
         val connection = request(origin, "/api/v1/cameras/${part(cameraId)}/stream-ticket", "POST", mapOf("Accept" to "application/json", "Content-Type" to "application/json"), JSONObject().put("quality", asked).toString(), setOf(200, 201))
-        val path = try { JSONObject(connection.inputStream.bufferedReader().use { it.readText() }).optString("path") } finally { connection.disconnect() }
+        val path = try { JSONObject(BoundedRead.text(connection.inputStream)).optString("path") } finally { connection.disconnect() }
         require(path.startsWith("/api/v1/cameras/")) { "The server gave no stream ticket" }
         return origin.trimEnd('/') + path
     }
@@ -387,19 +387,19 @@ class ArmorApiClient : ArmorApi {
         val body = JSONObject().put("text", text).put("language", language)
         if (confirmation != null) body.put("confirmation", confirmation)
         val connection = request(origin, "/api/v1/voice/command", "POST", mapOf("Content-Type" to "application/json", "Accept" to "application/json"), body.toString(), setOf(200))
-        return try { VoiceParser.parse(JSONObject(connection.inputStream.bufferedReader().use { it.readText() })) } finally { connection.disconnect() }
+        return try { VoiceParser.parse(JSONObject(BoundedRead.text(connection.inputStream))) } finally { connection.disconnect() }
     }
 
     /** A request with a JSON body (or none) whose answer is a JSON object (or nothing). */
     private fun sendJson(origin: String, path: String, method: String, body: JSONObject?, expected: Set<Int>): JSONObject {
         val headers = mapOf("Accept" to "application/json") + if (body != null) mapOf("Content-Type" to "application/json") else emptyMap()
         val connection = request(origin, path, method, headers, body?.toString(), expected)
-        return try { JSONObject(connection.inputStream.bufferedReader().use { it.readText() }.ifBlank { "{}" }) } finally { connection.disconnect() }
+        return try { JSONObject(BoundedRead.text(connection.inputStream).ifBlank { "{}" }) } finally { connection.disconnect() }
     }
 
     private fun getJson(origin: String, path: String): JSONObject {
         val connection = request(origin, path, "GET", mapOf("Accept" to "application/json"), null, setOf(200))
-        return try { JSONObject(connection.inputStream.bufferedReader().use { it.readText() }) } finally { connection.disconnect() }
+        return try { JSONObject(BoundedRead.text(connection.inputStream)) } finally { connection.disconnect() }
     }
     private fun request(origin: String, path: String, method: String, headers: Map<String, String>, body: String?, expected: Set<Int>): HttpURLConnection {
         es.electrohobby3d.armor.TrustPins.checkScheme(origin)
@@ -415,7 +415,7 @@ class ArmorApiClient : ArmorApi {
         val code = try { connection.responseCode } catch (error: java.io.IOException) { connection.disconnect(); throw error }
         es.electrohobby3d.armor.TrustPins.reached(origin)
         if (code !in expected) {
-            val detail = try { connection.errorStream?.bufferedReader()?.use { it.readText() }?.take(180).orEmpty() } catch (_: java.io.IOException) { "" }
+            val detail = try { BoundedRead.head(connection.errorStream).take(180) } catch (_: java.io.IOException) { "" }
             connection.disconnect()
             if (code == 403 && detail.contains("elevation_required")) throw ElevationRequiredException()
             throw ArmorApiException("Server operation failed (HTTP ${code})${if (detail.isBlank()) "" else ": ${detail}"}", code)

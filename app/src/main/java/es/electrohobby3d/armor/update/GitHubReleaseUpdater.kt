@@ -24,7 +24,6 @@ import java.io.File
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
-import java.nio.charset.StandardCharsets
 
 /** Result of downloading the APK before control is handed to Android's installer. */
 sealed interface UpdateDownloadResult {
@@ -58,7 +57,7 @@ class GitHubReleaseUpdater(private val context: Context) {
                         ),
                     )
                 }
-                val payload = connection.inputStream.bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
+                val payload = connection.inputStream.use { es.electrohobby3d.armor.network.BoundedRead.text(it) }
                 ReleaseMetadataParser.parseLatestStable(payload, BuildConfig.VERSION_NAME)
             } finally {
                 connection.disconnect()
