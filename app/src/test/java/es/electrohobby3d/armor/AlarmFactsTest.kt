@@ -91,4 +91,30 @@ class AlarmFactsTest {
         assertTrue(a.detail.isEmpty())
         assertTrue(AlarmFacts.rows(a.detail, "en").isEmpty())
     }
+
+    @Test fun `the help of every alarm code is in the shared table in the eight languages`() {
+        val help = AlarmFacts.parseHelp(asset.readText(Charsets.UTF_8))
+        assertTrue(help.size >= 11)
+        for ((code, words) in help) for (language in languages) assertTrue("$code in $language", !words[language].isNullOrBlank())
+        assertTrue(help.containsKey("solar_battery_low"))
+    }
+
+    @Test fun `the detail of an alarm shows the help of its code in the language of the person, English when it lacks it, and nothing when the code has none`() {
+        AlarmFacts.use(emptyMap(), mapOf("solar_battery_low" to mapOf("en" to "Means: low", "pt" to "Significa: baixa"), "smoke" to mapOf("es" to "Humo")))
+        assertEquals("Significa: baixa", AlarmFacts.help("solar_battery_low", "pt"))
+        assertEquals("Means: low", AlarmFacts.help("solar_battery_low", "de"))
+        assertEquals(null, AlarmFacts.help("smoke", "de"))
+        assertEquals(null, AlarmFacts.help("no_such_code", "en"))
+        AlarmFacts.use(emptyMap())
+        assertEquals(null, AlarmFacts.help("solar_battery_low", "en"))
+    }
+
+    @Test fun `the mark of a false alarm is read, and an alarm nobody marked has none`() {
+        val marked = DeviceParser.alarm(JSONObject("""{"id":"a3","source":{"type":"device","id":"d1"},"severity":"high","code":"door_open","raised_at":"x","false_alarm":true,"false_alarm_by":"ana"}"""))!!
+        val denied = DeviceParser.alarm(JSONObject("""{"id":"a4","source":{"type":"device","id":"d1"},"severity":"high","code":"door_open","raised_at":"x","false_alarm":false}"""))!!
+        val silent = DeviceParser.alarm(JSONObject("""{"id":"a5","source":{"type":"device","id":"d1"},"severity":"high","code":"door_open","raised_at":"x"}"""))!!
+        assertEquals(true, marked.falseAlarm)
+        assertEquals(false, denied.falseAlarm)
+        assertEquals(null, silent.falseAlarm)
+    }
 }

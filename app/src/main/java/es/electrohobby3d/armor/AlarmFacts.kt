@@ -12,6 +12,7 @@ object AlarmFacts {
     private const val ASSET = "alarm_facts.json"
 
     @Volatile private var table: Map<String, Map<String, String>> = emptyMap()
+    @Volatile private var help: Map<String, Map<String, String>> = emptyMap()
 
     /** The order the facts are told in; anything else the server sends follows, by name. */
     private val ORDER = listOf(
@@ -24,8 +25,23 @@ object AlarmFacts {
     /** Reads the labels from the assets. A missing or damaged file leaves the table empty, and every fact is then shown with its key. */
     fun init(context: Context) {
         if (table.isNotEmpty()) return
-        table = try { parse(context.applicationContext.assets.open(ASSET).bufferedReader(Charsets.UTF_8).use { it.readText() }) } catch (_: Exception) { emptyMap() }
+        val text = try { context.applicationContext.assets.open(ASSET).bufferedReader(Charsets.UTF_8).use { it.readText() } } catch (_: Exception) { null }
+        table = try { if (text == null) emptyMap() else parse(text) } catch (_: Exception) { emptyMap() }
+        help = try { if (text == null) emptyMap() else parseHelp(text) } catch (_: Exception) { emptyMap() }
     }
+
+    /** code -> language -> what the alarm means and what to check (the `help` of the shared table); empty when the file has none. */
+    fun parseHelp(json: String): Map<String, Map<String, String>> {
+        val root = JSONObject(json)
+        val texts = root.optJSONObject("help") ?: return emptyMap()
+        return texts.keys().asSequence().associateWith { code ->
+            val words = texts.getJSONObject(code)
+            words.keys().asSequence().associateWith { words.getString(it) }
+        }
+    }
+
+    /** The help of an alarm code in [language]; English when that language lacks it; null when the code has no help text. */
+    fun help(code: String, language: String = Tr.language): String? = help[code]?.let { it[language] ?: it["en"] }?.takeIf { it.isNotBlank() }
 
     /** fact -> language -> label. */
     fun parse(json: String): Map<String, Map<String, String>> {
@@ -37,7 +53,7 @@ object AlarmFacts {
     }
 
     /** For the tests: put a table in place without a context. */
-    internal fun use(parsed: Map<String, Map<String, String>>) { table = parsed }
+    internal fun use(parsed: Map<String, Map<String, String>>, helpTable: Map<String, Map<String, String>> = emptyMap()) { table = parsed; help = helpTable }
 
     fun keys(): Set<String> = table.keys
 

@@ -210,12 +210,16 @@ class SolarCountersTest {
     @Test fun theBatteryAlertsTellWhatTheyMeanAndWhatToCheck() {
         val codes = listOf("solar_battery_overvoltage", "solar_battery_low", "solar_battery_alarm", "solar_battery_hot", "solar_battery_cold", "solar_cells_unbalanced", "solar_counter_rose",
             "solar_cell_soh_abnormal", "solar_module_overcurrent", "solar_offline", "solar_battery_worn")
-        for (code in codes) {
-            val help = es.electrohobby3d.armor.model.DeviceText.alarmHelp(code)
-            assertNotNull(code, help)
-            assertEquals(code, 2, help!!.split("\n").size)
-        }
-        assertNull(es.electrohobby3d.armor.model.DeviceText.alarmHelp("smoke"))
+        val shared = java.io.File("src/main/assets/alarm_facts.json").readText(Charsets.UTF_8)
+        es.electrohobby3d.armor.AlarmFacts.use(emptyMap(), es.electrohobby3d.armor.AlarmFacts.parseHelp(shared))
+        try {
+            for (code in codes) {
+                val help = es.electrohobby3d.armor.AlarmFacts.help(code, "es")
+                assertNotNull(code, help)
+                assertEquals(code, 2, help!!.split("\n").size)
+            }
+            assertNull(es.electrohobby3d.armor.AlarmFacts.help("smoke", "es"))
+        } finally { es.electrohobby3d.armor.AlarmFacts.use(emptyMap()) }
         for (code in listOf("solar_cell_soh_abnormal", "solar_module_overcurrent")) assertTrue(es.electrohobby3d.armor.model.DeviceText.alarmText(code) != code)
     }
 }

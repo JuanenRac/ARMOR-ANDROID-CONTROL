@@ -34,6 +34,7 @@ internal fun alarmStateText(alarm: Alarm): String =
 fun AlarmDetailDialog(alarm: Alarm, sourceName: String, canConfirm: Boolean, onConfirm: (Alarm) -> Unit, onDismiss: () -> Unit) {
     val tint = if (alarm.acknowledged || alarm.cleared) ArmorColors.Muted else AlarmBannerPolicy.colour(alarm.severity)
     val facts = AlarmFacts.rows(alarm.detail)
+    val help = AlarmFacts.help(alarm.code)   // what the alarm means and what to check, from the table every client shares; nothing when the code has none
     AlertDialog(
         onDismissRequest = onDismiss, containerColor = ArmorColors.SurfaceRaised,
         icon = { IconBadge(if (alarm.cleared) Icons.Filled.CheckCircle else Icons.Filled.Warning, tint, size = 56.dp) },
@@ -44,6 +45,8 @@ fun AlarmDetailDialog(alarm: Alarm, sourceName: String, canConfirm: Boolean, onC
                 DetailLine(tr("Origen"), sourceName)
                 DetailLine(tr("Hora"), Friendly.dayAndClock(alarm.raisedAt))
                 DetailLine(tr("Estado"), alarmStateText(alarm))
+                if (alarm.falseAlarm == true) DetailLine(tr("Falsa alarma"), tr("sí"))
+                if (help != null) Text(help, style = MaterialTheme.typography.bodySmall, color = ArmorColors.Text)
                 HorizontalDivider(color = ArmorColors.Muted.copy(alpha = 0.3f))
                 Text(tr("Detalles"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.semantics { heading() })
                 if (facts.isEmpty()) Text(tr("Esta alarma no trae más detalles."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)

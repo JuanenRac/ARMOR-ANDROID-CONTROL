@@ -4,6 +4,7 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The help of each alarm code comes from the table every client shares, and the detail of an alarm shows it and the false-alarm mark:** `alarm_facts.json` (a copy of the one in ARMOR-COMMON, compared with it by a test) now holds, besides the labels of the facts, what each alarm code means and what to check, in the eight languages (Portuguese of Portugal included); the alarm card and the detail of an alarm show it, and the eleven texts that were written in the app are gone. An alarm that a person marked as a false alarm in Studio says so in its detail (the app only reads the mark).
 ## [0.7.9] - Arming modes of the server with their panel sync, the check before arming in a mode, a detail screen of an alarm with its facts labelled in the eight languages and a lighter background watch
 
 - **The detail of an alarm:** touching an alarm in the list (active or closed) opens its detail with the severity, the source, the time, the state and every fact the alarm carries (the device, the port, the panels that did not confirm the arming mode and what each answered...) with its label in the language of the app. The labels are the table of the contract (`alarm_facts.json`, a copy of the one in ARMOR-COMMON kept equal by a test); a fact the table does not know is shown with its key as it comes, so no alarm and no fact is hidden. The two new buttons are labelled for screen readers.
