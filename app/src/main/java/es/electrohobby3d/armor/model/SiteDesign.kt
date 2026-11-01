@@ -20,6 +20,8 @@ data class SiteFeature(val id: String, val kind: String, val x: Double, val y: D
 /** A radar of the design. x and y are percentages of the work area (as Studio stores them); [channel] is the radar number of its node (0: any). */
 data class SiteSensor(
     val id: String, val name: String, val x: Double, val y: Double, val kind: String, val heading: Double?, val z: Double, val node: String?, val channel: Int, val mirror: Boolean,
+    /** The floor of the building the radar is on, 0 for the ground floor, as Studio stores it; null when the design does not say (the app only reads it). */
+    val floor: Int? = null,
 )
 data class SiteCamera(val id: String, val x: Double, val y: Double, val heading: Double?, val fov: Double?, val range: Double?)
 
@@ -43,6 +45,14 @@ object SiteParser {
     }
     private fun JSONArray?.objects(): List<JSONObject> = buildList { if (this@objects != null) for (i in 0 until this@objects.length()) this@objects.optJSONObject(i)?.let(::add) }
     private fun JSONObject.colour(key: String): String? = optStr(key, "").takeIf { Regex("^#[0-9a-fA-F]{6}$").matches(it) }?.lowercase()
+
+    /** The floor of a radar of the design: a whole number from 0 to 29, or null (anything else is not a floor). */
+    internal fun floorOf(sensor: JSONObject): Int? {
+        if (!sensor.has("floor") || sensor.isNull("floor")) return null
+        val raw = sensor.opt("floor")
+        val number = (raw as? Number)?.toDouble() ?: return null
+        return if (number == Math.floor(number) && number >= 0 && number < 30) number.toInt() else null
+    }
 
     /** The server's answer to GET /api/v1/site ({"revision":..,"site":{..}}), or the site object itself. Null when nothing usable is there. */
     fun parse(document: JSONObject): SiteDesign? {
@@ -76,6 +86,7 @@ object SiteParser {
                 id, s.optStr("name", id), s.optDouble("x"), s.optDouble("y"), if (s.optStr("kind") == "LD2461") "LD2461" else "LD2450",
                 if (s.has("heading") && !s.isNull("heading")) s.optDouble("heading") else null, s.optDouble("z", 1.5),
                 s.optStr("node", "").ifBlank { null }, s.optInt("channel", 0), s.optBoolean("mirror", false),
+                floorOf(s),
             )
         }
         val places = site.optJSONObject("cameraPlacements")

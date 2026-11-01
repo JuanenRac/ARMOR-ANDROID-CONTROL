@@ -28,10 +28,10 @@ import es.electrohobby3d.armor.model.MediaItem
 import es.electrohobby3d.armor.update.AppUpdateState
 
 /** What the "More" tab can show; null is the menu itself. */
-enum class MoreTab { Nodes, Voice, Weather, Solar, Batteries, NodeControl, Electrical, AlarmPanels, Network, Services, NodeHealth, Evidence, History, Security, Updates, Settings }
+enum class MoreTab { Reports, Nodes, Voice, Weather, Solar, Batteries, NodeControl, Electrical, AlarmPanels, Network, Services, NodeHealth, Evidence, History, Security, Updates, Settings }
 
 @Composable
-fun MoreMenu(onOpen: (MoreTab) -> Unit, onNodeSetup: () -> Unit, onAbout: () -> Unit, onLogout: () -> Unit, updateAvailable: Boolean = false, isAdmin: Boolean = false) {
+fun MoreMenu(onOpen: (MoreTab) -> Unit, onNodeSetup: () -> Unit, onAbout: () -> Unit, onLogout: () -> Unit, updateAvailable: Boolean = false, isAdmin: Boolean = false, canReports: Boolean = false) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         ScreenTitle(Icons.Filled.GridView, tr("Más"))
         MenuRow(Icons.Filled.Tune, tr("Configurar nodos"), tr("El configurador de un nodo (radar, solar, eléctrico) dentro de la app: todos sus parámetros")) { onOpen(MoreTab.Nodes) }
@@ -46,6 +46,7 @@ fun MoreMenu(onOpen: (MoreTab) -> Unit, onNodeSetup: () -> Unit, onAbout: () -> 
         MenuRow(Icons.Filled.Dns, tr("Servicios"), tr("Programas del sistema y nodos de campo, activos o no")) { onOpen(MoreTab.Services) }
         MenuRow(Icons.Filled.MonitorHeart, tr("Salud de los nodos"), tr("Memoria, enlace, reinicios y errores de cada nodo")) { onOpen(MoreTab.NodeHealth) }
         MenuRow(Icons.Filled.VideoLibrary, tr("Grabaciones"), tr("Fotos y vídeos guardados")) { onOpen(MoreTab.Evidence) }
+        if (canReports) MenuRow(Icons.Filled.Assessment, tr("Informes"), tr("El resumen de un día y el mapa de calor de actividad")) { onOpen(MoreTab.Reports) }
         MenuRow(Icons.Filled.History, tr("Historial"), tr("Todo lo que ha pasado")) { onOpen(MoreTab.History) }
         MenuRow(Icons.Filled.Lock, tr("Seguridad"), tr("Segundo factor, sesiones abiertas y acceso desde fuera de casa.")) { onOpen(MoreTab.Security) }
         MenuRow(Icons.Filled.Bluetooth, tr("Configurar un nodo"), tr("Prepara un nodo nuevo por Bluetooth"), onClick = onNodeSetup)

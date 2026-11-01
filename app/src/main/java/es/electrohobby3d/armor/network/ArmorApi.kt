@@ -88,6 +88,10 @@ interface ArmorApi {
     /** The second step: the challenge of the first and the code of the app (or a recovery code). */
     fun completeSignIn(origin: String, challenge: String, code: String)
     fun mySessions(origin: String): List<SessionInfo>
+    /** The summary of a day in a language, for administrators and operators; the server refuses (404 off, 403 role, 503 not set up...) with a code that [es.electrohobby3d.armor.model.ReportRefusal] turns into words. */
+    fun dailySummary(origin: String, date: String, language: String): es.electrohobby3d.armor.model.DailySummaryView = throw UnsupportedOperationException("dailySummary")
+    /** The activity heat map of a camera (the only one when [camera] is null) with its picture. */
+    fun heatmap(origin: String, camera: String?): es.electrohobby3d.armor.model.HeatmapView = throw UnsupportedOperationException("heatmap")
     fun endSession(origin: String, id: String)
     fun endOtherSessions(origin: String)
     fun totpState(origin: String): TotpInfo

@@ -274,6 +274,15 @@ class ArmorApiClient : ArmorApi {
         request(origin, "/api/v1/studio/session/totp", "POST", mapOf("Content-Type" to "application/json"), JSONObject(mapOf("challenge" to challenge, "code" to code)).toString(), setOf(201)).disconnect()
     }
 
+    override fun dailySummary(origin: String, date: String, language: String): es.electrohobby3d.armor.model.DailySummaryView =
+        es.electrohobby3d.armor.model.ReportsParser.summary(getJson(origin, "/api/v1/summary/daily?date=${part(date)}&lang=${part(language)}"))
+    override fun heatmap(origin: String, camera: String?): es.electrohobby3d.armor.model.HeatmapView {
+        val query = (if (camera.isNullOrBlank()) "" else "camera=${part(camera)}&") + "scale=8"
+        val map = getJson(origin, "/api/v1/vision/heatmap?${query}&format=json")
+        val picture = request(origin, "/api/v1/vision/heatmap?${query}&format=png", "GET", mapOf("Accept" to "image/png"), null, setOf(200))
+        val bytes = try { picture.inputStream.use { it.readBytes() } } finally { picture.disconnect() }
+        return es.electrohobby3d.armor.model.ReportsParser.heatmap(map, bytes.takeIf { it.size in 8..16_000_000 })
+    }
     override fun mySessions(origin: String): List<SessionInfo> = SecurityParser.sessions(getJson(origin, "/api/v1/studio/sessions"))
     override fun endSession(origin: String, id: String) { request(origin, "/api/v1/studio/sessions/${part(id)}", "DELETE", emptyMap(), null, setOf(204)).disconnect() }
     override fun endOtherSessions(origin: String) { request(origin, "/api/v1/studio/sessions/end-others", "POST", emptyMap(), null, setOf(204)).disconnect() }

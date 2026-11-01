@@ -198,7 +198,7 @@ private fun Site2D(design: SiteDesign, targets: List<PlacedTarget>, modifier: Mo
             drawRect(Color(0xFF00E5FF), at(apex) - Offset(6f, 6f), androidx.compose.ui.geometry.Size(12f, 12f))
             // radars of one node stand in one place: the name is written once
             if (design.sensors.takeWhile { it !== s }.none { o -> o.x == s.x && o.y == s.y }) {
-                val label = design.sensors.filter { o -> o.x == s.x && o.y == s.y }.let { same -> if (same.size > 1) "${s.name.trimEnd('1', '2', '3', ' ')} ×${same.size}" else s.name }
+                val label = design.sensors.filter { o -> o.x == s.x && o.y == s.y }.let { same -> if (same.size > 1) "${s.name.trimEnd('1', '2', '3', ' ')} ×${same.size}" else s.name } + (s.floor?.let { " · " + trf("Planta %d", it + 1) } ?: "")
                 val name = measurer.measure(label, TextStyle(color = Color(0xFF8BD6FF), fontSize = 10.sp))
                 drawText(name, topLeft = at(apex) + Offset(9f, -16f))
             }

@@ -25,6 +25,14 @@ class RadarGeometryTest {
         FieldNode(id, online, 5.0, targets.size, "review", stale, targets)
     private fun design(vararg sensors: SiteSensor) = es.electrohobby3d.armor.model.SiteDesign(dims, emptyList(), null, emptyList(), emptyList(), sensors.toList(), emptyList())
 
+    @Test fun `the floor of a radar is read as the design stores it and anything else is no floor`() {
+        fun floorOf(value: String) = SiteParser.parse(JSONObject("""{"site":{"dimensions":{"width":60,"depth":40,"height":3},"sensors":[{"id":"s1","x":10,"y":10,"kind":"LD2450"$value}]}}"""))!!.sensors[0].floor
+        assertNull("an old design has no floor", floorOf(""))
+        assertEquals(0, floorOf(""","floor":0"""))
+        assertEquals(2, floorOf(""","floor":2"""))
+        for (bad in listOf("-1", "1.5", "\"1\"", "null", "30", "999", "true")) assertNull(bad, floorOf(""","floor":$bad"""))
+    }
+
     @Test fun `a radar or camera in percent is a point in metres`() {
         val p = RadarGeometry.toMetres(50.0, 25.0, dims)
         assertEquals(30.0, p.x, 1e-9)

@@ -120,6 +120,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     val state by viewModel.state.collectAsStateWithLifecycle()
     val voiceState by viewModel.voice.collectAsStateWithLifecycle()
     val securityState by viewModel.security.collectAsStateWithLifecycle()
+    val reportsState by viewModel.reports.collectAsStateWithLifecycle()
     val batteryState by viewModel.battery.collectAsStateWithLifecycle()
     val controlState by viewModel.control.collectAsStateWithLifecycle()
     var loginCode by rememberSaveable { mutableStateOf("") }
@@ -425,7 +426,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 null -> MoreMenu(
                                     onOpen = { tab -> moreTab = tab; if (tab == MoreTab.Evidence) viewModel.loadMedia(currentOrigin); if (tab == MoreTab.Voice) viewModel.checkVoice(currentOrigin); if (tab == MoreTab.Security) viewModel.loadSecurity(currentOrigin) },
                                     onNodeSetup = { nodeSetup = true }, onAbout = { about = true }, onLogout = { confirmLogout = true },
-                                    updateAvailable = updateState is AppUpdateState.Available, isAdmin = state.role == "admin",
+                                    updateAvailable = updateState is AppUpdateState.Available, isAdmin = state.role == "admin", canReports = state.role == "admin" || state.role == "operator",
                                 )
                                 MoreTab.Security -> SubScreen(Icons.Filled.Lock, tr("Seguridad"), onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.loadSecurity(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
@@ -537,6 +538,9 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 MoreTab.Evidence -> SubScreen(Icons.Filled.VideoLibrary, tr("Grabaciones"), onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.loadMedia(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
                                 }) { EvidenceScreen(state.media.items, state.cameras, currentOrigin, viewModel, state.authenticated, canDelete = !state.readOnly) }
+                                MoreTab.Reports -> SubScreen(Icons.Filled.Assessment, tr("Informes"), onBack = { moreTab = null }) {
+                                    ReportsScreen(reportsState, state.cameras.map { it.id to it.name }, onSummary = { date -> viewModel.loadSummary(currentOrigin, date, Tr.language.takeIf { it in es.electrohobby3d.armor.model.ReportsParser.LANGUAGES } ?: "en") }, onHeatmap = { camera -> viewModel.loadHeatmap(currentOrigin, camera) })
+                                }
                                 MoreTab.History -> SubScreen(Icons.Filled.History, tr("Historial"), onBack = { moreTab = null }) { HistoryWithConnections(state.events, state.connections, onMore = { viewModel.loadOlderEvents(currentOrigin) }, poll = { viewModel.pollConnections(currentOrigin) }) }
                                 MoreTab.Settings -> SubScreen(Icons.Filled.Settings, tr("Ajustes"), onBack = { moreTab = null }) {
                                     SettingsScreen(

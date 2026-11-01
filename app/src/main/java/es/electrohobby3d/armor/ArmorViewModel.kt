@@ -406,6 +406,35 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
     }
 
     // ---- security: the second step of the sign-in, the second factor, the sessions, the proof for critical actions ----
+    /** The reports of the server (administrators and operators): what each one gave or why it was refused, in the Spanish phrase of the app that [tr] turns into the person's language. */
+    data class ReportsUiState(
+        val summary: es.electrohobby3d.armor.model.DailySummaryView? = null, val summaryRefusal: String? = null, val summaryBusy: Boolean = false,
+        val heatmap: es.electrohobby3d.armor.model.HeatmapView? = null, val heatmapRefusal: String? = null, val heatmapBusy: Boolean = false,
+    )
+    private val _reports = MutableStateFlow(ReportsUiState())
+    val reports: StateFlow<ReportsUiState> = _reports.asStateFlow()
+    private fun refusal(error: Throwable): String {
+        val api = (error as? ArmorApiException)?.apiError
+        return es.electrohobby3d.armor.model.ReportRefusal.phrase(api?.status, api?.detail.orEmpty())
+    }
+    fun loadSummary(origin: String, date: String, language: String) {
+        if (!es.electrohobby3d.armor.model.ReportsParser.validDate(date)) { _reports.update { it.copy(summary = null, summaryRefusal = es.electrohobby3d.armor.model.ReportRefusal.phrase(422, "invalid_date")) }; return }
+        viewModelScope.launch {
+            _reports.update { it.copy(summaryBusy = true, summaryRefusal = null, summary = null) }
+            runCatching { withContext(Dispatchers.IO) { client.dailySummary(origin, date, language) } }
+                .onSuccess { value -> _reports.update { it.copy(summaryBusy = false, summary = value) } }
+                .onFailure { error -> _reports.update { it.copy(summaryBusy = false, summaryRefusal = refusal(error)) } }
+        }
+    }
+    fun loadHeatmap(origin: String, camera: String?) {
+        viewModelScope.launch {
+            _reports.update { it.copy(heatmapBusy = true, heatmapRefusal = null, heatmap = null) }
+            runCatching { withContext(Dispatchers.IO) { client.heatmap(origin, camera) } }
+                .onSuccess { value -> _reports.update { it.copy(heatmapBusy = false, heatmap = value) } }
+                .onFailure { error -> _reports.update { it.copy(heatmapBusy = false, heatmapRefusal = refusal(error)) } }
+        }
+    }
+
     private val _security = MutableStateFlow(SecurityUiState())
     val security: StateFlow<SecurityUiState> = _security.asStateFlow()
     @Volatile private var retryAfterElevation: (suspend () -> Unit)? = null
