@@ -94,9 +94,15 @@ class AlarmFactsTest {
 
     @Test fun `the help of every alarm code is in the shared table in the eight languages`() {
         val help = AlarmFacts.parseHelp(asset.readText(Charsets.UTF_8))
-        assertTrue(help.size >= 11)
+        assertTrue(help.size >= 59)
         for ((code, words) in help) for (language in languages) assertTrue("$code in $language", !words[language].isNullOrBlank())
         assertTrue(help.containsKey("solar_battery_low"))
+        // not only the solar ones: the alarms of the house, the network, the panels and the nodes tell what they mean too, in two lines (what it means, what to check)
+        for (code in listOf("smoke", "co", "gas", "water_leak", "panic", "intrusion", "door_open", "duress_disarm", "network_internet_down", "alarm_offline", "node_down", "mode_panel_sync_failed")) {
+            val words = help[code]
+            assertTrue("$code has help", words != null)
+            for (language in languages) assertEquals("$code in $language", 2, words!![language]!!.split("\n").size)
+        }
     }
 
     @Test fun `the detail of an alarm shows the help of its code in the language of the person, English when it lacks it, and nothing when the code has none`() {

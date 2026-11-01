@@ -218,7 +218,7 @@ class SolarCountersTest {
                 assertNotNull(code, help)
                 assertEquals(code, 2, help!!.split("\n").size)
             }
-            assertNull(es.electrohobby3d.armor.AlarmFacts.help("smoke", "es"))
+            assertNull(es.electrohobby3d.armor.AlarmFacts.help("no_such_code", "es"))
         } finally { es.electrohobby3d.armor.AlarmFacts.use(emptyMap()) }
         for (code in listOf("solar_cell_soh_abnormal", "solar_module_overcurrent")) assertTrue(es.electrohobby3d.armor.model.DeviceText.alarmText(code) != code)
     }

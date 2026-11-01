@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The detail of every alarm shows its help text:** the shared table now has the help of all the alarm codes (what it means and what to check), in the language of the person; the tests read the real table.
+
 ## [0.8.0.0] - The summary of a day and the activity heat map for administrators and operators, the floor of each radar on the radar screen and the help of each alarm code with the false-alarm mark in the detail of an alarm
 
 - **The summary of a day and the activity heat map, for administrators and operators:** More > Reports (not offered to a viewer or a wall panel's account) shows the summary of a day with its counts, patterns and text in the language of the app, and the heat map of a camera as a picture with its caption. Each report is off in the server until an administrator turns it on; what the server answers when it is off, not set up, busy, failing or asked too often is told in words that say what to do. Eight languages, Portuguese of Portugal included.
