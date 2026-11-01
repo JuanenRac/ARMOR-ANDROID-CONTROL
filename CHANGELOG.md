@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.8.0.2] - Every answer of the server, the weather and the version check is read up to a limit and the MJPEG reader gives up on a stream that shows no picture
+
 - **Every answer is read up to a limit:** the answers of the server (8 MiB of JSON, 16 MB for the picture of the heat map), of the weather service and of the release check are no longer read to their end whatever their length; one over the limit fails like a lost connection, and the start of an error answer (4 KiB) is all that is read to name the cause.
 - **The MJPEG reader gives up on a stream that shows no picture:** looking for the start of a picture, or for the next segment of one, stops after the size of the biggest picture accepted instead of reading a stream without end.
 - Tests: 412 (before 405).
