@@ -1445,5 +1445,7 @@
  "confirmado": "bestätigt",
  "rechazado": "abgelehnt",
  "no se pudo preguntar": "konnte nicht gefragt werden",
- "esperando": "wartet"
+ "esperando": "wartet",
+ "Compartir diagnóstico": "Diagnose teilen",
+ "«Compartir diagnóstico» prepara un informe sin contraseñas ni datos privados para quien te ayude; tú eliges con qué aplicación enviarlo.": "„Diagnose teilen“ erstellt einen Bericht ohne Passwörter oder private Daten für die Person, die Ihnen hilft; Sie wählen, mit welcher App er gesendet wird."
 }

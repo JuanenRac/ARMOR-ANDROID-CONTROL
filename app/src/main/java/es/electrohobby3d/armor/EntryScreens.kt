@@ -245,11 +245,13 @@ fun InfoRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String
 }
 
 @Composable
-fun AboutDialog(onDismiss: () -> Unit) {
+fun AboutDialog(onDismiss: () -> Unit, origin: String = "", role: String = "") {
+    val context = androidx.compose.ui.platform.LocalContext.current
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = ArmorColors.SurfaceRaised,
         confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Cerrar")) } },
+        dismissButton = { TextButton(onClick = { shareDiagnostic(context, origin, role) }) { Text(tr("Compartir diagnóstico")) } },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 ArmorLogo(size = 72.dp)
@@ -269,9 +271,29 @@ fun AboutDialog(onDismiss: () -> Unit) {
                 Text(tr("Hecho por"), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
                 Text("Electro Hobby 3D", fontWeight = FontWeight.Bold, color = ArmorColors.Cyan)
                 Text(tr("Software libre, licencia GPL-3.0."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                Text(tr("«Compartir diagnóstico» prepara un informe sin contraseñas ni datos privados para quien te ayude; tú eliges con qué aplicación enviarlo."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted, textAlign = TextAlign.Center)
             }
         },
     )
+}
+
+/** Builds the report (see DiagnosticReport) and hands it to the sharing sheet of the phone: nothing is sent by the app itself. */
+private fun shareDiagnostic(context: android.content.Context, origin: String, role: String) {
+    val power = context.getSystemService(android.content.Context.POWER_SERVICE) as? android.os.PowerManager
+    val preferences = context.getSharedPreferences("armor-control", android.content.Context.MODE_PRIVATE)
+    val info = DiagnosticInfo(
+        appVersion = BuildConfig.VERSION_NAME, appCode = BuildConfig.VERSION_CODE, androidRelease = android.os.Build.VERSION.RELEASE.orEmpty(), sdk = android.os.Build.VERSION.SDK_INT,
+        device = "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}".trim(), language = Tr.language, origin = origin, role = role,
+        notificationsAllowed = AlarmNotifier.canNotify(context), batteryUnrestricted = power?.isIgnoringBatteryOptimizations(context.packageName),
+        watcherOn = if (preferences.contains("watch")) preferences.getBoolean("watch", false) else null,
+        recent = DiagnosticLog.recent(), nowMs = System.currentTimeMillis(),
+    )
+    val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(android.content.Intent.EXTRA_SUBJECT, "A.R.M.O.R. diagnostic report")
+        putExtra(android.content.Intent.EXTRA_TEXT, DiagnosticReport.render(info))
+    }
+    context.startActivity(android.content.Intent.createChooser(send, tr("Compartir diagnóstico")).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
 }
 
 @Composable

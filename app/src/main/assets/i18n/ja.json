@@ -1445,5 +1445,7 @@
  "confirmado": "確認済み",
  "rechazado": "拒否",
  "no se pudo preguntar": "要求できませんでした",
- "esperando": "待機中"
+ "esperando": "待機中",
+ "Compartir diagnóstico": "診断を共有",
+ "«Compartir diagnóstico» prepara un informe sin contraseñas ni datos privados para quien te ayude; tú eliges con qué aplicación enviarlo.": "「診断を共有」は、パスワードや個人データを含まないレポートを、サポートしてくれる人向けに作成します。送信に使うアプリはご自分で選べます。"
 }

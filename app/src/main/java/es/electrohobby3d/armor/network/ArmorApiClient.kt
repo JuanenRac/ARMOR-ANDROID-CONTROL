@@ -412,7 +412,8 @@ class ArmorApiClient : ArmorApi {
             if (body != null) { doOutput = true; outputStream.use { it.write(body.toByteArray(StandardCharsets.UTF_8)) } }
         }
         // the connection is closed whatever goes wrong (a refused connection, a timeout), and the status is read once
-        val code = try { connection.responseCode } catch (error: java.io.IOException) { connection.disconnect(); throw error }
+        val code = try { connection.responseCode } catch (error: java.io.IOException) { es.electrohobby3d.armor.DiagnosticLog.record(method, path, 0); connection.disconnect(); throw error }
+        es.electrohobby3d.armor.DiagnosticLog.record(method, path, code)
         es.electrohobby3d.armor.TrustPins.reached(origin)
         if (code !in expected) {
             val detail = try { BoundedRead.head(connection.errorStream).take(180) } catch (_: java.io.IOException) { "" }

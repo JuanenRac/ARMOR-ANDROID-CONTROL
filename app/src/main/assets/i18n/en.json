@@ -1445,5 +1445,7 @@
  "confirmado": "confirmed",
  "rechazado": "refused",
  "no se pudo preguntar": "could not be asked",
- "esperando": "waiting"
+ "esperando": "waiting",
+ "Compartir diagnóstico": "Share diagnostic",
+ "«Compartir diagnóstico» prepara un informe sin contraseñas ni datos privados para quien te ayude; tú eliges con qué aplicación enviarlo.": "“Share diagnostic” prepares a report with no passwords or private data for whoever is helping you; you choose which app sends it."
 }

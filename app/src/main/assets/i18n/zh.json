@@ -1445,5 +1445,7 @@
  "confirmado": "已确认",
  "rechazado": "已拒绝",
  "no se pudo preguntar": "无法发出请求",
- "esperando": "等待中"
+ "esperando": "等待中",
+ "Compartir diagnóstico": "分享诊断信息",
+ "«Compartir diagnóstico» prepara un informe sin contraseñas ni datos privados para quien te ayude; tú eliges con qué aplicación enviarlo.": "“分享诊断信息”会为帮助您的人生成一份不含密码和隐私数据的报告；用哪个应用发送由您选择。"
 }

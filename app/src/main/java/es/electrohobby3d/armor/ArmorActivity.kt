@@ -652,7 +652,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                 }
             }
             if (securityState.elevationNeeded && state.authenticated) ElevationDialog(securityState.elevationError, securityState.busy, onConfirm = { password, code -> viewModel.elevate(currentOrigin, password, code) }, onDismiss = { viewModel.dismissElevation() })
-            if (about) AboutDialog(onDismiss = { about = false })
+            if (about) AboutDialog(onDismiss = { about = false }, origin = currentOrigin, role = state.role)
         }
     }
 }
