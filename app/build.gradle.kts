@@ -21,6 +21,11 @@ android { namespace = "es.electrohobby3d.armor"; compileSdk = 37
         buildConfigField("String", "FCM_SENDER_ID", "\"${firebase["sender"] ?: ""}\"")
         buildConfigField("String", "FCM_APP_ID", "\"${firebase["app"] ?: ""}\"")
         buildConfigField("String", "FCM_API_KEY", "\"${firebase["key"] ?: ""}\"")
+        // The switch of plain HTTP (-Parmor.cleartext=false): the default keeps it allowed, because the CM5 serves http on the home network until its HTTPS profile is proven there. "false" builds
+        // an app that only talks HTTPS (network_security_config_https_only.xml); see docs/BENCH_TESTS.md.
+        val cleartext = (providers.gradleProperty("armor.cleartext").orNull ?: "true") != "false"
+        manifestPlaceholders["networkSecurityConfig"] = if (cleartext) "@xml/network_security_config" else "@xml/network_security_config_https_only"
+        manifestPlaceholders["usesCleartextTraffic"] = cleartext.toString()
     }
     buildFeatures { compose = true; buildConfig = true }
     // The release is shrunk and obfuscated (R8): smaller, and the code that is not used is gone. The rules are in proguard-rules.pro; Firebase and the coroutines bring their own.

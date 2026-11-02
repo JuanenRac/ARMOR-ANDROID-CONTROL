@@ -56,4 +56,16 @@ class SecurityTest {
         assertFalse(empty.vpnConfigured || empty.ddnsConfigured || empty.vpnScript)
         assertEquals("[Interface]", SecurityParser.peerConfig(JSONObject("""{"name":"phone","config":"[Interface]"}""")).config)
     }
+
+    @Test fun plainHttpStaysAllowedByDefaultAndOnlyTheSwitchTurnsItOff() {
+        val open = java.io.File("src/main/res/xml/network_security_config.xml").readText(Charsets.UTF_8)
+        val strict = java.io.File("src/main/res/xml/network_security_config_https_only.xml").readText(Charsets.UTF_8)
+        assertTrue(open.contains("cleartextTrafficPermitted=\"true\""))
+        assertTrue(strict.contains("cleartextTrafficPermitted=\"false\""))
+        for (config in listOf(open, strict)) assertTrue(config.contains("src=\"system\"") && config.contains("src=\"user\""))
+        val manifest = java.io.File("src/main/AndroidManifest.xml").readText(Charsets.UTF_8)
+        assertTrue(manifest.contains("\${networkSecurityConfig}") && manifest.contains("\${usesCleartextTraffic}"))
+        val gradle = java.io.File("build.gradle.kts").readText(Charsets.UTF_8)
+        assertTrue(gradle.contains("\"armor.cleartext\"") && gradle.contains("?: \"true\""))
+    }
 }

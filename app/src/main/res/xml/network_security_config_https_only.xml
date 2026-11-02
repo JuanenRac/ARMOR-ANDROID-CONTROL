@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ARMOR-ANDROID-CONTROL - the configuration of the build made with -Parmor.cleartext=false: plain HTTP is refused everywhere; HTTPS is checked as in the default configuration
+     (system authorities and the ones the person installed on this phone, such as the local authority of the installation's TLS profile). -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

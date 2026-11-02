@@ -4,6 +4,7 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **A build that only talks HTTPS, behind a switch:** building with `-Parmor.cleartext=false` uses a network configuration that refuses plain HTTP everywhere (the system authorities and the ones installed on the phone still count); without the switch nothing changes and plain HTTP stays allowed for the home network until the HTTPS profile of the installation is proven there. A test checks both configurations and the wiring.
 - **A diagnostic report to share with whoever helps:** the About dialog gains Share diagnostic, which hands the phone's sharing sheet a short report (app version, Android and device, language, server host, role, whether notifications are allowed, whether battery optimisation is off for the app, whether the alarm watcher is on and the last answers of the server by route shape and status). It holds no password, token, PIN, query or message text, nothing is sent by the app itself, and the answers are kept in memory only.
 
 ## [0.8.0.2] - Every answer of the server, the weather and the version check is read up to a limit and the MJPEG reader gives up on a stream that shows no picture
