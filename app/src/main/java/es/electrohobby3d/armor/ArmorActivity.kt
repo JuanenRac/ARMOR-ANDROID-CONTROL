@@ -2,6 +2,7 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor
 
+import es.electrohobby3d.armor.network.CapabilityAction
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -393,13 +394,13 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                     Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 14.dp)) {
                         // The alarm window: while an alarm waits, a pulsing banner sits over every screen but the alarms themselves; the app stays usable under it.
                         if (section != Section.Alarms) AlarmBannerPolicy.from(state.alarms, closedBanner)?.let { banner ->
-                            AlarmBanner(banner, canConfirm = !state.readOnly, onOpen = { val target = AlarmRoute.of(banner.alarm); section = Section.values().firstOrNull { it.name == target.screen } ?: Section.Alarms; moreTab = target.more }, onConfirm = { viewModel.acknowledge(currentOrigin, it) }, onClose = { closedBanner = it })
+                            AlarmBanner(banner, canConfirm = state.can(CapabilityAction.ACKNOWLEDGE), onOpen = { val target = AlarmRoute.of(banner.alarm); section = Section.values().firstOrNull { it.name == target.screen } ?: Section.Alarms; moreTab = target.more }, onConfirm = { viewModel.acknowledge(currentOrigin, it) }, onClose = { closedBanner = it })
                         }
                         when (section) {
                             Section.Status -> StatusScreen(
                                 armed = state.snapshot.mode == "armed", armingMode = state.snapshot.armingMode.takeIf { state.armingModes?.enabled == true }, panelSync = state.snapshot.panelSync.takeIf { state.armingModes?.enabled == true }, updated = state.snapshot.updatedAt, nodes = state.snapshot.nodes, cameras = state.cameras.size,
                                 camerasDown = state.cameraHealth.count { it.value == "offline" }, pendingAlarms = state.alarms.count { !it.acknowledged }, devices = state.devices,
-                                onMode = { if (!viewModel.viewerRefused()) { if (state.armingModes?.enabled == true) armingPicker = true else confirmMode = if (state.snapshot.mode == "armed") "disarmed" else "armed" } }, onAlarms = { section = Section.Alarms },
+                                onMode = { if (!viewModel.viewerRefused(if (state.snapshot.mode == "armed") CapabilityAction.DISARM else CapabilityAction.ARM)) { if (state.armingModes?.enabled == true) armingPicker = true else confirmMode = if (state.snapshot.mode == "armed") "disarmed" else "armed" } }, onAlarms = { section = Section.Alarms },
                                 onDevices = { section = Section.Devices }, onCameras = { section = Section.Cameras }, onRadar = { section = Section.Radar },
                                 onRefresh = { viewModel.refresh(currentOrigin) }, enabled = validOrigin && !state.loading,
                                 solar = state.solar, onSolar = { section = Section.More; moreTab = MoreTab.Solar },
@@ -414,19 +415,19 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                             Section.Radar -> RadarScreen(state.site, state.siteLoaded, state.snapshot.nodes, onReload = { reloadSite++ })
                             Section.Alarms -> AlarmsScreen(
                                 state.alarms, state.closedAlarms, state.devices, state.cameras.associate { it.id to it.name },
-                                onAcknowledge = { viewModel.acknowledge(currentOrigin, it) }, onAcknowledgeAll = { viewModel.acknowledgeAll(currentOrigin) }, enabled = validOrigin && !state.loading && !state.readOnly,
+                                onAcknowledge = { viewModel.acknowledge(currentOrigin, it) }, onAcknowledgeAll = { viewModel.acknowledgeAll(currentOrigin) }, enabled = validOrigin && !state.loading && state.can(CapabilityAction.ACKNOWLEDGE),
                                 solarNames = state.solar?.let { s -> s.devices.associate { "${it.nodeId}/${it.device}" to it.name } + s.waiting.associate { "${it.nodeId}/${it.device}" to it.name } }.orEmpty(),
                             )
                             Section.Devices -> DevicesScreen(state.devices, onCommand = { device, command -> if (es.electrohobby3d.armor.model.DeviceText.confirmQuestion(device, command) == null) viewModel.command(currentOrigin, device, command) else confirmCommand = device to command }, enabled = validOrigin && !state.loading && !state.readOnly)
                             Section.Cameras -> CamerasScreen(
                                 state.cameras, grid, onGrid = { grid = it }, origin = currentOrigin, viewModel = viewModel, authenticated = state.authenticated,
-                                recordingIds = state.media.activeCameraIds, health = state.cameraHealth, onExpand = { expanded = it }, readOnly = state.readOnly, away = ServerEndpoint.parse(origin)?.let { addresses.isAway(it) } == true,
+                                recordingIds = state.media.activeCameraIds, health = state.cameraHealth, onExpand = { expanded = it }, readOnly = !state.can(CapabilityAction.CAMERA_CONTROL), away = ServerEndpoint.parse(origin)?.let { addresses.isAway(it) } == true,
                             )
                             Section.More -> when (moreTab) {
                                 null -> MoreMenu(
                                     onOpen = { tab -> moreTab = tab; if (tab == MoreTab.Evidence) viewModel.loadMedia(currentOrigin); if (tab == MoreTab.Voice) viewModel.checkVoice(currentOrigin); if (tab == MoreTab.Security) viewModel.loadSecurity(currentOrigin) },
                                     onNodeSetup = { nodeSetup = true }, onAbout = { about = true }, onLogout = { confirmLogout = true },
-                                    updateAvailable = updateState is AppUpdateState.Available, isAdmin = state.role == "admin", canReports = state.role == "admin" || state.role == "operator",
+                                    updateAvailable = updateState is AppUpdateState.Available, isAdmin = state.isAdmin, canReports = state.can(CapabilityAction.OPERATE),
                                 )
                                 MoreTab.Security -> SubScreen(Icons.Filled.Lock, tr("Seguridad"), onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.loadSecurity(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
@@ -460,7 +461,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                     IconButton(onClick = { viewModel.loadBattery(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
                                 }) {
                                     BatteryScreen(
-                                        batteryState, es.electrohobby3d.armor.model.BatteryParser.nodes(state.solar), state.role == "admin",
+                                        batteryState, es.electrohobby3d.armor.model.BatteryParser.nodes(state.solar), state.isAdmin,
                                         onArm = { node, port, op, output, onOff, serial -> viewModel.armBattery(currentOrigin, node, port, op, output, onOff, serial) },
                                         onExecute = { serial -> viewModel.executeBattery(currentOrigin, serial) }, onCancel = { viewModel.cancelBattery(currentOrigin) },
                                         onNew = { viewModel.newBatteryOperation() }, onOpen = { viewModel.openBattery(it) },
@@ -470,7 +471,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                     IconButton(onClick = { viewModel.reloadNodeHealth(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
                                 }) {
                                     NodeControlScreen(
-                                        controlState, state.nodeHealth?.nodes.orEmpty(), state.role == "admin",
+                                        controlState, state.nodeHealth?.nodes.orEmpty(), state.isAdmin,
                                         onOrderNode = { node, operation, confirm, seconds -> viewModel.orderNode(currentOrigin, node, operation, confirm, seconds) },
                                         onOrderAll = { operation, mode, confirm, seconds -> viewModel.orderAllNodes(currentOrigin, operation, mode, confirm, seconds) },
                                         onClose = { viewModel.closeControl() }, onOpen = { viewModel.openControl(it) },
@@ -633,7 +634,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                     onWatching = { on -> watching = on; setWatching(context, preferences, on) { notificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS) } },
                     onLogout = { profile = false; confirmLogout = true }, onDismiss = { profile = false },
                 )
-                expanded?.let { camera -> FullscreenCamera(camera, currentOrigin, viewModel, state.authenticated && !state.readOnly, state.media.activeCameraIds.contains(camera.id), onDismiss = { expanded = null }, away = ServerEndpoint.parse(origin)?.let { addresses.isAway(it) } == true) }
+                expanded?.let { camera -> FullscreenCamera(camera, currentOrigin, viewModel, state.authenticated && state.can(CapabilityAction.CAMERA_CONTROL), state.media.activeCameraIds.contains(camera.id), onDismiss = { expanded = null }, away = ServerEndpoint.parse(origin)?.let { addresses.isAway(it) } == true) }
                 // Startup checks only fetch release metadata from GitHub. The
                 // actual APK transfer and Android's own installer are both
                 // started explicitly by the operator, from this prompt or

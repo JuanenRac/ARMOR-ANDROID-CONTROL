@@ -349,6 +349,20 @@ class ArmorViewModelTest {
         assertEquals("operator", model.state.value.role)
     }
 
+    @Test fun `an operator whose session does not announce the action is refused before the server is asked`() {
+        serve { request ->
+            if (request.method == "GET" && request.path == "/api/v1/studio/session") Triple(200, """{"authenticated":true,"user":{"role":"operator"},"capabilities":{"version":1,"actions":{"operate":true,"arm":true,"acknowledge":true},"features":[]}}""", emptyMap()) else null
+        }
+        model.login(origin, "ana", "pw"); until("signed in") { model.state.value.authenticated }; idle()
+        server.seen.clear()
+        model.setMode(origin, "disarmed", "1234"); idle()
+        assertEquals(tr("Tu usuario no tiene permiso para esta acción."), model.state.value.message)
+        model.ptz(origin, camera, "left"); idle()
+        assertEquals(0, server.seen.count { it.method != "GET" })
+        model.setMode(origin, "armed"); idle()
+        assertEquals(1, posts("/api/v1/mode"))
+    }
+
     @Test fun `the voice is not sent for an empty phrase or to an address that is not valid`() {
         signIn()
         server.seen.clear()

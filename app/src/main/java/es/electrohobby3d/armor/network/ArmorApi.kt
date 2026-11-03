@@ -4,13 +4,13 @@ package es.electrohobby3d.armor.network
 import es.electrohobby3d.armor.model.*
 
 /** What the session of the server tells about the signed-in person and the options in force for the phone. */
-data class SessionFacts(val role: String = "", val deviceLock: String = "user") {
+data class SessionFacts(val role: String = "", val deviceLock: String = "user", val capabilities: SessionCapabilities = SessionCapabilities.fromRole(role)) {
     companion object {
         /** From the answer of `GET /api/v1/studio/session`. */
-        fun parse(json: org.json.JSONObject): SessionFacts = SessionFacts(
-            role = json.optJSONObject("user")?.optString("role").orEmpty(),
-            deviceLock = json.optJSONObject("capabilities")?.optJSONObject("security")?.optString("client.device_lock").orEmpty().ifBlank { "user" },
-        )
+        fun parse(json: org.json.JSONObject): SessionFacts {
+            val role = json.optJSONObject("user")?.optString("role").orEmpty()
+            return SessionFacts(role = role, deviceLock = json.optJSONObject("capabilities")?.optJSONObject("security")?.optString("client.device_lock").orEmpty().ifBlank { "user" }, capabilities = SessionCapabilities.of(json, role))
+        }
     }
 }
 

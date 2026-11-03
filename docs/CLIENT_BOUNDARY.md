@@ -27,3 +27,23 @@ For a node with no Ethernet cable, or no address yet, the app configures it over
 - The link is encrypted and authenticated: Android asks for the six-digit PIN the node prints on its USB console (an administrator can also read it in the node's panel), so someone listening in, or present while the phone pairs, cannot take part. The PIN does not change from one pairing to the next, so the node's set-up code (it derives the PIN) must stay private. The administrator password and the set-up code travel inside that link.
 - The app does not store the code, the fleet secret or the passwords.
 - **Verification:** the protocol's format, its operations, the set-up code calculation, the form checks and the reading of the outcome have JVM tests, but the flow has not been run end to end against a node and a phone by the tests; pairing, the MTU and reconnecting are the first things to check on the bench.
+
+## What the person may do: the capabilities of the session
+
+`GET /api/v1/studio/session` carries, for a signed-in person, a `capabilities` field (version 1: `actions`, `features`, `security`). The app reads it once at sign-in and decides what to show or enable from it, not from the role alone; the server checks the role again on every route, so this only decides what the screens offer. ARMOR-STUDIO reads it the same way.
+
+- **Not announced (an older server):** the role decides as it always did: administrator everything but `security_settings`, operator arm, disarm, acknowledge, operate and camera control, anyone else nothing that changes.
+- **Announced:** it is believed. An action the server does not name is not allowed (a newer action never appears on its own). A field of another version or shape counts as not announced.
+
+| Action | What the app does with it |
+| --- | --- |
+| `operate` | Without it the person only looks: every order is refused before the server is asked, with the message of the read-only role. Also decides Reports and the device switches. |
+| `arm` / `disarm` | The arm buttons (and the arming modes and the panel arm commands) / the disarm button and the panel disarm command. |
+| `acknowledge` | Confirming one alarm or all of them. |
+| `camera_control` | Photo, recording and moving a camera. |
+| `administer` | The administrator screens: alarm panels commands, batteries, node control, forgetting a node, remote access. |
+| `manage_users`, `security_settings` | Read and kept in the model; the phone has no screen for them yet. |
+
+An order the server does not allow to this person, though the person may operate, is refused with "The server does not allow your user to do this." (in the eight languages).
+
+Difference by system: none; the iOS app reads the same field with the same rules (`Capabilities` in ArmorCore against `SessionCapabilities` here).

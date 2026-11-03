@@ -899,6 +899,7 @@
  "Tu contraseña no se guarda en el móvil. La sesión sí, cifrada, y se renueva mientras uses la app: no tendrás que volver a entrar salvo que caduque o la cierres.": "A sua palavra-passe não fica guardada no telemóvel. A sessão sim, cifrada, e renova-se enquanto usar a app: só terá de voltar a entrar se expirar ou se terminar a sessão.",
  "Tu operador cambia de vez en cuando la dirección pública de tu casa. Esto mantiene un nombre apuntando siempre a ella, y el móvil nunca necesita saber la dirección.": "O seu operador muda de vez em quando o endereço público da casa. Isto mantém um nome sempre a apontar para ele, e o telemóvel nunca precisa de saber o endereço.",
  "Tu usuario solo puede mirar: no puede cambiar nada.": "O seu utilizador só pode olhar: não pode alterar nada.",
+ "Tu usuario no tiene permiso para esta acción.": "O servidor não permite que o seu utilizador faça isto.",
  "Tus códigos de recuperación: guárdalos ahora": "Os seus códigos de recuperação: guarde-os agora",
  "Tus sesiones abiertas": "As suas sessões abertas",
  "Un conmutador de fuentes de la red eléctrica tiene una avería y queda abierto": "Um comutador de fontes da rede tem uma avaria e fica aberto",

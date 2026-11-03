@@ -13,6 +13,8 @@ import es.electrohobby3d.armor.model.MediaCatalogue
 import es.electrohobby3d.armor.network.ArmorApi
 import es.electrohobby3d.armor.network.ArmorApiClient
 import es.electrohobby3d.armor.network.SessionFacts
+import es.electrohobby3d.armor.network.SessionCapabilities
+import es.electrohobby3d.armor.network.CapabilityAction
 import es.electrohobby3d.armor.network.WeatherApiClient
 import es.electrohobby3d.armor.model.Forecast
 import es.electrohobby3d.armor.model.AirQuality
@@ -43,6 +45,8 @@ data class WeatherUiState(
 data class MonitorUiState(
     /** The role of the signed-in user; a viewer only looks. */
     val role: String = "",
+    /** What the server says this person may do (null: not told yet, or a state built without a session; then the role decides). */
+    val capabilities: SessionCapabilities? = null,
     /** What the server asks of the phone's lock: "user" (the person decides), "sensitive" or "always". */
     val deviceLock: String = "user",
     val loading: Boolean = false,
@@ -86,9 +90,12 @@ data class MonitorUiState(
     val silent: Boolean = false,
     val message: String? = null,
 ) {
-    val readOnly: Boolean get() = role.isNotEmpty() && role != "admin" && role != "operator"   // a viewer and a wall panel (which may read, arm, disarm and acknowledge, and nothing else) only look, and so does any role this app does not know; an empty role is "not told yet"
+    /** Whether the person may do [action]: what the server announced, else what the role allowed before it announced anything; an empty role ("not told yet") may everything but the administration. */
+    fun can(action: String): Boolean = capabilities?.can(action)
+        ?: if (role.isEmpty()) action !in setOf(CapabilityAction.ADMINISTER, CapabilityAction.MANAGE_USERS, CapabilityAction.SECURITY_SETTINGS) else SessionCapabilities.fromRole(role).can(action)
+    val readOnly: Boolean get() = !can(CapabilityAction.OPERATE)   // a viewer and a wall panel (which may read, arm, disarm and acknowledge, and nothing else) only look, and so does any role this app does not know; an empty role is "not told yet"
     /** Only an administrator may arm and disarm the alarm panels from the server. */
-    val isAdmin: Boolean get() = role == "admin"
+    val isAdmin: Boolean get() = can(CapabilityAction.ADMINISTER)
 }
 
 class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val weatherClient: WeatherApiClient = WeatherApiClient()) : ViewModel() {
@@ -272,7 +279,7 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
 
     /** Arms a panel (mode "away" or "stay") or disarms it (mode null); the node's own answer shows in the panel's card a moment later. */
     fun alarmCommand(origin: String, node: String, mode: String?, force: Boolean = false, pin: String? = null, profile: String? = null) {
-        if (viewerRefused()) return
+        if (viewerRefused(if (mode == null) CapabilityAction.DISARM else CapabilityAction.ARM)) return
         confirmed(if (mode == null) trf("Desarmar %s", node) else trf("Armar %s", node)) {
             mutating(origin, if (mode == null) trf("%s: orden de desarmar enviada", node) else trf("%s: orden de armar enviada", node)) {
                 client.sendAlarmCommand(origin, node, mode, force, pin, profile)
@@ -349,16 +356,17 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
     fun clearWeatherPlace() { _state.update { it.copy(weather = WeatherUiState()) } }
 
     /** A viewer only looks: what changes something is refused here before it is asked of the server (which refuses it too). */
-    fun viewerRefused(): Boolean {
-        if (!_state.value.readOnly) return false
-        _state.update { it.copy(message = tr("Tu usuario solo puede mirar: no puede cambiar nada.")) }
-        return true
+    fun viewerRefused(action: String = CapabilityAction.OPERATE): Boolean {
+        val now = _state.value
+        if (now.readOnly) { _state.update { it.copy(message = tr("Tu usuario solo puede mirar: no puede cambiar nada.")) }; return true }
+        if (!now.can(action)) { _state.update { it.copy(message = tr("Tu usuario no tiene permiso para esta acción.")) }; return true }
+        return false
     }
 
     /** Signed in: the role and what the server asks of the phone's lock come from one request to the session. */
     private fun MonitorUiState.signedIn(origin: String): MonitorUiState {
         val facts = runCatching { client.sessionFacts(origin) }.getOrDefault(SessionFacts())
-        return copy(authenticated = true, role = facts.role, deviceLock = facts.deviceLock)
+        return copy(authenticated = true, role = facts.role, capabilities = facts.capabilities, deviceLock = facts.deviceLock)
     }
 
     /** Asked before an action that must be confirmed with the lock of the phone; the screen puts the real question here, a test a stand-in. Null: nothing is asked. */
@@ -372,8 +380,8 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
         }
     }
 
-    private fun mutating(origin: String, success: String, operation: suspend () -> Unit) {
-        if (viewerRefused()) return
+    private fun mutating(origin: String, success: String, needs: String = CapabilityAction.OPERATE, operation: suspend () -> Unit) {
+        if (viewerRefused(needs)) return
         action(origin, success, operation)
     }
 
@@ -579,13 +587,13 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
         _state.update { it.copy(media = client.media(origin)) }
     }
 
-    fun snapshot(origin: String, camera: CameraView) = mutating(origin, "Snapshot saved: ${camera.name}") {
+    fun snapshot(origin: String, camera: CameraView) = mutating(origin, "Snapshot saved: ${camera.name}", CapabilityAction.CAMERA_CONTROL) {
         require(_state.value.authenticated) { "Sign in first" }
         client.snapshot(origin, camera.id)
         _state.update { it.copy(media = client.media(origin)) }
     }
 
-    fun toggleRecording(origin: String, camera: CameraView) = mutating(origin, if (_state.value.media.activeCameraIds.contains(camera.id)) "Recording finalized: ${camera.name}" else "Recording started: ${camera.name}") {
+    fun toggleRecording(origin: String, camera: CameraView) = mutating(origin, if (_state.value.media.activeCameraIds.contains(camera.id)) "Recording finalized: ${camera.name}" else "Recording started: ${camera.name}", CapabilityAction.CAMERA_CONTROL) {
         require(_state.value.authenticated) { "Sign in first" }
         val start = !_state.value.media.activeCameraIds.contains(camera.id)
         client.recording(origin, camera.id, start)
@@ -597,7 +605,7 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
     private val ptzLock = Mutex()
 
     fun ptz(origin: String, camera: CameraView, command: String) {
-        if (viewerRefused()) return
+        if (viewerRefused(CapabilityAction.CAMERA_CONTROL)) return
         if (ServerEndpoint.parse(origin) == null || !_state.value.authenticated) return
         viewModelScope.launch {
             ptzLock.withLock {
@@ -664,7 +672,7 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
 
     /** Arm or disarm. The screen asks the person first; a failure shows as a message and changes nothing. */
     fun setMode(origin: String, mode: String, pin: String? = null) {
-        if (viewerRefused()) return
+        if (viewerRefused(if (mode == "armed") CapabilityAction.ARM else CapabilityAction.DISARM)) return
         confirmed(if (mode == "armed") tr("Armar el sistema") else tr("Desarmar el sistema")) {
             mutating(origin, if (mode == "armed") tr("Sistema ARMADO") else tr("Sistema DESARMADO")) {
                 require(_state.value.authenticated) { "Sign in first" }
@@ -678,7 +686,7 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
      * words, so that the picker can ask for the PIN or for the confirmation and ask again. A phone that asks for its lock before arming is asked first.
      */
     suspend fun armInMode(origin: String, mode: String, pin: String? = null, confirmUnassigned: Boolean = false): Pair<String, String>? {
-        if (viewerRefused()) return "viewer" to tr("Tu usuario solo puede mirar: no puede cambiar nada.")
+        if (viewerRefused(CapabilityAction.ARM)) return "viewer" to (_state.value.message ?: tr("Tu usuario solo puede mirar: no puede cambiar nada."))
         val gate = sensitiveGate
         if (gate != null && !gate.allow(tr("Armar el sistema"))) return "gate" to tr("No se ha confirmado con el bloqueo del teléfono: no se ha hecho nada.")
         return withContext(Dispatchers.IO) {
@@ -700,12 +708,12 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
         }
     }
 
-    fun acknowledge(origin: String, alarm: Alarm) = mutating(origin, tr("Alarma confirmada")) {
+    fun acknowledge(origin: String, alarm: Alarm) = mutating(origin, tr("Alarma confirmada"), CapabilityAction.ACKNOWLEDGE) {
         client.acknowledgeAlarm(origin, alarm.id)
         client.alarms(origin).let { pair -> _state.update { it.copy(alarms = pair.first, closedAlarms = pair.second) } }
     }
 
-    fun acknowledgeAll(origin: String) = mutating(origin, tr("Alarmas confirmadas")) {
+    fun acknowledgeAll(origin: String) = mutating(origin, tr("Alarmas confirmadas"), CapabilityAction.ACKNOWLEDGE) {
         client.acknowledgeAllAlarms(origin)
         client.alarms(origin).let { pair -> _state.update { it.copy(alarms = pair.first, closedAlarms = pair.second) } }
     }

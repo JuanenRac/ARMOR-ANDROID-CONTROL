@@ -141,7 +141,7 @@ class DeviceLockTest {
 
     @Test fun `the session tells the role and what the server asks of the lock`() {
         val facts = SessionFacts.parse(JSONObject("""{"authenticated":true,"user":{"role":"operator"},"capabilities":{"version":1,"security":{"client.device_lock":"sensitive"}}}"""))
-        assertEquals(SessionFacts("operator", "sensitive"), facts)
+        assertEquals("operator", facts.role); assertEquals("sensitive", facts.deviceLock)
         assertEquals(SessionFacts("admin", "user"), SessionFacts.parse(JSONObject("""{"authenticated":true,"user":{"role":"admin"}}""")))   // an older server
         assertEquals(SessionFacts(), SessionFacts.parse(JSONObject("{}")))
     }

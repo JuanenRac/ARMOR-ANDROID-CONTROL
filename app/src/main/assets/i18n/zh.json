@@ -899,6 +899,7 @@
  "Tu contraseña no se guarda en el móvil. La sesión sí, cifrada, y se renueva mientras uses la app: no tendrás que volver a entrar salvo que caduque o la cierres.": "您的密码不会保存在手机上。会话会加密保存，并在您使用应用期间自动续期：除非过期或您退出登录，否则无需再次登录。",
  "Tu operador cambia de vez en cuando la dirección pública de tu casa. Esto mantiene un nombre apuntando siempre a ella, y el móvil nunca necesita saber la dirección.": "运营商会不时更改您家的公网地址。设置后，域名会始终指向它，手机无需知道具体地址。",
  "Tu usuario solo puede mirar: no puede cambiar nada.": "您的用户只能查看：不能更改任何内容。",
+ "Tu usuario no tiene permiso para esta acción.": "服务器不允许您的用户执行此操作。",
  "Tus códigos de recuperación: guárdalos ahora": "您的恢复代码：请立即保存",
  "Tus sesiones abiertas": "您已打开的会话",
  "Un conmutador de fuentes de la red eléctrica tiene una avería y queda abierto": "电网的电源切换开关故障并保持断开",

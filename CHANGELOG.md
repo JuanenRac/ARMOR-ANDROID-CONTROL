@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **What the person sees follows the capabilities the server announces:** the session now carries what the signed-in person may do (arm, disarm, acknowledge, operate, camera control, administer) and the app shows, hides and disables from it instead of from the role alone: the arm and disarm buttons, confirming alarms, the camera controls and the administrator screens each follow their own action, and an order the server does not allow to the person is refused before it is asked, with a message in the eight languages. A server that sends no capabilities (an older one) keeps the behaviour by role. Tests: 422 (before 417).
+
 - **A build that only talks HTTPS, behind a switch:** building with `-Parmor.cleartext=false` uses a network configuration that refuses plain HTTP everywhere (the system authorities and the ones installed on the phone still count); without the switch nothing changes and plain HTTP stays allowed for the home network until the HTTPS profile of the installation is proven there. A test checks both configurations and the wiring.
 - **A diagnostic report to share with whoever helps:** the About dialog gains Share diagnostic, which hands the phone's sharing sheet a short report (app version, Android and device, language, server host, role, whether notifications are allowed, whether battery optimisation is off for the app, whether the alarm watcher is on and the last answers of the server by route shape and status). It holds no password, token, PIN, query or message text, nothing is sent by the app itself, and the answers are kept in memory only.
 

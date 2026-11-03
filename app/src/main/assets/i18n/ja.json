@@ -899,6 +899,7 @@
  "Tu contraseña no se guarda en el móvil. La sesión sí, cifrada, y se renueva mientras uses la app: no tendrás que volver a entrar salvo que caduque o la cierres.": "パスワードはスマホに保存されません。セッションは暗号化して保存され、アプリを使っている間は更新されます。期限切れかログアウトしない限り再ログインは不要です。",
  "Tu operador cambia de vez en cuando la dirección pública de tu casa. Esto mantiene un nombre apuntando siempre a ella, y el móvil nunca necesita saber la dirección.": "プロバイダーは時々、家の公開アドレスを変更します。ここで設定すると名前が常にそのアドレスを指すので、スマホはアドレスを知る必要がありません。",
  "Tu usuario solo puede mirar: no puede cambiar nada.": "このユーザーは閲覧のみで、何も変更できません。",
+ "Tu usuario no tiene permiso para esta acción.": "サーバーはこのユーザーにこの操作を許可していません。",
  "Tus códigos de recuperación: guárdalos ahora": "リカバリーコード：今すぐ保存してください",
  "Tus sesiones abiertas": "開いているセッション",
  "Un conmutador de fuentes de la red eléctrica tiene una avería y queda abierto": "系統の電源切替スイッチが故障し、開いたままです",
