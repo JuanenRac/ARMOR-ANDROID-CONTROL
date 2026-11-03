@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The alarm code `alarm_siren_fault` (the siren of a panel may not sound) is told in the eight languages:** the copies of the shared table of alarm codes and of their help follow the originals, and the Spanish fallback knows the code.
+
 ## [0.8.0.3] - What the person sees follows the capabilities the server announces, a build that only talks HTTPS is available behind a switch and a diagnostic report can be shared with whoever helps
 
 - **What the person sees follows the capabilities the server announces:** the session now carries what the signed-in person may do (arm, disarm, acknowledge, operate, camera control, administer) and the app shows, hides and disables from it instead of from the role alone: the arm and disarm buttons, confirming alarms, the camera controls and the administrator screens each follow their own action, and an order the server does not allow to the person is refused before it is asked, with a message in the eight languages. A server that sends no capabilities (an older one) keeps the behaviour by role. Tests: 422 (before 417).
