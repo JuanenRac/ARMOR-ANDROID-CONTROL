@@ -4,7 +4,7 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
-- **The alarm code `alarm_siren_fault` (the siren of a panel may not sound) is told in the eight languages:** the copies of the shared table of alarm codes and of their help follow the originals, and the Spanish fallback knows the code.
+- **The alarm code `alarm_siren_fault` (the siren of a panel may not sound) is told in the eight languages:** the copies of the shared table of alarm codes and of their help follow the originals.
 
 ## [0.8.0.3] - What the person sees follows the capabilities the server announces, a build that only talks HTTPS is available behind a switch and a diagnostic report can be shared with whoever helps
 
