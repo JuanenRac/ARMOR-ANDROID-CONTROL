@@ -4,6 +4,7 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The launchers find the shared repository through `ARMOR_COMMON_DIR`:** `build`, `build-test`, `test` and `run` (`.sh` and `.bat`) use the folder named by that variable when it is set and the sibling `ARMOR-COMMON` folder otherwise, so a checkout with another layout builds without changing a file.
 - **The alarm code `alarm_siren_fault` (the siren of a panel may not sound) is told in the eight languages:** the copies of the shared table of alarm codes and of their help follow the originals.
 
 ## [0.8.0.3] - What the person sees follows the capabilities the server announces, a build that only talks HTTPS is available behind a switch and a diagnostic report can be shared with whoever helps
