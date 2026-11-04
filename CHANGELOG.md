@@ -4,6 +4,7 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **A trusted phone, off by default:** when the administrator turns on `client.trusted_devices` in Studio, a switch in Security (Bloqueo con el teléfono) lets this phone register a key pair made in the Android Keystore (ECDSA P-256, never exported, usable only while the phone is unlocked) with the server. If the server ended the session, the app signs a one-time challenge and gets a new session for the hours the administrator chose, instead of sending the person to the password and the code; a phone the server no longer knows forgets its id and falls back to the ordinary sign-in, and turning the switch off or signing out ends the phone at the server. The server can end any phone from Studio. The eight languages are in. What a real phone must still show: the fingerprint tied to every renewal is not asked (the lock of the phone option already covers the app). Tests: 12 new.
 - **The launchers find the shared repository through `ARMOR_COMMON_DIR`:** `build`, `build-test`, `test` and `run` (`.sh` and `.bat`) use the folder named by that variable when it is set and the sibling `ARMOR-COMMON` folder otherwise, so a checkout with another layout builds without changing a file.
 - **The alarm code `alarm_siren_fault` (the siren of a panel may not sound) is told in the eight languages:** the copies of the shared table of alarm codes and of their help follow the originals.
 

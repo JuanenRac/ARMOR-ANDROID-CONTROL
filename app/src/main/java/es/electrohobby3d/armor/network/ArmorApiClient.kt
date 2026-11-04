@@ -283,6 +283,14 @@ class ArmorApiClient : ArmorApi {
         val bytes = try { picture.inputStream.use { BoundedRead.bytes(it, BoundedRead.PICTURE_LIMIT) } } finally { picture.disconnect() }
         return es.electrohobby3d.armor.model.ReportsParser.heatmap(map, bytes.takeIf { it.size in 8..16_000_000 })
     }
+    override fun trustRegister(origin: String, name: String, publicKey: String): String =
+        sendJson(origin, "/api/v1/devices/trust", "POST", JSONObject().put("name", name).put("public_key", publicKey), setOf(201)).optString("id")
+    override fun trustChallenge(origin: String, id: String): String =
+        sendJson(origin, "/api/v1/devices/trust/challenge", "POST", JSONObject().put("id", id), setOf(200)).optString("challenge")
+    override fun trustSession(origin: String, id: String, challenge: String, signature: String) {
+        request(origin, "/api/v1/devices/trust/session", "POST", mapOf("Content-Type" to "application/json"), JSONObject().put("id", id).put("challenge", challenge).put("signature", signature).toString(), setOf(201)).disconnect()
+    }
+    override fun trustRemove(origin: String, id: String) { request(origin, "/api/v1/devices/trust/${part(id)}", "DELETE", emptyMap(), null, setOf(204)).disconnect() }
     override fun mySessions(origin: String): List<SessionInfo> = SecurityParser.sessions(getJson(origin, "/api/v1/studio/sessions"))
     override fun endSession(origin: String, id: String) { request(origin, "/api/v1/studio/sessions/${part(id)}", "DELETE", emptyMap(), null, setOf(204)).disconnect() }
     override fun endOtherSessions(origin: String) { request(origin, "/api/v1/studio/sessions/end-others", "POST", emptyMap(), null, setOf(204)).disconnect() }

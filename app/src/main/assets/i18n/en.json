@@ -1448,5 +1448,11 @@
  "no se pudo preguntar": "could not be asked",
  "esperando": "waiting",
  "Compartir diagnóstico": "Share diagnostic",
- "«Compartir diagnóstico» prepara un informe sin contraseñas ni datos privados para quien te ayude; tú eliges con qué aplicación enviarlo.": "“Share diagnostic” prepares a report with no passwords or private data for whoever is helping you; you choose which app sends it."
+ "«Compartir diagnóstico» prepara un informe sin contraseñas ni datos privados para quien te ayude; tú eliges con qué aplicación enviarlo.": "“Share diagnostic” prepares a report with no passwords or private data for whoever is helping you; you choose which app sends it.",
+ "Teléfono de confianza": "Trusted phone",
+ "Desactivado por defecto. Si tu administrador lo permite, este teléfono guarda una clave que no sale de él y renueva la sesión firmando un reto, sin pedirte otra vez la contraseña y el código. Tu administrador puede cerrarlo desde Studio.": "Off by default. If your administrator allows it, this phone keeps a key that never leaves it and renews the session by signing a challenge, without asking for the password and the code again. Your administrator can end it from Studio.",
+ "Tu administrador no ha activado los teléfonos de confianza en este servidor.": "Your administrator has not turned on trusted phones on this server.",
+ "El servidor no ha aceptado este teléfono como de confianza.": "The server did not accept this phone as a trusted one.",
+ "Este servidor no ofrece teléfonos de confianza.": "This server does not offer trusted phones.",
+ "Este teléfono ya es de confianza.": "This phone is now a trusted one."
 }

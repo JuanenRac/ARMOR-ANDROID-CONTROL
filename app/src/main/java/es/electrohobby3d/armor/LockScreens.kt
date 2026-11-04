@@ -86,6 +86,10 @@ class LockCardActions(
     /** The key that seals the session is tied to the unlocking of the phone (off by default). */
     val keyBound: Boolean = false,
     val onKeyBound: (Boolean) -> Unit = {},
+    /** This phone is a trusted one for the server (off by default), and whether the server offers it. */
+    val trusted: Boolean = false,
+    val trustedOffered: Boolean = false,
+    val onTrusted: (Boolean) -> Unit = {},
 )
 
 private fun graceText(seconds: Int): String = when (seconds) {
@@ -120,6 +124,11 @@ fun LockSettingsCard(actions: LockCardActions) {
                 checked = actions.keyBound, enabled = status.availability != LockAvailability.None, onChange = actions.onKeyBound,
             )
             Text(tr("Aviso: con esto, tras reiniciar el teléfono o si Android cierra la aplicación, la vigilancia de alarmas en segundo plano espera a que desbloquees el teléfono y hasta entonces no recibirás ningún aviso."), color = ArmorColors.Amber, fontSize = 12.sp)
+            SwitchRow(
+                tr("Teléfono de confianza"), tr("Desactivado por defecto. Si tu administrador lo permite, este teléfono guarda una clave que no sale de él y renueva la sesión firmando un reto, sin pedirte otra vez la contraseña y el código. Tu administrador puede cerrarlo desde Studio."),
+                checked = actions.trusted, enabled = actions.trustedOffered || actions.trusted, onChange = actions.onTrusted,
+            )
+            if (!actions.trustedOffered) Text(tr("Tu administrador no ha activado los teléfonos de confianza en este servidor."), color = ArmorColors.Muted, fontSize = 12.sp)
             Text(tr("Cuánto vale una comprobación"), fontWeight = FontWeight.SemiBold)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 LockSettings.GRACE_CHOICES.forEach { seconds ->

@@ -75,6 +75,10 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     val lockSettings = remember { LockSettings(PreferencesStore(context.getSharedPreferences("armor-control", Context.MODE_PRIVATE))) }
     val phoneAuth: DeviceAuth = remember { (context as? ArmorActivity)?.deviceAuth ?: NoDeviceAuth }
     val lockPolicy = remember { LockPolicy(lockSettings, phoneAuth::availability) }
+    // A trusted phone (off until the person turns it on): a key that never leaves the phone renews the session by signing a challenge.
+    val trustedSettings = remember { TrustedPhoneSettings(PreferencesStore(context.getSharedPreferences("armor-control", Context.MODE_PRIVATE))) }
+    var trustedOn by remember { mutableStateOf(trustedSettings.enabled) }
+    remember(viewModel) { viewModel.trusted = TrustedPhone(SharedFeed.api, KeystoreSigner(), trustedSettings) { android.os.Build.MODEL.orEmpty() } }
     val lockGate = remember { LockGate(lockPolicy, phoneAuth) }
     var locked by rememberSaveable { mutableStateOf(lockPolicy.openRequired()) }
     var lockStatus by remember { mutableStateOf(lockPolicy.status()) }
@@ -133,6 +137,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     val lifecycleOwner = LocalLifecycleOwner.current
     val validOrigin = ServerEndpoint.parse(origin) != null
     val currentOrigin = ServerEndpoint.parse(origin)?.origin.orEmpty()
+    LaunchedEffect(state.authenticated, state.trustedDevices, trustedOn, currentOrigin) { if (state.authenticated && trustedOn && state.trustedDevices && currentOrigin.isNotBlank()) viewModel.registerTrustedQuietly(currentOrigin) }
     val snackbar = remember { SnackbarHostState() }
     val updateState by updateViewModel.state.collectAsStateWithLifecycle()
 
@@ -440,6 +445,8 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                             onGrace = { seconds -> lockSettings.graceSeconds = seconds; lockStatus = lockPolicy.status() },
                                             keyBound = keyBound,
                                             onKeyBound = { on -> changeLock(on, true) { KeyBoxes.rebind(context, on); keyBound = on } },
+                                            trusted = trustedOn, trustedOffered = state.trustedDevices,
+                                            onTrusted = { on -> trustedSettings.enabled = on; trustedOn = on; if (on) viewModel.trustThisPhone(currentOrigin) else viewModel.untrustThisPhone(currentOrigin) },
                                         ), onStart = { viewModel.startSecondFactor(currentOrigin, it) }, onEnable = { viewModel.enableSecondFactor(currentOrigin, it) }, onDisable = { viewModel.disableSecondFactor(currentOrigin, it) },
                                         onEndSession = { viewModel.endSession(currentOrigin, it) }, onEndOthers = { viewModel.endOtherSessions(currentOrigin) }, onCheck = { viewModel.checkRemote(currentOrigin) },
                                         remoteActions = RemoteSetupActions(

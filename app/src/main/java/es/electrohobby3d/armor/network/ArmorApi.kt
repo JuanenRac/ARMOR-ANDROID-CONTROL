@@ -4,12 +4,12 @@ package es.electrohobby3d.armor.network
 import es.electrohobby3d.armor.model.*
 
 /** What the session of the server tells about the signed-in person and the options in force for the phone. */
-data class SessionFacts(val role: String = "", val deviceLock: String = "user", val capabilities: SessionCapabilities = SessionCapabilities.fromRole(role)) {
+data class SessionFacts(val role: String = "", val deviceLock: String = "user", val trustedDevices: Boolean = false, val capabilities: SessionCapabilities = SessionCapabilities.fromRole(role)) {
     companion object {
         /** From the answer of `GET /api/v1/studio/session`. */
         fun parse(json: org.json.JSONObject): SessionFacts {
             val role = json.optJSONObject("user")?.optString("role").orEmpty()
-            return SessionFacts(role = role, deviceLock = json.optJSONObject("capabilities")?.optJSONObject("security")?.optString("client.device_lock").orEmpty().ifBlank { "user" }, capabilities = SessionCapabilities.of(json, role))
+            return SessionFacts(role = role, deviceLock = json.optJSONObject("capabilities")?.optJSONObject("security")?.optString("client.device_lock").orEmpty().ifBlank { "user" }, trustedDevices = json.optJSONObject("capabilities")?.optJSONObject("security")?.optBoolean("client.trusted_devices", false) == true, capabilities = SessionCapabilities.of(json, role))
         }
     }
 }
@@ -88,6 +88,14 @@ interface ArmorApi {
     /** The second step: the challenge of the first and the code of the app (or a recovery code). */
     fun completeSignIn(origin: String, challenge: String, code: String)
     fun mySessions(origin: String): List<SessionInfo>
+    /** Registers this phone as a trusted one with the public half of its key (base64 DER); the server's id for it. A server that is not offering it answers 404. */
+    fun trustRegister(origin: String, name: String, publicKey: String): String = throw UnsupportedOperationException("trustRegister")
+    /** A one-time value for the phone to sign (no session needed). */
+    fun trustChallenge(origin: String, id: String): String = throw UnsupportedOperationException("trustChallenge")
+    /** Gives the signature (base64 DER) of the challenge; the server opens a session and its cookie becomes the one of the client. */
+    fun trustSession(origin: String, id: String, challenge: String, signature: String): Unit = throw UnsupportedOperationException("trustSession")
+    /** Ends this phone as a trusted one. */
+    fun trustRemove(origin: String, id: String): Unit = throw UnsupportedOperationException("trustRemove")
     /** The summary of a day in a language, for administrators and operators; the server refuses (404 off, 403 role, 503 not set up...) with a code that [es.electrohobby3d.armor.model.ReportRefusal] turns into words. */
     fun dailySummary(origin: String, date: String, language: String): es.electrohobby3d.armor.model.DailySummaryView = throw UnsupportedOperationException("dailySummary")
     /** The activity heat map of a camera (the only one when [camera] is null) with its picture. */

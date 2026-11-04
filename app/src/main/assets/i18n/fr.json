@@ -1448,5 +1448,11 @@
  "no se pudo preguntar": "n'a pas pu être sollicité",
  "esperando": "en attente",
  "Compartir diagnóstico": "Partager le diagnostic",
- "«Compartir diagnóstico» prepara un informe sin contraseñas ni datos privados para quien te ayude; tú eliges con qué aplicación enviarlo.": "« Partager le diagnostic » prépare un rapport sans mots de passe ni données privées pour la personne qui vous aide ; vous choisissez l'application d'envoi."
+ "«Compartir diagnóstico» prepara un informe sin contraseñas ni datos privados para quien te ayude; tú eliges con qué aplicación enviarlo.": "« Partager le diagnostic » prépare un rapport sans mots de passe ni données privées pour la personne qui vous aide ; vous choisissez l'application d'envoi.",
+ "Teléfono de confianza": "Téléphone de confiance",
+ "Desactivado por defecto. Si tu administrador lo permite, este teléfono guarda una clave que no sale de él y renueva la sesión firmando un reto, sin pedirte otra vez la contraseña y el código. Tu administrador puede cerrarlo desde Studio.": "Désactivé par défaut. Si votre administrateur l'autorise, ce téléphone garde une clé qui ne le quitte jamais et renouvelle la session en signant un défi, sans redemander le mot de passe et le code. Votre administrateur peut y mettre fin depuis Studio.",
+ "Tu administrador no ha activado los teléfonos de confianza en este servidor.": "Votre administrateur n'a pas activé les téléphones de confiance sur ce serveur.",
+ "El servidor no ha aceptado este teléfono como de confianza.": "Le serveur n'a pas accepté ce téléphone comme téléphone de confiance.",
+ "Este servidor no ofrece teléfonos de confianza.": "Ce serveur n'offre pas de téléphones de confiance.",
+ "Este teléfono ya es de confianza.": "Ce téléphone est maintenant un téléphone de confiance."
 }

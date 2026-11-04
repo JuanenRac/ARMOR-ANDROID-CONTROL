@@ -1448,5 +1448,11 @@
  "no se pudo preguntar": "non è stato possibile interpellarlo",
  "esperando": "in attesa",
  "Compartir diagnóstico": "Condividi diagnostica",
- "«Compartir diagnóstico» prepara un informe sin contraseñas ni datos privados para quien te ayude; tú eliges con qué aplicación enviarlo.": "«Condividi diagnostica» prepara un rapporto senza password né dati privati per chi ti aiuta; scegli tu con quale app inviarlo."
+ "«Compartir diagnóstico» prepara un informe sin contraseñas ni datos privados para quien te ayude; tú eliges con qué aplicación enviarlo.": "«Condividi diagnostica» prepara un rapporto senza password né dati privati per chi ti aiuta; scegli tu con quale app inviarlo.",
+ "Teléfono de confianza": "Telefono attendibile",
+ "Desactivado por defecto. Si tu administrador lo permite, este teléfono guarda una clave que no sale de él y renueva la sesión firmando un reto, sin pedirte otra vez la contraseña y el código. Tu administrador puede cerrarlo desde Studio.": "Disattivato per impostazione predefinita. Se il tuo amministratore lo consente, questo telefono conserva una chiave che non lo lascia mai e rinnova la sessione firmando una sfida, senza chiedere di nuovo password e codice. Il tuo amministratore può terminarlo da Studio.",
+ "Tu administrador no ha activado los teléfonos de confianza en este servidor.": "Il tuo amministratore non ha attivato i telefoni attendibili su questo server.",
+ "El servidor no ha aceptado este teléfono como de confianza.": "Il server non ha accettato questo telefono come attendibile.",
+ "Este servidor no ofrece teléfonos de confianza.": "Questo server non offre telefoni attendibili.",
+ "Este teléfono ya es de confianza.": "Questo telefono ora è attendibile."
 }

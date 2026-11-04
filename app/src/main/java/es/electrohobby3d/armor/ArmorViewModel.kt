@@ -49,6 +49,8 @@ data class MonitorUiState(
     val capabilities: SessionCapabilities? = null,
     /** What the server asks of the phone's lock: "user" (the person decides), "sensitive" or "always". */
     val deviceLock: String = "user",
+    /** Whether the server lets a phone register as a trusted one (the option of the administrator). */
+    val trustedDevices: Boolean = false,
     val loading: Boolean = false,
     val snapshot: ArmorSnapshot = ArmorSnapshot(),
     val cameras: List<CameraView> = emptyList(),
@@ -366,7 +368,39 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
     /** Signed in: the role and what the server asks of the phone's lock come from one request to the session. */
     private fun MonitorUiState.signedIn(origin: String): MonitorUiState {
         val facts = runCatching { client.sessionFacts(origin) }.getOrDefault(SessionFacts())
-        return copy(authenticated = true, role = facts.role, capabilities = facts.capabilities, deviceLock = facts.deviceLock)
+        return copy(authenticated = true, role = facts.role, capabilities = facts.capabilities, deviceLock = facts.deviceLock, trustedDevices = facts.trustedDevices)
+    }
+
+    /** The trusted phone of the app (null in a test or a preview: then nothing is renewed). */
+    var trusted: TrustedPhone? = null
+
+    /** Signs a challenge with the key of this phone when it was registered, so a session the server ended is renewed without typing the password and the code again. */
+    private fun renewWithTrustedPhone(origin: String): Boolean = trusted?.renew(origin) == true && runCatching { client.studioSessionActive(origin) }.getOrDefault(false)
+
+    /** The person turned the switch on: registers this phone (asking for a new proof of identity first when the server wants one). */
+    fun trustThisPhone(origin: String) {
+        val phone = trusted ?: return
+        securityCall(origin) {
+            when (phone.register(origin, _state.value.trustedDevices)) {
+                TrustResult.NeedsProof -> throw ElevationRequiredException()
+                TrustResult.Failed -> _state.update { it.copy(message = tr("El servidor no ha aceptado este teléfono como de confianza.")) }
+                TrustResult.Unavailable -> _state.update { it.copy(message = tr("Este servidor no ofrece teléfonos de confianza.")) }
+                else -> _state.update { it.copy(message = tr("Este teléfono ya es de confianza.")) }
+            }
+        }
+    }
+
+    /** Registers this phone without a word when the switch is on and the server offers it (after a sign-in); a server that wants a proof first is left for the switch to ask. */
+    fun registerTrustedQuietly(origin: String) {
+        val phone = trusted ?: return
+        if (!_state.value.trustedDevices) return
+        viewModelScope.launch(Dispatchers.IO) { runCatching { phone.register(origin, true) } }
+    }
+
+    /** The person turned the switch off: the server forgets this phone and so does the app. */
+    fun untrustThisPhone(origin: String) {
+        val phone = trusted ?: return
+        viewModelScope.launch(Dispatchers.IO) { phone.end(origin) }
     }
 
     /** Asked before an action that must be confirmed with the lock of the phone; the screen puts the real question here, a test a stand-in. Null: nothing is asked. */
@@ -548,14 +582,22 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
      * refused it; [refused] tells that case from a server that could not be reached, in which the kept session is worth keeping.
      */
     suspend fun tryRestore(origin: String, session: StoredSession?, refused: () -> Unit): Boolean = withContext(Dispatchers.IO) {
-        if (session == null || ServerEndpoint.parse(origin) == null) return@withContext false
+        if (ServerEndpoint.parse(origin) == null) return@withContext false
+        if (session == null) {   // nothing kept: a trusted phone can still open the session by signing
+            if (!renewWithTrustedPhone(origin)) return@withContext false
+            _state.update { it.signedIn(origin) }
+            return@withContext try { refreshInternal(origin, loadMedia = true); true } catch (error: Exception) { _state.update { it.copy(authenticated = false) }; false }
+        }
         client.restoreSessionCookie(origin, session.name, session.value)
         try {
-            if (!client.studioSessionActive(origin)) { refused(); return@withContext false }
+            if (!client.studioSessionActive(origin) && !renewWithTrustedPhone(origin)) { refused(); return@withContext false }
             _state.update { it.signedIn(origin) }
             refreshInternal(origin, loadMedia = true)
             true
         } catch (error: ArmorApiException) {
+            if ((error.code == 401 || error.code == 403) && renewWithTrustedPhone(origin)) {
+                return@withContext try { _state.update { it.signedIn(origin) }; refreshInternal(origin, loadMedia = true); true } catch (_: Exception) { _state.update { it.copy(authenticated = false) }; false }
+            }
             if (error.code == 401 || error.code == 403) refused()
             _state.update { it.copy(authenticated = false) }
             false
@@ -576,6 +618,7 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 pushToken?.let { token -> runCatching { client.unregisterPush(origin, token) } }   // a signed-out phone gets no alarms from the server
+                trusted?.end(origin)   // a signed-out phone is no longer trusted by the server
                 runCatching { client.closeStudioSession(origin) }; client.forgetSession(origin)
             }
             _state.update { MonitorUiState(message = "Session closed") }
