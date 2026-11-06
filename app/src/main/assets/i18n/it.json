@@ -1454,5 +1454,19 @@
  "Tu administrador no ha activado los teléfonos de confianza en este servidor.": "Il tuo amministratore non ha attivato i telefoni attendibili su questo server.",
  "El servidor no ha aceptado este teléfono como de confianza.": "Il server non ha accettato questo telefono come attendibile.",
  "Este servidor no ofrece teléfonos de confianza.": "Questo server non offre telefoni attendibili.",
- "Este teléfono ya es de confianza.": "Questo telefono ora è attendibile."
+ "Este teléfono ya es de confianza.": "Questo telefono ora è attendibile.",
+ "Código de emparejamiento": "Codice di abbinamento",
+ "Mostrar el código": "Mostra il codice",
+ "Ocultar el código": "Nascondi il codice",
+ "Escanear el código": "Scansiona il codice",
+ "Nombre del nodo (para el código)": "Nome del nodo (per il codice)",
+ "Este nodo coincide con el código leído": "Questo nodo corrisponde al codice letto",
+ "Ese código no es un código de emparejamiento de A.R.M.O.R.": "Quel codice non è un codice di abbinamento A.R.M.O.R.",
+ "Código leído: nodo %s en %s.": "Codice letto: nodo %s su %s.",
+ "El servidor del código no es el de esta app.": "Il server del codice non è quello di questa app.",
+ "No se pudo abrir el lector de códigos en este teléfono.": "Non è stato possibile aprire il lettore di codici su questo telefono.",
+ "Configura el servidor en Ajustes para mostrar el código.": "Imposta il server nelle Impostazioni per mostrare il codice.",
+ "El nombre del nodo o la dirección del servidor no es válida.": "Il nome del nodo o l'indirizzo del server non è valido.",
+ "Código QR de emparejamiento del nodo": "Codice QR di abbinamento del nodo",
+ "El código lleva solo el nombre del nodo y la dirección del servidor, sin contraseña.": "Il codice contiene solo il nome del nodo e l'indirizzo del server, nessuna password."
 }

@@ -54,6 +54,16 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.ui.graphics.asImageBitmap
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.EncodeHintType
+import com.google.zxing.qrcode.QRCodeWriter
+import es.electrohobby3d.armor.model.Pairing
+import es.electrohobby3d.armor.model.PairingCode
 import es.electrohobby3d.armor.model.NodeHello
 import es.electrohobby3d.armor.model.NodeOutcome
 import es.electrohobby3d.armor.model.NodeProtocol
@@ -232,10 +242,11 @@ private fun blePermissions(): Array<String> =
 private fun hasBlePermissions(context: Context): Boolean = blePermissions().all { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }
 
 @Composable
-fun NodeSetupScreen(onClose: () -> Unit, model: NodeSetupViewModel = viewModel()) {
+fun NodeSetupScreen(onClose: () -> Unit, origin: String = "", model: NodeSetupViewModel = viewModel()) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val state by model.state.collectAsStateWithLifecycle()
     var granted by remember { mutableStateOf(hasBlePermissions(context)) }
+    var paired by remember { mutableStateOf<Pairing?>(null) }   // the node (and server) of the pairing code that was read
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result -> granted = result.values.all { it }; if (granted) model.scan() }
 
     // Back goes one step back (to the search, disconnected), and from the search it leaves the set-up: it used to close the app or change the section hidden behind.
@@ -247,7 +258,7 @@ fun NodeSetupScreen(onClose: () -> Unit, model: NodeSetupViewModel = viewModel()
         }
         if (state.message.isNotBlank()) Text(state.message, color = if (state.saved) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
         when (state.step) {
-            NodeStep.Search -> SearchStep(state, granted, onSearch = { if (granted) model.scan() else permission.launch(blePermissions()) }, onStop = model::stopScan, onPick = model::connect)
+            NodeStep.Search -> SearchStep(state, granted, origin, paired, onPaired = { paired = it }, onSearch = { if (granted) model.scan() else permission.launch(blePermissions()) }, onStop = model::stopScan, onPick = model::connect)
             NodeStep.Connecting -> Text(tr("Conectando… Si Android pregunta por emparejar, acepta y escribe el PIN que muestra el nodo en su consola USB."))
             NodeStep.SignIn -> SignInStep(state, onSignIn = model::signIn, onBack = { model.close() })
             NodeStep.Configure -> ConfigureStep(state, onScanWifi = model::searchNetworks, onApply = model::apply, onReboot = model::reboot)
@@ -257,13 +268,18 @@ fun NodeSetupScreen(onClose: () -> Unit, model: NodeSetupViewModel = viewModel()
 }
 
 @Composable
-private fun SearchStep(state: NodeSetupState, granted: Boolean, onSearch: () -> Unit, onStop: () -> Unit, onPick: (FoundNode) -> Unit) {
+private fun SearchStep(state: NodeSetupState, granted: Boolean, origin: String, paired: Pairing?, onPaired: (Pairing) -> Unit, onSearch: () -> Unit, onStop: () -> Unit, onPick: (FoundNode) -> Unit) {
     Text(tr("Para un nodo sin cable Ethernet o sin dirección todavía. El nodo tiene que estar encendido y con el Bluetooth activo (un nodo nuevo lo tiene mientras no tenga usuarios)."), style = MaterialTheme.typography.bodySmall)
     if (!granted) Text(tr("La app necesita el permiso de Bluetooth cercano para buscar nodos."), style = MaterialTheme.typography.bodySmall)
     Button(onClick = if (state.scanning) onStop else onSearch, modifier = Modifier.fillMaxWidth()) { Text(if (state.scanning) tr("Parar la búsqueda") else tr("Buscar nodos")) }
-    state.found.forEach { node ->
+    PairingSection(origin, paired, onPaired)
+    val matches = { node: FoundNode -> paired != null && node.name.contains(paired.nodeId, ignoreCase = true) }
+    state.found.sortedByDescending { matches(it) }.forEach { node ->
         Card(Modifier.fillMaxWidth().clickable { onPick(node) }) {
-            Row(Modifier.padding(12.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text(node.name); Text("${node.rssi} dBm", style = MaterialTheme.typography.labelMedium) }
+            Column(Modifier.padding(12.dp).fillMaxWidth()) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) { Text(node.name); Text("${node.rssi} dBm", style = MaterialTheme.typography.labelMedium) }
+                if (matches(node)) Text(tr("Este nodo coincide con el código leído"), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+            }
         }
     }
     if (state.scanning && state.found.isEmpty()) Text(tr("Buscando…"))
@@ -402,3 +418,50 @@ private fun VerifyStep(state: NodeSetupState, onAgain: () -> Unit, onReconfigure
         TextButton(onClick = onDone, modifier = Modifier.fillMaxWidth()) { Text(tr("Terminar")) }
     }
 }
+
+/** The pairing code of a node: shown as a QR code (the name of the node and the address of the server, no secret) or read with the camera, which marks the node in the list. */
+@Composable
+private fun PairingSection(origin: String, paired: Pairing?, onPaired: (Pairing) -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var open by remember { mutableStateOf(false) }
+    var nodeId by remember { mutableStateOf(paired?.nodeId.orEmpty()) }
+    var message by remember { mutableStateOf("") }
+    val text = PairingCode.build(nodeId.trim(), origin)
+    Text(tr("Código de emparejamiento"), style = MaterialTheme.typography.titleMedium)
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedButton(onClick = { open = !open }, modifier = Modifier.weight(1f)) { Text(if (open) tr("Ocultar el código") else tr("Mostrar el código")) }
+        OutlinedButton(onClick = {
+            val options = GmsBarcodeScannerOptions.Builder().setBarcodeFormats(Barcode.FORMAT_QR_CODE).build()
+            GmsBarcodeScanning.getClient(context, options).startScan()
+                .addOnSuccessListener { barcode ->
+                    val read = PairingCode.parse(barcode.rawValue)
+                    if (read == null) message = tr("Ese código no es un código de emparejamiento de A.R.M.O.R.")
+                    else {
+                        onPaired(read); nodeId = read.nodeId
+                        message = trf("Código leído: nodo %s en %s.", read.nodeId, read.server) +
+                            if (origin.isNotBlank() && PairingCode.cleanServer(origin) != read.server) " " + tr("El servidor del código no es el de esta app.") else ""
+                    }
+                }
+                .addOnCanceledListener { }
+                .addOnFailureListener { message = tr("No se pudo abrir el lector de códigos en este teléfono.") }
+        }, modifier = Modifier.weight(1f)) { Text(tr("Escanear el código")) }
+    }
+    if (message.isNotBlank()) Text(message, style = MaterialTheme.typography.bodySmall)
+    if (open) {
+        OutlinedTextField(nodeId, { nodeId = it.lowercase() }, label = { Text(tr("Nombre del nodo (para el código)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        val picture = remember(text) { text?.let { qrBitmap(it) } }
+        if (picture == null) Text(if (origin.isBlank()) tr("Configura el servidor en Ajustes para mostrar el código.") else tr("El nombre del nodo o la dirección del servidor no es válida."), style = MaterialTheme.typography.bodySmall)
+        else {
+            androidx.compose.foundation.Image(picture.asImageBitmap(), contentDescription = tr("Código QR de emparejamiento del nodo"), modifier = Modifier.fillMaxWidth().aspectRatio(1f))
+            Text(tr("El código lleva solo el nombre del nodo y la dirección del servidor, sin contraseña."), style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+/** The QR code of a text as a picture (black on white, with the quiet border a reader needs), or null when it cannot be drawn. */
+private fun qrBitmap(text: String): android.graphics.Bitmap? = try {
+    val size = 512
+    val matrix = QRCodeWriter().encode(text, BarcodeFormat.QR_CODE, size, size, mapOf(EncodeHintType.MARGIN to 2, EncodeHintType.CHARACTER_SET to "UTF-8"))
+    val pixels = IntArray(size * size) { if (matrix.get(it % size, it / size)) android.graphics.Color.BLACK else android.graphics.Color.WHITE }
+    android.graphics.Bitmap.createBitmap(pixels, size, size, android.graphics.Bitmap.Config.ARGB_8888)
+} catch (_: Exception) { null }

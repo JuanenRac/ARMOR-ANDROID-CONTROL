@@ -1454,5 +1454,19 @@
  "Tu administrador no ha activado los teléfonos de confianza en este servidor.": "Ihr Administrator hat vertrauenswürdige Handys auf diesem Server nicht eingeschaltet.",
  "El servidor no ha aceptado este teléfono como de confianza.": "Der Server hat dieses Handy nicht als vertrauenswürdig akzeptiert.",
  "Este servidor no ofrece teléfonos de confianza.": "Dieser Server bietet keine vertrauenswürdigen Handys an.",
- "Este teléfono ya es de confianza.": "Dieses Handy ist jetzt vertrauenswürdig."
+ "Este teléfono ya es de confianza.": "Dieses Handy ist jetzt vertrauenswürdig.",
+ "Código de emparejamiento": "Kopplungscode",
+ "Mostrar el código": "Code anzeigen",
+ "Ocultar el código": "Code ausblenden",
+ "Escanear el código": "Code scannen",
+ "Nombre del nodo (para el código)": "Name des Knotens (für den Code)",
+ "Este nodo coincide con el código leído": "Dieser Knoten passt zum gelesenen Code",
+ "Ese código no es un código de emparejamiento de A.R.M.O.R.": "Dieser Code ist kein A.R.M.O.R.-Kopplungscode.",
+ "Código leído: nodo %s en %s.": "Code gelesen: Knoten %s auf %s.",
+ "El servidor del código no es el de esta app.": "Der Server des Codes ist nicht der dieser App.",
+ "No se pudo abrir el lector de códigos en este teléfono.": "Der Code-Scanner konnte auf diesem Handy nicht geöffnet werden.",
+ "Configura el servidor en Ajustes para mostrar el código.": "Server in den Einstellungen festlegen, um den Code anzuzeigen.",
+ "El nombre del nodo o la dirección del servidor no es válida.": "Der Knotenname oder die Serveradresse ist ungültig.",
+ "Código QR de emparejamiento del nodo": "Kopplungs-QR-Code des Knotens",
+ "El código lleva solo el nombre del nodo y la dirección del servidor, sin contraseña.": "Der Code enthält nur den Namen des Knotens und die Adresse des Servers, kein Passwort."
 }

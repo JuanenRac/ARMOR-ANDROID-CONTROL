@@ -1454,5 +1454,19 @@
  "Tu administrador no ha activado los teléfonos de confianza en este servidor.": "Your administrator has not turned on trusted phones on this server.",
  "El servidor no ha aceptado este teléfono como de confianza.": "The server did not accept this phone as a trusted one.",
  "Este servidor no ofrece teléfonos de confianza.": "This server does not offer trusted phones.",
- "Este teléfono ya es de confianza.": "This phone is now a trusted one."
+ "Este teléfono ya es de confianza.": "This phone is now a trusted one.",
+ "Código de emparejamiento": "Pairing code",
+ "Mostrar el código": "Show the code",
+ "Ocultar el código": "Hide the code",
+ "Escanear el código": "Scan the code",
+ "Nombre del nodo (para el código)": "Node name (for the code)",
+ "Este nodo coincide con el código leído": "This node matches the code that was read",
+ "Ese código no es un código de emparejamiento de A.R.M.O.R.": "That code is not an A.R.M.O.R. pairing code.",
+ "Código leído: nodo %s en %s.": "Code read: node %s on %s.",
+ "El servidor del código no es el de esta app.": "The server of the code is not the one of this app.",
+ "No se pudo abrir el lector de códigos en este teléfono.": "The code reader could not be opened on this phone.",
+ "Configura el servidor en Ajustes para mostrar el código.": "Set the server in Settings to show the code.",
+ "El nombre del nodo o la dirección del servidor no es válida.": "The node name or the server address is not valid.",
+ "Código QR de emparejamiento del nodo": "Pairing QR code of the node",
+ "El código lleva solo el nombre del nodo y la dirección del servidor, sin contraseña.": "The code holds only the name of the node and the address of the server, no password."
 }

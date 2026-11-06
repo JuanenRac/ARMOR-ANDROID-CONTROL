@@ -335,7 +335,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                 return@Surface
             }
             if (restoring && !state.authenticated && currentOrigin.isNotBlank()) { RestoringScreen(); return@Surface }
-            if (nodeSetup) { NodeSetupScreen(onClose = { nodeSetup = false }); return@Surface }
+            if (nodeSetup) { NodeSetupScreen(onClose = { nodeSetup = false }, origin = currentOrigin); return@Surface }
             if (!state.authenticated) {
                 val homeEndpoint = if (serverHost.isBlank()) null else ServerEndpoint.fromHostAndPort(serverHost, serverPort)
                 val awayEndpoint = if (awayHost.isBlank()) null else ServerEndpoint.fromHostAndPort(awayHost, awayPort)

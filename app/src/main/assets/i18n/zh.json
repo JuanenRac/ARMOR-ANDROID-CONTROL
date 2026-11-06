@@ -1454,5 +1454,19 @@
  "Tu administrador no ha activado los teléfonos de confianza en este servidor.": "管理员尚未在此服务器上启用受信任的手机。",
  "El servidor no ha aceptado este teléfono como de confianza.": "服务器未接受这部手机作为受信任的手机。",
  "Este servidor no ofrece teléfonos de confianza.": "此服务器不提供受信任的手机。",
- "Este teléfono ya es de confianza.": "这部手机现在是受信任的手机。"
+ "Este teléfono ya es de confianza.": "这部手机现在是受信任的手机。",
+ "Código de emparejamiento": "配对码",
+ "Mostrar el código": "显示二维码",
+ "Ocultar el código": "隐藏二维码",
+ "Escanear el código": "扫描二维码",
+ "Nombre del nodo (para el código)": "节点名称（用于二维码）",
+ "Este nodo coincide con el código leído": "该节点与读取的二维码一致",
+ "Ese código no es un código de emparejamiento de A.R.M.O.R.": "该二维码不是 A.R.M.O.R. 配对二维码。",
+ "Código leído: nodo %s en %s.": "已读取二维码：节点 %s，服务器 %s。",
+ "El servidor del código no es el de esta app.": "二维码中的服务器不是此应用使用的服务器。",
+ "No se pudo abrir el lector de códigos en este teléfono.": "无法在这部手机上打开二维码扫描器。",
+ "Configura el servidor en Ajustes para mostrar el código.": "请先在设置中配置服务器，以显示二维码。",
+ "El nombre del nodo o la dirección del servidor no es válida.": "节点名称或服务器地址无效。",
+ "Código QR de emparejamiento del nodo": "节点的配对二维码",
+ "El código lleva solo el nombre del nodo y la dirección del servidor, sin contraseña.": "二维码仅包含节点名称和服务器地址，不含密码。"
 }

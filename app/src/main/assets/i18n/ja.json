@@ -1454,5 +1454,19 @@
  "Tu administrador no ha activado los teléfonos de confianza en este servidor.": "このサーバーでは、管理者が信頼できるスマートフォンを有効にしていません。",
  "El servidor no ha aceptado este teléfono como de confianza.": "サーバーはこの端末を信頼できる端末として受け付けませんでした。",
  "Este servidor no ofrece teléfonos de confianza.": "このサーバーは信頼できるスマートフォンを提供していません。",
- "Este teléfono ya es de confianza.": "この端末は信頼できる端末になりました。"
+ "Este teléfono ya es de confianza.": "この端末は信頼できる端末になりました。",
+ "Código de emparejamiento": "ペアリングコード",
+ "Mostrar el código": "コードを表示",
+ "Ocultar el código": "コードを隠す",
+ "Escanear el código": "コードをスキャン",
+ "Nombre del nodo (para el código)": "ノード名（コード用）",
+ "Este nodo coincide con el código leído": "このノードは読み取ったコードと一致します",
+ "Ese código no es un código de emparejamiento de A.R.M.O.R.": "このコードは A.R.M.O.R. のペアリングコードではありません。",
+ "Código leído: nodo %s en %s.": "コードを読み取りました：ノード %s、サーバー %s。",
+ "El servidor del código no es el de esta app.": "コードのサーバーはこのアプリのものではありません。",
+ "No se pudo abrir el lector de códigos en este teléfono.": "この端末ではコードリーダーを開けませんでした。",
+ "Configura el servidor en Ajustes para mostrar el código.": "コードを表示するには、設定でサーバーを指定してください。",
+ "El nombre del nodo o la dirección del servidor no es válida.": "ノード名またはサーバーのアドレスが無効です。",
+ "Código QR de emparejamiento del nodo": "ノードのペアリング QR コード",
+ "El código lleva solo el nombre del nodo y la dirección del servidor, sin contraseña.": "コードにはノード名とサーバーのアドレスだけが含まれ、パスワードは含まれません。"
 }
