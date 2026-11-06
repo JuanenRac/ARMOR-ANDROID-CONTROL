@@ -28,7 +28,7 @@ import es.electrohobby3d.armor.model.MediaItem
 import es.electrohobby3d.armor.update.AppUpdateState
 
 /** What the "More" tab can show; null is the menu itself. */
-enum class MoreTab { Reports, Nodes, Voice, Weather, Solar, Batteries, NodeControl, Electrical, AlarmPanels, Network, Services, NodeHealth, Evidence, History, Security, Updates, Settings }
+enum class MoreTab { Reports, Nodes, Voice, Weather, Solar, Batteries, NodeControl, MachineUpdate, Electrical, AlarmPanels, Network, Services, NodeHealth, Evidence, History, Security, Updates, Settings }
 
 @Composable
 fun MoreMenu(onOpen: (MoreTab) -> Unit, onNodeSetup: () -> Unit, onAbout: () -> Unit, onLogout: () -> Unit, updateAvailable: Boolean = false, isAdmin: Boolean = false, canReports: Boolean = false) {
@@ -40,6 +40,7 @@ fun MoreMenu(onOpen: (MoreTab) -> Unit, onNodeSetup: () -> Unit, onAbout: () -> 
         MenuRow(Icons.Filled.WbSunny, tr("Solar"), tr("Inversores y baterías")) { onOpen(MoreTab.Solar) }
         if (isAdmin) MenuRow(Icons.Filled.BatteryChargingFull, tr("Mantenimiento de baterías"), tr("Reloj, contadores, reinicio, capacidad y salidas de una batería Pylontech")) { onOpen(MoreTab.Batteries) }
         if (isAdmin) MenuRow(Icons.Filled.SettingsPower, tr("Control de nodos"), tr("Reiniciar, pausar, poner en espera, identificar, diagnosticar y mantenimiento de un nodo o de todos")) { onOpen(MoreTab.NodeControl) }
+        if (isAdmin) MenuRow(Icons.Filled.Update, tr("Actualizar el equipo"), tr("Los programas del equipo donde corre el servidor: ver versiones y actualizar solo con versiones firmadas")) { onOpen(MoreTab.MachineUpdate) }
         MenuRow(Icons.Filled.ElectricBolt, tr("Eléctrica"), tr("Red, circuitos y buses de continua")) { onOpen(MoreTab.Electrical) }
         MenuRow(Icons.Filled.Shield, tr("Centrales de alarma"), tr("Nodos ARMOR-NODE-ALARM: zonas, estado y armado")) { onOpen(MoreTab.AlarmPanels) }
         MenuRow(Icons.Filled.Router, tr("Red"), tr("Internet, dispositivos y cambios de la red local")) { onOpen(MoreTab.Network) }

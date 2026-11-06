@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.content.Context
 import es.electrohobby3d.armor.model.Alarm
+import es.electrohobby3d.armor.model.MachineJobView
+import es.electrohobby3d.armor.model.MachineUpdateParser
 import es.electrohobby3d.armor.model.ArmorEvent
 import es.electrohobby3d.armor.model.SiteDevice
 import es.electrohobby3d.armor.model.ArmorSnapshot
@@ -257,6 +259,59 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
     }
     fun openControl(operation: es.electrohobby3d.armor.model.ControlOperationView) { _control.update { it.copy(active = operation, message = null) } }
     fun closeControl() { _control.update { it.copy(active = null, message = null) } }
+
+    // ---- updating the programs of the machine (administrators): a preview of one program, then the apply with its name typed again, a new proof of identity and the one-time code ----
+    private val _machine = MutableStateFlow(MachineUpdateUiState())
+    val machine: StateFlow<MachineUpdateUiState> = _machine.asStateFlow()
+
+    private fun machineCall(block: suspend () -> Unit) {
+        viewModelScope.launch {
+            _machine.update { it.copy(busy = true, message = null) }
+            runCatching { withContext(Dispatchers.IO) { block() } }
+                .onFailure { error ->
+                    if (error is ElevationRequiredException) {   // a new proof of identity, always for this: then the same step by itself
+                        retryAfterElevation = { block() }
+                        _security.update { it.copy(elevationNeeded = true, elevationError = null) }
+                        _machine.update { it.copy(busy = false) }
+                    } else _machine.update { it.copy(busy = false, message = machineUpdateErrorText(error)) }
+                }
+                .onSuccess { _machine.update { it.copy(busy = false) } }
+        }
+    }
+
+    /** Whether the update is on and which programs it can update; a failure leaves the screen with its message. */
+    fun loadMachineUpdate(origin: String) = machineCall {
+        val found = client.machineUpdateState(origin)
+        _machine.update { it.copy(state = found) }
+    }
+
+    /** Step one: the versions of [project] and, when it is outdated, the plan (good once, for a few minutes). Nothing changes on the machine. */
+    fun previewMachineUpdate(origin: String, project: String) = machineCall {
+        val found = client.machineUpdatePreview(origin, project)
+        _machine.update { it.copy(preview = found, previewAtMs = System.currentTimeMillis(), job = null, jobLog = emptyList()) }
+    }
+
+    /** Step two: the plan of the preview, the name typed again and the one-time code. The phone lock is asked first, as for the other critical actions; the code is never kept. */
+    fun applyMachineUpdate(origin: String, project: String, planId: String, confirm: String, code: String) =
+        confirmed(trf("Actualizar %s", project), { text -> _machine.update { it.copy(message = text) } }) {
+            machineCall {
+                val id = client.machineUpdateApply(origin, project, planId, confirm, code.takeIf { it.isNotEmpty() })
+                _machine.update { it.copy(preview = null, job = MachineJobView(id, "running", 0.0, emptyList(), "", emptyList(), 0), jobLog = emptyList()) }
+            }
+        }
+
+    /** The job under way, while the screen is open. A failure is ignored; the next pass tries again. */
+    suspend fun pollMachineJob(origin: String) = withContext(Dispatchers.IO) {
+        val current = _machine.value.job ?: return@withContext
+        if (current.id.isBlank() || !current.running) return@withContext
+        runCatching { client.machineUpdateJob(origin, current.id, _machine.value.jobLog.size) }.onSuccess { value ->
+            _machine.update { it.copy(job = value, jobLog = MachineUpdateParser.mergeLog(it.jobLog, it.jobLog.size, value.log)) }
+        }
+        Unit
+    }
+
+    /** Leaves the finished job and the preview to start again. */
+    fun closeMachineUpdate() { _machine.update { it.copy(preview = null, job = null, jobLog = emptyList(), message = null) } }
 
     /** The alarm panels and the status of their commands, quickly, while the Alarm panels screen is open. A failure is ignored; the next pass tries again. */
     suspend fun pollAlarmPanels(origin: String) = withContext(Dispatchers.IO) {

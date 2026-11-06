@@ -168,6 +168,18 @@ class ArmorApiClient : ArmorApi {
     override fun nodeControlOperation(origin: String, id: String): es.electrohobby3d.armor.model.ControlOperationView =
         es.electrohobby3d.armor.model.NodeControlParser.operation(getJson(origin, "/api/v1/nodes/control/operations/" + java.net.URLEncoder.encode(id, "UTF-8")))
 
+    override fun machineUpdateState(origin: String): es.electrohobby3d.armor.model.MachineUpdateState =
+        es.electrohobby3d.armor.model.MachineUpdateParser.state(getJson(origin, "/api/v1/admin/machine-update"))
+    override fun machineUpdatePreview(origin: String, project: String): es.electrohobby3d.armor.model.MachineUpdatePreview =
+        es.electrohobby3d.armor.model.MachineUpdateParser.preview(sendJson(origin, "/api/v1/admin/machine-update/preview", "POST", JSONObject().put("project", project), setOf(200)))
+    override fun machineUpdateApply(origin: String, project: String, planId: String, confirm: String, code: String?): String {
+        val body = JSONObject().put("project", project).put("plan_id", planId).put("confirm", confirm)
+        if (!code.isNullOrEmpty()) body.put("totp", code)
+        return es.electrohobby3d.armor.model.MachineUpdateParser.startedId(sendJson(origin, "/api/v1/admin/machine-update/apply", "POST", body, setOf(202)))
+    }
+    override fun machineUpdateJob(origin: String, id: String, since: Int): es.electrohobby3d.armor.model.MachineJobView =
+        es.electrohobby3d.armor.model.MachineUpdateParser.job(getJson(origin, "/api/v1/admin/machine-update/jobs/" + java.net.URLEncoder.encode(id, "UTF-8") + "?since=" + since.coerceAtLeast(0)))
+
     /** The alarm nodes (ARMOR-NODE-ALARM): each panel's phase and mode, its zones and its last events; an operator session is needed. */
     override fun alarmPanels(origin: String): es.electrohobby3d.armor.model.AlarmPanelsOverview = es.electrohobby3d.armor.model.AlarmPanelsParser.overview(getJson(origin, "/api/v1/alarm/nodes"))
     /** Whether the server may arm, disarm and silence the panels at all, and what became of the latest commands. */

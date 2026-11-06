@@ -128,6 +128,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     val reportsState by viewModel.reports.collectAsStateWithLifecycle()
     val batteryState by viewModel.battery.collectAsStateWithLifecycle()
     val controlState by viewModel.control.collectAsStateWithLifecycle()
+    val machineState by viewModel.machine.collectAsStateWithLifecycle()
     var loginCode by rememberSaveable { mutableStateOf("") }
     // The panel of a node that is open (null: the list), and the addresses opened lately.
     var nodePanel by rememberSaveable { mutableStateOf<String?>(null) }
@@ -266,6 +267,13 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     LaunchedEffect(section, moreTab, state.authenticated, currentOrigin) {
         if (state.authenticated && currentOrigin.isNotBlank() && section == Section.More && moreTab == MoreTab.NodeControl) {
             lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { while (true) { viewModel.pollNodeHealth(currentOrigin); viewModel.pollControl(currentOrigin); delay(2_000) } }
+        }
+    }
+    // The Update the machine screen (in the More menu): the switch and the programs once, then the job under way every two seconds while it is open and the app is on screen.
+    LaunchedEffect(section, moreTab, state.authenticated, currentOrigin) {
+        if (state.authenticated && currentOrigin.isNotBlank() && section == Section.More && moreTab == MoreTab.MachineUpdate) {
+            viewModel.loadMachineUpdate(currentOrigin)
+            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { while (true) { viewModel.pollMachineJob(currentOrigin); delay(2_000) } }
         }
     }
     // The Services screen (in the More menu): every service every eight seconds while it is open and the app is on screen.
@@ -482,6 +490,16 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                         onOrderNode = { node, operation, confirm, seconds -> viewModel.orderNode(currentOrigin, node, operation, confirm, seconds) },
                                         onOrderAll = { operation, mode, confirm, seconds -> viewModel.orderAllNodes(currentOrigin, operation, mode, confirm, seconds) },
                                         onClose = { viewModel.closeControl() }, onOpen = { viewModel.openControl(it) },
+                                    )
+                                }
+                                MoreTab.MachineUpdate -> SubScreen(Icons.Filled.Update, tr("Actualizar el equipo"), onBack = { moreTab = null }, actions = {
+                                    IconButton(onClick = { viewModel.loadMachineUpdate(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
+                                }) {
+                                    MachineUpdateScreen(
+                                        machineState, state.isAdmin,
+                                        onCheck = { project -> viewModel.previewMachineUpdate(currentOrigin, project) },
+                                        onApply = { project, plan, confirm, code -> viewModel.applyMachineUpdate(currentOrigin, project, plan, confirm, code) },
+                                        onClose = { viewModel.closeMachineUpdate() },
                                     )
                                 }
                                 MoreTab.Electrical -> SubScreen(Icons.Filled.ElectricBolt, tr("Eléctrica"), onBack = { moreTab = null }, actions = {

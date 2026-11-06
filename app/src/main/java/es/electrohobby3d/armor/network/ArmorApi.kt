@@ -58,6 +58,14 @@ interface ArmorApi {
     /** The orders of the last weeks with a line per node; never a token. */
     fun nodeControlOperations(origin: String): List<es.electrohobby3d.armor.model.ControlOperationView>
     fun nodeControlOperation(origin: String, id: String): es.electrohobby3d.armor.model.ControlOperationView
+    /** Whether updating the programs of the machine from the phone is switched on (here and on the maintenance helper) and which programs can be updated; an administrator. */
+    fun machineUpdateState(origin: String): es.electrohobby3d.armor.model.MachineUpdateState
+    /** Step one: what is installed against the newest release of [project]; nothing changes. When an update is available the answer carries a plan that is good once and for a few minutes. */
+    fun machineUpdatePreview(origin: String, project: String): es.electrohobby3d.armor.model.MachineUpdatePreview
+    /** Step two: updates [project] with the plan of its preview; [confirm] is the name typed again, [code] the one-time code of the administrator when there is one (passed on, never kept). Returns the id of the job. */
+    fun machineUpdateApply(origin: String, project: String, planId: String, confirm: String, code: String?): String
+    /** The steps, percentage and log of the job an apply started, from the log line [since] on. */
+    fun machineUpdateJob(origin: String, id: String, since: Int): es.electrohobby3d.armor.model.MachineJobView
     fun alarmCommands(origin: String): es.electrohobby3d.armor.model.AlarmCommandsStatus
     /** Arms a panel (mode "away" or "stay", optionally leaving out the open zones) or disarms it (mode null, with the PIN of the signed-in user when there is one). The server checks the PIN and never sends it to the node. */
     fun sendAlarmCommand(origin: String, node: String, mode: String?, force: Boolean, pin: String? = null, profile: String? = null)
