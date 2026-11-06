@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The data classes of the shared contracts are in the app:** the data classes and the one numbering of ports that the shared repository generates from its schemas are kept in the app, and a test fails when they differ from what the shared repository generates now or when a valid message of the shared vectors does not fit its class field for field.
+
 - **The pairing code of a node, shown and scanned in the node set-up:** the Bluetooth node set-up shows a QR code with the name of the node and the address of the server (no password, token or certificate in it) and scans one with the Google code scanner; the node of a scanned code is marked in the list of nodes found, and the app says when the server of the code is not its own. Texts in the eight languages.
 ## [0.8.0.4] - A trusted phone, off by default: when the administrator turns on client.trusteddevices in Studio, a switch in Security (Bloqueo con el teléfono) lets this phone register a key pair made in the Android Keystore (ECDSA P-256,... (and 2 more changes)
 
