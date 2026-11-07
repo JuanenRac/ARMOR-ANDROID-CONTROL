@@ -56,6 +56,8 @@ jobs:
           set -euo pipefail
           SDK="${ANDROID_SDK_ROOT:-${ANDROID_HOME}}"
           export PATH="$SDK/cmdline-tools/latest/bin:$SDK/platform-tools:$SDK/emulator:$PATH"
+          export ANDROID_AVD_HOME="$HOME/.android/avd"
+          mkdir -p "$ANDROID_AVD_HOME"
           yes | sdkmanager --licenses >/dev/null || true
           sdkmanager "emulator" "platform-tools" "system-images;android-34;google_apis;x86_64" >/dev/null
           echo no | avdmanager create avd --force --name armor-api34 --package "system-images;android-34;google_apis;x86_64" --device pixel_6
