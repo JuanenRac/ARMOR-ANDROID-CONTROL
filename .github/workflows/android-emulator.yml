@@ -62,10 +62,12 @@ jobs:
           nohup emulator -avd armor-api34 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -accel on >emulator.log 2>&1 &
           adb wait-for-device
           for _ in $(seq 1 120); do
-            [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '')" = "1" ] && break
+            [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '
+')" = "1" ] && break
             sleep 5
           done
-          [ "$(adb shell getprop sys.boot_completed | tr -d '')" = "1" ] || { echo "the emulator did not finish booting"; tail -n 40 emulator.log; exit 1; }
+          [ "$(adb shell getprop sys.boot_completed | tr -d '
+')" = "1" ] || { echo "the emulator did not finish booting"; tail -n 40 emulator.log; exit 1; }
           adb shell settings put global window_animation_scale 0
           adb shell settings put global transition_animation_scale 0
           adb shell settings put global animator_duration_scale 0
