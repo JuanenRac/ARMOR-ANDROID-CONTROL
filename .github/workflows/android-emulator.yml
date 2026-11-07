@@ -60,7 +60,9 @@ jobs:
           sdkmanager "emulator" "platform-tools" "system-images;android-34;google_apis;x86_64" >/dev/null
           echo no | avdmanager create avd --force --name armor-api34 --package "system-images;android-34;google_apis;x86_64" --device pixel_6
           nohup emulator -avd armor-api34 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -accel on >emulator.log 2>&1 &
-          adb wait-for-device
+          sleep 20
+          pgrep -f 'qemu-system|emulator' >/dev/null || { echo "the emulator process is not running"; cat emulator.log; exit 1; }
+          timeout 300 adb wait-for-device || { echo "no device appeared"; tail -n 60 emulator.log; exit 1; }
           for _ in $(seq 1 120); do
             [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ] && break
             sleep 5
