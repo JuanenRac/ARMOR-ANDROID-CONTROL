@@ -48,11 +48,27 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      # The emulator is started with the tools the runner already has (no third-party action): the system image is fetched, a virtual phone is made, it boots without a window,
+      # and Gradle runs the instrumented tests on it.
+      - name: Start an API 34 emulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK="${ANDROID_SDK_ROOT:-${ANDROID_HOME}}"
+          export PATH="$SDK/cmdline-tools/latest/bin:$SDK/platform-tools:$SDK/emulator:$PATH"
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "emulator" "platform-tools" "system-images;android-34;google_apis;x86_64" >/dev/null
+          echo no | avdmanager create avd --force --name armor-api34 --package "system-images;android-34;google_apis;x86_64" --device pixel_6
+          nohup emulator -avd armor-api34 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -accel on >emulator.log 2>&1 &
+          adb wait-for-device
+          for _ in $(seq 1 120); do
+            [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '')" = "1" ] && break
+            sleep 5
+          done
+          [ "$(adb shell getprop sys.boot_completed | tr -d '')" = "1" ] || { echo "the emulator did not finish booting"; tail -n 40 emulator.log; exit 1; }
+          adb shell settings put global window_animation_scale 0
+          adb shell settings put global transition_animation_scale 0
+          adb shell settings put global animator_duration_scale 0
+
       - name: Run the instrumented tests
-        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
-        with:
-          api-level: 34
-          arch: x86_64
-          target: google_apis
-          disable-animations: true
-          script: ./gradlew --no-daemon :app:connectedDebugAndroidTest
+        run: ./gradlew --no-daemon :app:connectedDebugAndroidTest
