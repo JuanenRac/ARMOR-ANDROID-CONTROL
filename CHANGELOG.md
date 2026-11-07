@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **A test keeps the readers of the screens from drifting away from the shared contracts:** every valid node health message of the shared oracle goes through the strict generated reader and through the tolerant reader of the health screen, and the fields shown must be the ones the strict reader found; the messages the strict reader refuses must not make the screen fail. The generated readers follow the stricter public DNS information of the network contract.
+
 - **Instrumented tests in an emulator:** `app/src/androidTest` holds the first instrumented test (the app installs and runs inside an API 34 emulator with its own identity) and the workflow `android-emulator.yml` runs it on a GitHub runner, by hand or on a branch named `emulator-run/...`, never on main, never on a phone. The tests of the screens against a simulated server are added to it one at a time.
 
 - **Update the machine from the phone:** a new screen in More (administrators only) shows the programs the maintenance helper can update, checks what is installed against the newest release without changing anything, and applies the update of one program after its name is typed again, a new proof of identity when the phone is outside the house, the one-time code of the administrator and the lock of the phone. The plan of the check is good once and counts down on the screen, the job shows its steps, bar and log, every refusal of the server has its own words, and the screen offers nothing while the server or the helper has the switch off (the default). Only a signed release is ever put in place. Texts in the eight languages.
