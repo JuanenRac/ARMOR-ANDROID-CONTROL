@@ -42,7 +42,7 @@ For a node with no Ethernet cable, or no address yet, the app configures it over
 | `arm` / `disarm` | The arm buttons (and the arming modes and the panel arm commands) / the disarm button and the panel disarm command. |
 | `acknowledge` | Confirming one alarm or all of them. |
 | `camera_control` | Photo, recording and moving a camera. |
-| `administer` | The administrator screens: alarm panels commands, batteries, node control, forgetting a node, remote access. |
+| `administer` | The administrator screens: alarm panels commands, batteries, node control, updating the programs of the machine, forgetting a node, remote access. |
 | `manage_users`, `security_settings` | Read and kept in the model; the phone has no screen for them yet. |
 
 An order the server does not allow to this person, though the person may operate, is refused with "The server does not allow your user to do this." (in the eight languages).

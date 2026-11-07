@@ -10,3 +10,4 @@ The software of these checks is done and tested on a computer; what is left need
 | New token | a phone and a Firebase project | clear the data of Google Play services | the server receives the new token without opening the app |
 | Memory with six cameras | a phone | show six cameras in a grid for 10 minutes and run `adb shell dumpsys meminfo es.electrohobby3d.armor` | memory does not grow and the app does not close |
 | HTTPS to the CM5 | the CM5 with its own certificate authority | sign in over HTTPS, then build with `-Parmor.cleartext=false` (plain HTTP refused) | the app still connects |
+| Update the machine | a phone and the CM5 with `ARMOR_CM5_UPDATE=1` on the server and `ARMOR_MAINT_UPDATER=1` on the maintenance helper | as an administrator open More > Update the machine, preview a program and apply it typing its name | the plan, the steps and the log show and the program is updated; with the switches off the screen offers nothing and says why |
