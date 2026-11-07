@@ -1,0 +1,58 @@
+# =============================================================================
+# ARMOR-ANDROID-CONTROL - instrumented tests in an emulator
+# Copyright (C) 2026 JuanenRac (Electro Hobby 3D)
+# GPL-3.0-or-later - see LICENSE
+# =============================================================================
+# The instrumented tests (app/src/androidTest) run in an Android emulator (API 34) of a GitHub runner, never on a phone and never on the machine of the maintainer. They start
+# by hand (workflow_dispatch) or on a branch named emulator-run/<anything>, so they never run on the main branch or on a pull request. A green run says the app installs and
+# runs in the emulator; it says nothing about a real phone, its Bluetooth, its camera or its notifications.
+
+name: Android emulator tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "emulator-run/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-emulator-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  emulator:
+    name: Instrumented tests in an API 34 emulator
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Java
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Make the Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Allow the emulator to use hardware acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run the instrumented tests
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: ./gradlew --no-daemon :app:connectedDebugAndroidTest

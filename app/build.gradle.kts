@@ -17,6 +17,8 @@ val firebase: Map<String, String> = run {
 
 android { namespace = "es.electrohobby3d.armor"; compileSdk = 37
     defaultConfig { applicationId = "es.electrohobby3d.armor"; minSdk = 26; targetSdk = 37; versionCode = 67; versionName = "0.8.0.5"
+        // The instrumented tests run only in the emulator job of the workflow android-emulator.yml (never on a phone of the owner, never in the release).
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "FCM_PROJECT_ID", "\"${firebase["project"] ?: ""}\"")
         buildConfigField("String", "FCM_SENDER_ID", "\"${firebase["sender"] ?: ""}\"")
         buildConfigField("String", "FCM_APP_ID", "\"${firebase["app"] ?: ""}\"")
@@ -64,4 +66,7 @@ dependencies {
     testImplementation("org.json:json:20260814")
     // The state holders run their work on the main dispatcher, which a local test replaces with a test one.
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
+    // The instrumented tests (emulator, workflow android-emulator.yml): the runner and the JUnit 4 rules for Android.
+    androidTestImplementation("androidx.test:runner:1.7.0")
+    androidTestImplementation("androidx.test.ext:junit:1.3.0")
 }
