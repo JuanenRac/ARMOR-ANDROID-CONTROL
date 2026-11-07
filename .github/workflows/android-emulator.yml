@@ -74,5 +74,29 @@ jobs:
           adb shell settings put global transition_animation_scale 0
           adb shell settings put global animator_duration_scale 0
 
+      # The real server: the emulator reaches the host on 10.0.2.2, so the server listens on the loopback of the runner with an administrator of its own and an empty data folder.
+      - name: Check out the server
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: JuanenRac/ARMOR-SERVER
+          path: server
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+
+      - name: Build and start the server
+        working-directory: server
+        shell: bash
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+          mkdir -p "$RUNNER_TEMP/armor-data"
+          ARMOR_HOST=127.0.0.1 ARMOR_PORT=18080 ARMOR_DATA_DIR="$RUNNER_TEMP/armor-data"           ARMOR_INGEST_TOKEN="$(printf 'i%.0s' $(seq 1 32))" ARMOR_CONTROL_TOKEN="$(printf 'c%.0s' $(seq 1 32))" ARMOR_OPERATOR_TOKEN="$(printf 'o%.0s' $(seq 1 32))"           ARMOR_CAMERA_CONFIG_KEY="$(printf 'k%.0s' $(seq 1 40))" ARMOR_STUDIO_USERNAME=admin ARMOR_STUDIO_PASSWORD=correct-horse-battery           nohup node dist/server.mjs >"$RUNNER_TEMP/server.log" 2>&1 &
+          for _ in $(seq 1 30); do curl -fsS http://127.0.0.1:18080/healthz >/dev/null 2>&1 && exit 0; sleep 1; done
+          cat "$RUNNER_TEMP/server.log"; exit 1
+
       - name: Run the instrumented tests
-        run: ./gradlew --no-daemon :app:connectedDebugAndroidTest
+        run: ./gradlew --no-daemon :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.armorServer=http://10.0.2.2:18080
