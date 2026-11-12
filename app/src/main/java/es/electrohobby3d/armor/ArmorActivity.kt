@@ -124,6 +124,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     var nodeSetup by rememberSaveable { mutableStateOf(false) }   // configuring a field node over Bluetooth, with or without a server
     val state by viewModel.state.collectAsStateWithLifecycle()
     val voiceState by viewModel.voice.collectAsStateWithLifecycle()
+    val spokenState by viewModel.spoken.collectAsStateWithLifecycle()
     val securityState by viewModel.security.collectAsStateWithLifecycle()
     val reportsState by viewModel.reports.collectAsStateWithLifecycle()
     val batteryState by viewModel.battery.collectAsStateWithLifecycle()
@@ -547,6 +548,10 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                         onSend = { text, speak -> viewModel.sendVoice(currentOrigin, text, spoken = speak) },
                                         onConfirm = { pending, speak -> viewModel.sendVoice(currentOrigin, pending.text, confirm = pending, spoken = speak) },
                                         onClear = { viewModel.clearVoice() }, onCancel = { viewModel.cancelVoice() },
+                                        spokenOn = SpokenTurnKit.settings(context).enabled, spoken = spokenState,
+                                        onSpokenStart = { say -> viewModel.startSpokenTurn(currentOrigin, SpokenTurnKit.controller(context), say) },
+                                        onSpokenStop = { viewModel.stopSpokenTurn() }, onSpokenRefused = { viewModel.spokenTurnRefused(SpokenTurnKit.controller(context)) },
+                                        onChallengeGone = { viewModel.clearChallenge() },
                                     )
                                 }
                                 MoreTab.Weather -> SubScreen(Icons.Filled.Cloud, tr("Meteorología"), onBack = { moreTab = null }) {

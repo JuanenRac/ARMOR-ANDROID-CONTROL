@@ -2,6 +2,7 @@
 package es.electrohobby3d.armor.network
 
 import es.electrohobby3d.armor.model.*
+import org.json.JSONObject
 
 /** What the session of the server tells about the signed-in person and the options in force for the phone. */
 data class SessionFacts(val role: String = "", val deviceLock: String = "user", val trustedDevices: Boolean = false, val capabilities: SessionCapabilities = SessionCapabilities.fromRole(role)) {
@@ -145,4 +146,9 @@ interface ArmorApi {
     fun voiceAvailable(origin: String): Boolean
     /** One written or spoken command, as text. Arming and disarming need a second turn: send the same phrase again with the token of the first answer. */
     fun voiceCommand(origin: String, text: String, language: String, confirmation: String?): VoiceReply
+    /**
+     * One spoken turn: [pcm] is 16 kHz 16-bit little-endian mono sound, sent raw to `POST /api/v1/voice/turn` with the voice token (not the session) and the language. The answer is the JSON
+     * of the voice reply (`heard`, `reply`, `audio?`, `challenge?`) as the server gave it; the caller reads it with the contract parser. Used only while the person's switch for it is on.
+     */
+    fun voiceTurn(origin: String, pcm: ByteArray, language: String, voiceToken: String): JSONObject
 }

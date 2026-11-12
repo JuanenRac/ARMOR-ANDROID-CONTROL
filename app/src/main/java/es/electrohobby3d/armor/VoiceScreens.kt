@@ -1,12 +1,15 @@
 // ARMOR-ANDROID-CONTROL - the Assistant screen: written and spoken commands to the system (arm, disarm, say the state, silence the alarm).
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 //
-// What is typed goes to the server as it is. What is spoken is turned into text by the phone's own speech recognition (the system's dialog, so the app needs no
-// microphone permission and no audio ever leaves the phone through this app) and goes the same way. The server asks the voice gateway what the phrase means and
-// carries out what is accepted; arming and disarming ask for a second turn, which is shown here as two buttons. The answer is also said aloud when the voice is on.
+// What is typed goes to the server as it is. What is spoken with the first microphone button is turned into text by the phone's own speech recognition (the system's dialog, so
+// no audio leaves the phone through this app) and goes the same way. The second button, the spoken turn, exists only when the person turned it on in Settings: it records one
+// phrase and sends the sound to the server (SpokenTurn.kt), and shows the number of the challenge mode when the server asks for one. The server asks the voice gateway what the
+// phrase means and carries out what is accepted; arming and disarming ask for a second turn, which is shown here as two buttons. The answer is also said aloud when the voice is on.
 package es.electrohobby3d.armor
 
+import android.Manifest
 import android.app.Activity
+import android.content.pm.PackageManager
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.speech.RecognizerIntent
@@ -31,6 +34,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.RecordVoiceOver
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
@@ -53,7 +58,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import es.electrohobby3d.armor.model.PendingVoice
 import es.electrohobby3d.armor.model.VoiceMessage
 import es.electrohobby3d.armor.model.VoiceUiState
@@ -74,6 +83,12 @@ fun VoiceScreen(
     onConfirm: (pending: PendingVoice, spoken: (String) -> Unit) -> Unit,
     onClear: () -> Unit,
     onCancel: () -> Unit,
+    spokenOn: Boolean = false,
+    spoken: SpokenTurnUiState = SpokenTurnUiState(),
+    onSpokenStart: (spoken: (String) -> Unit) -> Unit = {},
+    onSpokenStop: () -> Unit = {},
+    onSpokenRefused: () -> Unit = {},
+    onChallengeGone: () -> Unit = {},
 ) {
     val context = LocalContext.current
     var text by rememberSaveable { mutableStateOf("") }
@@ -98,6 +113,14 @@ fun VoiceScreen(
             .putExtra(RecognizerIntent.EXTRA_LANGUAGE, Tr.language).putExtra(RecognizerIntent.EXTRA_PROMPT, tr("Di una orden")).putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
         try { recognizer.launch(intent) } catch (error: ActivityNotFoundException) { notice = tr("Este móvil no tiene reconocimiento de voz. Puedes escribir la orden.") }
     }
+
+    // The microphone is asked for only here, only when the switch is on and the person taps the button: a refusal ends the turn without recording anything.
+    val microphone = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> if (granted) onSpokenStart(say) else onSpokenRefused() }
+    fun tapSpoken() {
+        if (spoken.active) { onSpokenStop(); return }
+        if (context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) onSpokenStart(say) else microphone.launch(Manifest.permission.RECORD_AUDIO)
+    }
+    DisposableEffect(Unit) { onDispose { onChallengeGone() } }   // the number does not outlive the screen
 
     val list = rememberLazyListState()
     LaunchedEffect(state.messages.size) { if (state.messages.isNotEmpty()) list.animateScrollToItem(state.messages.size - 1) }
@@ -128,16 +151,39 @@ fun VoiceScreen(
             Suggestions.forEach { phrase -> AssistChip(onClick = { onSend(phrase, say) }, label = { Text(phrase) }, enabled = enabled && !state.busy) }
         }
         if (notice.isNotEmpty()) Text(notice, color = ArmorColors.Amber, style = MaterialTheme.typography.bodySmall)
+        spoken.challenge?.let { ChallengeCard(it, onChallengeGone) }
+        spoken.notice?.let { Text(it, color = ArmorColors.Amber, style = MaterialTheme.typography.bodySmall) }
+        if (spoken.listening) Text(tr("Te escucho: toca el botón otra vez cuando acabes."), color = ArmorColors.Cyan, style = MaterialTheme.typography.bodySmall)
+        if (spoken.sending) Text(tr("Enviando tu voz al servidor…"), color = ArmorColors.Muted, style = MaterialTheme.typography.bodySmall)
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             OutlinedTextField(
                 value = text, onValueChange = { text = it.take(200) }, modifier = Modifier.weight(1f), singleLine = true, enabled = enabled,
                 placeholder = { Text(tr("Escribe una orden")) },
             )
             IconButton(onClick = { listen() }, enabled = enabled && !state.busy) { Icon(Icons.Filled.Mic, contentDescription = tr("Decir una orden"), tint = if (enabled && !state.busy) ArmorColors.Cyan else ArmorColors.Muted) }
+            if (spokenOn) IconButton(onClick = { tapSpoken() }, enabled = enabled && !state.busy && !spoken.sending) {
+                Icon(if (spoken.listening) Icons.Filled.Stop else Icons.Filled.RecordVoiceOver, contentDescription = if (spoken.listening) tr("Terminar de hablar") else tr("Hablar al servidor"), tint = if (spoken.listening) ArmorColors.Amber else if (enabled && !state.busy) ArmorColors.Cyan else ArmorColors.Muted)
+            }
             IconButton(onClick = { val phrase = text.trim(); if (phrase.isNotEmpty()) { text = ""; onSend(phrase, say) } }, enabled = enabled && !state.busy && text.isNotBlank()) {
                 Icon(Icons.Filled.Send, contentDescription = tr("Enviar la orden"), tint = if (enabled && !state.busy && text.isNotBlank()) ArmorColors.Cyan else ArmorColors.Muted)
             }
         }
+    }
+}
+
+/** The number of the challenge mode: big, for the few seconds the wall panel shows it too; then it is gone. */
+@Composable
+private fun ChallengeCard(challenge: ShownChallenge, onGone: () -> Unit) {
+    var now by remember(challenge) { mutableStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(challenge) {
+        while (!challenge.expired(now)) { delay(250); now = System.currentTimeMillis() }
+        onGone()
+    }
+    if (challenge.expired(now)) return
+    Column(Modifier.fillMaxWidth().background(ArmorColors.SurfaceRaised, RoundedCornerShape(14.dp)).padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(tr("Di este número en tu próxima orden"), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+        Text(challenge.number, fontSize = 48.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = ArmorColors.Cyan)
+        Text(trf("Se oculta en %s s", ((challenge.remainingMs(now) + 999) / 1000).toString()), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
     }
 }
 

@@ -410,6 +410,13 @@ class ArmorApiClient : ArmorApi {
         return try { VoiceParser.parse(JSONObject(BoundedRead.text(connection.inputStream))) } finally { connection.disconnect() }
     }
 
+    /** One spoken turn: the sound goes raw with the voice token and the answer is the JSON of the voice reply, read up to the limit of the contract (the spoken answer in base64 is in it). */
+    override fun voiceTurn(origin: String, pcm: ByteArray, language: String, voiceToken: String): JSONObject {
+        val headers = mapOf("Content-Type" to "audio/L16;rate=16000", "Accept" to "application/json", "X-Armor-Voice-Token" to voiceToken, "X-Armor-Language" to language)
+        val connection = request(origin, "/api/v1/voice/turn", "POST", headers, null, setOf(200), pcm)
+        return try { JSONObject(BoundedRead.text(connection.inputStream)) } finally { connection.disconnect() }
+    }
+
     /** A request with a JSON body (or none) whose answer is a JSON object (or nothing). */
     private fun sendJson(origin: String, path: String, method: String, body: JSONObject?, expected: Set<Int>): JSONObject {
         val headers = mapOf("Accept" to "application/json") + if (body != null) mapOf("Content-Type" to "application/json") else emptyMap()
@@ -421,7 +428,7 @@ class ArmorApiClient : ArmorApi {
         val connection = request(origin, path, "GET", mapOf("Accept" to "application/json"), null, setOf(200))
         return try { JSONObject(BoundedRead.text(connection.inputStream)) } finally { connection.disconnect() }
     }
-    private fun request(origin: String, path: String, method: String, headers: Map<String, String>, body: String?, expected: Set<Int>): HttpURLConnection {
+    private fun request(origin: String, path: String, method: String, headers: Map<String, String>, body: String?, expected: Set<Int>, bytes: ByteArray? = null): HttpURLConnection {
         es.electrohobby3d.armor.TrustPins.checkScheme(origin)
         val connection = (URL(origin.trimEnd('/') + path).openConnection() as HttpURLConnection).apply {
             requestMethod = method; connectTimeout = 8_000; readTimeout = 12_000; instanceFollowRedirects = false
@@ -430,6 +437,7 @@ class ArmorApiClient : ArmorApi {
             setRequestProperty("X-Armor-Client", "android/${es.electrohobby3d.armor.BuildConfig.VERSION_NAME}")
             headers.forEach { (key, value) -> setRequestProperty(key, value) }
             if (body != null) { doOutput = true; outputStream.use { it.write(body.toByteArray(StandardCharsets.UTF_8)) } }
+            else if (bytes != null) { doOutput = true; setFixedLengthStreamingMode(bytes.size); outputStream.use { it.write(bytes) } }
         }
         // the connection is closed whatever goes wrong (a refused connection, a timeout), and the status is read once
         val code = try { connection.responseCode } catch (error: java.io.IOException) { es.electrohobby3d.armor.DiagnosticLog.record(method, path, 0); connection.disconnect(); throw error }

@@ -121,6 +121,50 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
 
     fun clearVoice() { _voice.value = _voice.value.copy(messages = emptyList()) }
 
+    private val _spoken = MutableStateFlow(SpokenTurnUiState())
+    /** The spoken turn of the Assistant: microphone open, sound on its way, the number to say. Idle until the person turns the switch on and taps the microphone. */
+    val spoken: StateFlow<SpokenTurnUiState> = _spoken.asStateFlow()
+    @Volatile private var stopListening = false
+
+    /**
+     * One spoken turn: [controller] checks the switch, the voice token and the permission, records until [stopSpokenTurn] (or ten seconds), sends the sound and reads the answer. What was heard
+     * and answered goes in the conversation; the number of the challenge mode, when the server gave one, is shown by [spoken] until it expires. [say] is called with the answer, for the phone's voice.
+     */
+    fun startSpokenTurn(origin: String, controller: SpokenTurnController, say: (String) -> Unit = {}) {
+        if (viewerRefused()) return
+        if (_spoken.value.active) return
+        if (ServerEndpoint.parse(origin) == null) { _spoken.value = SpokenTurnUiState(notice = tr("Configura el servidor en Ajustes.")); return }
+        stopListening = false
+        _spoken.value = SpokenTurnUiState(listening = true)
+        viewModelScope.launch {
+            val outcome = withContext(Dispatchers.IO) { controller.run(origin, Tr.voiceLanguage()) { stopListening } }
+            finishSpokenTurn(outcome, say)
+        }
+    }
+
+    /** The person tapped the microphone again: the recording ends and the sound is sent. */
+    fun stopSpokenTurn() {
+        stopListening = true
+        if (_spoken.value.listening) _spoken.value = _spoken.value.copy(listening = false, sending = true)
+    }
+
+    /** The microphone permission was refused when the person asked for a turn. */
+    fun spokenTurnRefused(controller: SpokenTurnController) { finishSpokenTurn(controller.permissionRefused(), {}) }
+
+    /** The number is gone (its time is up, or the person left the screen). */
+    fun clearChallenge() { if (_spoken.value.challenge != null) _spoken.value = _spoken.value.copy(challenge = null) }
+
+    private fun finishSpokenTurn(outcome: SpokenTurnOutcome, say: (String) -> Unit) {
+        if (outcome is SpokenTurnOutcome.Answered) {
+            // The number is shown, never said: if the reply carried it, the phone does not read it aloud.
+            if (outcome.challenge == null || !outcome.reply.contains(outcome.challenge.number)) say(outcome.reply)
+            _voice.value = _voice.value.copy(messages = _voice.value.messages + VoiceMessage(true, outcome.heard) + VoiceMessage(false, outcome.reply))
+            _spoken.value = SpokenTurnUiState(challenge = outcome.challenge)
+        } else {
+            _spoken.value = SpokenTurnUiState(notice = SpokenTurnText.notice(outcome))
+        }
+    }
+
     /** The person did not confirm: the question is closed (the token would expire by itself) and nothing was done. */
     fun cancelVoice() {
         _voice.value = _voice.value.copy(messages = _voice.value.messages.map { if (it.pending != null) it.copy(pending = null) else it } + VoiceMessage(false, tr("Cancelado: no he hecho nada.")))
