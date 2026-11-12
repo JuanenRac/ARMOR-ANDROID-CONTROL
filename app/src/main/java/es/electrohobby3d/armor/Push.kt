@@ -89,13 +89,21 @@ object PushRegistration {
         val origin = preferences.getString("origin", "").orEmpty()
         if (ServerEndpoint.parse(origin) == null) return false
         TrustPins.install(PreferencesStore(preferences))
-        val vault = KeyBoxes.sessionVault(context)
-        if (!vault.has() || !KeyBoxes.sessionBox(context).usable()) return false
-        val saved = vault.load(origin) ?: return false
         Tr.init(context)
+        return register(origin, token, KeyBoxes.sessionVault(context), KeyBoxes.sessionBox(context), api, Tr.voiceLanguage()) { WatchPace.markRegistered(context, origin) }
+    }
+
+    /**
+     * The decision and the call, apart from the phone (so it is tried on a computer): nothing is done with no readable address, with no session kept, or while the key that opens the session cannot
+     * be used (a phone locked behind the unlock-bound key); otherwise the session is restored, the token is told to the server in the phone's language and [afterRegistered] runs.
+     */
+    internal fun register(origin: String, token: String, vault: SessionVault, box: SecretBox, api: es.electrohobby3d.armor.network.ArmorApi, language: String, afterRegistered: () -> Unit = {}): Boolean {
+        if (ServerEndpoint.parse(origin) == null) return false
+        if (!vault.has() || !box.usable()) return false
+        val saved = vault.load(origin) ?: return false
         api.restoreSessionCookie(origin, saved.name, saved.value)
-        api.registerPush(origin, token, Tr.voiceLanguage())
-        WatchPace.markRegistered(context, origin)
+        api.registerPush(origin, token, language)
+        afterRegistered()
         return true
     }
 }
