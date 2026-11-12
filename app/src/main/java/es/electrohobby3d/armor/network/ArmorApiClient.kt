@@ -437,7 +437,8 @@ class ArmorApiClient : ArmorApi {
             setRequestProperty("X-Armor-Client", "android/${es.electrohobby3d.armor.BuildConfig.VERSION_NAME}")
             headers.forEach { (key, value) -> setRequestProperty(key, value) }
             if (body != null) { doOutput = true; outputStream.use { it.write(body.toByteArray(StandardCharsets.UTF_8)) } }
-            else if (bytes != null) { doOutput = true; setFixedLengthStreamingMode(bytes.size); outputStream.use { it.write(bytes) } }
+            // no streaming mode: with it a 401 (a wrong voice token) would surface as an HttpRetryException instead of the answer of the server
+            else if (bytes != null) { doOutput = true; outputStream.use { it.write(bytes) } }
         }
         // the connection is closed whatever goes wrong (a refused connection, a timeout), and the status is read once
         val code = try { connection.responseCode } catch (error: java.io.IOException) { es.electrohobby3d.armor.DiagnosticLog.record(method, path, 0); connection.disconnect(); throw error }
