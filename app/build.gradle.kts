@@ -16,7 +16,7 @@ val firebase: Map<String, String> = run {
 }
 
 android { namespace = "es.electrohobby3d.armor"; compileSdk = 37
-    defaultConfig { applicationId = "es.electrohobby3d.armor"; minSdk = 26; targetSdk = 37; versionCode = 68; versionName = "0.8.0.6"
+    defaultConfig { applicationId = "es.electrohobby3d.armor"; minSdk = 26; targetSdk = 37; versionCode = 69; versionName = "0.8.0.7"
         // The instrumented tests run only in the emulator job of the workflow android-emulator.yml (never on a phone of the owner, never in the release).
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "FCM_PROJECT_ID", "\"${firebase["project"] ?: ""}\"")

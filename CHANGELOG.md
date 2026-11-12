@@ -4,8 +4,10 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
-- **The connections and the two reports read the shared contract first:** a client of the connection history, the summary of a day and the heat map go through the generated readers of the contract, after the members that a closed object of the contract does not name are left out (a newer server that adds a member no longer empties the screen, and a document that is really wrong still gets nothing); what the contract does not describe is read by the tolerant readers the app already had, as the iPhone app does. Tests run every valid case of the shared conformance cases with an unknown member added.
+## [0.8.0.7] - Shared contract readers and push token registration
 
+- **A new push token is told to the server only when the phone can read its session, and this is tried:** the decision and the call of `PushRegistration` are apart from the phone, with host tests against a server on the loopback (a readable session registers the token in the language of the phone, no session or another server's session or a key locked behind the unlocking of the phone sends nothing, an address that cannot be read sends nothing).
+- **The connections and the two reports read the shared contract first:** a client of the connection history, the summary of a day and the heat map go through the generated readers of the contract, after the members that a closed object of the contract does not name are left out (a newer server that adds a member no longer empties the screen, and a document that is really wrong still gets nothing); what the contract does not describe is read by the tolerant readers the app already had, as the iPhone app does. Tests run every valid case of the shared conformance cases with an unknown member added.
 - **The copies of the shared contract follow:** the readers know the optional `stack_min_free` and `stack_min_task` of the node health report and the event of the vision service.
 
 ## [0.8.0.6] - A spoken turn from the phone, off by default: a switch in Settings (*Orden hablada al servidor*, in the eight languages) adds a second microphone button to the Assistant. It records one phrase (up to ten seconds of 16 kHz mono sound, after
