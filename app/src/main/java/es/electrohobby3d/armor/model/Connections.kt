@@ -2,6 +2,7 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor.model
 
+import es.electrohobby3d.armor.contracts.parseTolerant
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -31,6 +32,20 @@ object ConnectionsParser {
 
     /** A client from the server's JSON, or null when it is not a well-formed one (never trusted blindly). */
     fun client(json: JSONObject): ConnectionClient? {
+        val message = parseTolerant("connection_client", json) as? es.electrohobby3d.armor.contracts.ConnectionClient
+        if (message != null && message.kind in KINDS) {
+            fun clean(value: String?): String? = value?.takeIf { it.isNotBlank() }
+            return ConnectionClient(
+                id = message.id, kind = message.kind, user = clean(message.user), label = clean(message.label), appVersion = clean(message.app_version),
+                firstSeen = message.first_seen, lastSeen = message.last_seen,
+                activeSessions = message.active_sessions.coerceIn(0, Int.MAX_VALUE.toLong()).toInt(), loginsOk = message.logins_ok.coerceIn(0, Int.MAX_VALUE.toLong()).toInt(),
+                loginsFailed = message.logins_failed.coerceIn(0, Int.MAX_VALUE.toLong()).toInt(), ip = clean(message.ip), agent = clean(message.agent),
+            )
+        }
+        return legacyClient(json)
+    }
+
+    private fun legacyClient(json: JSONObject): ConnectionClient? {
         val id = json.optStr("id")
         val kind = json.optStr("kind")
         if (!Regex("[0-9a-f]{16}").matches(id) || kind !in KINDS) return null

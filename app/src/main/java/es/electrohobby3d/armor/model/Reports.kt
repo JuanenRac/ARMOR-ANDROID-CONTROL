@@ -2,6 +2,7 @@
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor.model
 
+import es.electrohobby3d.armor.contracts.parseTolerant
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -19,10 +20,32 @@ data class HeatmapView(val cameraId: String, val cols: Int, val rows: Int, val p
     override fun hashCode() = cameraId.hashCode() * 31 + positions
 }
 
+private fun Long.clamped(): Int = coerceIn(0L, Int.MAX_VALUE.toLong()).toInt()
+
 object ReportsParser {
     val LANGUAGES = listOf("en", "es", "de", "fr", "it", "ja", "zh", "pt")
 
+    /**
+     * The summary of a day. A document that is the message `daily_summary` of the shared contract (an unknown member is ignored) is read through it; anything else is read by the
+     * tolerant reader below, so a summary the contract does not describe still shows what it has.
+     */
     fun summary(json: JSONObject): DailySummaryView {
+        val message = parseTolerant("daily_summary", json) as? es.electrohobby3d.armor.contracts.DailySummary
+        if (message != null) {
+            val totals = message.summary.totals
+            val findings = message.findings.map { item ->
+                val about = listOf(item.subject.code, item.subject.zone, item.subject.node).mapNotNull { it?.ifBlank { null } }.joinToString(" / ")
+                ReportFinding(item.kind, about.ifBlank { "-" }, item.count.clamped())
+            }
+            return DailySummaryView(
+                date = message.date, language = message.language, events = totals.events.clamped(), alarms = totals.alarms.clamped(), serious = totals.serious_alarms.clamped(),
+                falseAlarms = totals.false_alarms.clamped(), text = message.text, findings = findings, aiNote = message.ai_note?.ifBlank { null },
+            )
+        }
+        return legacySummary(json)
+    }
+
+    private fun legacySummary(json: JSONObject): DailySummaryView {
         val body = json.optJSONObject("summary")
         val totals = body?.optJSONObject("totals")
         return DailySummaryView(
@@ -42,7 +65,11 @@ object ReportsParser {
         }
     }
 
-    fun heatmap(json: JSONObject, png: ByteArray?): HeatmapView = HeatmapView(json.optString("camera_id"), json.optInt("cols"), json.optInt("rows"), json.optInt("accepted_positions"), png)
+    fun heatmap(json: JSONObject, png: ByteArray?): HeatmapView {
+        val message = parseTolerant("heatmap", json) as? es.electrohobby3d.armor.contracts.Heatmap
+        if (message != null) return HeatmapView(message.camera_id, message.cols.clamped(), message.rows.clamped(), message.accepted_positions.clamped(), png)
+        return HeatmapView(json.optString("camera_id"), json.optInt("cols"), json.optInt("rows"), json.optInt("accepted_positions"), png)
+    }
 
     /** A day as YYYY-MM-DD that is a real day from the year 2000 (what the server accepts), or false. */
     fun validDate(text: String): Boolean {
