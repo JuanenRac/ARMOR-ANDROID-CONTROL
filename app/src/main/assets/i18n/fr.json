@@ -1511,5 +1511,6 @@
  "Escribe el nombre del programa para confirmar": "Saisissez le nom du programme pour confirmer",
  "Código de un solo uso (si tu cuenta tiene segundo factor)": "Code à usage unique (si votre compte a un second facteur)",
  "Desde fuera de casa se pedirá la contraseña otra vez. Si la versión no está firmada, no se toca nada.": "Depuis l'extérieur de la maison, le mot de passe sera redemandé. Si la version n'est pas signée, rien n'est modifié.",
- "Los programas del equipo donde corre el servidor: ver versiones y actualizar solo con versiones firmadas": "Les programmes de la machine où tourne le serveur : voir les versions et mettre à jour uniquement avec des versions signées"
+ "Los programas del equipo donde corre el servidor: ver versiones y actualizar solo con versiones firmadas": "Les programmes de la machine où tourne le serveur : voir les versions et mettre à jour uniquement avec des versions signées",
+ "Esta imagen está hecha para otra placa distinta de la del nodo: no se ha enviado.": "Cette image est conçue pour une autre carte que celle du nœud : elle n'a pas été envoyée."
 }

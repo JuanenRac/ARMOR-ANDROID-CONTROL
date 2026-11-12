@@ -1511,5 +1511,6 @@
  "Escribe el nombre del programa para confirmar": "Type the program's name to confirm",
  "Código de un solo uso (si tu cuenta tiene segundo factor)": "One-time code (if your account has a second factor)",
  "Desde fuera de casa se pedirá la contraseña otra vez. Si la versión no está firmada, no se toca nada.": "From outside the house the password will be asked again. If the version is not signed, nothing is touched.",
- "Los programas del equipo donde corre el servidor: ver versiones y actualizar solo con versiones firmadas": "The programs of the machine where the server runs: see versions and update only with signed versions"
+ "Los programas del equipo donde corre el servidor: ver versiones y actualizar solo con versiones firmadas": "The programs of the machine where the server runs: see versions and update only with signed versions",
+ "Esta imagen está hecha para otra placa distinta de la del nodo: no se ha enviado.": "This image is built for another board than the node's: it was not sent."
 }

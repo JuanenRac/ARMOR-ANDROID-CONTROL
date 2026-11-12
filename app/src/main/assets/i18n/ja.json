@@ -1511,5 +1511,6 @@
  "Escribe el nombre del programa para confirmar": "確認のためプログラム名を入力",
  "Código de un solo uso (si tu cuenta tiene segundo factor)": "ワンタイムコード（アカウントに2要素認証がある場合）",
  "Desde fuera de casa se pedirá la contraseña otra vez. Si la versión no está firmada, no se toca nada.": "家の外からは、パスワードを再度求められます。署名されていない版の場合、何も変更されません。",
- "Los programas del equipo donde corre el servidor: ver versiones y actualizar solo con versiones firmadas": "サーバーが動作している本体のプログラム: バージョンを確認し、署名済みの版でのみ更新"
+ "Los programas del equipo donde corre el servidor: ver versiones y actualizar solo con versiones firmadas": "サーバーが動作している本体のプログラム: バージョンを確認し、署名済みの版でのみ更新",
+ "Esta imagen está hecha para otra placa distinta de la del nodo: no se ha enviado.": "このイメージはノードとは別のボード用です。送信されませんでした。"
 }

@@ -64,6 +64,7 @@ data class SecurityUiState(
 /** The phrase for a code the server gave. */
 internal fun securityError(code: String): String = when (code) {
     "bad_proof" -> tr("Eso no es correcto.")
+    "wrong_board" -> tr("Esta imagen está hecha para otra placa distinta de la del nodo: no se ha enviado.")
     "bad_code" -> tr("Ese código no es correcto.")
     "totp_locked" -> tr("Demasiados códigos erróneos: espera un poco y vuelve a intentarlo.")
     "challenge_expired" -> tr("El acceso ha tardado demasiado: empieza de nuevo.")

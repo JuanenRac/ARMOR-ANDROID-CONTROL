@@ -38,7 +38,7 @@ class SecurityTest {
     }
 
     @Test fun everyAnswerThatCanBeGivenHasItsOwnPhrase() {
-        val codes = listOf("bad_proof", "bad_code", "totp_locked", "challenge_expired", "remote_policy", "already_enabled", "totp_setup_required")
+        val codes = listOf("bad_proof", "bad_code", "totp_locked", "challenge_expired", "remote_policy", "already_enabled", "totp_setup_required", "wrong_board")
         val phrases = codes.map { securityError(it) }
         assertEquals(codes.size, phrases.toSet().size)
         for (phrase in phrases) assertNotEquals(securityError("something_else"), phrase)
