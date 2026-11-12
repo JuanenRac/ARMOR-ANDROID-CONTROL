@@ -26,6 +26,21 @@ class VoiceTest {
         assertEquals("Por favor, confirma. ¿Desarmo el sistema?", VoiceParser.lineFor(disarm))
     }
 
+    @Test fun `silencing in the challenge mode asks for the signed confirmation, never less, because the phone shows no number`() {
+        val reply = VoiceParser.parse(JSONObject("""{"accepted":false,"executed":false,"intent":"silence","outcome":"confirmation-needed","speech":"Confirma","confirmation_token":"t.k"}"""))
+        assertFalse(reply.accepted || reply.executed)
+        assertEquals("t.k", reply.confirmationToken)
+        assertEquals("Confirma. ¿Lo hago?", VoiceParser.lineFor(reply))
+    }
+
+    @Test fun `the number of the challenge of a spoken turn is read by the contract and kept out of the reply`() {
+        val turn = es.electrohobby3d.armor.contracts.parseVoiceTurnResult(JSONObject("""{"heard":"silencia","reply":"Di el numero que ves en el panel","challenge":"48"}"""))
+        assertEquals("48", turn?.challenge)
+        assertFalse(turn!!.reply.contains("48"))
+        assertNull(es.electrohobby3d.armor.contracts.parseVoiceTurnResult(JSONObject("""{"heard":"a","reply":"b","challenge":"4"}""")))
+        assertNull(es.electrohobby3d.armor.contracts.parseVoiceTurnResult(JSONObject("""{"heard":"a","reply":"b"}"""))!!.challenge)
+    }
+
     @Test fun `what is not a command says what can be asked`() {
         val reply = VoiceParser.parse(JSONObject("""{"accepted":false,"executed":false,"intent":null,"outcome":"not-understood","speech":"Orden no reconocida"}"""))
         assertNull(reply.intent)

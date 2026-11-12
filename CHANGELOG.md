@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The challenge mode of the voice silence option is covered:** the server can now ask the voice service for a number that is shown on the wall panel and never said aloud. The phone shows no such number, so in that mode silencing by a written command still asks for the signed confirmation and never less; tests keep that answer and the reader of the number of a spoken turn (two to six digits, absent otherwise). Nothing changes unless an administrator picks the mode in Studio.
+
 - **A firmware image made for another board is refused in the words of the person, as in Studio:** the answer `wrong_board` of the server now has its own phrase (in the eight languages) next to `bad_proof` and the other codes of the security screens, instead of the general "it did not work"; a test covers it.
 
 - **A test keeps the readers of the screens from drifting away from the shared contracts:** every valid node health message of the shared oracle goes through the strict generated reader and through the tolerant reader of the health screen, and the fields shown must be the ones the strict reader found; the messages the strict reader refuses must not make the screen fail. The generated readers follow the stricter public DNS information of the network contract.
