@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The copies of the shared contract follow:** the readers know the optional `stack_min_free` and `stack_min_task` of the node health report and the event of the vision service.
+
 ## [0.8.0.6] - A spoken turn from the phone, off by default: a switch in Settings (*Orden hablada al servidor*, in the eight languages) adds a second microphone button to the Assistant. It records one phrase (up to ten seconds of 16 kHz mono sound, after
 
 - **A spoken turn from the phone, off by default:** a switch in Settings (*Orden hablada al servidor*, in the eight languages) adds a second microphone button to the Assistant. It records one phrase (up to ten seconds of 16 kHz mono sound, after the permission for the microphone is asked, the first time the button is tapped), sends it raw to `POST /api/v1/voice/turn` with the voice token (typed once and kept sealed in the Android Keystore) and drops it, and shows the number of the challenge mode of `voice.silence_confirmation` on the screen for nineteen seconds, as the wall panel does, without ever saying it. With the switch off the app never opens the microphone, never asks for the permission and never sends a sound; a refused permission, a missing token, a viewer, an answer that is not a voice reply and a number that is not two to six digits all end the turn without showing anything. The last fifty events are written to a short audit trail on the phone (no words, no sound). `docs/CLIENT_BOUNDARY.md` explains how this changes what the phone fails closed on. 25 JVM tests cover the switch, the permission, the token, the expiry and the malformed number.

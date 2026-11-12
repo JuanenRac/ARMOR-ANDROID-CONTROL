@@ -792,6 +792,8 @@ data class NodeHealth(
     val rssi_dbm: Long? = null,
     val broker_reconnects: Long,
     val low_stack_tasks: Long? = null,
+    val stack_min_free: Long? = null,
+    val stack_min_task: String? = null,
     val last_error: String? = null,
     val control_state: String? = null,
     val control_since_ms: Long? = null,
@@ -1178,6 +1180,30 @@ data class ServerAlert(
     val login_from: String? = null,
     val login_country: String? = null,
     val login_country_new: Boolean? = null
+)
+
+data class VisionEventVectors(
+    val track_id: Long,
+    val dx: Double,
+    val dy: Double,
+    val speed: Double
+)
+
+data class VisionEvent(
+    val schema: String,
+    val type: String,
+    val camera_id: String,
+    val zone_id: String,
+    val zone_name: String,
+    val track_id: Long,
+    val label: String,
+    val confidence: Double,
+    val box: List<Double>,
+    val timestamp: Double,
+    val timestamp_ms: Long,
+    val authorizes_action: Boolean = false,
+    val radar_tracks: Long? = null,
+    val vectors: List<VisionEventVectors>? = null
 )
 
 object ContractLimits {
