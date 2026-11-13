@@ -31,6 +31,7 @@ import es.electrohobby3d.armor.network.SignIn
 import es.electrohobby3d.armor.model.SecurityParser
 import es.electrohobby3d.armor.model.SessionInfo
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -935,6 +936,31 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
             }
             done(if (moved) new else null)
             if (moved) runCatching { withContext(Dispatchers.IO) { refreshInternal(new, false) } }
+        }
+    }
+
+    /** When the last live notice of the server arrived (0: none yet): the polling of the screen asks less often while notices flow. */
+    @Volatile var lastNoticeAt: Long = 0L
+        private set
+    private val noticeRead = java.util.concurrent.atomic.AtomicBoolean(false)
+
+    /**
+     * A small notice of the live channel: something the app may be showing changed. A burst is one read, a little later; an alarm or a device reads everything the screen follows, a solar plant or the
+     * network only itself, and a design nothing (the plans are read when they are opened).
+     */
+    fun liveNotice(origin: String, notice: LiveNotice) {
+        lastNoticeAt = System.currentTimeMillis()
+        if (notice.type == "design" || !noticeRead.compareAndSet(false, true)) return
+        viewModelScope.launch {
+            delay(300)
+            noticeRead.set(false)
+            runCatching {
+                when (notice.type) {
+                    "solar" -> pollSolar(origin)
+                    "network" -> pollNetwork(origin)
+                    else -> withContext(Dispatchers.IO) { refreshInternal(origin, false) }
+                }
+            }
         }
     }
 

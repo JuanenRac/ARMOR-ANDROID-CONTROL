@@ -34,6 +34,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import es.electrohobby3d.armor.model.CameraView
 import es.electrohobby3d.armor.update.AppUpdateState
 import es.electrohobby3d.armor.update.AppUpdateViewModel
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.net.URI
@@ -191,8 +192,16 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                 // The server renews a session that is in use: keep the renewed cookie.
                 // (only when it changed: sealing it with the Keystore and writing it every ten seconds for nothing wears the flash)
                 viewModel.sessionCookie(currentOrigin)?.let { cookie -> if (cookie != lastSavedCookie) { vault.save(currentOrigin, cookie.first, cookie.second); lastSavedCookie = cookie } }
-                delay(10_000)
+                delay(LiveNotices.pollDelay(viewModel.lastNoticeAt, System.currentTimeMillis()))
             }
+        }
+    }
+    // The live channel of the server: small notices of what changed make the screens read it at once, and the asking above slows down while they arrive (it stays as the net under the channel).
+    LaunchedEffect(state.authenticated, currentOrigin) {
+        if (state.authenticated && currentOrigin.isNotBlank()) lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            val channel = LiveChannel(currentOrigin, { viewModel.sessionCookie(currentOrigin) }, { notice -> viewModel.liveNotice(currentOrigin, notice) }, { })
+            channel.start()
+            try { awaitCancellation() } finally { channel.stop() }
         }
     }
     // The phone changed place (home Wi-Fi, mobile data, VPN): the address for the new place is taken, carrying the session over, only if the session holds there. The old address stays otherwise.
