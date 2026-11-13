@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The pictures of the app are taken by a test in an emulator:** the fields and the button of the sign-in carry test tags, `ScreenshotsTest` (an instrumented test, skipped without a server) signs in against a real server and goes through the sections of the bottom bar taking a picture of each with `screencap`, and the workflow `android-screenshots.yml` (by hand or on a branch `screenshots-run/<name>`, never on main) starts the emulator and a real server and keeps the pictures as an artifact; the first pictures are in `images/screenshots`.
+
 ## [0.8.0.7] - Shared contract readers and push token registration
 
 - **A new push token is told to the server only when the phone can read its session, and this is tried:** the decision and the call of `PushRegistration` are apart from the phone, with host tests against a server on the loopback (a readable session registers the token in the language of the phone, no session or another server's session or a key locked behind the unlocking of the phone sends nothing, an address that cannot be read sends nothing).
