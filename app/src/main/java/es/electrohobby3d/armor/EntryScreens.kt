@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -107,12 +108,12 @@ fun LoginScreen(
                     if (challenge) { SignInCodeStep(code, onCode, busy, Friendly.message(message), onSubmitCode, onCancelCode); return@Column }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         OutlinedTextField(
-                            value = host, onValueChange = onHost, modifier = Modifier.weight(1f), singleLine = true,
+                            value = host, onValueChange = onHost, modifier = Modifier.weight(1f).testTag("login-server"), singleLine = true,
                             label = { Text(tr("Servidor")) }, placeholder = { Text("192.168.0.50") }, leadingIcon = { Icon(Icons.Filled.Dns, null) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
                         )
                         OutlinedTextField(
-                            value = port, onValueChange = { onPort(it.filter(Char::isDigit).take(5)) }, modifier = Modifier.width(96.dp), singleLine = true,
+                            value = port, onValueChange = { onPort(it.filter(Char::isDigit).take(5)) }, modifier = Modifier.width(96.dp).testTag("login-port"), singleLine = true,
                             label = { Text(tr("Puerto")) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         )
                     }
@@ -129,11 +130,11 @@ fun LoginScreen(
                     }
                     Text(tr("La app usa la de casa en tu wifi y la de fuera con datos móviles o la VPN; si una no responde, prueba la otra. La de fuera puede dejarse vacía."), color = ArmorColors.Muted, style = MaterialTheme.typography.bodySmall)
                     OutlinedTextField(
-                        value = username, onValueChange = onUsername, modifier = Modifier.fillMaxWidth(), singleLine = true,
+                        value = username, onValueChange = onUsername, modifier = Modifier.fillMaxWidth().testTag("login-user"), singleLine = true,
                         label = { Text(tr("Usuario")) }, leadingIcon = { Icon(Icons.Filled.Person, null) },
                     )
                     OutlinedTextField(
-                        value = password, onValueChange = onPassword, modifier = Modifier.fillMaxWidth(), singleLine = true,
+                        value = password, onValueChange = onPassword, modifier = Modifier.fillMaxWidth().testTag("login-password"), singleLine = true,
                         label = { Text(tr("Contraseña")) }, leadingIcon = { Icon(Icons.Filled.Lock, null) },
                         visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -154,7 +155,7 @@ fun LoginScreen(
                         if (publicIpNote) Text(tr("Esa es una IP pública: si tu operador la cambia, la app dejará de conectar. Usa un nombre de DNS dinámico (por ejemplo https://casa.duckdns.org)."), color = ArmorColors.Muted, style = MaterialTheme.typography.bodySmall)
                         TextButton(onClick = { outsideHelp = true }, Modifier.align(Alignment.CenterHorizontally)) { Text(tr("¿Cómo entro desde fuera de casa?")) }
                     }
-                    Button(onClick = onLogin, enabled = canLogin && !busy, modifier = Modifier.fillMaxWidth().height(52.dp), shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp)) {
+                    Button(onClick = onLogin, enabled = canLogin && !busy, modifier = Modifier.fillMaxWidth().height(52.dp).testTag("login-submit"), shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp)) {
                         if (busy) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
                         else Icon(Icons.AutoMirrored.Filled.Login, null)
                         Spacer(Modifier.width(10.dp))
