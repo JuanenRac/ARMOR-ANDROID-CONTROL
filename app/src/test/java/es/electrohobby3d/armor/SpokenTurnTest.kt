@@ -299,4 +299,67 @@ class SpokenTurnTest {
             assertEquals("unauthorized", es.electrohobby3d.armor.model.VoiceParser.errorCode(error!!.message))
         } finally { client.forgetSession(server.origin); server.stop() }
     }
+
+    // ---- with the session of the person, when no voice token was entered
+
+    private fun sessionController(send: SessionTurnSender) =
+        SpokenTurnController(settings, tokens, recorder, { _, _, _, _ -> sent++; answer() }, audit, { now }, send)
+
+    @Test fun `without a voice token the turn goes with the session when the route of the phone is given`() {
+        settings.enabled = true
+        var viaSession = 0
+        val withSession = sessionController { _, pcm, language -> viaSession++; sentSize = pcm.size; assertEquals("es", language); answer() }
+        val outcome = withSession.run("http://h", "es")
+        assertTrue(outcome is SpokenTurnOutcome.Answered)
+        assertEquals(1, viaSession)
+        assertEquals(0, sent)
+        assertEquals(listOf("sent", "answered"), audit.events)
+    }
+
+    @Test fun `with a voice token the token is still used and the session is not`() {
+        ready()
+        var viaSession = 0
+        val withSession = sessionController { _, _, _ -> viaSession++; answer() }
+        assertTrue(withSession.run("http://h", "es") is SpokenTurnOutcome.Answered)
+        assertEquals(1, sent)
+        assertEquals(0, viaSession)
+    }
+
+    @Test fun `the switch and the permission are still checked before the session is used`() {
+        var viaSession = 0
+        val withSession = sessionController { _, _, _ -> viaSession++; answer() }
+        assertEquals(SpokenTurnOutcome.Off, withSession.run("http://h", "es"))
+        settings.enabled = true
+        recorder.granted = false
+        assertEquals(SpokenTurnOutcome.PermissionDenied, withSession.run("http://h", "es"))
+        assertEquals(0, viaSession)
+        assertEquals(0, recorder.recordCalls)
+    }
+
+    @Test fun `a server that keeps the voice of the phone closed is told in words and fails closed`() {
+        settings.enabled = true
+        val refused = sessionController { _, _, _ -> throw ArmorApiException("403 {\"error\":\"mobile_voice_disabled\"}") }
+        val outcome = refused.run("http://h", "es")
+        assertTrue(outcome is SpokenTurnOutcome.Failed)
+        assertEquals("mobile_voice_disabled", (outcome as SpokenTurnOutcome.Failed).code)
+        assertTrue(SpokenTurnText.notice(outcome)!!.contains("Studio"))
+        assertEquals(listOf("sent", "failed:mobile_voice_disabled"), audit.events)
+    }
+
+    @Test fun `the client sends the sound raw with the session and without a voice token to the route of the phone`() {
+        val server = FakeServer()
+        val client = ArmorApiClient()
+        try {
+            server.reply(200, """{"heard":"estado","reply":"Todo en orden"}""")
+            val json = client.mobileVoiceTurn(server.origin, ByteArray(1_000) { 'A'.code.toByte() }, "es")
+            val seen = server.seen.single()
+            assertEquals("POST", seen.method)
+            assertEquals("/api/v1/voice/mobile-turn", seen.path)
+            assertNull(seen.headers["x-armor-voice-token"])
+            assertEquals("es", seen.headers["x-armor-language"])
+            assertEquals("audio/L16;rate=16000", seen.headers["content-type"])
+            assertEquals(1_000, seen.body.length)
+            assertEquals("estado", json.getString("heard"))
+        } finally { client.forgetSession(server.origin); server.stop() }
+    }
 }

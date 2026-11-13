@@ -4,6 +4,7 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The spoken turn can go with the session of the person, with no voice token on the phone:** when no voice token was entered, the sound goes raw to `POST /api/v1/voice/mobile-turn` with the session. The server keeps that route closed (403 `mobile_voice_disabled`, told in words and in all languages) until an administrator turns on "Voice commands from the phone" in Studio, and never opens it to a viewer; the switch of the phone, the permission of the microphone and the confirmations of the spoken orders are unchanged. With a voice token the turn goes as before. Tests of the controller and of what goes on the wire.
 - **The pictures of the app are taken by a test in an emulator:** the fields and the button of the sign-in carry test tags, `ScreenshotsTest` (an instrumented test, skipped without a server) signs in against a real server and goes through the sections of the bottom bar taking a picture of each with `screencap`, and the workflow `android-screenshots.yml` (by hand or on a branch `screenshots-run/<name>`, never on main) starts the emulator and a real server and keeps the pictures as an artifact; the first pictures are in `images/screenshots`.
 
 ## [0.8.0.7] - Shared contract readers and push token registration

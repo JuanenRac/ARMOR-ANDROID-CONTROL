@@ -417,6 +417,13 @@ class ArmorApiClient : ArmorApi {
         return try { JSONObject(BoundedRead.text(connection.inputStream)) } finally { connection.disconnect() }
     }
 
+    /** One spoken turn with the session of the person (no voice token): the sound goes raw to the route of the phone and the answer is the JSON of the voice reply. */
+    override fun mobileVoiceTurn(origin: String, pcm: ByteArray, language: String): JSONObject {
+        val headers = mapOf("Content-Type" to "audio/L16;rate=16000", "Accept" to "application/json", "X-Armor-Language" to language)
+        val connection = request(origin, "/api/v1/voice/mobile-turn", "POST", headers, null, setOf(200), pcm)
+        return try { JSONObject(BoundedRead.text(connection.inputStream)) } finally { connection.disconnect() }
+    }
+
     /** A request with a JSON body (or none) whose answer is a JSON object (or nothing). */
     private fun sendJson(origin: String, path: String, method: String, body: JSONObject?, expected: Set<Int>): JSONObject {
         val headers = mapOf("Accept" to "application/json") + if (body != null) mapOf("Content-Type" to "application/json") else emptyMap()

@@ -151,4 +151,9 @@ interface ArmorApi {
      * of the voice reply (`heard`, `reply`, `audio?`, `challenge?`) as the server gave it; the caller reads it with the contract parser. Used only while the person's switch for it is on.
      */
     fun voiceTurn(origin: String, pcm: ByteArray, language: String, voiceToken: String): JSONObject
+    /**
+     * The same spoken turn with the SESSION of the person instead of the voice token: the sound goes raw to `POST /api/v1/voice/mobile-turn`. The server answers 403 `mobile_voice_disabled` until an
+     * administrator turns on the option "Voice commands from the phone" in Studio, and never to a viewer. The answer is the JSON of the voice reply, as for [voiceTurn].
+     */
+    fun mobileVoiceTurn(origin: String, pcm: ByteArray, language: String): JSONObject
 }

@@ -111,6 +111,9 @@ class StoreTurnAudit(private val store: KeyValueStore, private val clock: () -> 
 /** What a turn needs from the server: the audio, the language and the voice token in, the JSON of the answer out. */
 typealias TurnSender = (origin: String, pcm: ByteArray, language: String, voiceToken: String) -> JSONObject
 
+/** What a turn needs when the phone has no voice token: the audio and the language in, the JSON of the answer out; the person's session does the rest. */
+typealias SessionTurnSender = (origin: String, pcm: ByteArray, language: String) -> JSONObject
+
 class SpokenTurnController(
     private val settings: SpokenTurnSettings,
     private val tokens: VoiceTokenVault,
@@ -118,18 +121,20 @@ class SpokenTurnController(
     private val send: TurnSender,
     private val audit: TurnAudit,
     private val clock: () -> Long = System::currentTimeMillis,
+    /** Used when no voice token was entered: the turn goes with the session through the route of the phone, which the server keeps closed until an administrator opens it in Studio. */
+    private val sendWithSession: SessionTurnSender? = null,
 ) {
     /** One turn: checks the switch, the token and the permission - in that order, and the microphone is touched only after all three - records, sends and reads the answer. */
     fun run(origin: String, language: String, shouldStop: () -> Boolean = { false }): SpokenTurnOutcome {
         if (!settings.enabled) { audit.record("blocked_switch_off"); return SpokenTurnOutcome.Off }
         val token = tokens.load()
-        if (token == null) { audit.record("no_token"); return SpokenTurnOutcome.NoToken }
+        if (token == null && sendWithSession == null) { audit.record("no_token"); return SpokenTurnOutcome.NoToken }
         if (!recorder.permitted()) return denied()
         val sound = try { recorder.record(shouldStop) } catch (_: SecurityException) { return denied() }
         if (sound.size < MIN_BYTES || sound.size % 2 != 0) { audit.record("nothing_heard"); return SpokenTurnOutcome.NothingHeard }
         val pcm = if (sound.size > MAX_BYTES) sound.copyOf(MAX_BYTES) else sound
         audit.record("sent")
-        val json = try { send(origin, pcm, language, token) } catch (error: Exception) {
+        val json = try { if (token != null) send(origin, pcm, language, token) else sendWithSession!!(origin, pcm, language) } catch (error: Exception) {
             val code = VoiceParser.errorCode(error.message)
             audit.record("failed:" + (code ?: "network").take(24))
             return SpokenTurnOutcome.Failed(code)
@@ -167,7 +172,7 @@ object SpokenTurnText {
         SpokenTurnOutcome.PermissionDenied -> tr("Sin permiso para el micrófono no puedo escucharte. Puedes escribir la orden.")
         SpokenTurnOutcome.NothingHeard -> tr("No he oído nada. Prueba otra vez.")
         SpokenTurnOutcome.Malformed -> tr("La respuesta del servidor no es válida: no la muestro.")
-        is SpokenTurnOutcome.Failed -> if (outcome.code == "unauthorized") tr("El servidor no acepta la clave de voz.") else VoiceParser.errorText(outcome.code?.let { "{\"error\":\"$it\"}" })
+        is SpokenTurnOutcome.Failed -> if (outcome.code == "mobile_voice_disabled") tr("El servidor no permite la voz desde el móvil: un administrador debe activarla en Studio.") else if (outcome.code == "unauthorized") tr("El servidor no acepta la clave de voz.") else VoiceParser.errorText(outcome.code?.let { "{\"error\":\"$it\"}" })
         is SpokenTurnOutcome.Answered -> null
     }
 }

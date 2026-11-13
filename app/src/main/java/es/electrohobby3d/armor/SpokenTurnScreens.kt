@@ -78,6 +78,7 @@ object SpokenTurnKit {
     fun controller(context: Context) = SpokenTurnController(
         settings(context), tokens(context), AudioRecordTurnRecorder(context.applicationContext),
         { origin, pcm, language, token -> SharedFeed.api.voiceTurn(origin, pcm, language, token) }, audit(context),
+        sendWithSession = { origin, pcm, language -> SharedFeed.api.mobileVoiceTurn(origin, pcm, language) },
     )
 }
 
