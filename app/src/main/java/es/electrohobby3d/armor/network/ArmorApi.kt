@@ -5,12 +5,15 @@ import es.electrohobby3d.armor.model.*
 import org.json.JSONObject
 
 /** What the session of the server tells about the signed-in person and the options in force for the phone. */
-data class SessionFacts(val role: String = "", val deviceLock: String = "user", val trustedDevices: Boolean = false, val capabilities: SessionCapabilities = SessionCapabilities.fromRole(role)) {
+data class SessionFacts(val role: String = "", val deviceLock: String = "user", val trustedDevices: Boolean = false, val capabilities: SessionCapabilities = SessionCapabilities.fromRole(role),
+    /** The administrator turned on the hidden panic gesture (the option `client.panic_gesture`); without it the app never listens for the gesture. */
+    val panicGesture: Boolean = false) {
     companion object {
         /** From the answer of `GET /api/v1/studio/session`. */
         fun parse(json: org.json.JSONObject): SessionFacts {
             val role = json.optJSONObject("user")?.optString("role").orEmpty()
-            return SessionFacts(role = role, deviceLock = json.optJSONObject("capabilities")?.optJSONObject("security")?.optString("client.device_lock").orEmpty().ifBlank { "user" }, trustedDevices = json.optJSONObject("capabilities")?.optJSONObject("security")?.optBoolean("client.trusted_devices", false) == true, capabilities = SessionCapabilities.of(json, role))
+            return SessionFacts(role = role, deviceLock = json.optJSONObject("capabilities")?.optJSONObject("security")?.optString("client.device_lock").orEmpty().ifBlank { "user" }, trustedDevices = json.optJSONObject("capabilities")?.optJSONObject("security")?.optBoolean("client.trusted_devices", false) == true, capabilities = SessionCapabilities.of(json, role),
+                panicGesture = json.optJSONObject("capabilities")?.optJSONObject("security")?.optBoolean("client.panic_gesture", false) == true)
         }
     }
 }
@@ -156,4 +159,9 @@ interface ArmorApi {
      * administrator turns on the option "Voice commands from the phone" in Studio, and never to a viewer. The answer is the JSON of the voice reply, as for [voiceTurn].
      */
     fun mobileVoiceTurn(origin: String, pcm: ByteArray, language: String): JSONObject
+    /**
+     * The hidden panic gesture: `POST /api/v1/alarm/panic-gesture` raises the silent duress alarm of the signed-in person. The server answers the same `{ok:true}` whether an alarm was raised or the quiet time
+     * had not ended, and 404 while the administrator has the option off (the caller then forgets the gesture). Nothing of it is kept in the diagnostic log.
+     */
+    fun panicGesture(origin: String)
 }

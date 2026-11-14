@@ -18,7 +18,11 @@ object DiagnosticLog {
         return "/" + parts.take(4).joinToString("/") + if (parts.size > 4) "/…" else ""
     }
 
+    /** The route of the hidden panic gesture: it leaves no trace in the report that a person may share, or that somebody looking over the shoulder may read. */
+    private const val QUIET_ROUTE = "/panic-gesture"
+
     @Synchronized fun record(method: String, path: String, status: Int, atMs: Long = System.currentTimeMillis()) {
+        if (path.substringBefore('?').endsWith(QUIET_ROUTE)) return
         if (entries.size >= KEEP) entries.removeFirst()
         entries.addLast(Entry(atMs, method.take(8), shape(path), status))
     }

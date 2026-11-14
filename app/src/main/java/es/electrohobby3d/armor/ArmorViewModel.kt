@@ -54,6 +54,8 @@ data class MonitorUiState(
     val deviceLock: String = "user",
     /** Whether the server lets a phone register as a trusted one (the option of the administrator). */
     val trustedDevices: Boolean = false,
+    /** Whether the server offers the hidden panic gesture (the option of the administrator, off by default). */
+    val panicGesture: Boolean = false,
     val loading: Boolean = false,
     val snapshot: ArmorSnapshot = ArmorSnapshot(),
     val cameras: List<CameraView> = emptyList(),
@@ -468,7 +470,7 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
     /** Signed in: the role and what the server asks of the phone's lock come from one request to the session. */
     private fun MonitorUiState.signedIn(origin: String): MonitorUiState {
         val facts = runCatching { client.sessionFacts(origin) }.getOrDefault(SessionFacts())
-        return copy(authenticated = true, role = facts.role, capabilities = facts.capabilities, deviceLock = facts.deviceLock, trustedDevices = facts.trustedDevices)
+        return copy(authenticated = true, role = facts.role, capabilities = facts.capabilities, deviceLock = facts.deviceLock, trustedDevices = facts.trustedDevices, panicGesture = facts.panicGesture)
     }
 
     /** The trusted phone of the app (null in a test or a preview: then nothing is renewed). */
@@ -848,6 +850,29 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
             } catch (error: Exception) {
                 "failed" to (error.message ?: tr("No se pudo cambiar el modo."))
             }
+        }
+    }
+
+    @Volatile private var panicSending = false
+
+    /**
+     * The hidden panic gesture was made: asks the server for the silent duress alarm. Nothing shows, whatever happens (no message, no sound, no vibration): the person may be watched. Only while the
+     * server offers it and the person may operate; a 404 means the option was turned off since the session began, so the app stops listening; a lost connection is tried once more after two seconds.
+     */
+    fun panicGesture(origin: String) {
+        val now = _state.value
+        if (!now.panicGesture || !now.can(CapabilityAction.OPERATE) || panicSending) return
+        panicSending = true
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                var tries = 0
+                while (true) {
+                    try { client.panicGesture(origin); break }
+                    catch (error: ArmorApiException) { if (error.code == 404) _state.update { it.copy(panicGesture = false) }; break }
+                    catch (_: java.io.IOException) { if (++tries >= PanicGesture.TRIES) break; delay(PanicGesture.RETRY_MS) }
+                }
+            } catch (_: Exception) {
+            } finally { panicSending = false }
         }
     }
 
