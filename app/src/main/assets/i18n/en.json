@@ -1551,5 +1551,6 @@
  "Escanear el código de alta": "Scan the set-up code",
  "Ese código no es un código de alta de A.R.M.O.R.": "That code is not an A.R.M.O.R. set-up code.",
  "No se pudo comprobar el código de alta: ha caducado, ya se usó o el servidor no responde.": "The set-up code could not be checked: it ended, it was already used or the server does not answer.",
- "Servidor añadido: %s. Escribe tu usuario y tu contraseña.": "Server added: %s. Type your user and password."
+ "Servidor añadido: %s. Escribe tu usuario y tu contraseña.": "Server added: %s. Type your user and password.",
+ "Abrir cámara": "Open camera"
 }

@@ -56,7 +56,13 @@ class ArmorActivity : ComponentActivity() {
         deviceAuth = AndroidDeviceAuth(this)
         Tr.init(this)
         TrustPins.install(PreferencesStore(getSharedPreferences("armor-control", Context.MODE_PRIVATE)))
+        OpenCamera.fromIntent(intent)
         setContent { ArmorScreen() }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        OpenCamera.fromIntent(intent)
     }
 }
 
@@ -168,6 +174,15 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     DisposableEffect(viewModel, lockGate) {
         viewModel.sensitiveGate = lockGate
         onDispose { if (viewModel.sensitiveGate === lockGate) viewModel.sensitiveGate = null }
+    }
+    // A notice about a camera asked to open it: once the person is signed in and the camera is known, the app goes to the Cameras place with it in full screen.
+    val openCamera by OpenCamera.requested.collectAsStateWithLifecycle()
+    LaunchedEffect(openCamera, state.authenticated, state.cameras) {
+        val id = openCamera ?: return@LaunchedEffect
+        if (!state.authenticated) return@LaunchedEffect
+        val found = state.cameras.firstOrNull { it.id == id }
+        if (found != null) { section = Section.Cameras; moreTab = null; expanded = found }
+        if (found != null || state.cameras.isNotEmpty()) OpenCamera.taken()
     }
     // The session kept from last time is tried only once the person is recognised.
     LaunchedEffect(locked) {

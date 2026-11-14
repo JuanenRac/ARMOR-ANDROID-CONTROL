@@ -1551,5 +1551,6 @@
  "Escanear el código de alta": "扫描设置码",
  "Ese código no es un código de alta de A.R.M.O.R.": "该代码不是 A.R.M.O.R. 的设置码。",
  "No se pudo comprobar el código de alta: ha caducado, ya se usó o el servidor no responde.": "无法验证设置码：已过期、已被使用，或服务器无响应。",
- "Servidor añadido: %s. Escribe tu usuario y tu contraseña.": "已添加服务器：%s。请输入用户名和密码。"
+ "Servidor añadido: %s. Escribe tu usuario y tu contraseña.": "已添加服务器：%s。请输入用户名和密码。",
+ "Abrir cámara": "打开摄像头"
 }

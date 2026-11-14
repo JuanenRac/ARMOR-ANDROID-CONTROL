@@ -1551,5 +1551,6 @@
  "Escanear el código de alta": "Einrichtungscode scannen",
  "Ese código no es un código de alta de A.R.M.O.R.": "Dieser Code ist kein Einrichtungscode von A.R.M.O.R.",
  "No se pudo comprobar el código de alta: ha caducado, ya se usó o el servidor no responde.": "Der Einrichtungscode konnte nicht geprüft werden: Er ist abgelaufen, wurde schon verwendet oder der Server antwortet nicht.",
- "Servidor añadido: %s. Escribe tu usuario y tu contraseña.": "Server hinzugefügt: %s. Geben Sie Benutzer und Passwort ein."
+ "Servidor añadido: %s. Escribe tu usuario y tu contraseña.": "Server hinzugefügt: %s. Geben Sie Benutzer und Passwort ein.",
+ "Abrir cámara": "Kamera öffnen"
 }

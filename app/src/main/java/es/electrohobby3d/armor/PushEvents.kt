@@ -41,7 +41,9 @@ object PushEvents {
         val event = parse(data) ?: return null
         val notice = AlarmPolicy.notices(listOf(event), armed(data)).firstOrNull() ?: return null
         val alarmId = if (event.type == "alarm") data["alarm_id"]?.takeIf { it.isNotBlank() && it.length <= 64 } else null
-        return if (announced.firstTime(origin, notice.id)) (if (alarmId != null) notice.copy(alarmId = alarmId) else notice) else null
+        // the camera an alarm came from (its source is the id of the camera) or a camera that stopped answering
+        val cameraId = if ((event.type == "alarm" && event.sourceType == "camera") || event.type == "camera") event.subject.takeIf { OpenCamera.valid(it) } else null
+        return if (announced.firstTime(origin, notice.id)) notice.copy(alarmId = alarmId ?: notice.alarmId, cameraId = cameraId) else null
     }
 
     /** A message the system already showed by itself (it had a notification part): only the id is remembered, so the watch does not say it again. */

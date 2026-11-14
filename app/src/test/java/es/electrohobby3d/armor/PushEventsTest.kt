@@ -91,4 +91,18 @@ class PushEventsTest {
         assertFalse(ids.seen(origin, 1))
         assertTrue(ids.seen(origin, 5))
     }
+
+    @Test fun `a notice about a camera knows the camera and one about a device does not`() {
+        val fromCamera = smoke + ("source_type" to "camera") + ("source" to "cam-1")
+        assertEquals("cam-1", PushEvents.notice(fromCamera, "$origin/cam-a", announced())!!.cameraId)
+        val offline = mapOf("event_id" to "130", "type" to "camera", "camera_id" to "cam-2", "to" to "offline", "at" to "2030-01-01T00:00:00Z")
+        assertEquals("cam-2", PushEvents.notice(offline, "$origin/cam-b", announced())!!.cameraId)
+        assertNull("a smoke detector is not a camera", PushEvents.notice(smoke, "$origin/cam-c", announced())!!.cameraId)
+        assertNull("an id that could be a path is dropped", PushEvents.notice(fromCamera + ("source" to "../x"), "$origin/cam-d", announced())!!.cameraId)
+    }
+
+    @Test fun `only ids of a camera are held for the screen`() {
+        assertTrue(OpenCamera.valid("cam-1") && OpenCamera.valid("front.door_2"))
+        for (bad in listOf("", "a b", "../x", "x/y", "x".repeat(81), "a;b")) assertFalse(bad, OpenCamera.valid(bad))
+    }
 }
