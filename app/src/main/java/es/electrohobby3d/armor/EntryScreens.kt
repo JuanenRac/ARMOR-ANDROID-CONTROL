@@ -89,6 +89,8 @@ fun LoginScreen(
     awayHost: String = "", awayPort: String = "443", onAwayHost: (String) -> Unit = {}, onAwayPort: (String) -> Unit = {},
     /** The servers whose session is kept on this phone (the house, a workshop, a client): one touch goes back to one of them without typing the password. Shown only while there is one. */
     servers: List<String> = emptyList(), serverInUse: String = "", onPickServer: (String) -> Unit = {},
+    /** Reads the QR code that sets up the app (made by Studio): the address and the authority of an installation, without any password. */
+    onScanEnrolment: () -> Unit = {},
 ) {
     var visible by rememberSaveable { mutableStateOf(false) }
     var outsideHelp by rememberSaveable { mutableStateOf(false) }
@@ -109,6 +111,9 @@ fun LoginScreen(
             Panel(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (challenge) { SignInCodeStep(code, onCode, busy, Friendly.message(message), onSubmitCode, onCancelCode); return@Column }
+                    OutlinedButton(onClick = onScanEnrolment, enabled = !busy, modifier = Modifier.fillMaxWidth().testTag("login-scan-enrolment")) {
+                        Icon(Icons.Filled.QrCodeScanner, null); Spacer(Modifier.width(8.dp)); Text(tr("Escanear el código de alta"))
+                    }
                     if (servers.isNotEmpty()) {
                         Text(tr("Servidores guardados en este teléfono"), fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

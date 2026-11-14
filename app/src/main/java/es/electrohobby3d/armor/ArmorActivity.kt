@@ -31,7 +31,14 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 import es.electrohobby3d.armor.model.CameraView
+import es.electrohobby3d.armor.model.EnrolmentCode
+import es.electrohobby3d.armor.network.EnrolmentReader
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import es.electrohobby3d.armor.update.AppUpdateState
 import es.electrohobby3d.armor.update.AppUpdateViewModel
 import kotlinx.coroutines.awaitCancellation
@@ -382,6 +389,31 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                     },
                     canLogin = validAddresses && username.isNotBlank() && password.isNotBlank(),
                     servers = remember(currentOrigin, state.loading) { ServerChoice.offered(vault.origins(), currentOrigin) }, serverInUse = currentOrigin,
+                    onScanEnrolment = {
+                        val options = GmsBarcodeScannerOptions.Builder().setBarcodeFormats(Barcode.FORMAT_QR_CODE).build()
+                        GmsBarcodeScanning.getClient(context, options).startScan()
+                            .addOnSuccessListener { barcode ->
+                                val read = EnrolmentCode.parse(barcode.rawValue)
+                                val fields = read?.let { ServerChoice.fields(it.origin) }
+                                val endpoint = read?.let { ServerEndpoint.parse(it.origin) }
+                                if (read == null || fields == null || endpoint == null) { viewModel.say(tr("Ese código no es un código de alta de A.R.M.O.R.")); return@addOnSuccessListener }
+                                lockScope.launch {
+                                    val host = runCatching { java.net.URI(read.origin).host }.getOrNull().orEmpty()
+                                    // the authority the code names is waited for by the connection that asks the server for its facts, so a private authority can be paired without installing it
+                                    if (read.caFingerprint.isNotEmpty()) TrustPins.store()?.expectAuthority(host, read.caFingerprint)
+                                    val facts = withContext(Dispatchers.IO) { runCatching { EnrolmentReader.read(read) }.getOrNull() }
+                                    TrustPins.store()?.clearExpected(host)
+                                    if (facts == null || !EnrolmentReader.agrees(read, facts)) { viewModel.say(tr("No se pudo comprobar el código de alta: ha caducado, ya se usó o el servidor no responde.")); return@launch }
+                                    serverHost = fields.first; serverPort = fields.second; awayHost = ""; awayPort = "443"
+                                    ServerAddresses(endpoint, null).also { it.save(addressStore); addresses = it }
+                                    origin = endpoint.origin
+                                    preferences.edit().putString("origin", endpoint.origin).apply()
+                                    viewModel.say(trf("Servidor añadido: %s. Escribe tu usuario y tu contraseña.", ServerChoice.label(endpoint.origin)))
+                                }
+                            }
+                            .addOnCanceledListener { }
+                            .addOnFailureListener { viewModel.say(tr("No se pudo abrir el lector de códigos en este teléfono.")) }
+                    },
                     onPickServer = { picked ->
                         val fields = ServerChoice.fields(picked)
                         val endpoint = ServerEndpoint.parse(picked)
