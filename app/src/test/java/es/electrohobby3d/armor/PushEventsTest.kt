@@ -44,6 +44,16 @@ class PushEventsTest {
         assertNull("the same event again gives nothing", PushEvents.notice(smoke, origin, ids))
     }
 
+    @Test fun `a push that names its alarm gives a notice that can act on it, and a bad id is not carried`() {
+        assertEquals("alm-00001", PushEvents.notice(smoke + ("alarm_id" to "alm-00001"), "$origin/a", announced())!!.alarmId)
+        assertNull("no id, no action", PushEvents.notice(smoke, "$origin/b", announced())!!.alarmId)
+        assertNull("an id that is too long is dropped", PushEvents.notice(smoke + ("alarm_id" to "x".repeat(65)), "$origin/c", announced())!!.alarmId)
+        assertTrue(AlarmActionReceiver.validAlarmId("alm-00001"))
+        assertFalse(AlarmActionReceiver.validAlarmId(""))
+        assertFalse(AlarmActionReceiver.validAlarmId("../admin"))
+        assertFalse(AlarmActionReceiver.validAlarmId("a b"))
+    }
+
     @Test fun `the alarm of a duress pin is never shown`() {
         assertNull(PushEvents.notice(smoke + ("code" to "duress_disarm"), origin, announced()))
     }

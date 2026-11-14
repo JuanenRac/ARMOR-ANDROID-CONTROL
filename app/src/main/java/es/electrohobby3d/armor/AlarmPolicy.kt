@@ -7,7 +7,8 @@ import es.electrohobby3d.armor.model.DeviceText
 
 /** `severity` is "critical", "high" or "warning": it picks the channel (the sound) the notification goes to. */
 /** `kind` says what the notice is about (see [NoticeKinds]) so that the person can switch kinds off. */
-data class AlarmNotice(val id: Long, val title: String, val text: String, val severity: String = "high", val kind: String = NoticeKinds.SYSTEM)
+/** `alarmId` is the alarm the notice tells about when the push said which one (it lets the notice carry an action on that alarm); null for the rest. */
+data class AlarmNotice(val id: Long, val title: String, val text: String, val severity: String = "high", val kind: String = NoticeKinds.SYSTEM, val alarmId: String? = null)
 
 object AlarmPolicy {
     /** Alarms a phone never announces, shows or counts (the server tells the people who must know in silence). */

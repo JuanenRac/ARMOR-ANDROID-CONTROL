@@ -40,7 +40,8 @@ object PushEvents {
     fun notice(data: Map<String, String>, origin: String, announced: AnnouncedIds): AlarmNotice? {
         val event = parse(data) ?: return null
         val notice = AlarmPolicy.notices(listOf(event), armed(data)).firstOrNull() ?: return null
-        return if (announced.firstTime(origin, notice.id)) notice else null
+        val alarmId = if (event.type == "alarm") data["alarm_id"]?.takeIf { it.isNotBlank() && it.length <= 64 } else null
+        return if (announced.firstTime(origin, notice.id)) (if (alarmId != null) notice.copy(alarmId = alarmId) else notice) else null
     }
 
     /** A message the system already showed by itself (it had a notification part): only the id is remembered, so the watch does not say it again. */

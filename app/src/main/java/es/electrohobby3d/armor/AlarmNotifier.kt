@@ -76,12 +76,14 @@ object AlarmNotifier {
         if (decision == NoticeDecision.HIDE) return
         ensureChannels(context)
         val channel = if (decision == NoticeDecision.SILENT) QUIET_CHANNEL else channelOf(context, notice)
-        val notification = Notification.Builder(context, channel)
+        val noticeId = NOTICE_BASE + (notice.id % 10_000).toInt()
+        val builder = Notification.Builder(context, channel)
             .setSmallIcon(android.R.drawable.ic_dialog_alert)
             .setContentTitle(notice.title).setContentText(notice.text)
             .setCategory(Notification.CATEGORY_ALARM).setAutoCancel(true).setContentIntent(openApp(context))
-            .build()
-        context.getSystemService(NotificationManager::class.java).notify(NOTICE_BASE + (notice.id % 10_000).toInt(), notification)
+        // A notice that knows its alarm carries the action to acknowledge it from the notice itself; the notice of an alarm the person cannot acknowledge simply fails quietly on the server.
+        notice.alarmId?.let { alarm -> builder.addAction(Notification.Action.Builder(null, tr("Confirmar"), AlarmActionReceiver.acknowledgeIntent(context, alarm, noticeId)).build()) }
+        context.getSystemService(NotificationManager::class.java).notify(noticeId, builder.build())
         if (decision == NoticeDecision.SHOW && speaksAlarms(context) && VoicePreferences.load(context).speaks(notice.severity)) AlarmSpeaker.say(context, "${notice.title}. ${notice.text}")
     }
 
