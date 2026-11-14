@@ -41,7 +41,6 @@ class StatusWidget : GlanceAppWidget() {
             try { SavedServerSession.of(app)?.let { SystemFace.of(it.second.status(it.first).mode) } } catch (_: Exception) { null }
         } ?: SystemFace.UNKNOWN
         val open = Intent(app, ArmorActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-        val open = Intent(app, ArmorActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         val title = "A.R.M.O.R."
         val state = tr(face.phrase)
         provideContent {
