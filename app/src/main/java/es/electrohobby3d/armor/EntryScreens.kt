@@ -7,6 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -86,6 +87,8 @@ fun LoginScreen(
     remember: Boolean = false, onRemember: (Boolean) -> Unit = {},
     /** The address for away from home (a name that follows the house, or the VPN), optional: with it the app uses the private address at home and this one on mobile data. */
     awayHost: String = "", awayPort: String = "443", onAwayHost: (String) -> Unit = {}, onAwayPort: (String) -> Unit = {},
+    /** The servers whose session is kept on this phone (the house, a workshop, a client): one touch goes back to one of them without typing the password. Shown only while there is one. */
+    servers: List<String> = emptyList(), serverInUse: String = "", onPickServer: (String) -> Unit = {},
 ) {
     var visible by rememberSaveable { mutableStateOf(false) }
     var outsideHelp by rememberSaveable { mutableStateOf(false) }
@@ -106,6 +109,16 @@ fun LoginScreen(
             Panel(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (challenge) { SignInCodeStep(code, onCode, busy, Friendly.message(message), onSubmitCode, onCancelCode); return@Column }
+                    if (servers.isNotEmpty()) {
+                        Text(tr("Servidores guardados en este teléfono"), fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            for (server in servers) FilterChip(
+                                selected = server == serverInUse, onClick = { onPickServer(server) }, enabled = !busy,
+                                label = { Text(ServerChoice.label(server), maxLines = 1) }, modifier = Modifier.testTag("login-server-choice"),
+                            )
+                        }
+                        Text(tr("Toca uno para entrar sin escribir la contraseña."), color = ArmorColors.Muted, fontSize = 12.sp)
+                    }
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         OutlinedTextField(
                             value = host, onValueChange = onHost, modifier = Modifier.weight(1f).testTag("login-server"), singleLine = true,
