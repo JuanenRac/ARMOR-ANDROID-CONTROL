@@ -45,4 +45,35 @@ class PresenceReminderTest {
         assertTrue(PresenceConfig.RADIUS_M >= 50f)
         assertTrue(PresenceConfig.COOLDOWN_MS >= 60_000L)
     }
+
+    @Test fun `the transitions of the circle are the numbers of Google Play services`() {
+        assertEquals(com.google.android.gms.location.Geofence.GEOFENCE_TRANSITION_ENTER, PresenceShare.ENTER)
+        assertEquals(com.google.android.gms.location.Geofence.GEOFENCE_TRANSITION_EXIT, PresenceShare.EXIT)
+    }
+
+    @Test fun `entering the circle says home, leaving says away and nothing else says anything`() {
+        assertEquals("home", PresenceShare.wordFor(PresenceShare.ENTER))
+        assertEquals("away", PresenceShare.wordFor(PresenceShare.EXIT))
+        assertNull(PresenceShare.wordFor(4))
+        assertNull(PresenceShare.wordFor(0))
+    }
+
+    @Test fun `with the word off the circle is watched only for leaving and only for the reminder`() {
+        assertEquals(PresenceShare.EXIT, PresenceShare.transitions(reminder = true, share = false))
+        assertEquals(0, PresenceShare.transitions(reminder = false, share = false))
+        assertEquals(0, PresenceShare.initialTrigger(share = false))
+    }
+
+    @Test fun `with the word on both sides are watched and the side the phone is on is announced at once`() {
+        assertEquals(PresenceShare.EXIT or PresenceShare.ENTER, PresenceShare.transitions(reminder = false, share = true))
+        assertEquals(PresenceShare.EXIT or PresenceShare.ENTER, PresenceShare.transitions(reminder = true, share = true))
+        assertEquals(PresenceShare.EXIT or PresenceShare.ENTER, PresenceShare.initialTrigger(share = true))
+    }
+
+    @Test fun `the circle is watched only with something on and a place saved`() {
+        assertFalse(PresenceShare.watching(reminder = false, share = false, hasHome = true))
+        assertFalse(PresenceShare.watching(reminder = true, share = true, hasHome = false))
+        assertTrue(PresenceShare.watching(reminder = true, share = false, hasHome = true))
+        assertTrue(PresenceShare.watching(reminder = false, share = true, hasHome = true))
+    }
 }

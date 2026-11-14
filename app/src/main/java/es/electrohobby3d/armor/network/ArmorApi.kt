@@ -145,6 +145,8 @@ interface ArmorApi {
     fun mjpegUrl(origin: String, id: String): String
     /** A ticket to watch one camera (every role may ask for it); the address to open is the origin plus the path the server gives. [quality] is what the app asks for explicitly: "low" (the lighter picture), "normal" or "auto" (the server decides by where the person came from). */
     fun streamTicket(origin: String, cameraId: String, quality: String = "auto"): String
+    /** Tells the server only the word "home" or "away" for the signed-in person (PUT /api/v1/presence/me, behind the option presence.by_user). The position of the phone is never sent. */
+    fun setPresence(origin: String, state: String)
     /** Whether this install has the voice gateway, so written and spoken commands work. */
     fun voiceAvailable(origin: String): Boolean
     /** One written or spoken command, as text. Arming and disarming need a second turn: send the same phrase again with the token of the first answer. */
