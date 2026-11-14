@@ -312,4 +312,24 @@ class ApiClientTest {
         val (active, recent) = client.alarms(origin)
         assertTrue(active.isEmpty() && recent.isEmpty())
     }
+
+    @Test fun `the word of presence goes as a PUT with only the word`() {
+        server.reply(200, """{"state":"home","since":"t"}""")
+        client.setPresence(origin, "home")
+        val sent = server.seen.single()
+        assertEquals("PUT", sent.method)
+        assertEquals("/api/v1/presence/me", sent.path)
+        assertEquals(setOf("state"), JSONObject(sent.body).keys().asSequence().toSet())
+        assertEquals("home", JSONObject(sent.body).getString("state"))
+    }
+
+    @Test fun `any other word than home or away is never sent`() {
+        try { client.setPresence(origin, "38.0,-1.1"); fail("expected the word to be refused") } catch (_: IllegalArgumentException) { }
+        assertTrue(server.seen.isEmpty())
+    }
+
+    @Test fun `a server with the option off answers 404 and the call says so`() {
+        server.reply(404, """{"error":"not found"}""")
+        assertEquals(404, failure { client.setPresence(origin, "away") }.code)
+    }
 }

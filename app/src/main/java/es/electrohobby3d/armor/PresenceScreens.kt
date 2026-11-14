@@ -33,6 +33,7 @@ fun PresenceCard() {
     val context = LocalContext.current
     val settings = remember { PresenceSettings.of(context) }
     var on by remember { mutableStateOf(settings.enabled) }
+    var share by remember { mutableStateOf(settings.share) }
     var saved by remember { mutableStateOf(settings.home != null) }
     var message by remember { mutableStateOf<String?>(null) }
     var wantsHome by remember { mutableStateOf(false) }
@@ -69,10 +70,20 @@ fun PresenceCard() {
             }
             Switch(checked = on, onCheckedChange = { value ->
                 on = value; settings.enabled = value; message = null
-                if (value) { if (PresenceGeofence.hasPermission(context)) PresenceGeofence.restore(context) else askPermissions() } else PresenceGeofence.stop(context)
+                if (value) { if (PresenceGeofence.hasPermission(context)) PresenceGeofence.restore(context) else askPermissions() } else PresenceGeofence.restore(context)
             })
         }
-        if (on) FilledTonalButton(onClick = { message = null; if (PresenceGeofence.hasPermission(context)) saveHome() else { wantsHome = true; askPermissions() } }, modifier = Modifier.fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.weight(1f)) {
+                Text(tr("Decir a mi servidor si estoy en casa"))
+                Text(tr("Envía solo la palabra en casa o fuera cuando el móvil entra o sale del círculo de casa. Tu ubicación no se envía a ningún sitio."), style = MaterialTheme.typography.bodySmall)
+            }
+            Switch(checked = share, onCheckedChange = { value ->
+                share = value; settings.share = value; message = null
+                if (value && !PresenceGeofence.hasPermission(context)) askPermissions() else PresenceGeofence.restore(context)
+            })
+        }
+        if (on || share) FilledTonalButton(onClick = { message = null; if (PresenceGeofence.hasPermission(context)) saveHome() else { wantsHome = true; askPermissions() } }, modifier = Modifier.fillMaxWidth()) {
             Text(if (saved) tr("Cambiar la casa por mi ubicación actual") else tr("Usar mi ubicación actual como casa"))
         }
         message?.let { Text(it, style = MaterialTheme.typography.bodySmall) }

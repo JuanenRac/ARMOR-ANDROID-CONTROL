@@ -400,6 +400,12 @@ class ArmorApiClient : ArmorApi {
         return origin.trimEnd('/') + path
     }
 
+    /** Tells the server only the word for the signed-in person; any other word is refused here and never sent. */
+    override fun setPresence(origin: String, state: String) {
+        require(state == "home" || state == "away") { "The presence word is home or away" }
+        sendJson(origin, "/api/v1/presence/me", "PUT", JSONObject().put("state", state), setOf(200))
+    }
+
     /** Whether this install has the voice gateway, so written and spoken commands work. */
     override fun voiceAvailable(origin: String): Boolean = getJson(origin, "/api/v1/voice/status").optBoolean("available")
 

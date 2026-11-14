@@ -31,6 +31,28 @@ object PresenceDecision {
     }
 }
 
+/**
+ * What the phone tells the server about being at home: only the word "home" or "away", chosen by the circle around the saved place. Off by default and apart from the reminder: the person turns it on for themselves.
+ * The place never leaves the phone; the server only learns which side of the circle the phone is on.
+ */
+object PresenceShare {
+    /** The transitions of the circle (the numbers of Google Play services: enter is 1, leave is 2). */
+    const val ENTER = 1
+    const val EXIT = 2
+
+    /** The word for a transition of the circle, or null for anything else. */
+    fun wordFor(transition: Int): String? = when (transition) { ENTER -> "home"; EXIT -> "away"; else -> null }
+
+    /** The transitions to watch: leaving serves the reminder and the word; coming back serves only the word. None when neither is on. */
+    fun transitions(reminder: Boolean, share: Boolean): Int = (if (reminder || share) EXIT else 0) or (if (share) ENTER else 0)
+
+    /** On registering the circle, the side the phone is on is announced only when the word is shared (so the server hears where the phone is now, and not only the next change). */
+    fun initialTrigger(share: Boolean): Int = if (share) ENTER or EXIT else 0
+
+    /** Whether the circle is watched at all: something is on and a place is saved. */
+    fun watching(reminder: Boolean, share: Boolean, hasHome: Boolean): Boolean = hasHome && (reminder || share)
+}
+
 /** The place saved as home. */
 data class HomePlace(val lat: Double, val lon: Double) {
     val valid: Boolean get() = lat in -90.0..90.0 && lon in -180.0..180.0 && !(lat == 0.0 && lon == 0.0)
@@ -41,6 +63,11 @@ class PresenceSettings(private val preferences: SharedPreferences) {
     var enabled: Boolean
         get() = preferences.getBoolean(ON, false)
         set(value) { preferences.edit().putBoolean(ON, value).apply() }
+
+    /** The phone tells the server "home" or "away" (PUT /api/v1/presence/me). Off by default, per person, and apart from the reminder. */
+    var share: Boolean
+        get() = preferences.getBoolean(SHARE, false)
+        set(value) { preferences.edit().putBoolean(SHARE, value).apply() }
 
     var home: HomePlace?
         get() = if (preferences.contains(LAT) && preferences.contains(LON)) HomePlace(Double.fromBits(preferences.getLong(LAT, 0L)), Double.fromBits(preferences.getLong(LON, 0L))).takeIf { it.valid } else null
@@ -56,6 +83,7 @@ class PresenceSettings(private val preferences: SharedPreferences) {
 
     companion object {
         private const val ON = "presence_on"
+        private const val SHARE = "presence_share"
         private const val LAT = "presence_lat"
         private const val LON = "presence_lon"
         private const val LAST = "presence_last"
