@@ -82,17 +82,45 @@ class KeystoreBox(private val alias: String = "armor-session", private val bindT
 data class StoredSession(val origin: String, val name: String, val value: String)
 
 class SessionVault(private val store: KeyValueStore, private val box: SecretBox) {
-    /** Remembers the session of [origin]; replaces whatever was kept. */
+    /**
+     * Remembers the session of [origin]. The session of the server in use is kept where it always was ([KEY]), and each server also has a place of its own ([KEY] + "|" + origin), so the sessions of
+     * several installations (the house, a workshop, a client) can be kept at once and the phone can go back to one of them without typing the password again.
+     */
     fun save(origin: String, name: String, value: String) {
         if (name.isBlank() || value.isBlank()) return
-        store.put(KEY, box.seal("${origin}\n${name}\n${value}"))
+        val sealed = box.seal("${origin}\n${name}\n${value}")
+        store.put(KEY, sealed)
+        store.put(keyOf(origin), sealed)
+        val known = origins().toMutableList()
+        if (origin !in known) { known.add(origin); store.put(LIST, box.seal(known.joinToString("\n"))) }
+    }
+
+    /** The servers that have a session kept here, in the order they were first saved. */
+    fun origins(): List<String> {
+        val sealed = store.get(LIST) ?: return emptyList()
+        if (!box.usable()) return emptyList()
+        return box.open(sealed)?.split("\n")?.filter { it.isNotBlank() } ?: emptyList()
+    }
+
+    /** Forgets the session kept for one server (the others stay). */
+    fun forget(origin: String) {
+        store.remove(keyOf(origin))
+        val left = origins().filter { it != origin }
+        if (left.isEmpty()) store.remove(LIST) else store.put(LIST, box.seal(left.joinToString("\n")))
+        val current = store.get(KEY)?.let { if (box.usable()) box.open(it) else null }
+        if (current != null && current.substringBefore("\n") == origin) store.remove(KEY)
     }
 
     /** The session kept for [origin], or null when there is none, it is for another server, or it cannot be read. */
     fun load(origin: String): StoredSession? {
-        val sealed = store.get(KEY) ?: return null
         if (!box.usable()) return null   // the phone is locked and the key wants it unlocked: what is kept stays kept
-        val parts = box.open(sealed)?.split("\n", limit = 3) ?: run { store.remove(KEY); return null }
+        store.get(keyOf(origin))?.let { own ->
+            val parts = box.open(own)?.split("\n", limit = 3)
+            if (parts != null && parts.size == 3 && parts[0] == origin) return StoredSession(parts[0], parts[1], parts[2])
+            store.remove(keyOf(origin))   // not readable by this key: dropped, and the password is asked again
+        }
+        val sealed = store.get(KEY) ?: return null
+        val parts = box.open(sealed)?.split("\n", limit = 3) ?: run { store.remove(KEY); if (store.get(LIST)?.let { box.open(it) } == null) store.remove(LIST); return null }
         if (parts.size != 3 || parts[0] != origin) return null
         return StoredSession(parts[0], parts[1], parts[2])
     }
@@ -100,7 +128,17 @@ class SessionVault(private val store: KeyValueStore, private val box: SecretBox)
     /** True when a session is kept, whether or not it can be read now. */
     fun has(): Boolean = store.get(KEY) != null
 
-    fun clear() { store.remove(KEY) }
+    /** Signing out: the session of the server in use is forgotten (the other servers keep theirs). */
+    fun clear() {
+        val current = store.get(KEY)?.let { if (box.usable()) box.open(it) else null }
+        store.remove(KEY)
+        current?.substringBefore("\n")?.let { forget(it) }
+    }
 
-    companion object { const val KEY = "session" }
+    /** Forgets every session kept, of every server. */
+    fun clearAll() { for (origin in origins()) store.remove(keyOf(origin)); store.remove(LIST); store.remove(KEY) }
+
+    private fun keyOf(origin: String) = "$KEY|$origin"
+
+    companion object { const val KEY = "session"; private const val LIST = "session_origins" }
 }

@@ -28,6 +28,48 @@ class SessionVaultTest {
         assertEquals(StoredSession(origin, "armor_studio_sid", "abc123"), vault.load(origin))
     }
 
+    @Test fun `the sessions of several servers are kept at once and each is given back to its own server`() {
+        val vault = SessionVault(MemoryStore(), ReversingBox())
+        val workshop = "https://taller.example:18080"
+        vault.save(origin, "armor_studio_sid", "house1")
+        vault.save(workshop, "armor_studio_sid", "shop1")
+        assertEquals("house1", vault.load(origin)?.value)
+        assertEquals("shop1", vault.load(workshop)?.value)
+        assertEquals(listOf(origin, workshop), vault.origins())
+        vault.save(origin, "armor_studio_sid", "house2")
+        assertEquals("house2", vault.load(origin)?.value)
+        assertEquals("a server is listed once", listOf(origin, workshop), vault.origins())
+    }
+
+    @Test fun `forgetting one server leaves the others, and signing out forgets the one in use`() {
+        val vault = SessionVault(MemoryStore(), ReversingBox())
+        val workshop = "https://taller.example:18080"
+        vault.save(origin, "armor_studio_sid", "house1")
+        vault.save(workshop, "armor_studio_sid", "shop1")
+        vault.clear()
+        assertNull(vault.load(workshop))
+        assertEquals("house1", vault.load(origin)?.value)
+        assertEquals(listOf(origin), vault.origins())
+        vault.forget(origin)
+        assertTrue(vault.origins().isEmpty())
+        assertTrue(!vault.has())
+    }
+
+    @Test fun `forgetting all leaves nothing`() {
+        val store = MemoryStore()
+        val vault = SessionVault(store, ReversingBox())
+        vault.save(origin, "armor_studio_sid", "house1")
+        vault.save("https://taller.example:18080", "armor_studio_sid", "shop1")
+        vault.clearAll()
+        assertTrue(store.values.isEmpty())
+    }
+
+    @Test fun `a session of the old single place is still read for its server`() {
+        val store = MemoryStore()
+        store.put(SessionVault.KEY, ReversingBox().seal("$origin\narmor_studio_sid\nold"))
+        assertEquals("old", SessionVault(store, ReversingBox()).load(origin)?.value)
+    }
+
     @Test fun `writes nothing readable and never the password`() {
         val store = MemoryStore()
         SessionVault(store, ReversingBox()).save(origin, "armor_studio_sid", "abc123")
