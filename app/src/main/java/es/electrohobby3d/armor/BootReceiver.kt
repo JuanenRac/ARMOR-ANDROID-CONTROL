@@ -14,6 +14,7 @@ class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
         val preferences = context.getSharedPreferences("armor-control", Context.MODE_PRIVATE)
+        runCatching { PresenceGeofence.restore(context) }   // the circles around home are forgotten when the phone restarts
         if (!preferences.getBoolean("watch", false)) return
         val origin = preferences.getString("origin", "").orEmpty()
         if (ServerEndpoint.parse(origin) == null) return
