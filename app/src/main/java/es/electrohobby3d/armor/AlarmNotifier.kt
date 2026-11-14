@@ -70,6 +70,7 @@ object AlarmNotifier {
         PendingIntent.getActivity(context, 0, Intent(context, ArmorActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
     fun post(context: Context, notice: AlarmNotice) {
+        WatchRelay.onNotice(context, notice)   // a watch of Wear OS, only while the person turned it on (off by default); it does not depend on the permission to notify
         if (!canNotify(context)) return
         // What the person chose comes first: some notices are not wanted at all, and some are wanted without sound.
         val decision = NoticePreferences.load(context).decide(notice)

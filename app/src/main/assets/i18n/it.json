@@ -1557,5 +1557,7 @@
  "Envía solo la palabra en casa o fuera cuando el móvil entra o sale del círculo de casa. Tu ubicación no se envía a ningún sitio.": "Invia solo la parola in casa o fuori quando il telefono entra o esce dal cerchio intorno a casa. La tua posizione non viene inviata da nessuna parte.",
  "Foto en los avisos de cámara": "Foto negli avvisi delle telecamere",
  "El móvil le pide la foto de la cámara a tu propio servidor cuando llega el aviso. No pasa por los servidores de Google.": "Il telefono chiede al tuo server la foto della telecamera quando arriva l'avviso. Non passa dai server di Google.",
- "Sin datos": "Nessun dato"
+ "Sin datos": "Nessun dato",
+ "Mostrar las alarmas en el reloj": "Mostra gli allarmi sull'orologio",
+ "A un reloj con Wear OS emparejado, solo el título y el texto de cada alarma; desde el reloj se pueden confirmar. Apagado por defecto.": "A un orologio Wear OS associato, solo il titolo e il testo di ogni allarme; si possono confermare dall'orologio. Spento per impostazione predefinita."
 }
