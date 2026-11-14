@@ -35,7 +35,7 @@ class AlarmActionReceiver : BroadcastReceiver() {
         }
 
         /** Acknowledges the alarm with the session the phone keeps; false when there is no address, no session that can be read now, or the server refuses. */
-        private fun acknowledge(context: Context, alarm: String): Boolean {
+        internal fun acknowledge(context: Context, alarm: String): Boolean {
             val preferences = context.getSharedPreferences("armor-control", Context.MODE_PRIVATE)
             val origin = preferences.getString("origin", "").orEmpty()
             if (ServerEndpoint.parse(origin) == null) return false

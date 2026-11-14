@@ -123,6 +123,7 @@ fun noticeKindTitle(kind: String): String = when (kind) {
 fun AlarmVoiceSection() {
     val context = LocalContext.current
     var speak by rememberSaveable { mutableStateOf(AlarmNotifier.speaksAlarms(context)) }
+    var watch by rememberSaveable { mutableStateOf(WatchRelay.enabled(context)) }
     var voice by remember { mutableStateOf(VoicePreferences.load(context)) }
     fun change(next: VoiceSettings) { voice = next; VoicePreferences.save(context, next) }
     @Composable fun Choices(label: String, values: List<String>, current: String, title: (String) -> String, set: (String) -> Unit) {
@@ -147,6 +148,13 @@ fun AlarmVoiceSection() {
                     Text(tr("Con la voz del móvil, para las críticas y las altas."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
                 }
                 Switch(checked = speak, onCheckedChange = { speak = it; AlarmNotifier.setSpeaksAlarms(context, it) })
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.weight(1f)) {
+                    Text(tr("Mostrar las alarmas en el reloj"))
+                    Text(tr("A un reloj con Wear OS emparejado, solo el título y el texto de cada alarma; desde el reloj se pueden confirmar. Apagado por defecto."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+                }
+                Switch(checked = watch, onCheckedChange = { watch = it; WatchRelay.setEnabled(context, it) })
             }
             Text(tr("Cómo suena depende de las voces que tenga instaladas tu móvil: si ninguna dice que es de mujer o de hombre, se aproxima con el tono."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
             Choices(tr("Voz"), VoiceSettings.GENDERS, voice.gender, { when (it) { "female" -> tr("Mujer"); "male" -> tr("Hombre"); else -> tr("Cualquiera") } }) { change(voice.copy(gender = it)) }
