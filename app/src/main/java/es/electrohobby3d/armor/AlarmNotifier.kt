@@ -85,7 +85,16 @@ object AlarmNotifier {
         notice.alarmId?.let { alarm -> builder.addAction(Notification.Action.Builder(null, tr("Confirmar"), AlarmActionReceiver.acknowledgeIntent(context, alarm, noticeId)).build()) }
         // A notice about a camera offers to open that camera; the app opens already on it once the person is recognised.
         notice.cameraId?.let { camera -> builder.addAction(Notification.Action.Builder(null, tr("Abrir cámara"), OpenCamera.intent(context, camera, noticeId)).build()) }
-        context.getSystemService(NotificationManager::class.java).notify(noticeId, builder.build())
+        val manager = context.getSystemService(NotificationManager::class.java)
+        manager.notify(noticeId, builder.build())
+        // The picture of the camera, when the person asked for it: the notice is shown at once and shown again, quietly, with the picture if the server gives it.
+        val camera = notice.cameraId
+        if (camera != null && NoticePhoto.wanted(NoticePhoto.enabled(context), notice)) {
+            val app = context.applicationContext
+            Thread {
+                try { NoticePhoto.fetch(app, camera)?.let { picture -> manager.notify(noticeId, NoticePhoto.attach(builder, picture).build()) } } catch (_: Exception) { /* the notice stays as it was */ }
+            }.start()
+        }
         if (decision == NoticeDecision.SHOW && speaksAlarms(context) && VoicePreferences.load(context).speaks(notice.severity)) AlarmSpeaker.say(context, "${notice.title}. ${notice.text}")
     }
 

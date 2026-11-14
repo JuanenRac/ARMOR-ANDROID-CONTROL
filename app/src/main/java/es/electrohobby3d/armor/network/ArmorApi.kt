@@ -147,6 +147,8 @@ interface ArmorApi {
     fun streamTicket(origin: String, cameraId: String, quality: String = "auto"): String
     /** Tells the server only the word "home" or "away" for the signed-in person (PUT /api/v1/presence/me, behind the option presence.by_user). The position of the phone is never sent. */
     fun setPresence(origin: String, state: String)
+    /** The still picture of a camera right now (GET /api/v1/cameras/{id}/snapshot, an operator): the bytes of a JPEG, read up to [limit]; a bigger one fails like a lost connection. */
+    fun cameraStill(origin: String, cameraId: String, limit: Int = 1_500_000): ByteArray
     /** Whether this install has the voice gateway, so written and spoken commands work. */
     fun voiceAvailable(origin: String): Boolean
     /** One written or spoken command, as text. Arming and disarming need a second turn: send the same phrase again with the token of the first answer. */
