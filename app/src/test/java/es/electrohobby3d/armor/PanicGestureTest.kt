@@ -110,7 +110,7 @@ class PanicGestureTest {
         assertEquals(0, gestures())
     }
 
-    @Test fun `a 404 means the option was turned off since: the app forgets the gesture and says nothing`() {
+    @Test fun `a 404 means the option was turned off since, the app forgets the gesture and says nothing`() {
         serve("operator", """{"client.panic_gesture":true}""", gesture = 404)
         val before = model.state.value.message
         model.panicGesture(origin)
