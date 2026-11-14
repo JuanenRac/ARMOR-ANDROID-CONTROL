@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="status_widget_description">システムがセット中かどうかを表示します。タップするとアプリが開きます。</string>
+</resources>

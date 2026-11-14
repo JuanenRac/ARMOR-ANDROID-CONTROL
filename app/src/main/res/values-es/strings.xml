@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="status_widget_description">Muestra si el sistema está armado. Tócalo para abrir la app.</string>
+</resources>

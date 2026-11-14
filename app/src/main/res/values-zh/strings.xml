@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="status_widget_description">显示系统是否已布防。点按即可打开应用。</string>
+</resources>
