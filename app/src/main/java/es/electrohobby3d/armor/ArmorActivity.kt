@@ -165,7 +165,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     // The session kept from last time is tried only once the person is recognised.
     LaunchedEffect(locked) {
         if (locked) return@LaunchedEffect
-        if (restoring && !state.authenticated && currentOrigin.isNotBlank()) viewModel.tryRestore(currentOrigin, vault.load(currentOrigin)) { vault.clear() }
+        if (restoring && !state.authenticated && currentOrigin.isNotBlank()) viewModel.tryRestore(currentOrigin, vault.load(currentOrigin)) { vault.forget(currentOrigin) }
         restoring = false
     }
 
@@ -381,6 +381,18 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                         }
                     },
                     canLogin = validAddresses && username.isNotBlank() && password.isNotBlank(),
+                    servers = remember(currentOrigin, state.loading) { ServerChoice.offered(vault.origins(), currentOrigin) }, serverInUse = currentOrigin,
+                    onPickServer = { picked ->
+                        val fields = ServerChoice.fields(picked)
+                        val endpoint = ServerEndpoint.parse(picked)
+                        if (fields != null && endpoint != null) {
+                            serverHost = fields.first; serverPort = fields.second; awayHost = ""; awayPort = "443"   // the away address belonged to the server before
+                            ServerAddresses(endpoint, null).also { it.save(addressStore); addresses = it }
+                            origin = endpoint.origin
+                            preferences.edit().putString("origin", endpoint.origin).apply()
+                            lockScope.launch { viewModel.tryRestore(endpoint.origin, vault.load(endpoint.origin)) { vault.forget(endpoint.origin) } }
+                        }
+                    },
                     awayHost = awayHost, awayPort = awayPort, onAwayHost = { awayHost = it.trim() }, onAwayPort = { awayPort = it },
                     onNodeSetup = { nodeSetup = true }, onAbout = { about = true },
                     challenge = securityState.loginChallenge != null, code = loginCode, onCode = { loginCode = it },
