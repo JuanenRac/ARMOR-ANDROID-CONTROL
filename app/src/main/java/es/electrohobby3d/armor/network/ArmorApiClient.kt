@@ -406,6 +406,12 @@ class ArmorApiClient : ArmorApi {
         sendJson(origin, "/api/v1/presence/me", "PUT", JSONObject().put("state", state), setOf(200))
     }
 
+    /** The still picture of a camera right now, as the bytes the server gives (nothing is saved on the server). */
+    override fun cameraStill(origin: String, cameraId: String, limit: Int): ByteArray {
+        val connection = request(origin, "/api/v1/cameras/${part(cameraId)}/snapshot", "GET", mapOf("Accept" to "image/jpeg"), null, setOf(200))
+        return try { connection.inputStream.use { BoundedRead.bytes(it, limit) } } finally { connection.disconnect() }
+    }
+
     /** Whether this install has the voice gateway, so written and spoken commands work. */
     override fun voiceAvailable(origin: String): Boolean = getJson(origin, "/api/v1/voice/status").optBoolean("available")
 

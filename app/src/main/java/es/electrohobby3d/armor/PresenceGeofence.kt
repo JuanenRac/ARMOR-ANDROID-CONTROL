@@ -93,16 +93,5 @@ class PresenceReceiver : BroadcastReceiver() {
     /** What the server says about the mode ("armed", "disarmed"), or null when the session or the network does not allow reading it. */
     private fun readMode(context: Context): String? = try { session(context)?.let { it.second.status(it.first).mode } } catch (_: Exception) { null }
 
-    /** The server in use and a client with the saved session of the person, or null when the session or the address does not allow it. */
-    private fun session(context: Context): Pair<String, ArmorApi>? {
-        val preferences = context.getSharedPreferences("armor-control", Context.MODE_PRIVATE)
-        val origin = preferences.getString("origin", "").orEmpty()
-        if (ServerEndpoint.parse(origin) == null) return null
-        TrustPins.install(PreferencesStore(preferences))
-        val vault = KeyBoxes.sessionVault(context)
-        if (!vault.has() || !KeyBoxes.sessionBox(context).usable()) return null
-        val client = SharedFeed.api
-        vault.load(origin)?.let { client.restoreSessionCookie(origin, it.name, it.value) }
-        return origin to client
-    }
+    private fun session(context: Context): Pair<String, ArmorApi>? = StoredSession.of(context)
 }

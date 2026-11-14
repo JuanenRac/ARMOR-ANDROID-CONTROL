@@ -375,6 +375,8 @@ private fun NoticeSettingsSection() {
             Text(tr("Todo queda siempre en el historial; aquí eliges de qué te avisa el móvil. Una alarma crítica (humo, gas, agua, pánico) avisa siempre, salvo que silencies todos los avisos."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
             NoticeSwitch(tr("Silenciar todos los avisos"), tr("No aparece ninguna notificación."), settings.muted) { change(settings.copy(muted = it)) }
             NoticeSwitch(tr("Avisos sin sonido"), tr("Aparecen sin sonido ni vibración y el móvil no los dice en voz alta (las críticas siguen sonando)."), settings.silent, enabled = !settings.muted) { change(settings.copy(silent = it)) }
+            var photo by remember { mutableStateOf(NoticePhoto.enabled(context)) }
+            NoticeSwitch(tr("Foto en los avisos de cámara"), tr("El móvil le pide la foto de la cámara a tu propio servidor cuando llega el aviso. No pasa por los servidores de Google."), photo, enabled = !settings.muted) { photo = it; NoticePhoto.setEnabled(context, it) }
             Text(tr("Avisarme de"), fontWeight = FontWeight.SemiBold)
             Text(tr("Por gravedad"), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
             NoticeSwitch(tr("Altas"), null, "high" !in settings.mutedSeverities, enabled = !settings.muted) { change(settings.withSeverity("high", off = !it)) }
