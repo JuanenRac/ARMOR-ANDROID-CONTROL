@@ -398,6 +398,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                             host = savedUri?.host.orEmpty(), armed = state.snapshot.mode == "armed", connected = state.authenticated,
                             where = if (addresses.home != null && addresses.away != null) ServerEndpoint.parse(origin)?.let { if (addresses.isAway(it)) tr("Fuera de casa") else tr("En casa") }.orEmpty() else "",
                             onProfile = { profile = true }, onAbout = { about = true }, onLogout = { confirmLogout = true },
+                            onPanic = if (state.panicGesture && state.can(CapabilityAction.OPERATE)) ({ viewModel.panicGesture(origin) }) else null,
                         )
                     },
                     bottomBar = {
@@ -710,10 +711,10 @@ private fun setWatching(context: Context, preferences: android.content.SharedPre
 
 /** The mark and the name, the state of the system, and the three account icons: profile, about and sign out. */
 @Composable
-private fun TopBar(host: String, armed: Boolean, connected: Boolean, where: String, onProfile: () -> Unit, onAbout: () -> Unit, onLogout: () -> Unit) {
+private fun TopBar(host: String, armed: Boolean, connected: Boolean, where: String, onProfile: () -> Unit, onAbout: () -> Unit, onLogout: () -> Unit, onPanic: (() -> Unit)? = null) {
     Column(Modifier.background(ArmorColors.Background).statusBarsPadding()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            ArmorLogo(size = 34.dp)
+            ArmorLogo(Modifier.panicGesture(onPanic), size = 34.dp)   // the hidden gesture: only while the server offers it
             Text("A.R.M.O.R.", fontSize = 20.sp, fontWeight = FontWeight.Black, letterSpacing = 3.sp, modifier = Modifier.weight(1f))
             Row(
                 Modifier.background((if (armed) ArmorColors.Ok else ArmorColors.Amber).copy(alpha = 0.16f), androidx.compose.foundation.shape.RoundedCornerShape(50)).padding(horizontal = 10.dp, vertical = 5.dp),

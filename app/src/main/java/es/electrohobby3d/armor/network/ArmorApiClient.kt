@@ -131,6 +131,7 @@ class ArmorApiClient : ArmorApi {
         root.optJSONArray("active").asObjects().mapNotNull(DeviceParser::alarm) to root.optJSONArray("recent").asObjects().mapNotNull(DeviceParser::alarm)
     }
     override fun acknowledgeAlarm(origin: String, id: String) { request(origin, "/api/v1/alarms/${part(id)}/acknowledge", "POST", emptyMap(), null, setOf(200)).disconnect() }
+    override fun panicGesture(origin: String) { request(origin, "/api/v1/alarm/panic-gesture", "POST", mapOf("Content-Type" to "application/json"), "{}", setOf(200)).disconnect() }
     override fun acknowledgeAllAlarms(origin: String) { request(origin, "/api/v1/alarms/acknowledge", "POST", emptyMap(), null, setOf(200)).disconnect() }
 
     /** Every inverter and battery that has reported, the declared ones still waiting, and the sums; an operator session is needed. */
