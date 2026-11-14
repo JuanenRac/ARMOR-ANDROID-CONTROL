@@ -93,5 +93,5 @@ class PresenceReceiver : BroadcastReceiver() {
     /** What the server says about the mode ("armed", "disarmed"), or null when the session or the network does not allow reading it. */
     private fun readMode(context: Context): String? = try { session(context)?.let { it.second.status(it.first).mode } } catch (_: Exception) { null }
 
-    private fun session(context: Context): Pair<String, ArmorApi>? = StoredSession.of(context)
+    private fun session(context: Context): Pair<String, ArmorApi>? = SavedServerSession.of(context)
 }

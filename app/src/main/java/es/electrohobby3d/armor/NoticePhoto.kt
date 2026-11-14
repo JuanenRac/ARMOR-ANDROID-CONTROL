@@ -9,7 +9,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 
 /** The server in use and a client with the saved session of the person (null when the address or the session does not allow it): the same way the reminder reads the server with the app closed. */
-object StoredSession {
+object SavedServerSession {
     fun of(context: Context): Pair<String, es.electrohobby3d.armor.network.ArmorApi>? {
         val preferences = context.getSharedPreferences("armor-control", Context.MODE_PRIVATE)
         val origin = preferences.getString("origin", "").orEmpty()
@@ -53,7 +53,7 @@ object NoticePhoto {
     fun fetch(context: Context, camera: String): Bitmap? {
         if (!OpenCamera.valid(camera)) return null
         return try {
-            val session = StoredSession.of(context) ?: return null
+            val session = SavedServerSession.of(context) ?: return null
             val bytes = session.second.cameraStill(session.first, camera)
             if (!looksLikePicture(bytes)) return null
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
