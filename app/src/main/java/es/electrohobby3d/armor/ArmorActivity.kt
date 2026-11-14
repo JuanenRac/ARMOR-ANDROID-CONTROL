@@ -672,6 +672,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                     username = username, server = savedUri?.let { "${it.host}:${it.port}" } ?: origin, connected = state.authenticated, watching = watching,
                     onWatching = { on -> watching = on; setWatching(context, preferences, on) { notificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS) } },
                     onLogout = { profile = false; confirmLogout = true }, onDismiss = { profile = false },
+                    extra = { PresenceCard() },
                 )
                 expanded?.let { camera -> FullscreenCamera(camera, currentOrigin, viewModel, state.authenticated && state.can(CapabilityAction.CAMERA_CONTROL), state.media.activeCameraIds.contains(camera.id), onDismiss = { expanded = null }, away = ServerEndpoint.parse(origin)?.let { addresses.isAway(it) } == true) }
                 // Startup checks only fetch release metadata from GitHub. The

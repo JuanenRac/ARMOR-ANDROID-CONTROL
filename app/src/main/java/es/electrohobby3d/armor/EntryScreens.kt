@@ -207,7 +207,7 @@ fun OutsideHomeDialog(onDismiss: () -> Unit) {
 }
 
 @Composable
-fun ProfileDialog(username: String, server: String, connected: Boolean, watching: Boolean, onWatching: (Boolean) -> Unit, onLogout: () -> Unit, onDismiss: () -> Unit) {
+fun ProfileDialog(username: String, server: String, connected: Boolean, watching: Boolean, onWatching: (Boolean) -> Unit, onLogout: () -> Unit, onDismiss: () -> Unit, extra: @Composable () -> Unit = {}) {
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = ArmorColors.SurfaceRaised,
@@ -227,6 +227,7 @@ fun ProfileDialog(username: String, server: String, connected: Boolean, watching
                     Column(Modifier.weight(1f)) { Text(tr("Avisos con la app cerrada")); Text(tr("Te avisa de alertas aunque no la tengas abierta."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted) }
                     Switch(checked = watching, onCheckedChange = onWatching)
                 }
+                extra()
                 FilledTonalButton(onClick = onLogout, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.filledTonalButtonColors(containerColor = Color(0xFF3A1319), contentColor = Color(0xFFFFD9DD))) {
                     Icon(Icons.AutoMirrored.Filled.Logout, null)
                     Spacer(Modifier.width(8.dp))
