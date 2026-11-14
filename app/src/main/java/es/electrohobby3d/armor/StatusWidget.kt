@@ -4,6 +4,7 @@
 package es.electrohobby3d.armor
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,11 +40,13 @@ class StatusWidget : GlanceAppWidget() {
         val face = withContext(Dispatchers.IO) {
             try { SavedServerSession.of(app)?.let { SystemFace.of(it.second.status(it.first).mode) } } catch (_: Exception) { null }
         } ?: SystemFace.UNKNOWN
+        val open = Intent(app, ArmorActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        val open = Intent(app, ArmorActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         val title = "A.R.M.O.R."
         val state = tr(face.phrase)
         provideContent {
             Column(
-                modifier = GlanceModifier.fillMaxSize().background(ColorProvider(Color(WidgetLook.background(face)))).padding(12.dp).clickable(actionStartActivity<ArmorActivity>()),
+                modifier = GlanceModifier.fillMaxSize().background(ColorProvider(Color(WidgetLook.background(face)))).padding(12.dp).clickable(actionStartActivity(open)),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
