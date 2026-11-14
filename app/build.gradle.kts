@@ -52,6 +52,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.ui:ui")
+    implementation("androidx.glance:glance-appwidget:1.1.1")   // the widget of the home screen that shows whether the system is armed
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")   // the live channel (WebSocket) of the server
     // Push messages from the installation's own Firebase project (see PushService); the app starts Firebase itself from the build constants, so no Google Services plugin is needed.

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="status_widget_description">Indique si le système est armé. Touchez-le pour ouvrir l'application.</string>
+</resources>
