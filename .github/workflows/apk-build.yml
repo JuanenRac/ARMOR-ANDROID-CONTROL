@@ -7,7 +7,7 @@
 # TWICE and records whether both builds give the same bytes, and uploads it with SHA256SUMS and a build manifest as one artifact with a build-provenance attestation.
 #
 # The APK that leaves here is UNSIGNED, and no signing key exists in this workflow: the build stops when it finds a keystore or a key setting. The signature of the release
-# (apksigner with the key of the owner) is made on the maintainer's machine, from this artifact, and the keystore never leaves it. With dry_run on (the default) nothing but
+# (apksigner with the key of the owner) is made on the maintainer's machine, from this artifact, and the keystore never leaves it. Before signing, `python tools/apk_artifact_check.py unsigned <folder>` refuses an artifact of another commit or version or from a dirty tree, and after signing `python tools/apk_artifact_check.py signed <unsigned> <signed>` refuses a file whose contents are not the checked build. With dry_run on (the default) nothing but
 # the artifact is made; with it off a DRAFT release v<version> with the unsigned APK is also prepared by a separate job that waits for the approval of the owner.
 # A failed or stuck build writes the Job Summary and opens (or updates) the issue "build-failed"; a later good build closes it. build-watch.yml finds a build that never ends.
 
@@ -67,6 +67,12 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
           fetch-depth: 0
+
+      - name: Try the checks that the maintainer runs before signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s tools -p "test_apk_artifact_check.py"
 
       - name: Make sure the commit belongs to the main branch
         shell: bash
