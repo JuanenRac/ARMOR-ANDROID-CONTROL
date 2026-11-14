@@ -41,11 +41,26 @@ class PinStore(private val store: KeyValueStore) {
 
     fun clear(host: String) = store.remove(key(host))
 
+    private fun expectKey(host: String) = "ca_expect_" + host.lowercase()
+
+    /**
+     * The fingerprint (SHA-256 of the certificate, 64 lower-case hex characters) of the local authority that a set-up QR code of the installation named for [host]. It is waited for by the next
+     * connection: if the chain holds that very certificate the key of it is paired, as a QR with a pin would. It never refuses a connection by itself.
+     */
+    fun expectAuthority(host: String, sha256Hex: String) { if (sha256Hex.length == 64 && sha256Hex.all { it in '0'..'9' || it in 'a'..'f' }) store.put(expectKey(host), sha256Hex) }
+
+    fun expectedAuthority(host: String): String? = store.get(expectKey(host))?.takeIf { it.isNotBlank() }
+
+    fun clearExpected(host: String) = store.remove(expectKey(host))
+
     /** `chainPins` are the pins of every certificate of the chain, the leaf first; `systemTrusts` is the answer of the system's own evaluation. */
-    fun decide(host: String, chainPins: List<String>, systemTrusts: Boolean): PinDecision {
+    fun decide(host: String, chainPins: List<String>, systemTrusts: Boolean, chainFingerprints: List<String> = emptyList()): PinDecision {
         val kept = pins(host)
         if (kept.isNotEmpty()) return if (chainPins.any { it in kept }) PinDecision.Trusted else PinDecision.Mismatch
         if (chainPins.isEmpty()) return PinDecision.Mismatch
+        // a set-up QR code named the authority of this installation: the chain that holds exactly that certificate pairs its key, whether or not the system knows the authority
+        val expected = expectedAuthority(host)
+        if (expected != null) chainFingerprints.indexOf(expected).let { index -> if (index in chainPins.indices) return PinDecision.FirstUse(chainPins[index]) }
         // the key worth pinning is the one of the authority when there is one above the leaf, and the leaf's own when the server stands alone
         val candidate = if (chainPins.size > 1) chainPins.last() else chainPins.first()
         return if (systemTrusts) PinDecision.FirstUse(candidate) else PinDecision.UnknownAuthority(candidate)
@@ -71,6 +86,9 @@ class PinStore(private val store: KeyValueStore) {
 
         /** The pin of a certificate: the SHA-256 of its public key in X.509 form, in base64. */
         fun pinOf(certificate: X509Certificate): String = Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").digest(certificate.publicKey.encoded))
+
+        /** The fingerprint of a whole certificate: the SHA-256 of its DER form in lower-case hex, the way a set-up QR code and the server write it. */
+        fun fingerprintOf(certificate: X509Certificate): String = MessageDigest.getInstance("SHA-256").digest(certificate.encoded).joinToString("") { "%02x".format(it) }
     }
 }
 
@@ -124,10 +142,10 @@ class PinningTrustManager(private val host: String, private val system: X509Trus
 
     override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
         val systemTrusts = try { system.checkServerTrusted(chain, authType); true } catch (error: CertificateException) { false }
-        val decision = store.decide(host, chain.map(PinStore::pinOf), systemTrusts)
+        val decision = store.decide(host, chain.map(PinStore::pinOf), systemTrusts, chain.map(PinStore::fingerprintOf))
         when (decision) {
             PinDecision.Trusted -> Unit
-            is PinDecision.FirstUse -> store.add(decision.pin, host)
+            is PinDecision.FirstUse -> { store.add(decision.pin, host); store.clearExpected(host) }
             PinDecision.Mismatch, is PinDecision.UnknownAuthority -> { TrustPins.noteMismatch(host); throw CertificateException("The certificate of $host does not match the one that was paired") }
         }
     }
