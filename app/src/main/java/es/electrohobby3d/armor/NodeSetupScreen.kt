@@ -256,6 +256,14 @@ fun NodeSetupScreen(onClose: () -> Unit, origin: String = "", model: NodeSetupVi
             Text(tr("Configurar nodo por Bluetooth"), style = MaterialTheme.typography.headlineSmall)
             TextButton(onClick = { model.close(); onClose() }) { Text(tr("Cerrar")) }
         }
+        var requireBond by remember { mutableStateOf(es.electrohobby3d.armor.model.BleBond.required(context)) }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Switch(requireBond, { requireBond = it; es.electrohobby3d.armor.model.BleBond.setRequired(context, it) })
+            Column {
+                Text(tr("Exigir Bluetooth emparejado y cifrado"))
+                Text(tr("Antes de enviar contraseñas a un nodo por Bluetooth, la app exige que el emparejamiento esté hecho."), style = MaterialTheme.typography.bodySmall)
+            }
+        }
         if (state.message.isNotBlank()) Text(state.message, color = if (state.saved) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
         when (state.step) {
             NodeStep.Search -> SearchStep(state, granted, origin, paired, onPaired = { paired = it }, onSearch = { if (granted) model.scan() else permission.launch(blePermissions()) }, onStop = model::stopScan, onPick = model::connect)

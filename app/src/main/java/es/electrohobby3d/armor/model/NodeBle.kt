@@ -110,6 +110,7 @@ object NodeProtocol {
         "timeout" -> tr("El nodo no respondió a tiempo.")
         "network_not_found" -> staErrorText(code)
         "disconnected" -> tr("Se perdió la conexión con el nodo.")
+        "not_bonded" -> tr("El enlace Bluetooth con el nodo no está emparejado: no se envían contraseñas.")
         else -> trf("El nodo respondió con un error (%s).", code)
     }
 }
@@ -253,4 +254,18 @@ object NodeSettingsPatch {
         if (form.bluetoothMode in setOf("setup", "always", "off")) patch.put("ble", JSONObject().put("mode", form.bluetoothMode))
         return patch
     }
+}
+
+/** Whether the Bluetooth link must be paired (bonded, so encrypted) before an operation that carries a secret is sent. */
+object BleBond {
+    /** The operations that carry the user name and password, the set-up code, the Wi-Fi password or the broker password. */
+    val SECRET_OPS: Set<String> = setOf("login", "setup", "config.put")
+
+    /** True when the request must not go out as it is: the switch asks for a bonded link, the operation carries a secret and the link is not bonded. */
+    fun mustBond(required: Boolean, op: String, bonded: Boolean): Boolean = required && op in SECRET_OPS && !bonded
+
+    private const val PREFERENCES = "armor-control"
+    private const val KEY = "ble_require_bond"
+    fun required(context: android.content.Context): Boolean = context.applicationContext.getSharedPreferences(PREFERENCES, android.content.Context.MODE_PRIVATE).getBoolean(KEY, true)
+    fun setRequired(context: android.content.Context, on: Boolean) { context.applicationContext.getSharedPreferences(PREFERENCES, android.content.Context.MODE_PRIVATE).edit().putBoolean(KEY, on).apply() }
 }

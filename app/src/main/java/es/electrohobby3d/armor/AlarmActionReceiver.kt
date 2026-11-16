@@ -8,6 +8,16 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 
+/** Whether the "Confirm" action of an alarm notice asks for the phone to be unlocked first (Android 12 and later). On by default; the person can turn it off. */
+object AlarmConfirmLock {
+    private const val KEY = "alarm_confirm_needs_unlock"
+    fun required(context: Context): Boolean = context.applicationContext.getSharedPreferences("armor-control", Context.MODE_PRIVATE).getBoolean(KEY, true)
+    fun setRequired(context: Context, on: Boolean) { context.applicationContext.getSharedPreferences("armor-control", Context.MODE_PRIVATE).edit().putBoolean(KEY, on).apply() }
+
+    /** The action needs the phone unlocked when the person asked for it and the system can enforce it (it can from Android 12). */
+    fun enforced(required: Boolean, sdk: Int): Boolean = required && sdk >= 31
+}
+
 class AlarmActionReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != ACTION_ACKNOWLEDGE) return
