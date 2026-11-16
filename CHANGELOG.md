@@ -4,6 +4,10 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The Confirm action of an alarm notice asks for the phone to be unlocked (Android 12 and later):** from the lock screen, confirming an alarm now needs the phone unlocked. A switch in the notice settings, on by default, turns it off.
+- **Bluetooth set-up sends no password over a link that is not paired:** before signing in, creating the administrator or saving the configuration of a node, the app starts the pairing and waits for it, and refuses to send the secrets if it does not happen. A switch on the set-up screen, on by default, turns it off.
+- **A lock check that could not be shown on a phone that has a lock no longer opens the app or the action:** only a phone with no screen lock at all passes without being asked; otherwise the person is told to try again.
+
 - **The update checks the SHA-256 that the release publishes for the APK:** the downloaded bytes are hashed while they are written and a file that does not match the published digest is deleted and refused before it is looked at as a package (a release that publishes no digest is checked as before: package name, version code and signing key). Tests cover reading the digest and the comparison.
 
 - **A saved certificate pin now needs a real chain:** the pin counts only if the certificates from the leaf up to the pinned one are each signed by the next and in date. Before, a chain that merely held the pinned certificate was accepted, so someone on the network could put a certificate of their own in front of a copy of the real one. Servers that were already paired keep working with their saved pin; a chain sent in the wrong shape is refused. Tests build the forged and the genuine chain.

@@ -163,6 +163,9 @@ class NodeBleClient(private val context: Context) {
     suspend fun request(op: String, args: JSONObject? = null, timeoutMs: Long = 30_000): NodeReply {
         val g = gatt; val target = rx
         if (g == null || target == null) return NodeReply(0, false, "disconnected", JSONObject())
+        if (es.electrohobby3d.armor.model.BleBond.mustBond(es.electrohobby3d.armor.model.BleBond.required(context), op, g.device.bondState == BluetoothDevice.BOND_BONDED) && !pair(g.device)) {
+            return NodeReply(0, false, "not_bonded", JSONObject())
+        }
         val id = nextId++
         val answer = CompletableDeferred<NodeReply>()
         waiting[id] = answer
@@ -181,6 +184,16 @@ class NodeBleClient(private val context: Context) {
             if (!written) { waiting.remove(id); return NodeReply(id, false, "disconnected", JSONObject()) }
         }
         return withTimeoutOrNull(timeoutMs) { answer.await() } ?: run { waiting.remove(id); NodeReply(id, false, "timeout", JSONObject()) }
+    }
+
+    /** Asks Android to pair with the node and waits up to half a minute for it; true once the link is bonded. */
+    private suspend fun pair(device: BluetoothDevice): Boolean {
+        if (device.bondState == BluetoothDevice.BOND_NONE) device.createBond()
+        for (attempt in 0 until 60) {
+            if (device.bondState == BluetoothDevice.BOND_BONDED) return true
+            delay(500)
+        }
+        return device.bondState == BluetoothDevice.BOND_BONDED
     }
 
     @Suppress("DEPRECATION")

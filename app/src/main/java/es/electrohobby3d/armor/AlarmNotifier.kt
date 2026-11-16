@@ -83,7 +83,12 @@ object AlarmNotifier {
             .setContentTitle(notice.title).setContentText(notice.text)
             .setCategory(Notification.CATEGORY_ALARM).setAutoCancel(true).setContentIntent(openApp(context))
         // A notice that knows its alarm carries the action to acknowledge it from the notice itself; the notice of an alarm the person cannot acknowledge simply fails quietly on the server.
-        notice.alarmId?.let { alarm -> builder.addAction(Notification.Action.Builder(null, tr("Confirmar"), AlarmActionReceiver.acknowledgeIntent(context, alarm, noticeId)).build()) }
+        notice.alarmId?.let { alarm ->
+            val confirm = Notification.Action.Builder(null, tr("Confirmar"), AlarmActionReceiver.acknowledgeIntent(context, alarm, noticeId))
+            // From the lock screen the action asks for the phone to be unlocked first, unless the person turned that off.
+            if (AlarmConfirmLock.enforced(AlarmConfirmLock.required(context), Build.VERSION.SDK_INT)) confirm.setAuthenticationRequired(true)
+            builder.addAction(confirm.build())
+        }
         // A notice about a camera offers to open that camera; the app opens already on it once the person is recognised.
         notice.cameraId?.let { camera -> builder.addAction(Notification.Action.Builder(null, tr("Abrir cámara"), OpenCamera.intent(context, camera, noticeId)).build()) }
         val manager = context.getSystemService(NotificationManager::class.java)
