@@ -53,16 +53,19 @@ class PinStore(private val store: KeyValueStore) {
 
     fun clearExpected(host: String) = store.remove(expectKey(host))
 
-    /** `chainPins` are the pins of every certificate of the chain, the leaf first; `systemTrusts` is the answer of the system's own evaluation. */
-    fun decide(host: String, chainPins: List<String>, systemTrusts: Boolean, chainFingerprints: List<String> = emptyList()): PinDecision {
+    /**
+     * `chainPins` are the pins of every certificate of the chain, the leaf first; `systemTrusts` is the answer of the system's own evaluation. `linked` is how many certificates from the leaf on are
+     * proven to belong to one chain (each signed by the next, all in date): only those can match a pin, so a certificate that the other end merely placed behind a forged leaf proves nothing.
+     */
+    fun decide(host: String, chainPins: List<String>, systemTrusts: Boolean, chainFingerprints: List<String> = emptyList(), linked: Int = chainPins.size): PinDecision {
         val kept = pins(host)
-        if (kept.isNotEmpty()) return if (chainPins.any { it in kept }) PinDecision.Trusted else PinDecision.Mismatch
-        if (chainPins.isEmpty()) return PinDecision.Mismatch
+        if (kept.isNotEmpty()) return if (chainPins.take(linked).any { it in kept }) PinDecision.Trusted else PinDecision.Mismatch
+        if (chainPins.isEmpty() || linked <= 0) return PinDecision.Mismatch
         // a set-up QR code named the authority of this installation: the chain that holds exactly that certificate pairs its key, whether or not the system knows the authority
         val expected = expectedAuthority(host)
-        if (expected != null) chainFingerprints.indexOf(expected).let { index -> if (index in chainPins.indices) return PinDecision.FirstUse(chainPins[index]) }
+        if (expected != null) chainFingerprints.indexOf(expected).let { index -> if (index in chainPins.indices && index < linked) return PinDecision.FirstUse(chainPins[index]) }
         // the key worth pinning is the one of the authority when there is one above the leaf, and the leaf's own when the server stands alone
-        val candidate = if (chainPins.size > 1) chainPins.last() else chainPins.first()
+        val candidate = if (linked > 1) chainPins[linked - 1] else chainPins.first()
         return if (systemTrusts) PinDecision.FirstUse(candidate) else PinDecision.UnknownAuthority(candidate)
     }
 
@@ -134,7 +137,23 @@ object TrustPins {
     }
 }
 
-/** The system's trust manager with the pin on top: a chain the system trusts is also checked against the pin, and a chain it does not trust is accepted only if a paired pin is in it. */
+/**
+ * How many certificates from the leaf on form one real chain: the leaf is in date and each next certificate is in date and holds the key that signed the one before. The chain a server sends is
+ * not checked by anyone when the system does not know the authority, so a pin is only worth something for certificates reached this way.
+ */
+fun linkedCount(chain: Array<X509Certificate>): Int {
+    var count = 0
+    for (index in chain.indices) {
+        try { chain[index].checkValidity() } catch (_: CertificateException) { break }
+        if (index > 0) {
+            try { chain[index - 1].verify(chain[index].publicKey) } catch (_: Exception) { break }
+        }
+        count = index + 1
+    }
+    return count
+}
+
+/** The system's trust manager with the pin on top: a chain the system trusts is also checked against the pin, and a chain it does not trust is accepted only if a paired pin is in the part of it that is signed link by link from the leaf. */
 class PinningTrustManager(private val host: String, private val system: X509TrustManager, private val store: PinStore) : X509TrustManager {
     override fun getAcceptedIssuers(): Array<X509Certificate> = system.acceptedIssuers
 
@@ -142,7 +161,7 @@ class PinningTrustManager(private val host: String, private val system: X509Trus
 
     override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
         val systemTrusts = try { system.checkServerTrusted(chain, authType); true } catch (error: CertificateException) { false }
-        val decision = store.decide(host, chain.map(PinStore::pinOf), systemTrusts, chain.map(PinStore::fingerprintOf))
+        val decision = store.decide(host, chain.map(PinStore::pinOf), systemTrusts, chain.map(PinStore::fingerprintOf), linkedCount(chain))
         when (decision) {
             PinDecision.Trusted -> Unit
             is PinDecision.FirstUse -> { store.add(decision.pin, host); store.clearExpected(host) }
