@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **Alerts for the watch go to the watch app that declares itself, not to any connected device:** the phone app declares a capability, looks for the capability of the watch app among the reachable nodes and falls back to the connected nodes only when no node declares it. The identifier of the app is not changed; it has not been run on a real watch.
+
 - **The update checks the SHA-256 that the release publishes for the APK:** the downloaded bytes are hashed while they are written and a file that does not match the published digest is deleted and refused before it is looked at as a package (a release that publishes no digest is checked as before: package name, version code and signing key). Tests cover reading the digest and the comparison.
 
 - **A saved certificate pin now needs a real chain:** the pin counts only if the certificates from the leaf up to the pinned one are each signed by the next and in date. Before, a chain that merely held the pinned certificate was accepted, so someone on the network could put a certificate of their own in front of a copy of the real one. Servers that were already paired keep working with their saved pin; a chain sent in the wrong shape is refused. Tests build the forged and the genuine chain.

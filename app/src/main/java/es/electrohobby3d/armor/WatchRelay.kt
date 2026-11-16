@@ -43,6 +43,16 @@ object WatchRelay {
     const val PROTOCOL_VERSION = 1
     const val PATH_TO_WATCH = "/armor/alert"
     const val PATH_TO_PHONE = "/armor/alert/ack"
+
+    /** The capability this app declares and the watch looks for; the watch app declares [CAPABILITY_WATCH]. */
+    const val CAPABILITY_PHONE = "armor_phone_alerts"
+    const val CAPABILITY_WATCH = "armor_watch_alerts"
+
+    /**
+     * The nodes a message goes to: those that declare the capability of the watch app, or, when none does (an older build of the watch app), the nodes that
+     * are connected. The Data Layer delivers a message to the app of the same package name and signature on the other node.
+     */
+    fun <N> targets(capable: Collection<N>, connected: Collection<N>): List<N> = if (capable.isNotEmpty()) capable.toList() else connected.toList()
     const val TITLE_MAX = 60
     const val TEXT_MAX = 160
     const val CRITICAL_TTL_S = 600
