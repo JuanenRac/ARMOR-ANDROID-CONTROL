@@ -4,6 +4,7 @@ package es.electrohobby3d.armor
 
 import android.content.Context
 import com.google.android.gms.tasks.Tasks
+import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Wearable
 import com.google.android.gms.wearable.WearableListenerService
@@ -15,7 +16,11 @@ class DataLayerTransport private constructor(private val context: Context) : Wat
     override fun send(path: String, payload: String) {
         executor.execute {
             try {
-                val nodes = Tasks.await(Wearable.getNodeClient(context).connectedNodes, TIMEOUT_S, TimeUnit.SECONDS)
+                // The watches that declare the capability of the watch app come first; the connected ones are the fallback (see WatchRelay.targets).
+                val capable = try {
+                    Tasks.await(Wearable.getCapabilityClient(context).getCapability(WatchRelay.CAPABILITY_WATCH, CapabilityClient.FILTER_REACHABLE), TIMEOUT_S, TimeUnit.SECONDS).nodes
+                } catch (_: Exception) { emptySet() }
+                val nodes = WatchRelay.targets(capable, Tasks.await(Wearable.getNodeClient(context).connectedNodes, TIMEOUT_S, TimeUnit.SECONDS))
                 for (node in nodes) Tasks.await(Wearable.getMessageClient(context).sendMessage(node.id, path, payload.toByteArray(Charsets.UTF_8)), TIMEOUT_S, TimeUnit.SECONDS)
             } catch (_: Exception) { /* no watch in reach, or no Data Layer on this phone: the notice on the phone is what counts */ }
         }

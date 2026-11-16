@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The capability this app declares so the watch finds the phone app (see WatchRelay.CAPABILITY_PHONE). -->
+<resources>
+    <string-array name="android_wear_capabilities">
+        <item>armor_phone_alerts</item>
+    </string-array>
+</resources>
