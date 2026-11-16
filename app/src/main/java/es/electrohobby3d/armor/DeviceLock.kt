@@ -118,6 +118,9 @@ class LockPolicy(private val settings: LockSettings, private val availability: (
         return grace > 0 && clock() - at < grace * 1000L
     }
 
+    /** The phone has a lock to ask (a fingerprint, a face, a PIN): a question that could not be shown is then a refusal, not a pass. */
+    fun hasLock(): Boolean = availability() != LockAvailability.None
+
     /** A sensitive action has to ask now. */
     fun promptNeeded(): Boolean = sensitiveRequired() && !fresh()
 
@@ -163,7 +166,9 @@ class LockGate(val policy: LockPolicy, private val auth: DeviceAuth) : Sensitive
 
     private suspend fun ask(title: String, subtitle: String): AuthResult {
         policy.prompting = true
-        val result = try { auth.authenticate(title, subtitle) } finally { policy.prompting = false }
+        val answered = try { auth.authenticate(title, subtitle) } finally { policy.prompting = false }
+        // "Unavailable" is a pass only on a phone with no lock at all; a sensor that failed for a moment on a phone that has one is a refusal to try again.
+        val result = if (answered == AuthResult.Unavailable && policy.hasLock()) AuthResult.Failed(tr("No se pudo mostrar la comprobación del teléfono. Inténtalo de nuevo.")) else answered
         if (result == AuthResult.Success || result == AuthResult.Unavailable) policy.unlocked()
         return result
     }

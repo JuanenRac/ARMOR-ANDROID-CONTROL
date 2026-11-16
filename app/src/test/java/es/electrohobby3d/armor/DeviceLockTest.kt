@@ -97,7 +97,15 @@ class DeviceLockTest {
         phone.answer = AuthResult.Cancelled
         assertFalse(gate.allow("Armar el sistema"))
         phone.answer = AuthResult.Unavailable
+        assertFalse("a sensor that failed on a phone that has a lock is not a pass", gate.allow("Armar el sistema"))
+        assertTrue(gate.unlockToOpen() is AuthResult.Failed)
+    }
+
+    @Test fun `a phone that has no lock at all is never shut out`() = runBlocking {
+        val phone = FakePhone(LockAvailability.None, AuthResult.Unavailable)
+        val gate = LockGate(policy(phone), phone)
         assertTrue(gate.allow("Armar el sistema"))
+        assertEquals(AuthResult.Unavailable, gate.unlockToOpen())
     }
 
     @Test fun `nothing is asked when the actions do not need the lock`() = runBlocking {

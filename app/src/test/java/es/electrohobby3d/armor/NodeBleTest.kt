@@ -158,4 +158,14 @@ class NodeBleTest {
         assertEquals("a5c0de01-5261-4d4f-8000-41524d4f5200", NodeGatt.RX)
         assertEquals("a5c0de02-5261-4d4f-8000-41524d4f5200", NodeGatt.TX)
     }
+
+    @Test fun `a request that carries a secret waits for a bonded link when the switch asks for it`() {
+        for (op in listOf("login", "setup", "config.put")) {
+            assertTrue(op, es.electrohobby3d.armor.model.BleBond.mustBond(required = true, op = op, bonded = false))
+            assertFalse(op, es.electrohobby3d.armor.model.BleBond.mustBond(required = true, op = op, bonded = true))
+            assertFalse(op, es.electrohobby3d.armor.model.BleBond.mustBond(required = false, op = op, bonded = false))
+        }
+        assertFalse(es.electrohobby3d.armor.model.BleBond.mustBond(required = true, op = "hello", bonded = false))
+        assertFalse(es.electrohobby3d.armor.model.BleBond.mustBond(required = true, op = "wifi.scan", bonded = false))
+    }
 }
