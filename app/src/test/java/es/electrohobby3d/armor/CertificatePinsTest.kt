@@ -93,6 +93,34 @@ class CertificatePinsTest {
         assertFalse(TrustPins.takeMismatch())
     }
 
+    private val trustsNothing = object : javax.net.ssl.X509TrustManager {
+        override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
+        override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) { throw CertificateException("unknown authority") }
+        override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
+    }
+
+    @Test fun `a forged leaf followed by the real authority is refused even though the pin is in the chain`() {
+        val generator = java.security.KeyPairGenerator.getInstance("RSA").apply { initialize(2048) }
+        val authority = generator.generateKeyPair().public
+        val attacker = generator.generateKeyPair().public
+        val store = store()
+        store.add(PinStore.pinOf(FakeCertificate(authority)), "casa")
+        val manager = PinningTrustManager("casa", trustsNothing, store)
+        val forged = SignedCertificate(attacker, signedBy = attacker)   // not signed by the authority
+        val realAuthority = FakeCertificate(authority)
+        try { manager.checkServerTrusted(arrayOf(forged, realAuthority), "RSA"); throw AssertionError("a forged chain was accepted") } catch (_: CertificateException) {}
+        assertTrue(TrustPins.takeMismatch())
+        val genuine = SignedCertificate(generator.generateKeyPair().public, signedBy = authority)
+        manager.checkServerTrusted(arrayOf(genuine, realAuthority), "RSA")   // signed by the pinned key: fine
+        assertEquals(1, linkedCount(arrayOf(forged, realAuthority)))
+        assertEquals(2, linkedCount(arrayOf(genuine, realAuthority)))
+    }
+
+    @Test fun `an expired leaf is never linked`() {
+        val key = java.security.KeyPairGenerator.getInstance("RSA").apply { initialize(2048) }.generateKeyPair().public
+        assertEquals(0, linkedCount(arrayOf(SignedCertificate(key, signedBy = key, expired = true))))
+    }
+
     @Test fun `after https a plain http to the same host is refused`() {
         val memory = SchemeMemory(MapStore())
         assertTrue(memory.allows("http://192.168.0.180:8080"))
@@ -129,6 +157,36 @@ private class FakeCertificate(private val key: PublicKey) : X509Certificate() {
     override fun verify(key: PublicKey?) {}
     override fun verify(key: PublicKey?, sigProvider: String?) {}
     override fun toString() = "FakeCertificate"
+    override fun hasUnsupportedCriticalExtension() = false
+    override fun getCriticalExtensionOIDs(): MutableSet<String>? = null
+    override fun getNonCriticalExtensionOIDs(): MutableSet<String>? = null
+    override fun getExtensionValue(oid: String?): ByteArray? = null
+}
+
+/** A certificate that checks who signed it, and may be out of date. */
+private class SignedCertificate(private val key: PublicKey, private val signedBy: PublicKey, private val expired: Boolean = false) : X509Certificate() {
+    override fun getPublicKey(): PublicKey = key
+    override fun checkValidity() { if (expired) throw java.security.cert.CertificateExpiredException("expired") }
+    override fun checkValidity(date: java.util.Date?) = checkValidity()
+    override fun verify(key: PublicKey?) { if (key != signedBy) throw java.security.SignatureException("not signed by this key") }
+    override fun verify(key: PublicKey?, sigProvider: String?) = verify(key)
+    override fun getVersion() = 3
+    override fun getSerialNumber(): java.math.BigInteger = java.math.BigInteger.ONE
+    override fun getIssuerDN(): java.security.Principal = throw UnsupportedOperationException()
+    override fun getSubjectDN(): java.security.Principal = throw UnsupportedOperationException()
+    override fun getNotBefore(): java.util.Date = java.util.Date(0)
+    override fun getNotAfter(): java.util.Date = java.util.Date(Long.MAX_VALUE)
+    override fun getTBSCertificate(): ByteArray = ByteArray(0)
+    override fun getSignature(): ByteArray = ByteArray(0)
+    override fun getSigAlgName() = "none"
+    override fun getSigAlgOID() = "0"
+    override fun getSigAlgParams(): ByteArray? = null
+    override fun getIssuerUniqueID(): BooleanArray? = null
+    override fun getSubjectUniqueID(): BooleanArray? = null
+    override fun getKeyUsage(): BooleanArray? = null
+    override fun getBasicConstraints() = -1
+    override fun getEncoded(): ByteArray = ByteArray(0)
+    override fun toString() = "SignedCertificate"
     override fun hasUnsupportedCriticalExtension() = false
     override fun getCriticalExtensionOIDs(): MutableSet<String>? = null
     override fun getNonCriticalExtensionOIDs(): MutableSet<String>? = null
