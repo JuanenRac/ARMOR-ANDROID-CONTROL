@@ -54,15 +54,15 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.glance:glance-appwidget:1.1.1")   // the widget of the home screen that shows whether the system is armed
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")   // the live channel (WebSocket) of the server
+    implementation("com.squareup.okhttp3:okhttp:5.5.1")   // the live channel (WebSocket) of the server
     // Push messages from the installation's own Firebase project (see PushService); the app starts Firebase itself from the build constants, so no Google Services plugin is needed.
     implementation(platform("com.google.firebase:firebase-bom:35.1.0"))
     implementation("com.google.firebase:firebase-messaging")
     // The pairing QR code of a node: drawn with zxing and read with the Google code scanner (it needs no camera permission of its own).
     implementation("com.google.zxing:core:3.5.4")
     implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
-    implementation("com.google.android.gms:play-services-wearable:19.0.0")   // the alarms on a Wear OS watch (off by default): the Data Layer
-    implementation("com.google.android.gms:play-services-location:21.3.0")   // the circle around home for the reminder on leaving (geofencing)
+    implementation("com.google.android.gms:play-services-wearable:20.0.1")   // the alarms on a Wear OS watch (off by default): the Data Layer
+    implementation("com.google.android.gms:play-services-location:21.4.0")   // the circle around home for the reminder on leaving (geofencing)
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
     testImplementation("junit:junit:4.13.2")
