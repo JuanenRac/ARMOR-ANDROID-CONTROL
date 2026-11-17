@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **Certificate chain check for servers paired from now on (pins.strict_chain):** when a server is paired, the app also keeps its certificate, and later connections are accepted only if the chain they present leads to that certificate, signed link by link, and not just because a key matches. A switch in the server settings, on by default, turns it off; servers paired before keep working with a notice in the app until they are paired again.
+
 - The phone keeps its own copy of the watch alert contract and checks its limits, paths, confirmations and messages against it; the contract also lists the `bindSender` setting of the Wear OS app.
 
 - **Alerts for the watch go to the watch app that declares itself, not to any connected device:** the phone app declares a capability, looks for the capability of the watch app among the reachable nodes and falls back to the connected nodes only when no node declares it. The identifier of the app is not changed; it has not been run on a real watch.

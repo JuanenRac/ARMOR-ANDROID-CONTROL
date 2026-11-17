@@ -25,6 +25,20 @@ sealed interface PinDecision {
     data class UnknownAuthority(val pin: String) : PinDecision
 }
 
+/** The answer of the chain and certificate check that follows a matching pin. */
+enum class StrictVerdict {
+    /** The switch is off: the pin alone decides. */
+    Off,
+    /** The chain leads to the certificate kept at pairing time. */
+    Verified,
+    /** A pairing made before certificates were kept: accepted, with a notice in the app. */
+    Legacy,
+    /** A new pairing whose certificate was not kept yet (a pasted QR code): the matching one is kept now. */
+    Capture,
+    /** The pin matched but the chain does not lead to the kept certificate. */
+    Broken,
+}
+
 /** The pins kept for each server: the base64 SHA-256 of the public key (SubjectPublicKeyInfo) of a certificate. More than one may be kept (a renewal, a backup key). */
 class PinStore(private val store: KeyValueStore) {
     private fun key(host: String) = "pin_" + host.lowercase()
@@ -37,9 +51,39 @@ class PinStore(private val store: KeyValueStore) {
         if (!isWellFormed(clean)) return
         val list = pins(host).filter { it != clean } + clean
         store.put(key(host), list.takeLast(4).joinToString(","))
+        store.put(newKey(host), "1")
     }
 
-    fun clear(host: String) = store.remove(key(host))
+    fun clear(host: String) { store.remove(key(host)); store.remove(certKey(host)); store.remove(newKey(host)) }
+
+    private fun certKey(host: String) = "pin_cert_" + host.lowercase()
+    private fun newKey(host: String) = "pin_new_" + host.lowercase()
+
+    /** True when the chain must also lead to the certificate kept at pairing time (on unless the person turned it off). */
+    fun strictChain(): Boolean = store.get(STRICT_KEY) != "0"
+
+    fun setStrictChain(on: Boolean) = store.put(STRICT_KEY, if (on) "1" else "0")
+
+    /** The DER of the certificate kept when the server was paired, in base64; null for a pairing made before it was kept. */
+    fun certificate(host: String): String? = store.get(certKey(host))?.takeIf { it.isNotBlank() }
+
+    fun setCertificate(host: String, der: ByteArray) = store.put(certKey(host), Base64.getEncoder().encodeToString(der))
+
+    /** True for a pin kept before certificates were kept: it still works, with a notice in the app. */
+    fun isLegacy(host: String): Boolean = pins(host).isNotEmpty() && certificate(host) == null && store.get(newKey(host)) != "1"
+
+    /**
+     * Chain and certificate check for a chain that already matched a pin. `chainFingerprints` and `linked` are those of [decide]. Only a pairing made with a kept certificate is checked: the chain
+     * must hold that very certificate, signed link by link from the leaf (so it is the anchor of the chain).
+     */
+    fun strictVerdict(host: String, chainFingerprints: List<String>, linked: Int): StrictVerdict {
+        if (!strictChain()) return StrictVerdict.Off
+        val stored = certificate(host)
+            ?: return if (store.get(newKey(host)) == "1") StrictVerdict.Capture else StrictVerdict.Legacy
+        val der = runCatching { Base64.getDecoder().decode(stored) }.getOrNull() ?: return StrictVerdict.Broken
+        val index = chainFingerprints.indexOf(fingerprintOfDer(der))
+        return if (index in 0 until linked) StrictVerdict.Verified else StrictVerdict.Broken
+    }
 
     private fun expectKey(host: String) = "ca_expect_" + host.lowercase()
 
@@ -91,7 +135,11 @@ class PinStore(private val store: KeyValueStore) {
         fun pinOf(certificate: X509Certificate): String = Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").digest(certificate.publicKey.encoded))
 
         /** The fingerprint of a whole certificate: the SHA-256 of its DER form in lower-case hex, the way a set-up QR code and the server write it. */
-        fun fingerprintOf(certificate: X509Certificate): String = MessageDigest.getInstance("SHA-256").digest(certificate.encoded).joinToString("") { "%02x".format(it) }
+        fun fingerprintOf(certificate: X509Certificate): String = fingerprintOfDer(certificate.encoded)
+
+        fun fingerprintOfDer(der: ByteArray): String = MessageDigest.getInstance("SHA-256").digest(der).joinToString("") { "%02x".format(it) }
+
+        const val STRICT_KEY = "pins_strict_chain"
     }
 }
 
@@ -162,9 +210,15 @@ class PinningTrustManager(private val host: String, private val system: X509Trus
     override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
         val systemTrusts = try { system.checkServerTrusted(chain, authType); true } catch (error: CertificateException) { false }
         val decision = store.decide(host, chain.map(PinStore::pinOf), systemTrusts, chain.map(PinStore::fingerprintOf), linkedCount(chain))
+        val pinPositions = chain.indices.filter { it < linkedCount(chain) }
+        fun keep(pin: String) { pinPositions.firstOrNull { PinStore.pinOf(chain[it]) == pin }?.let { store.setCertificate(host, chain[it].encoded) } }
         when (decision) {
-            PinDecision.Trusted -> Unit
-            is PinDecision.FirstUse -> { store.add(decision.pin, host); store.clearExpected(host) }
+            PinDecision.Trusted -> when (store.strictVerdict(host, chain.map(PinStore::fingerprintOf), linkedCount(chain))) {
+                StrictVerdict.Broken -> { TrustPins.noteMismatch(host); throw CertificateException("The certificate of $host does not lead to the one that was paired") }
+                StrictVerdict.Capture -> store.pins(host).forEach { keep(it) }
+                else -> Unit
+            }
+            is PinDecision.FirstUse -> { store.add(decision.pin, host); keep(decision.pin); store.clearExpected(host) }
             PinDecision.Mismatch, is PinDecision.UnknownAuthority -> { TrustPins.noteMismatch(host); throw CertificateException("The certificate of $host does not match the one that was paired") }
         }
     }
