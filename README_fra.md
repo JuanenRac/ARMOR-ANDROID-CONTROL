@@ -153,6 +153,7 @@ Il n'y a pas eu de revue de sécurité indépendante. Lis [docs/CLIENT_BOUNDARY.
 | `compileSdk` / `targetSdk` / `minSdk` | 37 / 37 / 26 | Android 8.0 ou plus récent sur le téléphone |
 | `versionName` | = `armor.project.json` | Le build échoue si le manifeste et la version diffèrent |
 | JDK / Android SDK | 17+ / 37 | Pour compiler l'app et lancer les tests |
+| `pins_strict_chain` | on | Exiger aussi que la chaîne du serveur mène au certificat gardé lors de l'appairage (signée maillon par maillon) ; un appairage antérieur reste valable, avec un avis. Un interrupteur du panneau d'appairage des certificats le désactive |
 
 Dans l'app (pas dans des fichiers) : la langue (les huit ou suivre le téléphone), les deux adresses, *Se souvenir de moi*, le verrouillage du téléphone, l'alarme parlée et les notifications, dans *Plus > Réglages*. Limites dans le code : la surveillance interroge toutes les 10 s, s'espace jusqu'à 60 s et ignore les alarmes de plus de 15 minutes.
 

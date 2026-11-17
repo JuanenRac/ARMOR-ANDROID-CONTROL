@@ -153,6 +153,7 @@ No hay revisión de seguridad independiente. Lee [docs/CLIENT_BOUNDARY.md](docs/
 | `compileSdk` / `targetSdk` / `minSdk` | 37 / 37 / 26 | Android 8.0 o posterior en el móvil |
 | `versionName` | = `armor.project.json` | La compilación falla si el manifiesto y la versión difieren |
 | JDK / Android SDK | 17+ / 37 | Para compilar la app y ejecutar las pruebas |
+| `pins_strict_chain` | on | Exigir además que la cadena del servidor lleve al mismo certificado guardado al emparejar (firmado eslabón a eslabón); un emparejamiento anterior a guardarlo sigue valiendo, con un aviso. Un interruptor del panel de emparejamiento de certificados lo apaga |
 
 En la app (no en ficheros): el idioma (los ocho o seguir al móvil), las dos direcciones, *Recordarme*, el bloqueo del móvil, la alarma hablada y las notificaciones, en *Más > Ajustes*. Límites en el código: la vigilancia sondea cada 10 s, retrocede hasta 60 s e ignora alarmas de más de 15 minutos.
 

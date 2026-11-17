@@ -153,6 +153,7 @@ No independent security review. Read [docs/CLIENT_BOUNDARY.md](docs/CLIENT_BOUND
 | `compileSdk` / `targetSdk` / `minSdk` | 37 / 37 / 26 | Android 8.0 or later on the phone |
 | `versionName` | = `armor.project.json` | The build fails when the manifest and the version differ |
 | JDK / Android SDK | 17+ / 37 | To build the app and run the tests |
+| `pins_strict_chain` | on | Also require that the chain of the server leads to the very certificate kept when it was paired (signed link by link); a pairing made before it was kept still works, with a notice. A switch in the certificate pairing panel turns it off |
 
 In the app (not in files): the language (the eight or following the phone), the two addresses, *Remember me*, the lock of the phone, the spoken alarm and the notifications, in *More > Settings*. Limits in the code: the watch polls every 10 s, backs off to 60 s and ignores alarms older than 15 minutes.
 

@@ -153,6 +153,7 @@ Es gibt keine unabhängige Sicherheitsprüfung. Lies [docs/CLIENT_BOUNDARY.md](d
 | `compileSdk` / `targetSdk` / `minSdk` | 37 / 37 / 26 | Android 8.0 oder neuer auf dem Telefon |
 | `versionName` | = `armor.project.json` | Der Build schlägt fehl, wenn Manifest und Version abweichen |
 | JDK / Android SDK | 17+ / 37 | Zum Bauen der App und Ausführen der Tests |
+| `pins_strict_chain` | on | Zusätzlich verlangen, dass die Kette des Servers zu dem beim Koppeln gespeicherten Zertifikat führt (Glied für Glied signiert); eine Kopplung vor dem Speichern gilt weiter, mit Hinweis. Ein Schalter im Kopplungsbereich der Zertifikate schaltet es ab |
 
 In der App (nicht in Dateien): die Sprache (die acht oder dem Telefon folgen), die zwei Adressen, *Angemeldet bleiben*, die Telefonsperre, der gesprochene Alarm und die Benachrichtigungen, unter *Mehr > Einstellungen*. Grenzen im Code: Die Überwachung fragt alle 10 s ab, weicht bis 60 s zurück und ignoriert Alarme, die älter als 15 Minuten sind.
 
