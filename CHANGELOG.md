@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- The phone keeps its own copy of the watch alert contract and checks its limits, paths, confirmations and messages against it; the contract also lists the `bindSender` setting of the Wear OS app.
+
 - **Alerts for the watch go to the watch app that declares itself, not to any connected device:** the phone app declares a capability, looks for the capability of the watch app among the reachable nodes and falls back to the connected nodes only when no node declares it. The identifier of the app is not changed; it has not been run on a real watch.
 - **The Confirm action of an alarm notice asks for the phone to be unlocked (Android 12 and later):** from the lock screen, confirming an alarm now needs the phone unlocked. A switch in the notice settings, on by default, turns it off.
 - **Bluetooth set-up sends no password over a link that is not paired:** before signing in, creating the administrator or saving the configuration of a node, the app starts the pairing and waits for it, and refuses to send the secrets if it does not happen. A switch on the set-up screen, on by default, turns it off.
