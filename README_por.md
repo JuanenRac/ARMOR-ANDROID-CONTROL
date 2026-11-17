@@ -153,6 +153,7 @@ Não houve revisão de segurança independente. Lê [docs/CLIENT_BOUNDARY.md](do
 | `compileSdk` / `targetSdk` / `minSdk` | 37 / 37 / 26 | Android 8.0 ou posterior no telemóvel |
 | `versionName` | = `armor.project.json` | A compilação falha se o manifesto e a versão diferirem |
 | JDK / Android SDK | 17+ / 37 | Para compilar a app e executar os testes |
+| `pins_strict_chain` | on | Exigir também que a cadeia do servidor leve ao mesmo certificado guardado no emparelhamento (assinado elo a elo); um emparelhamento anterior continua válido, com um aviso. Um interruptor do painel de emparelhamento de certificados desliga-o |
 
 Na app (não em ficheiros): a língua (as oito ou seguir o telemóvel), os dois endereços, *Lembrar-me*, o bloqueio do telemóvel, o alarme falado e as notificações, em *Mais > Definições*. Limites no código: a vigilância consulta a cada 10 s, recua até 60 s e ignora alarmes com mais de 15 minutos.
 

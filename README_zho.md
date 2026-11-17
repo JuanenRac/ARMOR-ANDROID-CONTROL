@@ -153,6 +153,7 @@ ARMOR-ANDROID-CONTROL 是手机上通往 [ARMOR-STUDIO](https://github.com/Juane
 | `compileSdk` / `targetSdk` / `minSdk` | 37 / 37 / 26 | 手机需 Android 8.0 或更高 |
 | `versionName` | = `armor.project.json` | 清单与版本不一致时构建失败 |
 | JDK / Android SDK | 17+ / 37 | 用于构建应用和运行测试 |
+| `pins_strict_chain` | on | 还要求服务器证书链指向配对时保存的那张证书（逐级签名）；保存之前完成的配对仍然有效，并给出提示。可通过证书配对面板中的开关关闭 |
 
 应用内（不在文件中）：语言（八种语言或跟随手机）、两个地址、*记住我*、手机锁、语音报警和通知，位于*更多 > 设置*。代码中的限制：监视每 10 秒轮询一次，最多退避到 60 秒，并忽略超过 15 分钟的报警。
 

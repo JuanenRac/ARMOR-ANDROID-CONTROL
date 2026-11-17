@@ -153,6 +153,7 @@ Non c'è stata una revisione di sicurezza indipendente. Leggi [docs/CLIENT_BOUND
 | `compileSdk` / `targetSdk` / `minSdk` | 37 / 37 / 26 | Android 8.0 o successivo sul telefono |
 | `versionName` | = `armor.project.json` | La build fallisce se manifesto e versione differiscono |
 | JDK / Android SDK | 17+ / 37 | Per compilare l'app ed eseguire i test |
+| `pins_strict_chain` | on | Richiedere anche che la catena del server porti allo stesso certificato conservato all'abbinamento (firmato anello per anello); un abbinamento precedente resta valido, con un avviso. Un interruttore nel pannello di abbinamento dei certificati lo spegne |
 
 Nell'app (non nei file): la lingua (le otto o seguire il telefono), i due indirizzi, *Ricordami*, il blocco del telefono, l'allarme parlato e le notifiche, in *Altro > Impostazioni*. Limiti nel codice: la sorveglianza interroga ogni 10 s, rallenta fino a 60 s e ignora gli allarmi più vecchi di 15 minuti.
 
