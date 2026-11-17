@@ -412,6 +412,13 @@ private fun CertificateSection(origin: String) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) { Icon(Icons.Filled.VerifiedUser, null, tint = ArmorColors.Cyan); Text(tr("Certificado del servidor"), fontWeight = FontWeight.SemiBold) }
             Text(tr("La primera vez que se conecta por https, la app recuerda la clave del certificado de tu instalación. Si cambia, no se conecta y te lo dice. También puedes emparejarla pegando el texto del código QR que muestra Studio (armor-pin:…)."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
             Text(if (count == 0) tr("Aún no hay ninguna clave guardada para este servidor.") else trf("Claves guardadas para este servidor: %s", count), style = MaterialTheme.typography.bodySmall)
+            var strict by remember { mutableStateOf(store.strictChain()) }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Switch(checked = strict, onCheckedChange = { strict = it; store.setStrictChain(it) })
+                Text(tr("Exigir la cadena y el certificado emparejado"), style = MaterialTheme.typography.bodyMedium)
+            }
+            Text(tr("Con el interruptor encendido, un servidor emparejado de nuevo solo se acepta si la cadena que presenta lleva hasta el certificado guardado al emparejar, y no solo si la clave coincide."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted)
+            if (strict && store.isLegacy(host)) Text(tr("Este servidor se emparejó antes de que la app guardara su certificado: sigue funcionando, pero solo se comprueba la clave. Olvida los certificados guardados y vuelve a emparejar para la comprobación completa."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Cyan)
             OutlinedTextField(value = pasted, onValueChange = { pasted = it; note = null }, modifier = Modifier.fillMaxWidth(), singleLine = true, label = { Text("armor-pin:…") })
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Button(enabled = pasted.isNotBlank(), onClick = {
