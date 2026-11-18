@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The shared tools of the manifest and the status lights gain an opt-in strict check of the evidence:** `sync_manifests.py` and `status_lights.py` take `--strict-evidence` (off by default; `ARMOR_STRICT_EVIDENCE=1` switches it on for `armor_ci_validate.py`).
+- **The manifest says simulator evidence until the record of a test on real hardware is kept:** it said bench with no record, so the Hardware light goes down to orange in the eight READMEs (a person raises them again with the record).
 - **Certificate chain check for servers paired from now on (pins.strict_chain):** when a server is paired, the app also keeps its certificate, and later connections are accepted only if the chain they present leads to that certificate, signed link by link, and not just because a key matches. A switch in the server settings, on by default, turns it off; servers paired before keep working with a notice in the app until they are paired again.
 
 - The phone keeps its own copy of the watch alert contract and checks its limits, paths, confirmations and messages against it; the contract also lists the `bindSender` setting of the Wear OS app.

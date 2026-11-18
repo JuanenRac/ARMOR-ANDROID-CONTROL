@@ -60,7 +60,7 @@ Ogni riga è una parte di questo repository e il semaforo dice a che punto è og
 | Software | 🟢 | L'app compila (`gradlew testDebugUnitTest assembleDebug`) e gira su un telefono reale contro il banco di prova CM5. |
 | Test | 🟢 | Superano 565 test unitari (`gradlew testDebugUnitTest`): sicurezza degli indirizzi, decisione di allarme, sorvegliante degli allarmi, traduzioni e ruolo di sola lettura. |
 | Interfaccia | 🟡 | L'accesso, il monitor delle telecamere, l'inserimento e gli allarmi e il radar sono in uso su un telefono reale; la configurazione di un nodo via Bluetooth non è stata confermata con un nodo reale e le schermate solare, elettrica e della centralina d'allarme non hanno incontrato apparecchiature reali. |
-| Hardware | 🟡 | Usata su un telefono reale contro il banco di prova CM5; la sorveglianza degli allarmi in background con le regole di batteria di ogni produttore non è provata. |
+| Hardware | 🟠 | Usata su un telefono reale contro il banco di prova CM5; la sorveglianza degli allarmi in background con le regole di batteria di ogni produttore non è provata. |
 | Sicurezza | 🟡 | Le regole di sicurezza degli indirizzi e del ruolo di sola lettura sono coperte da test unitari; non c'è stata una revisione indipendente. |
 | Aggiornamenti | 🟡 | Gli aggiornamenti da GitHub sono in uso sul telefono. |
 | Integrazione | 🟠 | Il push tramite Firebase è nell'app ma richiede un progetto Firebase proprio e non è stato provato su un telefono. |
