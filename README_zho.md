@@ -211,7 +211,7 @@ python -I tools/armor_ci_validate.py
 </p>
 
 <details>
-<summary>目录树的文本版</summary>
+<summary>目录树的文本版本</summary>
 
 ```text
 ARMOR-ANDROID-CONTROL/
