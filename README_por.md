@@ -60,7 +60,7 @@ Cada linha é uma parte deste repositório e a luz diz até onde chega hoje. É 
 | Software | 🟢 | A app compila (`gradlew testDebugUnitTest assembleDebug`) e funciona num telemóvel real contra a bancada de testes CM5. |
 | Testes | 🟢 | Passam 565 testes unitários (`gradlew testDebugUnitTest`): segurança dos endereços, decisão de alarme, vigilante de alarmes, traduções e papel só de leitura. |
 | Interface | 🟡 | O início de sessão, o monitor de câmaras, o armar e os alarmes e o radar estão em uso num telemóvel real; a configuração de um nó por Bluetooth não foi confirmada com um nó real, e os ecrãs solar, elétrico e de painel de alarme não encontraram equipamentos reais. |
-| Hardware | 🟡 | Usada num telemóvel real contra a bancada de testes CM5; a vigilância de alarmes em segundo plano sob as regras de bateria de cada fabricante não está provada. |
+| Hardware | 🟠 | Usada num telemóvel real contra a bancada de testes CM5; a vigilância de alarmes em segundo plano sob as regras de bateria de cada fabricante não está provada. |
 | Segurança | 🟡 | As regras de segurança dos endereços e do papel só de leitura estão cobertas por testes unitários; não houve revisão independente. |
 | Atualizações | 🟡 | As atualizações a partir do GitHub estão em uso no telemóvel. |
 | Integração | 🟠 | O push através do Firebase está na app, mas precisa de um projeto Firebase próprio e não foi experimentado num telemóvel. |

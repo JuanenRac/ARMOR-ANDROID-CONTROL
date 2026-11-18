@@ -60,7 +60,7 @@ Each line is one part of this repository and the light says how far it is today.
 | Software | 🟢 | The app builds (`gradlew testDebugUnitTest assembleDebug`) and runs on a real phone against the CM5 test bench. |
 | Tests | 🟢 | 565 unit tests pass (`gradlew testDebugUnitTest`): endpoint safety, alarm decision, alarm watcher, translations and the read-only role. |
 | Interface | 🟡 | Sign-in, the camera monitor, arming and alarms and the radar are in use on a real phone; the Bluetooth set-up of a node has not been confirmed against a real node, and the solar, electrical and alarm-panel screens have not met real equipment. |
-| Hardware | 🟡 | Used on a real phone against the CM5 test bench; the background alarm watch under the battery rules of every phone maker is not proven. |
+| Hardware | 🟠 | Used on a real phone against the CM5 test bench; the background alarm watch under the battery rules of every phone maker is not proven. |
 | Security | 🟡 | The endpoint-safety and read-only-role rules are covered by unit tests; there has been no independent review. |
 | Updates | 🟡 | The updates from GitHub are in use on the phone. |
 | Integration | 🟠 | Push through Firebase is in the app but needs a Firebase project of its own and has not been tried on a phone. |
