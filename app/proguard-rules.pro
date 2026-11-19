@@ -10,3 +10,8 @@
 -keep class es.electrohobby3d.armor.AlarmWatcherService { *; }
 -keep class es.electrohobby3d.armor.BootReceiver { *; }
 -keep class es.electrohobby3d.armor.PushService { *; }
+
+# WorkManager (brought by the widget library) opens its Room database by name and calls the constructor without arguments. R8 in full mode removes a constructor that no code calls,
+# so the app closed at start with "Failed to create an instance of androidx.work.impl.WorkDatabase". The generated database classes and their constructors are kept.
+-keep class androidx.work.impl.WorkDatabase_Impl { <init>(); }
+-keep class * extends androidx.room.RoomDatabase { <init>(); }
