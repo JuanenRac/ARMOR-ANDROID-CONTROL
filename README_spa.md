@@ -61,8 +61,8 @@ Cada línea es una parte de este repositorio y la luz dice hasta dónde llega ho
 | Pruebas | 🟢 | Pasan 565 pruebas unitarias (`gradlew testDebugUnitTest`): seguridad de las direcciones, decisión de alarma, vigilante de alarmas, traducciones y rol de solo lectura. |
 | Interfaz | 🟡 | El inicio de sesión, el monitor de cámaras, el armado y las alarmas y el radar se usan en un móvil real; la configuración de un nodo por Bluetooth no se ha confirmado con un nodo real, y las pantallas solar, eléctrica y de panel de alarma no han visto equipos reales. |
 | Hardware | 🟠 | Se usa en un móvil real contra el banco de pruebas CM5; la vigilancia de alarmas en segundo plano bajo las reglas de batería de cada fabricante no está probada. |
-| Seguridad | 🟡 | Las reglas de seguridad de direcciones y de rol de solo lectura están cubiertas por pruebas unitarias; no ha habido una revisión independiente. |
-| Actualizaciones | 🟡 | Las actualizaciones desde GitHub se usan en el móvil. |
+| Seguridad | 🟠 | Las reglas de seguridad de direcciones y de rol de solo lectura están cubiertas por pruebas unitarias; no ha habido una revisión independiente. |
+| Actualizaciones | 🟠 | Las actualizaciones desde GitHub se usan en el móvil. |
 | Integración | 🟠 | El push mediante Firebase está en la app pero necesita un proyecto Firebase propio y no se ha probado en un móvil. |
 | Documentación | 🟢 | Ocho idiomas y el historial de cambios están al día. |
 

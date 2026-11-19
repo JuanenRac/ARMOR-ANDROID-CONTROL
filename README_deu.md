@@ -61,8 +61,8 @@ Jede Zeile ist ein Teil dieses Repositorys, und die Ampel sagt, wie weit er heut
 | Tests | 🟢 | 565 Unit-Tests bestehen (`gradlew testDebugUnitTest`): Adresssicherheit, Alarmentscheidung, Alarmüberwachung, Übersetzungen und die Nur-Lese-Rolle. |
 | Oberfläche | 🟡 | Anmeldung, Kameramonitor, Scharfschalten und Alarme sowie das Radar sind auf einem echten Telefon im Einsatz; die Bluetooth-Einrichtung eines Knotens ist an einem echten Knoten nicht bestätigt, und die Bildschirme für Solar, Elektrik und Alarmzentrale sind noch keinen echten Geräten begegnet. |
 | Hardware | 🟠 | Auf einem echten Telefon gegen den CM5-Prüfstand genutzt; die Alarmüberwachung im Hintergrund unter den Akkuregeln jedes Herstellers ist nicht belegt. |
-| Sicherheit | 🟡 | Die Regeln für Adresssicherheit und die Nur-Lese-Rolle sind durch Unit-Tests abgedeckt; es gab keine unabhängige Prüfung. |
-| Aktualisierungen | 🟡 | Die Aktualisierungen von GitHub werden auf dem Telefon genutzt. |
+| Sicherheit | 🟠 | Die Regeln für Adresssicherheit und die Nur-Lese-Rolle sind durch Unit-Tests abgedeckt; es gab keine unabhängige Prüfung. |
+| Aktualisierungen | 🟠 | Die Aktualisierungen von GitHub werden auf dem Telefon genutzt. |
 | Integration | 🟠 | Push über Firebase ist in der App, braucht aber ein eigenes Firebase-Projekt und wurde auf einem Telefon nicht erprobt. |
 | Dokumentation | 🟢 | Acht Sprachen und das Änderungsprotokoll sind aktuell. |
 
