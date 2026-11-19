@@ -4,24 +4,21 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.8.0.9] - Certificate chain pins, a verified update hash, safer Bluetooth set-up and watch alert targeting
+
 - **The structure generator can write a figure read from the code:** `tools/make_structure.py` resolves `{{fact:NAME|LAST}}` in the descriptions of `docs/structure.json` where the documentation tools are next to the repository, and writes LAST (the figure it had when last written) everywhere else, so a repository still builds on its own.
 - **The Security and Updates lights of the Project status table follow the evidence ceiling:** they cannot be above what the Hardware row may show for the evidence of the manifest, and Security is never green; the rows that were higher are now orange in the eight READMEs, and `tools/status_lights.py` is the new shared copy.
-
 - **The file tree of the README is drawn from the structure source:** the text tree in the eight READMEs is generated from `docs/structure.json`, the file that also draws the picture, so the two cannot disagree; it states the current count of 565 unit tests.
 - **The Architecture picture rounds its coordinates to two decimals:** the legend positions no longer carry floating-point noise such as 399.9999999999999, so `make_architecture.py --check` gives the same answer on every machine; the shared tool is the one of ARMOR-COMMON.
 - **The shared tools of the manifest and the status lights gain an opt-in strict check of the evidence:** `sync_manifests.py` and `status_lights.py` take `--strict-evidence` (off by default; `ARMOR_STRICT_EVIDENCE=1` switches it on for `armor_ci_validate.py`).
 - **The manifest says simulator evidence until the record of a test on real hardware is kept:** it said bench with no record, so the Hardware light goes down to orange in the eight READMEs (a person raises them again with the record).
 - **Certificate chain check for servers paired from now on (pins.strict_chain):** when a server is paired, the app also keeps its certificate, and later connections are accepted only if the chain they present leads to that certificate, signed link by link, and not just because a key matches. A switch in the server settings, on by default, turns it off; servers paired before keep working with a notice in the app until they are paired again.
-
 - The phone keeps its own copy of the watch alert contract and checks its limits, paths, confirmations and messages against it; the contract also lists the `bindSender` setting of the Wear OS app.
-
 - **Alerts for the watch go to the watch app that declares itself, not to any connected device:** the phone app declares a capability, looks for the capability of the watch app among the reachable nodes and falls back to the connected nodes only when no node declares it. The identifier of the app is not changed; it has not been run on a real watch.
 - **The Confirm action of an alarm notice asks for the phone to be unlocked (Android 12 and later):** from the lock screen, confirming an alarm now needs the phone unlocked. A switch in the notice settings, on by default, turns it off.
 - **Bluetooth set-up sends no password over a link that is not paired:** before signing in, creating the administrator or saving the configuration of a node, the app starts the pairing and waits for it, and refuses to send the secrets if it does not happen. A switch on the set-up screen, on by default, turns it off.
 - **A lock check that could not be shown on a phone that has a lock no longer opens the app or the action:** only a phone with no screen lock at all passes without being asked; otherwise the person is told to try again.
-
 - **The update checks the SHA-256 that the release publishes for the APK:** the downloaded bytes are hashed while they are written and a file that does not match the published digest is deleted and refused before it is looked at as a package (a release that publishes no digest is checked as before: package name, version code and signing key). Tests cover reading the digest and the comparison.
-
 - **A saved certificate pin now needs a real chain:** the pin counts only if the certificates from the leaf up to the pinned one are each signed by the next and in date. Before, a chain that merely held the pinned certificate was accepted, so someone on the network could put a certificate of their own in front of a copy of the real one. Servers that were already paired keep working with their saved pin; a chain sent in the wrong shape is refused. Tests build the forged and the genuine chain.
 
 ## [0.8.0.8] - Quick Settings tile, widget, QR sign-in, saved servers and live notices
