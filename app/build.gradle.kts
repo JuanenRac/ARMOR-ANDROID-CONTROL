@@ -56,7 +56,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")
     implementation("com.squareup.okhttp3:okhttp:5.5.1")   // the live channel (WebSocket) of the server
     // Push messages from the installation's own Firebase project (see PushService); the app starts Firebase itself from the build constants, so no Google Services plugin is needed.
-    implementation(platform("com.google.firebase:firebase-bom:35.1.0"))
+    implementation(platform("com.google.firebase:firebase-bom:35.2.0"))
     implementation("com.google.firebase:firebase-messaging")
     // The pairing QR code of a node: drawn with zxing and read with the Google code scanner (it needs no camera permission of its own).
     implementation("com.google.zxing:core:3.5.4")
