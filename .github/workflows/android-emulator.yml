@@ -100,3 +100,12 @@ jobs:
 
       - name: Run the instrumented tests
         run: ./gradlew --no-daemon :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.armorServer=http://10.0.2.2:18080
+
+      # An error captured while drawing comes before the crash it causes, and the report of the tests shows only the crash: print the first one.
+      - name: Show the first error of the screen
+        if: ${{ failure() }}
+        shell: bash
+        run: |
+          SDK="${ANDROID_SDK_ROOT:-${ANDROID_HOME}}"
+          "$SDK/platform-tools/adb" logcat -d -s ComposeInternal:* AndroidRuntime:* > "$RUNNER_TEMP/first-error.txt" || true
+          head -n 60 "$RUNNER_TEMP/first-error.txt"

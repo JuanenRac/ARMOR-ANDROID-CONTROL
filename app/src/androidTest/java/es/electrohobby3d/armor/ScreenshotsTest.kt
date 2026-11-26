@@ -4,7 +4,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.hasTestTag
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -34,6 +34,7 @@ class ScreenshotsTest {
     private fun shot(name: String) {
         rule.waitForIdle()
         Thread.sleep(1500)   // the animations of the screen end
+        rule.waitForIdle()   // what the server answered meanwhile is drawn only when the rule is asked to
         shell("mkdir -p /data/local/tmp/shots")
         shell("screencap -p /data/local/tmp/shots/$name.png")   // the shell of the device keeps it where adb can pull it
     }

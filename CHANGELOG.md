@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The emulator tests draw on the main thread, as a phone does:** they use the current Compose test rules, so a state published by a worker thread (the answer of a sign-in) is no longer applied to the views from that thread, which could close the app of the test run while it was being destroyed. A phone was not affected. A new test keeps it so, and the emulator runs now print the first error captured while drawing.
+
 ## [0.8.1.2] - Solar history charts in folding sections
 
 - **Charts of the solar equipment, as in Studio:** the Solar screen draws the history the server keeps of the whole bank, of each pack, of each battery and of its cells (voltage, current, power, state of charge, temperature, highest and lowest cell and their difference) and of each inverter (sun and consumption, its battery and the grid), over 1 hour, 6 hours, 24 hours, 7 days or 30 days; touching a chart reads that moment. One small chart per cell can be asked for, and a cell in fault pulses there too.
