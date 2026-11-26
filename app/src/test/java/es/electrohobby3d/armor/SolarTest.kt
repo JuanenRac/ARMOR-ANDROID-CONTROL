@@ -69,6 +69,21 @@ class SolarTest {
         assertNull(SolarParser.device(JSONObject("""{"node_id":"a","device":"b","kind":"battery","reading":{"kind":"battery","modules":1,"stack":[]}}"""))!!.battery!!.healthPercent)
     }
 
+    @Test fun aBatteryThatHasNotSaidItsCapacityCountsAsTheOthersWhenTheyAreAllAlike() {
+        fun overview(withSheet: Set<Int>, other: String = "") = SolarParser.overview(JSONObject("""{"devices":[{"node_id":"a","device":"b","kind":"battery","reading":{"kind":"battery","modules":8,"capacity_ah":400,"full_capacity_ah":${50 * withSheet.size},"stack":[""" +
+            (1..8).joinToString(",") { n -> """{"n":$n,"present":true,"capacity_ah":50""" + (if (n in withSheet) ""","model":"US2000C","full_capacity_ah":50""" else if (n == 8) other else "") + "}" } +
+            """]}}],"waiting":[],"totals":{"inverters":0,"batteries":1,"stale":0,"pv_w":0,"load_w":0}}"""))
+        for (sheets in listOf(setOf(1, 2), setOf(1, 2, 3, 4, 5, 6, 8))) {
+            val seen = overview(sheets)
+            assertEquals(400.0, seen.devices[0].battery!!.fullCapacityAh!!, 0.001)
+            assertTrue(seen.devices[0].battery!!.fullEstimated)
+            assertTrue(seen.totals.fullEstimated)
+        }
+        val mixed = overview(setOf(1, 2), ""","full_capacity_ah":74""")
+        assertEquals(100.0, mixed.devices[0].battery!!.fullCapacityAh!!, 0.001)   // two capacities: the node's figure is left as it is
+        assertTrue(!mixed.devices[0].battery!!.fullEstimated && !mixed.totals.fullEstimated)
+    }
+
     @Test fun theTotalsAndTheWaitingListAreRead() {
         val overview = SolarParser.overview(JSONObject(answer))
         assertEquals(1960.0, overview.totals.pvW, 0.001)

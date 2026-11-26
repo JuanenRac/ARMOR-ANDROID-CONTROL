@@ -23,6 +23,8 @@ data class SolarTotals(
     val energyKwh: Double? = null,
     val gridPresent: Boolean = false,
     val mode: String? = null,
+    /** Some stack counts a battery that has not said its full capacity as the others: the capacity is approximate. */
+    val fullEstimated: Boolean = false,
 )
 
 data class SolarInverterReading(
@@ -60,6 +62,8 @@ data class SolarBatteryReading(
     val modules: Int, val model: String, val state: String, val voltageV: Double?, val currentA: Double?, val temperatureMinC: Double?, val temperatureMaxC: Double?,
     val cellMinV: Double?, val cellMaxV: Double?, val socPercent: Int?, val alarm: Boolean, val capacityAh: Double?, val fullCapacityAh: Double?, val energyKwh: Double?,
     val cycles: Int?, val stack: List<SolarModule>, val healthPercent: Int? = null,
+    /** [fullCapacityAh] counts a battery that has not said its own as the others. */
+    val fullEstimated: Boolean = false,
 ) {
     /** Watts at the battery: positive while charging. */
     val powerW: Double? get() = if (voltageV != null && currentA != null) voltageV * currentA else null
@@ -91,11 +95,28 @@ object SolarParser {
     private fun JSONArray?.numbers(): List<Double> = buildList { if (this@numbers != null) for (i in 0 until length()) optDouble(i).takeIf { !it.isNaN() }?.let(::add) }
     private fun JSONArray?.strings(): List<String> = buildList { if (this@strings != null) for (i in 0 until length()) optStr(i).takeIf { it.isNotBlank() }?.let(::add) }
 
-    fun overview(root: JSONObject): SolarOverview = SolarOverview(
-        devices = root.optJSONArray("devices").objects().mapNotNull(::device),
-        waiting = root.optJSONArray("waiting").objects().mapNotNull(::waiting),
-        totals = root.optJSONObject("totals")?.let(::totals) ?: SolarTotals(),
-    )
+    fun overview(root: JSONObject): SolarOverview {
+        val devices = root.optJSONArray("devices").objects().mapNotNull(::device)
+        val stacks = devices.filter { it.battery != null }
+        // as the server's sums: a quiet stack is left out, and an example only counts while nothing real is there
+        val counted = (stacks.filter { !it.example }.ifEmpty { stacks }).filter { !it.stale }
+        val totals = root.optJSONObject("totals")?.let(::totals) ?: SolarTotals()
+        return SolarOverview(
+            devices = devices,
+            waiting = root.optJSONArray("waiting").objects().mapNotNull(::waiting),
+            totals = totals.copy(fullEstimated = counted.any { it.battery?.fullEstimated == true }),
+        )
+    }
+
+    /**
+     * The full capacity to take for a battery that has not said its own: that of the others of the stack, only when every one that said it said the same and no two batteries name
+     * different models. Null: nothing is assumed. The node and the server count the same way; an older node does not.
+     */
+    fun sharedCapacity(present: List<SolarModule>): Double? {
+        val models = present.map { it.model }.filter { it.isNotBlank() }.toSet()
+        val said = present.mapNotNull { it.fullCapacityAh }
+        return if (models.size <= 1 && said.isNotEmpty() && said.all { kotlin.math.abs(it - said[0]) <= 0.005 }) said[0] else null
+    }
 
     fun totals(json: JSONObject) = SolarTotals(
         inverters = json.optInt("inverters"), batteries = json.optInt("batteries"), stale = json.optInt("stale"),
@@ -167,12 +188,17 @@ object SolarParser {
         sohCounts = m.optJSONArray("soh_counts").ints(), sohAbnormal = m.optJSONArray("soh_abnormal").ints(),
     )
 
-    private fun battery(r: JSONObject) = SolarBatteryReading(
-        modules = r.optInt("modules"), model = r.optStr("model"), state = r.optStr("state"), voltageV = r.number("voltage_v"), currentA = r.number("current_a"),
-        temperatureMinC = r.number("temperature_min_c"), temperatureMaxC = r.number("temperature_max_c"), cellMinV = r.number("cell_min_v"), cellMaxV = r.number("cell_max_v"),
-        socPercent = r.whole("soc_percent"), alarm = r.optBoolean("alarm"), capacityAh = r.number("capacity_ah"), fullCapacityAh = r.number("full_capacity_ah"),
-        energyKwh = r.number("energy_kwh"), cycles = r.whole("cycles"), stack = r.optJSONArray("stack").objects().map(::module).filter { it.present }, healthPercent = r.whole("health_percent"),
-    )
+    private fun battery(r: JSONObject): SolarBatteryReading {
+        val stack = r.optJSONArray("stack").objects().map(::module).filter { it.present }
+        val said = stack.count { it.fullCapacityAh != null }
+        val each = if (said < stack.size) sharedCapacity(stack) else null
+        return SolarBatteryReading(
+            modules = r.optInt("modules"), model = r.optStr("model"), state = r.optStr("state"), voltageV = r.number("voltage_v"), currentA = r.number("current_a"),
+            temperatureMinC = r.number("temperature_min_c"), temperatureMaxC = r.number("temperature_max_c"), cellMinV = r.number("cell_min_v"), cellMaxV = r.number("cell_max_v"),
+            socPercent = r.whole("soc_percent"), alarm = r.optBoolean("alarm"), capacityAh = r.number("capacity_ah"), fullCapacityAh = if (each != null) each * stack.size else r.number("full_capacity_ah"),
+            energyKwh = r.number("energy_kwh"), cycles = r.whole("cycles"), stack = stack, healthPercent = r.whole("health_percent"), fullEstimated = each != null,
+        )
+    }
 }
 
 /** The wording of solar equipment, in plain Spanish. */
