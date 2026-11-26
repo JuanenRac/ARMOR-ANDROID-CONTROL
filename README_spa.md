@@ -22,14 +22,14 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Lenguaje">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Idiomas">
-  <img src="https://img.shields.io/badge/Tests-615%20passing-2ea44f.svg" alt="Pruebas">
+  <img src="https://img.shields.io/badge/Tests-619%20passing-2ea44f.svg" alt="Pruebas">
   <img src="https://img.shields.io/badge/Version-0.8.1.1-0f6cbd.svg" alt="Versión">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Madurez">
 </p>
 
 ---
 
-**Comprobación de honestidad - qué funciona hoy:** Las reglas de seguridad de la dirección, de decisión de alarmas, del vigilante de alarmas, de traducción y del rol de solo lectura están cubiertas por 615 tests unitarios y la app compila (`gradlew testDebugUnitTest assembleDebug`). Funciona en un móvil real contra el banco de pruebas de la CM5: el acceso, el monitor de cámaras, el armado y las alarmas, el radar, la configuración de un nodo por Bluetooth y las actualizaciones desde GitHub están en uso. Lo que **todavía no** está probado: las pantallas solar, eléctrica y de centrales de alarma con equipos reales (solo existe un nodo radar), el push por Firebase (está en la app y necesita un proyecto Firebase propio; aún no se ha probado en un móvil) y la vigilancia de alarmas en segundo plano bajo las reglas de batería de cada fabricante.
+**Comprobación de honestidad - qué funciona hoy:** Las reglas de seguridad de la dirección, de decisión de alarmas, del vigilante de alarmas, de traducción y del rol de solo lectura están cubiertas por 619 tests unitarios y la app compila (`gradlew testDebugUnitTest assembleDebug`). Funciona en un móvil real contra el banco de pruebas de la CM5: el acceso, el monitor de cámaras, el armado y las alarmas, el radar, la configuración de un nodo por Bluetooth y las actualizaciones desde GitHub están en uso. Lo que **todavía no** está probado: las pantallas solar, eléctrica y de centrales de alarma con equipos reales (solo existe un nodo radar), el push por Firebase (está en la app y necesita un proyecto Firebase propio; aún no se ha probado en un móvil) y la vigilancia de alarmas en segundo plano bajo las reglas de batería de cada fabricante.
 
 ---
 
@@ -41,7 +41,7 @@
 | Madurez | Establecido |
 | Función | Cliente de operador Android para ARMOR-SERVER (familia: Clients, padre: ARMOR-SERVER) |
 | Tecnología | Kotlin / Jetpack Compose, Android 8.0+ |
-| Pruebas | 615 (`gradlew testDebugUnitTest`) |
+| Pruebas | 619 (`gradlew testDebugUnitTest`) |
 | Idiomas | 8 (1513 frases por idioma, cada frase comprobada en todas las tablas) |
 | Funciona en | Un móvil con Android 8.0+ (minSdk 26) |
 | En hardware real | Usada en un móvil real contra el banco de pruebas de la CM5; las pantallas solar, eléctrica y de centrales de alarma esperan nodos reales |
@@ -58,7 +58,7 @@ Cada línea es una parte de este repositorio y la luz dice hasta dónde llega ho
 | Área | Estado | Qué significa aquí |
 |---|---|---|
 | Software | 🟢 | La app compila (`gradlew testDebugUnitTest assembleDebug`) y funciona en un móvil real contra el banco de pruebas CM5. |
-| Pruebas | 🟢 | Pasan 615 pruebas unitarias (`gradlew testDebugUnitTest`): seguridad de las direcciones, decisión de alarma, vigilante de alarmas, traducciones y rol de solo lectura. |
+| Pruebas | 🟢 | Pasan 619 pruebas unitarias (`gradlew testDebugUnitTest`): seguridad de las direcciones, decisión de alarma, vigilante de alarmas, traducciones y rol de solo lectura. |
 | Interfaz | 🟡 | El inicio de sesión, el monitor de cámaras, el armado y las alarmas y el radar se usan en un móvil real; la configuración de un nodo por Bluetooth no se ha confirmado con un nodo real, y las pantallas solar, eléctrica y de panel de alarma no han visto equipos reales. |
 | Hardware | 🟠 | Se usa en un móvil real contra el banco de pruebas CM5; la vigilancia de alarmas en segundo plano bajo las reglas de batería de cada fabricante no está probada. |
 | Seguridad | 🟠 | Las reglas de seguridad de direcciones y de rol de solo lectura están cubiertas por pruebas unitarias; no ha habido una revisión independiente. |
@@ -98,6 +98,7 @@ Cada línea es una parte de este repositorio y la luz dice hasta dónde llega ho
 * **Modos de armado del servidor (Fuera, En casa, Noche):** mientras el servidor tiene los modos de armado activados (Studio, Configuración > Seguridad), el botón de armar de la pantalla de estado abre un selector para armar en un modo, cambiar de uno a otro o desarmar; un modo sin nada asignado pide confirmación, un cambio a un modo que defiende menos pide el PIN como desarmar, y el estado muestra el modo en vigor. Armar desde desarmado ejecuta antes la comprobación previa al armado, como un armado normal. Con los modos apagados la app arma y desarma como antes.
 * **Abrir la cámara desde un aviso, y configurar la app con un código QR:** un aviso sobre una cámara que dejó de responder lleva la acción "Abrir cámara"; al tocarla, la app se abre en el lugar Cámaras con esa cámara a pantalla completa una vez iniciada la sesión. En el inicio de sesión, un botón lee el código QR que muestra Studio (la dirección de la instalación, la huella de su autoridad local y un código de un solo uso que dura cinco minutos; sin contraseña ni sesión), pide al servidor esos mismos dos datos con ese código y, solo si coinciden, rellena la dirección y pide el usuario y la contraseña; una autoridad privada no necesita instalarse en el teléfono.
 * **Las alarmas en un reloj Wear OS, apagadas por defecto:** un interruptor en los ajustes de la voz de las alarmas envía los avisos que verías (solo el título y el texto, nunca uno que hayas elegido ocultar) a un reloj emparejado que ejecuta ARMOR-WATCH, que puede confirmar una alarma con un toque; el móvil solo actúa sobre esa confirmación para una alerta que envió hace un momento, una vez y con su propia sesión. Los mensajes son los del contrato de ARMOR-WATCH y se prueban en un ordenador; nunca ha corrido con un reloj real, y la app del iPhone tiene la misma opción para un Apple Watch (un iPhone no se empareja con un reloj Wear OS).
+* **Gráficas solares que se pliegan:** la pantalla Solar dibuja el histórico que guarda ARMOR-SERVER del banco completo, de cada pack, de cada batería y sus celdas y de cada inversor, de 1 hora a 30 días, en secciones que el teléfono recuerda. Probado de momento solo en las pruebas automáticas y en un emulador.
 
 ## 🧩 Papel en A.R.M.O.R.
 
@@ -162,7 +163,7 @@ En la app (no en ficheros): el idioma (los ocho o seguir al móvil), las dos dir
 **Requisitos:** JDK 17+, el SDK de Android (compile SDK 37), un móvil con Android 8.0+ (minSdk 26).
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 615 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 619 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
@@ -188,7 +189,7 @@ python -I tools/armor_ci_validate.py
 | Radar y cámaras | 14 | `RadarGeometry`, `CameraTraits`, `CameraLenses` |
 | Traducciones, palabras sencillas, voz | 14 | `Tr`, `Friendly`, `Voice` |
 
-615 pruebas en 76 ficheros, con `testDebugUnitTest`; un servidor falso (`FakeServer.kt`) y datos tomados de un servidor real (`tools/capture_fixtures.mjs`) las alimentan. Se comprueba que cada frase esté en las ocho tablas de idioma.
+619 pruebas en 76 ficheros, con `testDebugUnitTest`; un servidor falso (`FakeServer.kt`) y datos tomados de un servidor real (`tools/capture_fixtures.mjs`) las alimentan. Se comprueba que cada frase esté en las ocho tablas de idioma.
 
 ## 🏗️ Compilación y publicación
 
@@ -217,7 +218,7 @@ Las versiones se publican en GitHub, desde donde la propia app comprueba las act
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/   la app: pantallas, reglas, red y actualizaciones
 ├── app/src/main/assets/                         ocho tablas de idioma, códigos de alarma, mapa del tiempo
-├── app/src/test/                                615 pruebas y un servidor falso
+├── app/src/test/                                619 pruebas y un servidor falso
 ├── docs/                                        las guías de este repositorio
 ├── tools/                                       las comprobaciones de CI compartidas y las herramientas del proyecto
 ├── .github/                                     flujo de CI y plantillas de issues y pull requests

@@ -22,14 +22,14 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Linguaggio">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Lingue">
-  <img src="https://img.shields.io/badge/Tests-615%20passing-2ea44f.svg" alt="Test">
+  <img src="https://img.shields.io/badge/Tests-619%20passing-2ea44f.svg" alt="Test">
   <img src="https://img.shields.io/badge/Version-0.8.1.1-0f6cbd.svg" alt="Versione">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturità">
 </p>
 
 ---
 
-**Controllo di onestà - cosa funziona oggi:** Le regole di sicurezza dell'indirizzo, di decisione degli allarmi, del guardiano degli allarmi, di traduzione e del ruolo di sola lettura sono coperte da 615 test unitari e l'app si compila (`gradlew testDebugUnitTest assembleDebug`). Funziona su un vero telefono contro il banco di prova CM5: l'accesso, il monitor delle telecamere, l'inserimento e gli allarmi, il radar, la configurazione di un nodo via Bluetooth e gli aggiornamenti da GitHub sono in uso. Ciò che **non** è ancora provato: le schermate solare, elettrica e delle centrali d'allarme con apparecchi reali (esiste solo un nodo radar), il push tramite Firebase (è nell'app e richiede un progetto Firebase proprio; non è ancora stato provato su un telefono) e la sorveglianza degli allarmi in background sotto le regole di batteria di ogni produttore.
+**Controllo di onestà - cosa funziona oggi:** Le regole di sicurezza dell'indirizzo, di decisione degli allarmi, del guardiano degli allarmi, di traduzione e del ruolo di sola lettura sono coperte da 619 test unitari e l'app si compila (`gradlew testDebugUnitTest assembleDebug`). Funziona su un vero telefono contro il banco di prova CM5: l'accesso, il monitor delle telecamere, l'inserimento e gli allarmi, il radar, la configurazione di un nodo via Bluetooth e gli aggiornamenti da GitHub sono in uso. Ciò che **non** è ancora provato: le schermate solare, elettrica e delle centrali d'allarme con apparecchi reali (esiste solo un nodo radar), il push tramite Firebase (è nell'app e richiede un progetto Firebase proprio; non è ancora stato provato su un telefono) e la sorveglianza degli allarmi in background sotto le regole di batteria di ogni produttore.
 
 ---
 
@@ -41,7 +41,7 @@
 | Maturità | Consolidato |
 | Ruolo | Client operatore Android per ARMOR-SERVER (famiglia: Clients, padre: ARMOR-SERVER) |
 | Tecnologia | Kotlin / Jetpack Compose, Android 8.0+ |
-| Test | 615 (`gradlew testDebugUnitTest`) |
+| Test | 619 (`gradlew testDebugUnitTest`) |
 | Lingue | 8 (1513 frasi per lingua, ogni frase verificata in tutte le tabelle) |
 | Gira su | Un telefono con Android 8.0+ (minSdk 26) |
 | Su hardware reale | Usata su un vero telefono contro il banco di prova CM5; le schermate solare, elettrica e delle centrali d'allarme attendono nodi reali |
@@ -58,7 +58,7 @@ Ogni riga è una parte di questo repository e il semaforo dice a che punto è og
 | Area | Stato | Cosa significa qui |
 |---|---|---|
 | Software | 🟢 | L'app compila (`gradlew testDebugUnitTest assembleDebug`) e gira su un telefono reale contro il banco di prova CM5. |
-| Test | 🟢 | Superano 615 test unitari (`gradlew testDebugUnitTest`): sicurezza degli indirizzi, decisione di allarme, sorvegliante degli allarmi, traduzioni e ruolo di sola lettura. |
+| Test | 🟢 | Superano 619 test unitari (`gradlew testDebugUnitTest`): sicurezza degli indirizzi, decisione di allarme, sorvegliante degli allarmi, traduzioni e ruolo di sola lettura. |
 | Interfaccia | 🟡 | L'accesso, il monitor delle telecamere, l'inserimento e gli allarmi e il radar sono in uso su un telefono reale; la configurazione di un nodo via Bluetooth non è stata confermata con un nodo reale e le schermate solare, elettrica e della centralina d'allarme non hanno incontrato apparecchiature reali. |
 | Hardware | 🟠 | Usata su un telefono reale contro il banco di prova CM5; la sorveglianza degli allarmi in background con le regole di batteria di ogni produttore non è provata. |
 | Sicurezza | 🟠 | Le regole di sicurezza degli indirizzi e del ruolo di sola lettura sono coperte da test unitari; non c'è stata una revisione indipendente. |
@@ -98,6 +98,7 @@ Ogni riga è una parte di questo repository e il semaforo dice a che punto è og
 * **Modalità di inserimento del server (Fuori casa, In casa, Notte):** quando il server ha attive le modalità di inserimento (Studio, Configurazione > Sicurezza), il pulsante di inserimento della schermata di stato apre un selettore per inserire in una modalità, passare dall'una all'altra o disinserire; una modalità senza nulla di assegnato chiede conferma, un passaggio a una modalità che protegge meno chiede il PIN come disinserire, e lo stato mostra la modalità in vigore. L'inserimento da disinserito esegue prima il controllo prima dell'inserimento, come un inserimento semplice. Con le modalità spente l'app inserisce e disinserisce come prima.
 * **Aprire la telecamera da un avviso e configurare l'app con un codice QR:** un avviso su una telecamera che ha smesso di rispondere porta l'azione «Apri telecamera»; toccandola, a sessione avviata, l'app si apre sulla sezione Telecamere con quella telecamera a schermo intero. Nell'accesso, un pulsante legge il codice QR che mostra Studio (l'indirizzo dell'installazione, l'impronta della sua autorità locale e un codice monouso che dura cinque minuti; niente password né sessione), chiede al server gli stessi due dati con quel codice e, solo se coincidono, compila l'indirizzo e chiede utente e password; un'autorità privata non richiede di essere installata sul telefono.
 * **Gli allarmi su un orologio Wear OS, spenti per impostazione predefinita:** un interruttore nelle impostazioni della voce degli allarmi invia gli avvisi che vedresti (solo il titolo e il testo, mai uno che hai scelto di nascondere) a un orologio associato che esegue ARMOR-WATCH, il quale può confermare un allarme con un tocco; il telefono agisce su quella conferma solo per un avviso appena inviato, una volta, con la propria sessione. I messaggi sono quelli del contratto di ARMOR-WATCH e sono provati su un computer; non è mai stato eseguito con un orologio reale, e l'app iPhone ha la stessa opzione per un Apple Watch (un iPhone non si associa a un orologio Wear OS).
+* **Grafici solari richiudibili:** la schermata Solare disegna lo storico che ARMOR-SERVER conserva dell'intero banco, di ogni pacco, di ogni batteria con le sue celle e di ogni inverter, da 1 ora a 30 giorni, in sezioni che il telefono ricorda. Provato finora solo nei test automatici e in un emulatore.
 
 ## 🧩 Ruolo in A.R.M.O.R.
 
@@ -162,7 +163,7 @@ Nell'app (non nei file): la lingua (le otto o seguire il telefono), i due indiri
 **Requisiti:** JDK 17+, l'SDK Android (compile SDK 37), un telefono con Android 8.0+ (minSdk 26).
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 615 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 619 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
@@ -188,7 +189,7 @@ python -I tools/armor_ci_validate.py
 | Radar e telecamere | 14 | `RadarGeometry`, `CameraTraits`, `CameraLenses` |
 | Traduzioni, parole semplici, voce | 14 | `Tr`, `Friendly`, `Voice` |
 
-615 test in 76 file, eseguiti con `testDebugUnitTest`; un server finto (`FakeServer.kt`) e dati presi da un server reale (`tools/capture_fixtures.mjs`) li alimentano. Si verifica che ogni frase sia nelle otto tabelle di lingua.
+619 test in 76 file, eseguiti con `testDebugUnitTest`; un server finto (`FakeServer.kt`) e dati presi da un server reale (`tools/capture_fixtures.mjs`) li alimentano. Si verifica che ogni frase sia nelle otto tabelle di lingua.
 
 ## 🏗️ Compilazione e rilascio
 
@@ -217,7 +218,7 @@ Le versioni sono pubblicate su GitHub, da dove l'app stessa controlla gli aggior
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/   l'app: schermate, regole, rete e aggiornamenti
 ├── app/src/main/assets/                         otto tabelle di lingua, codici di allarme, mappa meteo
-├── app/src/test/                                615 test e un server finto
+├── app/src/test/                                619 test e un server finto
 ├── docs/                                        le guide di questo repository
 ├── tools/                                       i controlli CI condivisi e gli strumenti del progetto
 ├── .github/                                     workflow CI e modelli per issue e pull request
