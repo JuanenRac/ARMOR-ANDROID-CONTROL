@@ -400,6 +400,20 @@ class ArmorApiClient : ArmorApi {
         return origin.trimEnd('/') + path
     }
 
+    override fun nodePanelTicket(origin: String, nodeId: String): es.electrohobby3d.armor.OpenedPanel? {
+        val connection = try {
+            request(origin, "/api/v1/admin/node-panels/${part(nodeId)}/ticket", "POST", mapOf("Accept" to "application/json", "Content-Type" to "application/json"), "{}", setOf(201))
+        } catch (error: ElevationRequiredException) {
+            throw error
+        } catch (error: ArmorApiException) {
+            // 404: a server without this route; panel_origin_off: the option is off. In both the panel is the one under the API.
+            if (error.code == 404 || (error.code == 409 && error.apiError.code == "panel_origin_off")) return null
+            throw error
+        }
+        val answer = try { JSONObject(BoundedRead.text(connection.inputStream)) } finally { connection.disconnect() }
+        return requireNotNull(es.electrohobby3d.armor.NodeServerPanel.ticketed(origin.trimEnd('/'), nodeId, answer.optString("url"), answer.optString("origin"))) { "The server gave no usable address for the panel" }
+    }
+
     /** Tells the server only the word for the signed-in person; any other word is refused here and never sent. */
     override fun setPresence(origin: String, state: String) {
         require(state == "home" || state == "away") { "The presence word is home or away" }

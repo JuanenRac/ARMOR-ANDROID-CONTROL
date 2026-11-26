@@ -16,5 +16,14 @@ class NodeAddressTest {
         for (bad in listOf("8.8.8.8", "172.32.0.1", "192.168.0.256", "192.168.000.001", "010.0.0.1", "192.168.0.01", "armor-nodo.local", "example.com", "192.168.0.1/admin", "user@192.168.0.1", "192.168.0.1:0", "192.168.0.1:99999", "192.168.0.1:x", "", "https://192.168.0.1")) {
             assertNull(bad, NodeAddress.parse(bad))
         }
+        // a ticket of the server leads to the panel on its own origin; the address that is kept does not carry the ticket
+        val ticket = "abcdefghijklmnop_-0123456789"
+        val opened = NodeServerPanel.ticketed("https://armor.local", "solar-1", "https://armor.local:8444/enter/$ticket", "https://armor.local:8444")
+        assertEquals(OpenedPanel("https://armor.local:8444/enter/$ticket", "https://armor.local:8444/panel/solar-1/"), opened)
+        assertNull("not a downgrade to plain http", NodeServerPanel.ticketed("https://armor.local", "solar-1", "http://armor.local:8444/enter/$ticket", "http://armor.local:8444"))
+        assertNull("not another host than the origin it states", NodeServerPanel.ticketed("https://armor.local", "solar-1", "https://other.example/enter/$ticket", "https://armor.local:8444"))
+        assertNull(NodeServerPanel.ticketed("https://armor.local", "solar-1", "https://armor.local:8444/enter/$ticket?next=x", "https://armor.local:8444"))
+        assertNull(NodeServerPanel.ticketed("https://armor.local", "solar 1", "https://armor.local:8444/enter/$ticket", "https://armor.local:8444"))
+        assertNull(NodeServerPanel.ticketed("https://armor.local", "solar-1", "https://a@armor.local/enter/$ticket", "https://a@armor.local"))
     }
 }

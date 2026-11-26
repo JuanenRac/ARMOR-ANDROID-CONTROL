@@ -80,8 +80,11 @@ object NodeAddress {
     }
 }
 
+/** A panel to open: [first] is what the page loads (it may carry a one-use ticket), [address] is where it stays, safe to keep and to show. */
+data class OpenedPanel(val first: String, val address: String)
+
 /**
- * The panel of a node through the server (`/api/v1/nodes/<id>/panel/`): the server relays the node's own page to a signed-in session, so a node can be configured from outside the house, where
+ * The panel of a node through the server (`/api/v1/nodes/<id>/panel/`, or an origin of its own when the server asks for that): the server relays the node's own page to a signed-in session, so a node can be configured from outside the house, where
  * its private address does not exist. The address is the server's, with the session the app already has.
  */
 object NodeServerPanel {
@@ -93,6 +96,24 @@ object NodeServerPanel {
         if (!Id.matches(nodeId)) return null
         return "${endpoint.origin}/api/v1/nodes/${nodeId}/panel/"
     }
+
+    /**
+     * The panel on the origin of its own that a ticket of the server leads to, or null when the answer is not one: [url] must be `<panelOrigin>/enter/<ticket>` with a plain http(s) origin
+     * (https when the server is reached over https) and [nodeId] the plain name of a node. The first page to load carries the ticket (one use); the address kept and shown does not.
+     */
+    fun ticketed(origin: String, nodeId: String, url: String, panelOrigin: String): OpenedPanel? {
+        if (!Id.matches(nodeId)) return null
+        val parts = runCatching { java.net.URI(panelOrigin) }.getOrNull() ?: return null
+        val scheme = parts.scheme
+        if (scheme != "https" && scheme != "http") return null
+        if (parts.rawAuthority.isNullOrEmpty() || parts.rawUserInfo != null || !parts.rawPath.isNullOrEmpty() || parts.rawQuery != null || parts.rawFragment != null) return null
+        if (origin.startsWith("https://") && scheme != "https") return null
+        val enter = "${panelOrigin}/enter/"
+        if (!url.startsWith(enter) || !Ticket.matches(url.removePrefix(enter))) return null
+        return OpenedPanel(url, "${panelOrigin}/panel/${nodeId}/")
+    }
+
+    private val Ticket = Regex("^[A-Za-z0-9_-]{16,128}$")
 
     /** True when [address] is a panel through the server of [origin] (so the page needs the server's session cookie). */
     fun isViaServer(address: String, origin: String): Boolean = origin.isNotBlank() && address.startsWith(origin.trimEnd('/') + "/api/v1/nodes/")
@@ -233,7 +254,7 @@ private class SaveSink(private val context: Context) {
 /** The node's own panel, full size. [onClose] when the person leaves it (back, with nothing left to go back to). */
 @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility")
 @Composable
-fun NodePanelView(address: String, onClose: () -> Unit, sessionCookie: Pair<String, String>? = null) {
+fun NodePanelView(address: String, onClose: () -> Unit, sessionCookie: Pair<String, String>? = null, first: String? = null) {
     val context = LocalContext.current
     val host = remember(address) { Uri.parse(address).host.orEmpty() }
     var webView by remember { mutableStateOf<WebView?>(null) }
@@ -303,7 +324,7 @@ fun NodePanelView(address: String, onClose: () -> Unit, sessionCookie: Pair<Stri
                         if (event.actionMasked == MotionEvent.ACTION_DOWN) view.parent?.requestDisallowInterceptTouchEvent(true)
                         false
                     }
-                    loadUrl(address)
+                    loadUrl(first ?: address)
                     webView = this
                 }
             },
