@@ -1,8 +1,10 @@
-// ARMOR-ANDROID-CONTROL - the Solar screen: the sums, then every inverter and battery with its numbers; cells of a battery on demand.
+// ARMOR-ANDROID-CONTROL - the Solar screen: the sums, then every inverter and battery with its numbers; every cell of every battery, its state in words and colour.
 // Copyright (C) 2026 JuanenRac (Electro Hobby 3D). GPL-3.0-or-later.
 package es.electrohobby3d.armor
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -20,13 +22,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import es.electrohobby3d.armor.model.CellLevel
 import es.electrohobby3d.armor.model.LoggedEvent
+import es.electrohobby3d.armor.model.ModuleView
+import es.electrohobby3d.armor.model.SolarCells
 import es.electrohobby3d.armor.model.SolarBatteryReading
 import es.electrohobby3d.armor.model.SolarDevice
 import es.electrohobby3d.armor.model.SolarInverterReading
 import es.electrohobby3d.armor.model.SolarOverview
 import es.electrohobby3d.armor.model.SolarText
 import es.electrohobby3d.armor.model.SolarTotals
+import es.electrohobby3d.armor.model.SolarViewSettings
 import es.electrohobby3d.armor.model.NetworkOverview
 
 private fun socColor(percent: Int?) = when { percent == null -> ArmorColors.Muted; percent < 20 -> ArmorColors.Alert; percent < 40 -> ArmorColors.Amber; else -> ArmorColors.Ok }
@@ -39,6 +45,7 @@ fun solarSummary(totals: SolarTotals): String =
 @Composable
 fun SolarScreen(overview: SolarOverview?, network: NetworkOverview? = null, onScanNetwork: () -> Unit = {}, scanning: Boolean = false) {
     val data = overview ?: SolarOverview()
+    val settings = rememberSolarViewSettings()
     LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
         item { NodeFinderPanel(network, data.devices.map { it.nodeId } + data.waiting.map { it.nodeId }, onScanNetwork, scanning) }
         item {
@@ -54,8 +61,11 @@ fun SolarScreen(overview: SolarOverview?, network: NetworkOverview? = null, onSc
         }
         if (data.isEmpty) item { EmptySolar() }
         if (data.devices.isNotEmpty()) item { TotalsPanel(data.totals) }
+        // The state of all the batteries at a glance (the ones that are reporting).
+        val banks = data.devices.filter { !it.stale }.mapNotNull { device -> device.battery?.let { SolarCells.bank(device.model, it, settings) } }
+        if (banks.isNotEmpty()) item { BankSummary(banks.maxOf { it.level }, banks.sumOf { it.modules.size }, banks.sumOf { it.faultModules }, banks.sumOf { it.warnModules }, settings) }
         items(data.devices, key = { "${it.nodeId}/${it.device}" }) { device ->
-            if (device.inverter != null) InverterCard(device, device.inverter) else if (device.battery != null) BatteryCard(device, device.battery)
+            if (device.inverter != null) InverterCard(device, device.inverter) else if (device.battery != null) BatteryCard(device, device.battery, settings)
         }
         if (data.waiting.isNotEmpty()) {
             item { Text(tr("Esperando datos"), style = MaterialTheme.typography.titleMedium, color = ArmorColors.Muted) }
@@ -127,6 +137,23 @@ private fun TotalsPanel(totals: SolarTotals) {
 }
 
 @Composable
+private fun BankSummary(level: CellLevel, modules: Int, faults: Int, warnings: Int, settings: SolarViewSettings) {
+    Panel(Modifier.fillMaxWidth(), tint = if (level == CellLevel.OK) null else levelColor(level)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(tr("Estado de las baterías"), fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                LevelChip(level, false, settings)
+            }
+            StatGrid(listOf(
+                Stat(tr("Módulos"), modules.toString()),
+                Stat(tr("Con fallo"), faults.toString(), if (faults > 0) ArmorColors.Alert else ArmorColors.Text),
+                Stat(tr("Con aviso"), warnings.toString(), if (warnings > 0) ArmorColors.Amber else ArmorColors.Text),
+            ))
+        }
+    }
+}
+
+@Composable
 private fun Tile(icon: ImageVector, value: String, label: String, tint: Color, modifier: Modifier = Modifier) {
     Panel(modifier) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -187,12 +214,12 @@ private fun InverterCard(device: SolarDevice, r: SolarInverterReading) {
 }
 
 @Composable
-private fun BatteryCard(device: SolarDevice, r: SolarBatteryReading) {
-    var showCells by rememberSaveable(device.nodeId, device.device) { mutableStateOf(false) }
-    val tint = if (device.stale) ArmorColors.Muted else if (r.alarm) ArmorColors.Alert else null
-    val hasCells = r.stack.any { it.cellsV.isNotEmpty() }
+private fun BatteryCard(device: SolarDevice, r: SolarBatteryReading, settings: SolarViewSettings) {
+    var showCells by rememberSaveable(device.nodeId, device.device) { mutableStateOf(true) }
+    val bank = SolarCells.bank(device.model, r, settings)
+    val tint = if (device.stale) ArmorColors.Muted else if (bank.level == CellLevel.OK) null else levelColor(bank.level)
     Panel(Modifier.fillMaxWidth(), tint = tint) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 IconBadge(if ((r.currentA ?: 0.0) > 0.5) Icons.Filled.BatteryChargingFull else Icons.Filled.BatteryStd, if (device.stale) ArmorColors.Muted else socColor(r.socPercent), size = 40.dp)
                 Column(Modifier.weight(1f)) {
@@ -203,74 +230,48 @@ private fun BatteryCard(device: SolarDevice, r: SolarBatteryReading) {
                     )
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(SolarText.percent(r.socPercent), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = socColor(r.socPercent))
+                    Text(SolarText.percent(r.socPercent), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = if (device.stale) ArmorColors.Muted else socColor(r.socPercent))
                     Marks(device)
                 }
             }
             val soc = r.socPercent
-            if (soc != null) LinearProgressIndicator(progress = { soc.coerceIn(0, 100) / 100f }, Modifier.fillMaxWidth().height(6.dp), color = socColor(soc), trackColor = ArmorColors.Outline)
+            if (soc != null) LinearProgressIndicator(progress = { soc.coerceIn(0, 100) / 100f }, Modifier.fillMaxWidth().height(8.dp), color = if (device.stale) ArmorColors.Muted else socColor(soc), trackColor = ArmorColors.Outline)
             if (r.modules == 0) Text(tr("La batería no responde a los módulos."), style = MaterialTheme.typography.bodySmall, color = ArmorColors.Amber) else {
-                Line(tr("Tensión y corriente"), "${SolarText.volts(r.voltageV, 2)} · ${SolarText.amps(r.currentA, 2)}")
-                Line(tr("Potencia"), SolarText.batteryFlow(r.powerW))
-                if (r.temperatureMinC != null) Line(tr("Temperatura"), if (r.temperatureMinC == r.temperatureMaxC || r.temperatureMaxC == null) SolarText.celsius(r.temperatureMinC) else "${SolarText.celsius(r.temperatureMinC)} – ${SolarText.celsius(r.temperatureMaxC)}")
-                if (r.cellMinV != null && r.cellMaxV != null) {
-                    val spread = r.stack.firstOrNull { it.cellsV.size > 1 }?.let { SolarText.cellSpreadMv(it.cellsV) }
-                    Line(tr("Celdas"), "${String.format(java.util.Locale.US, "%.3f", r.cellMinV)} – ${String.format(java.util.Locale.US, "%.3f", r.cellMaxV)} V${if (spread != null) " (${spread} mV)" else ""}", if ((spread ?: 0) > 100) ArmorColors.Amber else ArmorColors.Text)
+                LevelChip(bank.level, device.stale, settings)
+                val temperature = when {
+                    r.temperatureMinC == null -> "—"
+                    r.temperatureMaxC == null || r.temperatureMinC == r.temperatureMaxC -> SolarText.celsius(r.temperatureMinC)
+                    else -> "${SolarText.celsius(r.temperatureMinC)} – ${SolarText.celsius(r.temperatureMaxC)}"
                 }
+                StatGrid(listOfNotNull(
+                    Stat(tr("Tensión"), SolarText.volts(r.voltageV, 2)),
+                    Stat(tr("Corriente"), SolarText.amps(r.currentA, 2)),
+                    Stat(tr("Potencia"), SolarText.batteryFlow(r.powerW)),
+                    Stat(tr("Temperatura"), temperature),
+                    if (bank.minV != null && bank.maxV != null) Stat(tr("Celdas"), "${SolarText.cell(bank.minV)} – ${SolarText.cell(bank.maxV)} V") else null,
+                    bank.spreadMv?.let { Stat(tr("Diferencia"), "$it mV", if (it >= settings.spreadWarnMv) ArmorColors.Amber else ArmorColors.Text) },
+                ))
                 if (r.capacityAh != null) Line(tr("Capacidad"), "${SolarText.ah(r.capacityAh)}${r.fullCapacityAh?.let { " de ${SolarText.ah(it)}" } ?: ""}")
                 if (r.cycles != null) Line(tr("Ciclos"), r.cycles.toString())
                 if (r.healthPercent != null) Line(tr("Salud (capacidad frente a nueva)"), "${r.healthPercent} %")
-                val bank = device.dayCells?.bankDeltaV
-                if (bank != null && bank > 0) Line(tr("Mayor diferencia hoy (banco)"), "${Math.round(bank * 1000)} mV", if (Math.round(bank * 1000) > 100) ArmorColors.Amber else ArmorColors.Text)
+                val today = device.dayCells?.bankDeltaV
+                if (today != null && today > 0) Line(tr("Mayor diferencia hoy (banco)"), "${Math.round(today * 1000)} mV", if (Math.round(today * 1000) > settings.spreadWarnMv) ArmorColors.Amber else ArmorColors.Text)
                 if (r.modules > 1) Line(tr("Módulos"), r.modules.toString())
             }
             SolarText.composition(r.stack).forEach { (code, modules) ->
                 Text(SolarText.compositionText(code) + " " + modules.joinToString(", ") { number -> trf("Módulo %s", number) + " (" + (r.stack.firstOrNull { it.number == number }?.model ?: "?") + ")" }, style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
             }
             if (r.alarm) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Filled.Warning, null, tint = ArmorColors.Alert, modifier = Modifier.size(16.dp))
+                Icon(Icons.Filled.Warning, null, tint = ArmorColors.Alert.copy(alpha = blinkAlpha(!device.stale, settings.blinkPeriodMs)), modifier = Modifier.size(18.dp))
                 Text(tr("La batería avisa de un problema (una protección está actuando)."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Alert)
             }
-            if (hasCells) {
+            if (bank.modules.any { it.cells.isNotEmpty() }) {
                 TextButton(onClick = { showCells = !showCells }) {
                     Icon(if (showCells) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, null)
                     Spacer(Modifier.width(6.dp))
                     Text(if (showCells) tr("Ocultar celdas") else tr("Ver celdas"))
                 }
-                if (showCells) r.stack.filter { it.cellsV.isNotEmpty() }.forEach { module ->
-                    if (r.stack.size > 1) Text(trf("Módulo %s", module.number), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
-                    val low = module.cellsV.min(); val high = module.cellsV.max()
-                    if (module.model.isNotBlank()) Line(tr("Modelo"), module.model)
-                    listOf(module.boardVersion, module.mainSoftVersion, module.softVersion).filter { it.isNotBlank() }.takeIf { it.isNotEmpty() }?.let { Line(tr("Firmware"), it.joinToString(" · ")) }
-                    if (module.cellCount != null) Line(tr("Celdas"), module.cellCount.toString())
-                    if (module.maxChargeA != null || module.maxDischargeA != null) Line(tr("Corriente admitida (carga / descarga)"), "${module.maxChargeA?.let { Math.round(it).toString() } ?: "–"} / ${module.maxDischargeA?.let { Math.round(it).toString() } ?: "–"} A")
-                    if (module.consoleBaud != null) Line(tr("Velocidad de la consola"), module.consoleBaud.toString())
-                    if (module.sohCounts.isNotEmpty()) {
-                        val weak = SolarText.abnormalCells(module)
-                        Text(tr("Estado de salud de las celdas") + ": " + module.sohCounts.withIndex().joinToString(" · ") { (cell, count) -> "${cell + 1}:$count" }, style = MaterialTheme.typography.labelSmall, color = if (weak.isEmpty()) ArmorColors.Muted else ArmorColors.Amber)
-                        if (weak.isNotEmpty()) Text(tr("Celda anormal") + ": " + weak.joinToString(", "), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Alert)
-                        Text(tr("El recuento de cada celda tal como lo informa la consola de la batería; Abnormal es la palabra de la propia consola para la celda débil. Solo lectura."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
-                    }
-                    SolarText.raisedCounters(module.counters).takeIf { it.isNotEmpty() }?.let { raised ->
-                        Text(tr("Contadores de protección") + ": " + raised, style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
-                        Text(tr("Nombres de la consola de la batería; su significado no es oficial."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
-                    }
-                    device.dayCells?.modules?.firstOrNull { it.number == module.number }?.let { today ->
-                        Text(tr("Celdas hoy") + ": " + SolarText.reach(today.minV, today.minCell, today.minAt, tr("celda")) + " – " + SolarText.reach(today.maxV, today.maxCell, today.maxAt, tr("celda")) + " · Δ " + Math.round(today.deltaV * 1000) + " mV", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
-                    }
-                    module.cellsV.withIndex().toList().chunked(4).forEach { row ->
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            row.forEach { (index, volts) ->
-                                Text(
-                                    "${index + 1}: ${SolarText.cell(volts)}", modifier = Modifier.weight(1f), fontFamily = FontFamily.Monospace, fontSize = 12.sp, maxLines = 1,
-                                    color = if (module.cellsV.size > 1 && volts == low) ArmorColors.Amber else if (module.cellsV.size > 1 && volts == high) ArmorColors.Cyan else ArmorColors.Muted,
-                                )
-                            }
-                            repeat(4 - row.size) { Spacer(Modifier.weight(1f)) }
-                        }
-                    }
-                    if (module.temperaturesC.isNotEmpty()) Text(tr("Sensores: ") + module.temperaturesC.joinToString(" · ") { SolarText.celsius(it) }, style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
-                }
+                if (showCells) bank.modules.forEach { module -> ModuleSection(device, module, settings) }
             }
             if (device.events.isNotEmpty()) {
                 var showEvents by rememberSaveable(device.nodeId, device.device, "events") { mutableStateOf(false) }
@@ -283,6 +284,62 @@ private fun BatteryCard(device: SolarDevice, r: SolarBatteryReading) {
                     Text(tr("Solo lectura. Cada entrada nueva que el nodo lee del registro propio de un módulo, la más reciente primero, con las palabras de la batería: los nombres de las protecciones se muestran tal como se imprimen, sin traducir ni decodificar."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
                     device.events.take(30).forEach { item -> EventRow(item) }
                 }
+            }
+        }
+    }
+}
+
+/** One module of a stack: its state, its numbers, what is wrong, every cell, and on request what it says about itself. */
+@Composable
+private fun ModuleSection(device: SolarDevice, view: ModuleView, settings: SolarViewSettings) {
+    val module = view.module
+    var details by rememberSaveable(device.nodeId, device.device, module.number, "details") { mutableStateOf(false) }
+    val color = levelColor(view.level, device.stale)
+    Column(Modifier.fillMaxWidth().border(1.dp, color.copy(alpha = 0.45f), RoundedCornerShape(14.dp)).padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(trf("Módulo %s", module.number), fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+            LevelChip(view.level, device.stale, settings)
+        }
+        val state = when (module.state) { "Charge" -> tr("Cargando"); "Dischg" -> tr("Descargando"); "Idle" -> tr("En reposo"); else -> module.state }
+        Text(
+            listOfNotNull(
+                module.socPercent?.let { SolarText.percent(it) }, module.voltageV?.let { SolarText.volts(it, 2) }, module.currentA?.let { SolarText.amps(it, 2) },
+                module.temperatureC?.let { SolarText.celsius(it) }, state.takeIf { it.isNotBlank() }, view.spreadMv?.let { "Δ $it mV" },
+            ).joinToString(" · "),
+            style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted,
+        )
+        val charge = module.socPercent
+        if (charge != null) LinearProgressIndicator(progress = { charge.coerceIn(0, 100) / 100f }, Modifier.fillMaxWidth().height(4.dp), color = if (device.stale) ArmorColors.Muted else socColor(charge), trackColor = ArmorColors.Outline)
+        troubleLines(view).forEach { line ->
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(levelIcon(view.level), null, tint = color, modifier = Modifier.size(14.dp))
+                Text(line, style = MaterialTheme.typography.labelSmall, color = color)
+            }
+        }
+        if (view.cells.isEmpty()) Text(tr("Sin lectura de celdas"), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted) else CellGrid(view, device.stale, settings)
+        if (module.temperaturesC.isNotEmpty()) Text(tr("Sensores: ") + module.temperaturesC.joinToString(" · ") { SolarText.celsius(it) }, style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+        device.dayCells?.modules?.firstOrNull { it.number == module.number }?.let { today ->
+            Text(tr("Celdas hoy") + ": " + SolarText.reach(today.minV, today.minCell, today.minAt, tr("celda")) + " – " + SolarText.reach(today.maxV, today.maxCell, today.maxAt, tr("celda")) + " · Δ " + Math.round(today.deltaV * 1000) + " mV", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+        }
+        TextButton(onClick = { details = !details }) {
+            Icon(if (details) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, null)
+            Spacer(Modifier.width(6.dp))
+            Text(if (details) tr("Ocultar detalles") else tr("Ver detalles"))
+        }
+        if (details) {
+            if (module.model.isNotBlank()) Line(tr("Modelo"), module.model)
+            listOf(module.boardVersion, module.mainSoftVersion, module.softVersion).filter { it.isNotBlank() }.takeIf { it.isNotEmpty() }?.let { Line(tr("Firmware"), it.joinToString(" · ")) }
+            if (module.cellCount != null) Line(tr("Celdas"), module.cellCount.toString())
+            if (module.maxChargeA != null || module.maxDischargeA != null) Line(tr("Corriente admitida (carga / descarga)"), "${module.maxChargeA?.let { Math.round(it).toString() } ?: "–"} / ${module.maxDischargeA?.let { Math.round(it).toString() } ?: "–"} A")
+            if (module.consoleBaud != null) Line(tr("Velocidad de la consola"), module.consoleBaud.toString())
+            if (module.sohCounts.isNotEmpty()) {
+                val weak = SolarText.abnormalCells(module)
+                Text(tr("Estado de salud de las celdas") + ": " + module.sohCounts.withIndex().joinToString(" · ") { (cell, count) -> "${cell + 1}:$count" }, style = MaterialTheme.typography.labelSmall, color = if (weak.isEmpty()) ArmorColors.Muted else ArmorColors.Amber)
+                Text(tr("El recuento de cada celda tal como lo informa la consola de la batería; Abnormal es la palabra de la propia consola para la celda débil. Solo lectura."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+            }
+            SolarText.raisedCounters(module.counters).takeIf { it.isNotEmpty() }?.let { raised ->
+                Text(tr("Contadores de protección") + ": " + raised, style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
+                Text(tr("Nombres de la consola de la batería; su significado no es oficial."), style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
             }
         }
     }
