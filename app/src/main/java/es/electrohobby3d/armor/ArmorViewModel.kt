@@ -914,6 +914,25 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
     suspend fun streamUrl(origin: String, camera: CameraView, quality: String = "auto"): String = withContext(Dispatchers.IO) { runCatching { client.streamTicket(origin, camera.id, quality) }.getOrNull() ?: client.mjpegUrl(origin, camera.id) }
     fun mediaUrl(origin: String, item: es.electrohobby3d.armor.model.MediaItem) = client.mediaUrl(origin, item)
 
+    // ---- the panel of a node through the server ----
+    private val _serverPanel = MutableStateFlow<OpenedPanel?>(null)
+    val serverPanel: StateFlow<OpenedPanel?> = _serverPanel.asStateFlow()
+    fun serverPanelTaken() { _serverPanel.value = null }
+
+    /** Opens the panel of a node: with a ticket on the origin of its own when the server asks for that, under the API otherwise. From outside the house the server may ask for the password first. */
+    fun openServerPanel(origin: String, nodeId: String) {
+        val under = NodeServerPanel.address(origin, nodeId) ?: return
+        val open: suspend () -> Unit = { _serverPanel.value = client.nodePanelTicket(origin, nodeId) ?: OpenedPanel(under, under) }
+        viewModelScope.launch {
+            runCatching { withContext(Dispatchers.IO) { open() } }.onFailure { error ->
+                if (error is ElevationRequiredException) {
+                    retryAfterElevation = open
+                    _security.update { it.copy(elevationNeeded = true, elevationError = null) }
+                } else _state.update { it.copy(message = error.message ?: "Server operation failed") }
+            }
+        }
+    }
+
     private fun action(origin: String, success: String, operation: suspend () -> Unit) {
         if (ServerEndpoint.parse(origin) == null) { _state.update { it.copy(message = "Enter a valid HTTPS origin or a private-LAN HTTP origin") }; return }
         viewModelScope.launch {
