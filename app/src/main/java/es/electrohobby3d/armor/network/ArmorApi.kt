@@ -145,6 +145,11 @@ interface ArmorApi {
     fun mjpegUrl(origin: String, id: String): String
     /** A ticket to watch one camera (every role may ask for it); the address to open is the origin plus the path the server gives. [quality] is what the app asks for explicitly: "low" (the lighter picture), "normal" or "auto" (the server decides by where the person came from). */
     fun streamTicket(origin: String, cameraId: String, quality: String = "auto"): String
+    /**
+     * The panel of a node on the origin of its own (POST /api/v1/admin/node-panels/{id}/ticket, an administrator): a ticket of one use, good for seconds. Null when this server serves the
+     * panels under its own API (the option panel.separate_origin is off, or the server is older), so the app opens them there as before.
+     */
+    fun nodePanelTicket(origin: String, nodeId: String): es.electrohobby3d.armor.OpenedPanel?
     /** Tells the server only the word "home" or "away" for the signed-in person (PUT /api/v1/presence/me, behind the option presence.by_user). The position of the phone is never sent. */
     fun setPresence(origin: String, state: String)
     /** The still picture of a camera right now (GET /api/v1/cameras/{id}/snapshot, an operator): the bytes of a JPEG, read up to [limit]; a bigger one fails like a lost connection. */

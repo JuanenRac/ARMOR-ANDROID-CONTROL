@@ -161,6 +161,7 @@ class NetworkFailureTest {
             call("commandDevice") { c, o -> c.commandDevice(o, "light-1", "on", false) },
             call("scanNetworkNow") { c, o -> c.scanNetworkNow(o) },
             call("forgetNode") { c, o -> c.forgetNode(o, "node-1") },
+            call("nodePanelTicket") { c, o -> c.nodePanelTicket(o, "node-1") },
             call("panelCommand") { c, o -> c.sendAlarmCommand(o, "panel-1", "armed", false, null, null) },
             call("silenceSiren") { c, o -> c.silenceAlarmSiren(o, "panel-1", null) },
         )

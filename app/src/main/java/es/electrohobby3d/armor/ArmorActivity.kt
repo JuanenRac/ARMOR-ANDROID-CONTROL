@@ -147,6 +147,9 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
     var loginCode by rememberSaveable { mutableStateOf("") }
     // The panel of a node that is open (null: the list), and the addresses opened lately.
     var nodePanel by rememberSaveable { mutableStateOf<String?>(null) }
+    var panelFirst by remember { mutableStateOf<String?>(null) }   // not saved: it may hold a one-use ticket
+    val serverPanel by viewModel.serverPanel.collectAsStateWithLifecycle()
+    LaunchedEffect(serverPanel) { serverPanel?.let { panelFirst = it.first; nodePanel = it.address; viewModel.serverPanelTaken() } }
     var recentNodes by remember { mutableStateOf((preferences.getString("recent_nodes", "") ?: "").split(",").mapNotNull { NodeAddress.parse(it) }) }
     var watching by rememberSaveable { mutableStateOf(preferences.getBoolean("watch", false)) }
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -592,24 +595,25 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 MoreTab.NodeHealth -> SubScreen(Icons.Filled.MonitorHeart, tr("Salud de los nodos"), onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.reloadNodeHealth(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
                                 }) { NodeHealthScreen(state.nodeHealth) }
-                                MoreTab.Nodes -> SubScreen(Icons.Filled.Tune, if (nodePanel == null) tr("Configurar nodos") else nodePanel!!.removePrefix("http://").trimEnd('/'), onBack = { if (nodePanel != null) nodePanel = null else moreTab = null }) {
+                                MoreTab.Nodes -> SubScreen(Icons.Filled.Tune, if (nodePanel == null) tr("Configurar nodos") else nodePanel!!.removePrefix("http://").trimEnd('/'), onBack = { if (nodePanel != null) { nodePanel = null; panelFirst = null } else moreTab = null }) {
                                     val panel = nodePanel
                                     if (panel == null) NodesScreen(
                                         state.network, recentNodes,
                                         onOpen = { address ->
                                             recentNodes = (listOf(address) + recentNodes.filter { it != address }).take(5)
                                             preferences.edit().putString("recent_nodes", recentNodes.joinToString(",")).apply()
+                                            panelFirst = null
                                             nodePanel = address
                                         },
                                         serverNodes = state.nodeHealth?.nodes?.map { it.nodeId }.orEmpty(),
-                                        onOpenViaServer = { id -> NodeServerPanel.address(currentOrigin, id)?.let { nodePanel = it } },
+                                        onOpenViaServer = { id -> viewModel.openServerPanel(currentOrigin, id) },
                                         onForget = { address ->
                                             recentNodes = recentNodes.filter { it != address }
                                             preferences.edit().putString("recent_nodes", recentNodes.joinToString(",")).apply()
                                         },
                                         onScan = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading,
                                         canForgetServerNode = state.authenticated && state.isAdmin, onForgetServerNode = { id -> viewModel.forgetNode(currentOrigin, id) },
-                                    ) else NodePanelView(panel, onClose = { nodePanel = null }, sessionCookie = if (NodeServerPanel.isViaServer(panel, currentOrigin)) viewModel.sessionCookie(currentOrigin) else null)
+                                    ) else NodePanelView(panel, onClose = { nodePanel = null; panelFirst = null }, sessionCookie = if (NodeServerPanel.isViaServer(panel, currentOrigin)) viewModel.sessionCookie(currentOrigin) else null, first = panelFirst)
                                 }
                                 MoreTab.Voice -> SubScreen(Icons.Filled.Mic, tr("Asistente"), onBack = { moreTab = null }) {
                                     VoiceScreen(
