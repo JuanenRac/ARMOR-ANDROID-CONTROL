@@ -5,6 +5,9 @@ All notable changes to this project are documented here.
 ## [Unreleased]
 
 - **The copy of the shared validator is current:** `tools/armor_ci_validate.py` now also checks with `node --check` that the scripts served to a browser parse, in a repository that has them under `panel/` or `public/`.
+- **Every cell of a battery is shown again:** the cells were laid out in four fixed columns of one line each, so from the tenth cell on the voltage did not fit on narrow phones or with a larger font and was cut off (a 15 cell Pylontech module showed nine). The cells now take as many columns as fit whole, with 15, 16 or any number of cells.
+- **A clearer Solar screen:** each module has its state in icon, word and colour, every cell with its voltage and bar, the highest and lowest cell, what is wrong in words, and a summary of all the batteries. A fault pulses softly (once a second, never faster than twice), and stays still when the phone is set to reduce motion. The levels are in a settings file inside the app; the absolute voltage of a cell is only judged for lithium iron phosphate batteries (Pylontech, Pytes).
+
 ## [0.8.0.9] - Certificate chain pins, a verified update hash, safer Bluetooth set-up and watch alert targeting
 
 - **The app starts again on phones where it closed at launch:** the release build removed the constructor that WorkManager (brought in by the widget library) needs to open its database, so the app stopped before showing anything with "Failed to create an instance of androidx.work.impl.WorkDatabase". The shrinker rules now keep that class and the constructors of the generated databases.
