@@ -1589,5 +1589,6 @@
  "Diferencia alta entre celdas: %s mV": "Großer Unterschied zwischen den Zellen: %s mV",
  "Temperatura alta": "Hohe Temperatur",
  "Demasiado frío para cargar": "Zu kalt zum Laden",
- "Leídas %s de %s celdas": "%s von %s Zellen gelesen"
+ "Leídas %s de %s celdas": "%s von %s Zellen gelesen",
+ "%s de %s": "%s von %s"
 }

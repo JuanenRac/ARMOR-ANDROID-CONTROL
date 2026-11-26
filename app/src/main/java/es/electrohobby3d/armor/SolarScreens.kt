@@ -120,7 +120,7 @@ private fun TotalsPanel(totals: SolarTotals) {
                 if (totals.capacityAh != null || totals.energyKwh != null) {
                     Text(
                         listOfNotNull(
-                            totals.capacityAh?.let { "${SolarText.ah(it)}${totals.fullCapacityAh?.let { full -> " de ${SolarText.ah(full)}" } ?: ""}" },
+                            totals.capacityAh?.let { capacity -> totals.fullCapacityAh?.let { full -> trf("%s de %s", SolarText.ah(capacity), SolarText.ah(full)) } ?: SolarText.ah(capacity) },
                             totals.energyKwh?.let { String.format(java.util.Locale.US, tr("%.2f kWh guardados"), it) },
                         ).joinToString(" · "),
                         style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted,
@@ -251,7 +251,7 @@ private fun BatteryCard(device: SolarDevice, r: SolarBatteryReading, settings: S
                     if (bank.minV != null && bank.maxV != null) Stat(tr("Celdas"), "${SolarText.cell(bank.minV)} – ${SolarText.cell(bank.maxV)} V") else null,
                     bank.spreadMv?.let { Stat(tr("Diferencia"), "$it mV", if (it >= settings.spreadWarnMv) ArmorColors.Amber else ArmorColors.Text) },
                 ))
-                if (r.capacityAh != null) Line(tr("Capacidad"), "${SolarText.ah(r.capacityAh)}${r.fullCapacityAh?.let { " de ${SolarText.ah(it)}" } ?: ""}")
+                if (r.capacityAh != null) Line(tr("Capacidad"), r.fullCapacityAh?.let { trf("%s de %s", SolarText.ah(r.capacityAh), SolarText.ah(it)) } ?: SolarText.ah(r.capacityAh))
                 if (r.cycles != null) Line(tr("Ciclos"), r.cycles.toString())
                 if (r.healthPercent != null) Line(tr("Salud (capacidad frente a nueva)"), "${r.healthPercent} %")
                 val today = device.dayCells?.bankDeltaV

@@ -1589,5 +1589,6 @@
  "Diferencia alta entre celdas: %s mV": "Écart élevé entre cellules : %s mV",
  "Temperatura alta": "Température élevée",
  "Demasiado frío para cargar": "Trop froid pour charger",
- "Leídas %s de %s celdas": "%s cellules lues sur %s"
+ "Leídas %s de %s celdas": "%s cellules lues sur %s",
+ "%s de %s": "%s sur %s"
 }

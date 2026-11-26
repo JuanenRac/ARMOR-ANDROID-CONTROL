@@ -1589,5 +1589,6 @@
  "Diferencia alta entre celdas: %s mV": "セル間の差が大きい: %s mV",
  "Temperatura alta": "高温",
  "Demasiado frío para cargar": "充電するには低温すぎます",
- "Leídas %s de %s celdas": "%s / %s セルを読み取り"
+ "Leídas %s de %s celdas": "%s / %s セルを読み取り",
+ "%s de %s": "%s / %s"
 }

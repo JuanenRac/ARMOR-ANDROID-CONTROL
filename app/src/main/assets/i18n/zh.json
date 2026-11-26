@@ -1589,5 +1589,6 @@
  "Diferencia alta entre celdas: %s mV": "电芯间压差过大：%s mV",
  "Temperatura alta": "温度过高",
  "Demasiado frío para cargar": "温度过低，不宜充电",
- "Leídas %s de %s celdas": "已读取 %s / %s 节电芯"
+ "Leídas %s de %s celdas": "已读取 %s / %s 节电芯",
+ "%s de %s": "%s / %s"
 }

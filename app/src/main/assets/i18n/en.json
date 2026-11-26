@@ -1589,5 +1589,6 @@
  "Diferencia alta entre celdas: %s mV": "Large gap between cells: %s mV",
  "Temperatura alta": "High temperature",
  "Demasiado frío para cargar": "Too cold to charge",
- "Leídas %s de %s celdas": "%s of %s cells read"
+ "Leídas %s de %s celdas": "%s of %s cells read",
+ "%s de %s": "%s of %s"
 }
