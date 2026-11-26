@@ -4,6 +4,7 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The copy of the shared validator is current:** `tools/armor_ci_validate.py` now also checks with `node --check` that the scripts served to a browser parse, in a repository that has them under `panel/` or `public/`.
 ## [0.8.0.9] - Certificate chain pins, a verified update hash, safer Bluetooth set-up and watch alert targeting
 
 - **The app starts again on phones where it closed at launch:** the release build removed the constructor that WorkManager (brought in by the widget library) needs to open its database, so the app stopped before showing anything with "Failed to create an instance of androidx.work.impl.WorkDatabase". The shrinker rules now keep that class and the constructors of the generated databases.
