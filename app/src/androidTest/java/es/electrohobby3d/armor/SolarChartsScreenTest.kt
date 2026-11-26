@@ -6,12 +6,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -40,7 +41,11 @@ class SolarChartsScreenTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private fun preferences() = instrumentation.targetContext.getSharedPreferences("armor-solar-view", android.content.Context.MODE_PRIVATE)
 
-    @Before fun forgetTheChoices() { preferences().edit().clear().commit() }
+    /** Nothing remembered, the list of cells folded so that the pictures show the charts, and the app in Spanish. */
+    @Before fun startClean() {
+        preferences().edit().clear().putBoolean("cells/demo/demo", false).commit()
+        Tr.choose(instrumentation.targetContext, "es")
+    }
 
     private fun overview(): SolarOverview {
         val cells = (1..15).joinToString(",") { if (it == 7) "3.720" else "3.3%02d".format(Locale.US, it) }
@@ -74,7 +79,13 @@ class SolarChartsScreenTest {
     }
 
     private fun reveal(tag: String) { compose.onNode(hasScrollToNodeAction()).performScrollToNode(hasTestTag(tag)) }
-    private fun tap(tag: String) { reveal(tag); compose.onNodeWithTag(tag).performClick() }
+    private fun tap(tag: String) { reveal(tag); compose.onNodeWithTag(tag).performSemanticsAction(SemanticsActions.OnClick) }
+    /** Brings a node to the top of the screen, for a picture of what follows it. */
+    private fun top(tag: String) {
+        reveal(tag)
+        val y = compose.onNodeWithTag(tag).fetchSemanticsNode().positionInRoot.y
+        compose.onNode(hasScrollToNodeAction()).performSemanticsAction(SemanticsActions.ScrollBy) { it(0f, y - 60f) }
+    }
     private fun present(tag: String): Boolean = compose.onAllNodes(hasTestTag(tag)).fetchSemanticsNodes().isNotEmpty()
 
     @Test fun theChartsAreFoldedUntilAskedForThenDrawnAndRemembered() {
@@ -89,24 +100,30 @@ class SolarChartsScreenTest {
         assertFalse(present("fold-chart-bank/voltage"))
         tap("fold-bank")
         compose.waitUntil(10_000) { present("fold-chart-bank/voltage") }
+        top("fold-bank")
         shot("solar-charts-bank")
         tap("fold-bank")
 
         reveal("fold-charts-demo")
         tap("fold-charts-demo")
         compose.waitUntil(10_000) { present("fold-chart-demo/demo/stack/voltage") }
+        top("fold-charts-demo")
         shot("solar-charts-pack")
+        top("fold-chart-demo/demo/stack/soc")
+        shot("solar-charts-pack-more")
         tap("scope-2")
         compose.waitUntil(10_000) { present("fold-chart-demo/demo/1/cells") }
+        top("fold-chart-demo/demo/1/cells")
         shot("solar-charts-cells")
         tap("small-cells")
         compose.waitUntil(10_000) { present("small-chart-7") }
-        reveal("small-chart-7")
+        top("small-cells")
         shot("solar-charts-cells-small")
 
         reveal("fold-charts-inv")
         tap("fold-charts-inv")
         compose.waitUntil(10_000) { present("fold-chart-demo/inv/power") }
+        top("fold-charts-inv")
         shot("solar-charts-inverter")
 
         // what was chosen is kept on the phone

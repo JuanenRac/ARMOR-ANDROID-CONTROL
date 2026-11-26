@@ -91,7 +91,7 @@ internal fun Foldable(key: String, title: String, default: Boolean, tag: String 
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Icon(if (open) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, null, tint = ArmorColors.Cyan)
-            Text(title, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+            Text(title, fontWeight = FontWeight.SemiBold, color = ArmorColors.Text, modifier = Modifier.weight(1f))
         }
         if (open) content()
     }
