@@ -104,6 +104,9 @@ private fun cellColour(index: Int): Color = Color.hsl(((index * 137) % 360).toFl
 
 private fun clock(t: Long, span: Long): String = SimpleDateFormat(if (span > 36 * 3_600_000L) "dd/MM" else "HH:mm", Locale.getDefault()).format(Date(t))
 
+/** An end of the time axis: over a day or more the hour alone would read the same at both ends. */
+private fun edge(t: Long, span: Long): String = if (span in 86_400_000L..36 * 3_600_000L) SimpleDateFormat("dd/MM HH:mm", Locale.getDefault()).format(Date(t)) else clock(t, span)
+
 private fun number(value: Double, decimals: Int): String = String.format(Locale.US, "%.${decimals}f", value)
 
 /** The lines of one chart on one scale, the alarm levels dashed; a touch reads the nearest moment. */
@@ -160,7 +163,7 @@ private fun HistoryChart(id: String, title: String, unit: String, decimals: Int,
         Plot(inside, drawn, from, to, levels, 140, title, { read = it }, at?.t)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("${number(low, decimals)} $unit", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
-            Text("${clock(from, to - from)} – ${clock(to, to - from)}", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
+            Text("${edge(from, to - from)} – ${edge(to, to - from)}", style = MaterialTheme.typography.labelSmall, color = ArmorColors.Muted)
         }
         if (drawn.size <= 4) drawn.forEach { line ->
             val all = inside.mapNotNull { it.values[line.key] }

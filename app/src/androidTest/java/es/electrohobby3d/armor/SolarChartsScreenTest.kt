@@ -62,10 +62,10 @@ class SolarChartsScreenTest {
             val values = linkedMapOf(
                 "voltage_v" to 50.0 + wave, "current_a" to 8 * wave, "power_w" to 400 * wave, "soc_percent" to 60 + 25 * wave, "temperature_c" to 23 + 2 * wave, "temperature_max_c" to 24 + 2 * wave,
                 "cell_min_v" to 3.29 + 0.02 * wave, "cell_max_v" to 3.34 + 0.03 * wave, "pv_w" to 700 + 500 * wave, "out_w" to 500 + 150 * sin(i / 7.0), "battery_v" to 50 + wave, "battery_a" to 6 * wave,
-                "battery_percent" to 60 + 20 * wave, "grid_v" to 230 + 3 * sin(i / 5.0),
+                "battery_percent" to 60 + 20 * wave, "grid_v" to 230 + 3 * sin(i / 5.0), "delta_mv" to 45 + 10 * wave,
             )
             for (cell in 1..15) values["cell$cell"] = if (cell == 7) 3.36 + 0.36 * i / 200 else 3.30 + 0.03 * wave + cell * 0.001
-            HistorySample(now - (200 - i) * 17_000L, values)
+            HistorySample(now - (200 - i) * 430_000L, values)   // a day of made-up readings
         }
         return SolarHistory(request.module, 60, 30, samples)
     }
