@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The shared project tool is the current one:** the copy follows the shared repository, which now knows the new solar panel node.
+
 - **The test count of the repository structure is current:** it follows the tests of the solar screen.
 - **The copy of the shared validator is current:** `tools/armor_ci_validate.py` now also checks with `node --check` that the scripts served to a browser parse, in a repository that has them under `panel/` or `public/`.
 - **Every cell of a battery is shown again:** the cells were laid out in four fixed columns of one line each, so from the tenth cell on the voltage did not fit on narrow phones or with a larger font and was cut off (a 15 cell Pylontech module showed nine). The cells now take as many columns as fit whole, with 15, 16 or any number of cells.
