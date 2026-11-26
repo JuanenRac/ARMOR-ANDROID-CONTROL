@@ -219,6 +219,9 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
 
     fun reloadSolar(origin: String) { viewModelScope.launch { pollSolar(origin) } }
 
+    /** The history behind the charts of the Solar screen; null when it could not be read (the screen says so and asks again). */
+    suspend fun solarHistory(origin: String, request: es.electrohobby3d.armor.model.HistoryRequest) = withContext(Dispatchers.IO) { runCatching { client.solarHistory(origin, request) }.getOrNull() }
+
     // ---- battery maintenance (administrators): the operations on a Pylontech battery through its gateway node ----
     private val _battery = MutableStateFlow(BatteryUiState())
     val battery: StateFlow<BatteryUiState> = _battery.asStateFlow()
