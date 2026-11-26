@@ -22,14 +22,14 @@
   <img src="https://img.shields.io/badge/Language-Kotlin-7f52ff.svg" alt="Language">
   <img src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285f4.svg" alt="UI">
   <img src="https://img.shields.io/badge/Languages-8-00E5FF.svg" alt="Languages">
-  <img src="https://img.shields.io/badge/Tests-608%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-614%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.8.0.9-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-established-2EA44F.svg" alt="Maturity">
 </p>
 
 ---
 
-**Honesty check - what runs today:** The endpoint-safety, alarm-decision, alarm-watcher, translation and read-only-role rules are covered by 608 unit tests and the app builds (`gradlew testDebugUnitTest assembleDebug`). It runs on a real phone against the CM5 test bench: sign-in, the camera monitor, arming and alarms, the radar, the set-up of a node over Bluetooth and the updates from GitHub are in use. What is **not** proven yet: the solar, electrical and alarm-panel screens with real equipment (only a radar node exists), push through Firebase (it is in the app and needs a Firebase project of its own; it has not been tried on a phone yet) and the background alarm watch under the battery rules of every phone maker.
+**Honesty check - what runs today:** The endpoint-safety, alarm-decision, alarm-watcher, translation and read-only-role rules are covered by 614 unit tests and the app builds (`gradlew testDebugUnitTest assembleDebug`). It runs on a real phone against the CM5 test bench: sign-in, the camera monitor, arming and alarms, the radar, the set-up of a node over Bluetooth and the updates from GitHub are in use. What is **not** proven yet: the solar, electrical and alarm-panel screens with real equipment (only a radar node exists), push through Firebase (it is in the app and needs a Firebase project of its own; it has not been tried on a phone yet) and the background alarm watch under the battery rules of every phone maker.
 
 ---
 
@@ -41,7 +41,7 @@
 | Maturity | Established |
 | Role | Android operator client for ARMOR-SERVER (family: Clients, parent: ARMOR-SERVER) |
 | Stack | Kotlin / Jetpack Compose, Android 8.0+ |
-| Tests | 608 (`gradlew testDebugUnitTest`) |
+| Tests | 614 (`gradlew testDebugUnitTest`) |
 | Languages | 8 (1513 phrases per language, every phrase checked in all tables) |
 | Runs on | An Android 8.0+ phone (minSdk 26) |
 | On real hardware | Used on a real phone against the CM5 test bench; the solar, electrical and alarm-panel screens wait for real nodes |
@@ -58,7 +58,7 @@ Each line is one part of this repository and the light says how far it is today.
 | Area | State | What it means here |
 |---|---|---|
 | Software | 🟢 | The app builds (`gradlew testDebugUnitTest assembleDebug`) and runs on a real phone against the CM5 test bench. |
-| Tests | 🟢 | 608 unit tests pass (`gradlew testDebugUnitTest`): endpoint safety, alarm decision, alarm watcher, translations and the read-only role. |
+| Tests | 🟢 | 614 unit tests pass (`gradlew testDebugUnitTest`): endpoint safety, alarm decision, alarm watcher, translations and the read-only role. |
 | Interface | 🟡 | Sign-in, the camera monitor, arming and alarms and the radar are in use on a real phone; the Bluetooth set-up of a node has not been confirmed against a real node, and the solar, electrical and alarm-panel screens have not met real equipment. |
 | Hardware | 🟠 | Used on a real phone against the CM5 test bench; the background alarm watch under the battery rules of every phone maker is not proven. |
 | Security | 🟠 | The endpoint-safety and read-only-role rules are covered by unit tests; there has been no independent review. |
@@ -74,7 +74,7 @@ Each line is one part of this repository and the light says how far it is today.
 * **Arm and disarm,** after a **check before arming** (what is open, silent or down) and with the PIN to disarm; **alarms** to acknowledge, with a badge for those waiting; **devices** (smoke, gas, flood, door, window, motion, climate, plugs, lights, sirens, locks, shutters, gate and garage-door motors, water heaters) with their state and On / Off / Toggle.
 * **Alarms that reach you:** a sound for every severity, an optional **spoken alarm**, notifications for a node reaching HIGH, a silent camera, a device alarm and (while armed) an offline node, and a **sounding alarm panel wakes the phone**; the background watch survives a reboot and backs off when the server is down.
 * **Live radar, in 2D and 3D:** the Radar tab draws the site as designed in Studio and the people the radars see moving on it, refreshed every second and a half; drag, pinch and turn the 3D view.
-* **Solar and electrical energy:** the sums (sun, consumption, batteries with their charge, whether the grid is present), every inverter and battery with the cells on demand, and the channels and alarms of the electrical nodes.
+* **Solar and electrical energy:** the sums (sun, consumption, batteries with their charge, whether the grid is present), every inverter and battery - each battery module with its state in icon, word and colour and every one of its cells (voltage and bar), with a soft pulse on a fault -, and the channels and alarms of the electrical nodes.
 * **Alarm panels:** the state of every ARMOR-NODE-ALARM node, its zones and events, and arm / disarm commands when the server allows them.
 * **Network:** the devices of the house's network, the internet's state and the **public address** with the provider and the place, as the network node reports them.
 * **Set up a field node over Bluetooth** (from the login screen or *More > Set up a node*): finds the nodes that advertise `ARMOR-xxxxxx`, creates the administrator of a new one or signs in (with the node's PIN), searches for Wi-Fi networks and sets the node's name, a router's Wi-Fi or a fixed address and the broker; a **node finder** lists the ones already on the network.
@@ -162,7 +162,7 @@ In the app (not in files): the language (the eight or following the phone), the 
 **Requirements:** JDK 17+, the Android SDK (compile SDK 37), an Android 8.0+ phone (minSdk 26).
 
 ```powershell
-.\gradlew.bat testDebugUnitTest assembleDebug   # 608 tests, then the debug APK
+.\gradlew.bat testDebugUnitTest assembleDebug   # 614 tests, then the debug APK
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
@@ -188,7 +188,7 @@ python -I tools/armor_ci_validate.py
 | Radar and cameras | 14 | `RadarGeometry`, `CameraTraits`, `CameraLenses` |
 | Translations, plain words, voice | 14 | `Tr`, `Friendly`, `Voice` |
 
-608 tests in 76 files, run with `testDebugUnitTest`; a fake server (`FakeServer.kt`) and fixtures taken from a real server (`tools/capture_fixtures.mjs`) feed them. Every phrase is checked to be in the eight language tables.
+614 tests in 76 files, run with `testDebugUnitTest`; a fake server (`FakeServer.kt`) and fixtures taken from a real server (`tools/capture_fixtures.mjs`) feed them. Every phrase is checked to be in the eight language tables.
 
 ## 🏗️ Build & Release
 
@@ -217,7 +217,7 @@ Releases are published on GitHub, from where the app itself checks for updates; 
 ARMOR-ANDROID-CONTROL/
 ├── app/src/main/java/es/electrohobby3d/armor/   the app: screens, rules, network and updates
 ├── app/src/main/assets/                         eight language tables, alarm codes, weather map
-├── app/src/test/                                608 tests and a fake server
+├── app/src/test/                                614 tests and a fake server
 ├── docs/                                        the guides of this repository
 ├── tools/                                       the shared CI checks and project tooling
 ├── .github/                                     CI workflow, issue and pull-request templates

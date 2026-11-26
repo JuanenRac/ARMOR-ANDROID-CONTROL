@@ -146,7 +146,7 @@ private fun CellTile(module: Int, cell: CellView, stale: Boolean, settings: Sola
             Spacer(Modifier.weight(1f))
             if (mark.isNotEmpty()) Text(mark, style = MaterialTheme.typography.labelSmall, color = markColor)
         }
-        Text(SolarText.cell(cell.volts) + " V", Modifier.testTag("solar-cell-$module-${cell.number}"), fontFamily = FontFamily.Monospace, fontSize = 13.sp, letterSpacing = 0.sp, color = ArmorColors.Text)
+        Text(SolarText.cell(cell.volts) + " V", Modifier.fillMaxWidth().testTag("solar-cell-$module-${cell.number}"), fontFamily = FontFamily.Monospace, fontSize = 13.sp, letterSpacing = 0.sp, color = ArmorColors.Text)
         Box(Modifier.fillMaxWidth().height(5.dp).clip(RoundedCornerShape(3.dp)).background(ArmorColors.Outline)) {
             Box(Modifier.fillMaxWidth(cell.fill).fillMaxHeight().background(color))
         }

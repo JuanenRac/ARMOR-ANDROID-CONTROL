@@ -57,7 +57,7 @@ class SolarCellsScreenTest {
                 val results = mutableListOf<TextLayoutResult>()
                 compose.onNodeWithTag("solar-cell-1-$cell", useUnmergedTree = true).performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(results) }
                 val layout = results.first()
-                if (layout.hasVisualOverflow || layout.lineCount != 1) cut += "$cellsOfModule cells, ${screen}dp, font $font: cell $cell"
+                if (layout.hasVisualOverflow || layout.lineCount != 1) cut += "$cellsOfModule cells, ${screen}dp, font $font: cell $cell (lines ${layout.lineCount}, box ${layout.size}, text ${layout.multiParagraph.width}x${layout.multiParagraph.height})"
             }
         }
         assertEquals(emptyList<String>(), cut)
