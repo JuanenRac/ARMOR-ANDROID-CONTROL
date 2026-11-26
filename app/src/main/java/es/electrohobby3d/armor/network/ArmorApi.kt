@@ -39,6 +39,8 @@ interface ArmorApi {
     fun acknowledgeAllAlarms(origin: String)
     /** Every inverter and battery that has reported, the declared ones still waiting, and the sums; an operator session is needed. */
     fun solar(origin: String): SolarOverview
+    /** What the server kept of one piece of solar equipment: a stack or an inverter, or with a module one battery and its cells; an operator session is needed. */
+    fun solarHistory(origin: String, request: es.electrohobby3d.armor.model.HistoryRequest): es.electrohobby3d.armor.model.SolarHistory = throw UnsupportedOperationException()
     fun electrical(origin: String): es.electrohobby3d.armor.model.ElectricalOverview
     /** The battery operations of the last weeks, newest first, and whether the server lets anything be written at all; an administrator's. */
     fun batteryOperations(origin: String): es.electrohobby3d.armor.model.BatteryOverview

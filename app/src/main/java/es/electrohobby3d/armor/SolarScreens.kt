@@ -43,7 +43,7 @@ fun solarSummary(totals: SolarTotals): String =
     else trf("%s de sol · %s de consumo", SolarText.watts(totals.pvW), SolarText.watts(totals.loadW))
 
 @Composable
-fun SolarScreen(overview: SolarOverview?, network: NetworkOverview? = null, onScanNetwork: () -> Unit = {}, scanning: Boolean = false) {
+fun SolarScreen(overview: SolarOverview?, network: NetworkOverview? = null, onScanNetwork: () -> Unit = {}, scanning: Boolean = false, history: HistoryLoader? = null) {
     val data = overview ?: SolarOverview()
     val settings = rememberSolarViewSettings()
     LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
@@ -64,8 +64,10 @@ fun SolarScreen(overview: SolarOverview?, network: NetworkOverview? = null, onSc
         // The state of all the batteries at a glance (the ones that are reporting).
         val banks = data.devices.filter { !it.stale }.mapNotNull { device -> device.battery?.let { SolarCells.bank(device.model, it, settings) } }
         if (banks.isNotEmpty()) item { BankSummary(banks.maxOf { it.level }, banks.sumOf { it.modules.size }, banks.sumOf { it.faultModules }, banks.sumOf { it.warnModules }, settings) }
+        val batteries = data.devices.filter { it.battery != null && !it.example }
+        if (history != null && batteries.isNotEmpty()) item(key = "bank-charts") { BankCharts(batteries, history, settings) }
         items(data.devices, key = { "${it.nodeId}/${it.device}" }) { device ->
-            if (device.inverter != null) InverterCard(device, device.inverter) else if (device.battery != null) BatteryCard(device, device.battery, settings)
+            if (device.inverter != null) InverterCard(device, device.inverter, history) else if (device.battery != null) BatteryCard(device, device.battery, settings, history)
         }
         if (data.waiting.isNotEmpty()) {
             item { Text(tr("Esperando datos"), style = MaterialTheme.typography.titleMedium, color = ArmorColors.Muted) }
@@ -180,7 +182,7 @@ private fun Line(label: String, value: String, color: Color = ArmorColors.Text) 
 }
 
 @Composable
-private fun InverterCard(device: SolarDevice, r: SolarInverterReading) {
+private fun InverterCard(device: SolarDevice, r: SolarInverterReading, history: HistoryLoader?) {
     val fault = r.mode == "fault" || r.warnings.isNotEmpty()
     val tint = if (device.stale) ArmorColors.Muted else if (r.mode == "fault") ArmorColors.Alert else if (r.warnings.isNotEmpty() || r.mode == "battery") ArmorColors.Amber else null
     Panel(Modifier.fillMaxWidth(), tint = tint) {
@@ -209,13 +211,14 @@ private fun InverterCard(device: SolarDevice, r: SolarInverterReading) {
                 Icon(Icons.Filled.Warning, null, tint = ArmorColors.Amber, modifier = Modifier.size(16.dp))
                 Text(r.warnings.joinToString(", ") { SolarText.warning(it) }, style = MaterialTheme.typography.labelSmall, color = ArmorColors.Amber)
             }
+            if (history != null && !device.example) InverterHistoryCharts(device, history)
         }
     }
 }
 
 @Composable
-private fun BatteryCard(device: SolarDevice, r: SolarBatteryReading, settings: SolarViewSettings) {
-    var showCells by rememberSaveable(device.nodeId, device.device) { mutableStateOf(true) }
+private fun BatteryCard(device: SolarDevice, r: SolarBatteryReading, settings: SolarViewSettings, history: HistoryLoader?) {
+    var showCells by rememberFlag("cells/${device.nodeId}/${device.device}", true)
     val bank = SolarCells.bank(device.model, r, settings)
     val tint = if (device.stale) ArmorColors.Muted else if (bank.level == CellLevel.OK) null else levelColor(bank.level)
     Panel(Modifier.fillMaxWidth(), tint = tint) {
@@ -273,6 +276,7 @@ private fun BatteryCard(device: SolarDevice, r: SolarBatteryReading, settings: S
                 }
                 if (showCells) bank.modules.forEach { module -> ModuleSection(device, module, settings) }
             }
+            if (history != null && !device.example) BatteryHistoryCharts(device, history, settings)
             if (device.events.isNotEmpty()) {
                 var showEvents by rememberSaveable(device.nodeId, device.device, "events") { mutableStateOf(false) }
                 TextButton(onClick = { showEvents = !showEvents }) {

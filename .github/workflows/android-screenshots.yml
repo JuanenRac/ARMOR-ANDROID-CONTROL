@@ -99,7 +99,7 @@ jobs:
           cat "$RUNNER_TEMP/server.log"; exit 1
 
       - name: Run the instrumented tests
-        run: ./gradlew --no-daemon :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.armorServer=http://10.0.2.2:18080 -Pandroid.testInstrumentationRunnerArguments.class=es.electrohobby3d.armor.ScreenshotsTest
+        run: ./gradlew --no-daemon :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.armorServer=http://10.0.2.2:18080 -Pandroid.testInstrumentationRunnerArguments.class=es.electrohobby3d.armor.ScreenshotsTest,es.electrohobby3d.armor.SolarChartsScreenTest
 
       - name: Pull the pictures
         if: ${{ always() }}
