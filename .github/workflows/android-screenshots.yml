@@ -110,7 +110,9 @@ jobs:
           mkdir -p "$RUNNER_TEMP/shots"
           adb pull /data/local/tmp/shots/. "$RUNNER_TEMP/shots/" || true
           ls -la "$RUNNER_TEMP/shots"
-          adb logcat -d -s TestRunner:* AndroidJUnitRunner:* System.err:* AndroidRuntime:* > "$RUNNER_TEMP/shots/logcat.txt" || true
+          adb logcat -d -s TestRunner:* AndroidJUnitRunner:* System.err:* AndroidRuntime:* ComposeInternal:* > "$RUNNER_TEMP/shots/logcat.txt" || true
+          # an error captured while drawing comes before the crash it causes: print it, so the log of the run shows the first error and not only the last
+          grep -m1 -A25 'ComposeInternal' "$RUNNER_TEMP/shots/logcat.txt" || true
           cp -r app/build/outputs/androidTest-results "$RUNNER_TEMP/shots/results" 2>/dev/null || true
 
       - name: Keep the pictures
