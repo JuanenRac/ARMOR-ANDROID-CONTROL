@@ -1607,5 +1607,15 @@
  "Sol y consumo": "太陽光と消費",
  "Tensión de la batería": "バッテリー電圧",
  "Corriente de la batería": "バッテリー電流",
- "Tensión de la red": "系統電圧"
+ "Tensión de la red": "系統電圧",
+ "Número de serie": "シリアル番号",
+ "Chip": "チップ",
+ "Chip nuevo": "新型",
+ "Chip antiguo": "旧型",
+ "No se puede saber": "判別できません",
+ "Placa (Board)": "基板（Board）",
+ "Especificación": "仕様",
+ "Versión de arranque": "ブートバージョン",
+ "Versión de comunicación": "通信バージョン",
+ "Fecha del firmware": "ファームウェアの日付"
 }

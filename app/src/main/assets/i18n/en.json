@@ -1607,5 +1607,15 @@
  "Sol y consumo": "Sun and consumption",
  "Tensión de la batería": "Battery voltage",
  "Corriente de la batería": "Battery current",
- "Tensión de la red": "Grid voltage"
+ "Tensión de la red": "Grid voltage",
+ "Número de serie": "Serial number",
+ "Chip": "Chip",
+ "Chip nuevo": "new",
+ "Chip antiguo": "old",
+ "No se puede saber": "cannot be told",
+ "Placa (Board)": "Board",
+ "Especificación": "Specification",
+ "Versión de arranque": "Boot version",
+ "Versión de comunicación": "Communication version",
+ "Fecha del firmware": "Firmware date"
 }

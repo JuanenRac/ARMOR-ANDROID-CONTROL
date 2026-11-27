@@ -50,6 +50,8 @@ data class SolarModule(
     val maxChargeA: Double? = null, val maxDischargeA: Double? = null, val consoleBaud: Int? = null,
     /** The state of health of each cell, in cell order, and the cells (0-based) the battery's console does not call Normal. */
     val sohCounts: List<Int> = emptyList(), val sohAbnormal: List<Int> = emptyList(),
+    /** From the console's info: the serial number (private data, never written to a log), the Board, the chip the node tells from them ("older", "newer" or "unknown") and the other lines. */
+    val serial: String = "", val board: String = "", val chip: String = "", val specification: String = "", val bootVersion: String = "", val commVersion: String = "", val releaseDate: String = "",
 )
 
 /** An entry of a battery's event log: the protection fields are the console's own words (a number and a mnemonic), never decoded. */
@@ -186,6 +188,7 @@ object SolarParser {
         model = m.optStr("model"), boardVersion = m.optStr("board_version"), mainSoftVersion = m.optStr("main_soft_version"), softVersion = m.optStr("soft_version"), cellCount = m.whole("cell_count"),
         maxChargeA = m.number("max_charge_a"), maxDischargeA = m.number("max_discharge_a"), consoleBaud = m.whole("console_baud"),
         sohCounts = m.optJSONArray("soh_counts").ints(), sohAbnormal = m.optJSONArray("soh_abnormal").ints(),
+        serial = m.optStr("serial"), board = m.optStr("board"), chip = m.optStr("chip"), specification = m.optStr("specification"), bootVersion = m.optStr("boot_version"), commVersion = m.optStr("comm_version"), releaseDate = m.optStr("release_date"),
     )
 
     private fun battery(r: JSONObject): SolarBatteryReading {
