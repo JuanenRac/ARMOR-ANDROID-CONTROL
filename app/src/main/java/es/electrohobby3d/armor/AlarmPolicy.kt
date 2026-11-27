@@ -26,6 +26,7 @@ object AlarmPolicy {
     fun notices(events: List<ArmorEvent>, armed: Boolean): List<AlarmNotice> = events.sortedBy { it.id }.mapNotNull { event ->
         when {
             isSilent(event.code) -> null   // the alarm of a duress PIN is never announced on a phone: whoever forced the person to disarm may be looking at it
+            event.quiet != null -> null   // a battery problem told before, or silenced: it is in the history and on the screens, not announced again
             event.type == "alert" && event.to == "high" -> AlarmNotice(event.id, tr("ALERTA ALTA"), trf("%s: %s objetivos", event.subject, event.targets ?: 0), kind = "alert")
             event.type == "camera" && event.to == "offline" -> AlarmNotice(event.id, tr("Cámara sin respuesta"), event.subject, kind = "camera")
             event.type == "node" && armed && event.to == "offline" -> AlarmNotice(event.id, tr("Nodo fuera de línea"), event.subject, kind = "node")

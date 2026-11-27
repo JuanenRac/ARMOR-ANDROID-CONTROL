@@ -67,6 +67,8 @@ data class SolarModule(
     val manufacturer: String = "", val manufacturerDeduced: Boolean = false,
     /** What the battery says is not normal, and the cells (0-based) it does not read: they come as 0 V and are a fault, not a voltage. */
     val states: List<BatteryState> = emptyList(), val cellsUnread: List<Int> = emptyList(),
+    /** The figures the node read as impossible and left out of this reading. */
+    val leftOut: List<String> = emptyList(),
 )
 
 /** An entry of a battery's event log: the protection fields are the console's own words (a number and a mnemonic), never decoded. */
@@ -206,6 +208,7 @@ object SolarParser {
         maxChargeA = m.number("max_charge_a"), maxDischargeA = m.number("max_discharge_a"), consoleBaud = m.whole("console_baud"),
         sohCounts = m.optJSONArray("soh_counts").ints(), sohAbnormal = m.optJSONArray("soh_abnormal").ints(),
         manufacturer = m.optStr("manufacturer"), manufacturerDeduced = m.optStr("manufacturer_source") == "deduced", cellsUnread = m.optJSONArray("cells_unread").ints(),
+        leftOut = m.optJSONArray("left_out").strings(),
         states = m.optJSONArray("flags").objects().map { BatteryState(it.optStr("column"), it.optStr("word"), it.optInt("cell", -1).takeIf { cell -> cell >= 0 }) }.filter { it.word.isNotBlank() },
         serial = m.optStr("serial"), board = m.optStr("board"), chip = m.optStr("chip"), specification = m.optStr("specification"), bootVersion = m.optStr("boot_version"), commVersion = m.optStr("comm_version"), releaseDate = m.optStr("release_date"),
     )
