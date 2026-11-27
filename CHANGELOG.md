@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.8.1.3] - Battery states and makers, one notice per battery problem
+
 - **A refused pause of an armed panel says why:** a node that guards answers `busy_guarding`, shown in words.
 - **A battery problem is not notified twice:** alarms the server marks as told before (or silenced) give no notification; a fault of the battery management system always does.
 - **Impossible battery figures are told:** the battery view says which figures were left out of the reading.
