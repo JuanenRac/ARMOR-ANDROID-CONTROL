@@ -4,6 +4,7 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The shared tools read the output of processes as UTF-8:** `tools/status_lights.py`, `tools/sync_manifests.py` and `tools/universal_readme_check.py` are the current copies; on Windows a character outside the code page no longer breaks a check.
 - **Serial number and chip of each battery:** the details of a battery module show its serial number, its chip (new, old or cannot be told, as the node tells it), its Board, specification and versions. It needs a server and a solar node that carry them. Tested only with invented data.
 - **The emulator tests draw on the main thread, as a phone does:** they use the current Compose test rules, so a state published by a worker thread (the answer of a sign-in) is no longer applied to the views from that thread, which could close the app of the test run while it was being destroyed. A phone was not affected. A new test keeps it so, and the emulator runs now print the first error captured while drawing.
 
