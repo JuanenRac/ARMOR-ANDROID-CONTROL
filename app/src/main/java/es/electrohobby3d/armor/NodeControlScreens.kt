@@ -83,6 +83,7 @@ fun controlRefusalText(code: String): String = when (code) {
     "busy_slot_copy" -> tr("El nodo está copiando una versión de su firmware.")
     "busy_battery" -> tr("El nodo está haciendo una operación en una batería.")
     "already_restarting" -> tr("El nodo ya se está reiniciando.")
+    "busy_guarding" -> tr("El panel está armado o sonando: desármalo antes.")
     "not_armed", "invalid_token", "token_expired" -> tr("El nodo no aceptó la orden a tiempo. Inténtalo de nuevo.")
     "unavailable" -> tr("El nodo no puede hacerlo ahora.")
     else -> tr("El nodo rechazó la orden.")
