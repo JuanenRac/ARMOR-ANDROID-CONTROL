@@ -10,6 +10,16 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AlarmPolicyTest {
+    @Test fun `a battery problem told before is not announced again`() {
+        fun raised(quiet: String?) = es.electrohobby3d.armor.model.ArmorEvent(
+            id = 1, at = "2026-01-01T00:00:00Z", type = "alarm", subject = "solar-1/bank-1", from = null, to = "raised", targets = null, mode = null,
+            severity = "high", code = "solar_battery_alarm", sourceType = "solar", quiet = quiet,
+        )
+        org.junit.Assert.assertEquals(1, AlarmPolicy.notices(listOf(raised(null)), false).size)
+        org.junit.Assert.assertEquals(0, AlarmPolicy.notices(listOf(raised("known")), false).size)
+        org.junit.Assert.assertEquals(0, AlarmPolicy.notices(listOf(raised("silenced")), false).size)
+    }
+
     private fun alert(id: Long, from: String, to: String, targets: Int = 2) = ArmorEvent(id, "t", "alert", "north-1", from, to, targets, null)
     private fun node(id: Long, to: String) = ArmorEvent(id, "t", "node", "north-1", "online", to, null, null)
     private fun camera(id: Long, to: String) = ArmorEvent(id, "t", "camera", "cam-01", "online", to, null, null)

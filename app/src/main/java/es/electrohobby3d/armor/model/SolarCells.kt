@@ -48,6 +48,7 @@ data class ModuleTrouble(
     val hot: Boolean = false, val cold: Boolean = false, val state: String = "", val missingCells: Int = 0,
     /** A fault of the battery's electronics (SysError, or the cells from 1 that it does not read), its protections or alarms and its notices, each with the battery's own word. */
     val bmsError: Boolean = false, val unreadCells: List<Int> = emptyList(), val protections: List<BatteryState> = emptyList(), val notices: List<BatteryState> = emptyList(),
+    val leftOut: List<String> = emptyList(),
 ) {
     val bmsFault: Boolean get() = bmsError || unreadCells.isNotEmpty()
 }
@@ -101,12 +102,12 @@ object SolarCells {
             state = m.state.takeIf { state -> faultWords.any { it in state.lowercase() } } ?: "",
             missingCells = if (m.cellsV.isEmpty()) 0 else ((m.cellCount ?: 0) - m.cellsV.size).coerceAtLeast(0),
             bmsError = m.state == "SysError" || m.states.any { it.level == 3 }, unreadCells = m.cellsUnread.map { it + 1 },
-            protections = m.states.filter { it.level == 2 }, notices = m.states.filter { it.level == 1 },
+            protections = m.states.filter { it.level == 2 }, notices = m.states.filter { it.level == 1 }, leftOut = m.leftOut,
         )
         val fromCells = cells.maxOfOrNull { it.level } ?: CellLevel.OK
         val level = when {
             fromCells == CellLevel.FAULT || trouble.abnormalCells.isNotEmpty() || trouble.state.isNotEmpty() || trouble.bmsFault || trouble.protections.isNotEmpty() -> CellLevel.FAULT
-            fromCells == CellLevel.WARN || trouble.notices.isNotEmpty() || trouble.spreadMv != null || trouble.hot || trouble.cold || trouble.missingCells > 0 -> CellLevel.WARN
+            fromCells == CellLevel.WARN || trouble.notices.isNotEmpty() || trouble.leftOut.isNotEmpty() || trouble.spreadMv != null || trouble.hot || trouble.cold || trouble.missingCells > 0 -> CellLevel.WARN
             else -> CellLevel.OK
         }
         return ModuleView(m, cells, level, spread, trouble)

@@ -163,6 +163,7 @@ internal fun troubleLines(view: ModuleView): List<String> {
         t.protections.takeIf { it.isNotEmpty() }?.let { list -> tr("Protección o alarma") + ": " + list.joinToString("; ", transform = said) },
         t.notices.takeIf { it.isNotEmpty() }?.let { list -> tr("Aviso de la batería") + ": " + list.joinToString("; ", transform = said) },
         t.state.takeIf { it.isNotEmpty() }?.let { trf("El módulo informa el estado %s", it) },
+        t.leftOut.takeIf { it.isNotEmpty() }?.let { trf("Cifra imposible descartada: %s", it.joinToString(", ")) },
         t.abnormalCells.takeIf { it.isNotEmpty() }?.let { tr("Celda anormal") + ": " + it.joinToString(", ") },
         t.outOfRangeCells.takeIf { it.isNotEmpty() }?.let { trf("Tensión fuera de rango en las celdas %s", it.joinToString(", ")) },
         t.spreadMv?.let { trf("Diferencia alta entre celdas: %s mV", it) },

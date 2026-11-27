@@ -1586,6 +1586,7 @@
  "Sin lectura de celdas": "No cell readings",
  "El módulo informa el estado %s": "The module reports the state %s",
  "Tensión fuera de rango en las celdas %s": "Voltage out of range in cells %s",
+ "Cifra imposible descartada: %s": "Impossible figure left out: %s",
  "Diferencia alta entre celdas: %s mV": "Large gap between cells: %s mV",
  "Temperatura alta": "High temperature",
  "Demasiado frío para cargar": "Too cold to charge",

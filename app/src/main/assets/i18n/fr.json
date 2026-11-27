@@ -1586,6 +1586,7 @@
  "Sin lectura de celdas": "Aucune lecture des cellules",
  "El módulo informa el estado %s": "Le module signale l'état %s",
  "Tensión fuera de rango en las celdas %s": "Tension hors plage dans les cellules %s",
+ "Cifra imposible descartada: %s": "Valeur impossible écartée : %s",
  "Diferencia alta entre celdas: %s mV": "Écart élevé entre cellules : %s mV",
  "Temperatura alta": "Température élevée",
  "Demasiado frío para cargar": "Trop froid pour charger",

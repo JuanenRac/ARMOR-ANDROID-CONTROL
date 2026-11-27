@@ -22,6 +22,8 @@ data class ArmorEvent(
     val code: String? = null,
     val sourceType: String? = null,
     val field: String? = null,
+    /** A raised alarm the server says must not be announced ("known", "silenced"). */
+    val quiet: String? = null,
 )
 
 /** Reachability of a camera as seen by the server's watchdog: "unknown", "online" or "offline". */
@@ -48,7 +50,7 @@ object EventParser {
         return when (type) {
             "alarm" -> ArmorEvent(
                 id = id, at = json.optStr("at"), type = type, subject = subject, from = null, to = text("state"), targets = null, mode = null,
-                severity = text("severity"), code = text("code"), sourceType = text("source_type"),
+                severity = text("severity"), code = text("code"), sourceType = text("source_type"), quiet = text("quiet"),
             )
             "device" -> ArmorEvent(
                 id = id, at = json.optStr("at"), type = type, subject = subject, from = text("from"), to = text("to"), targets = null, mode = null,
