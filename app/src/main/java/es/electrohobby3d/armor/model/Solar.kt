@@ -34,7 +34,19 @@ data class SolarInverterReading(
     val acCharging: Boolean, val pvCharging: Boolean, val loadOn: Boolean, val warnings: List<String>,
     /** A second PV input (pvW is already the sum of both) and, for a parallel system, the units the node reads and the total power of the system. */
     val pv2V: Double? = null, val pv2A: Double? = null, val pv2W: Double? = null, val units: List<SolarUnit> = emptyList(), val totalOutW: Double? = null,
+    /** Who made it ("" when not known) and whether its protocol or model tells it instead of the equipment. */
+    val manufacturer: String = "", val manufacturerDeduced: Boolean = false,
 )
+
+/** A state of a battery module or of one of its cells (from 0) that is not the normal one, with the battery's own word. */
+data class BatteryState(val column: String, val word: String, val cell: Int? = null) {
+    /** 1 a notice (High, Low and the like: not an alarm), 2 a protection or an alarm (a word never seen included), 3 a fault of the battery's electronics. */
+    val level: Int get() = when {
+        word == "SysError" -> 3
+        column != "system" && (word == "High" || word == "Low" || word == "COCAlm" || word == "DOCAlm") -> 1
+        else -> 2
+    }
+}
 
 /** One inverter of a parallel system, as the one on the node's port reports it. */
 data class SolarUnit(val unit: Int, val mode: String, val serial: String, val faultCode: String, val outW: Double?, val loadPercent: Double?, val batteryV: Double?)
@@ -52,6 +64,9 @@ data class SolarModule(
     val sohCounts: List<Int> = emptyList(), val sohAbnormal: List<Int> = emptyList(),
     /** From the console's info: the serial number (private data, never written to a log), the Board, the chip the node tells from them ("older", "newer" or "unknown") and the other lines. */
     val serial: String = "", val board: String = "", val chip: String = "", val specification: String = "", val bootVersion: String = "", val commVersion: String = "", val releaseDate: String = "",
+    val manufacturer: String = "", val manufacturerDeduced: Boolean = false,
+    /** What the battery says is not normal, and the cells (0-based) it does not read: they come as 0 V and are a fault, not a voltage. */
+    val states: List<BatteryState> = emptyList(), val cellsUnread: List<Int> = emptyList(),
 )
 
 /** An entry of a battery's event log: the protection fields are the console's own words (a number and a mnemonic), never decoded. */
@@ -66,6 +81,7 @@ data class SolarBatteryReading(
     val cycles: Int?, val stack: List<SolarModule>, val healthPercent: Int? = null,
     /** [fullCapacityAh] counts a battery that has not said its own as the others. */
     val fullEstimated: Boolean = false,
+    val manufacturer: String = "", val manufacturerDeduced: Boolean = false,
 ) {
     /** Watts at the battery: positive while charging. */
     val powerW: Double? get() = if (voltageV != null && currentA != null) voltageV * currentA else null
@@ -177,6 +193,7 @@ object SolarParser {
         pvV = r.number("pv_v"), pvA = r.number("pv_a"), pvW = r.number("pv_w"), heatsinkC = r.number("heatsink_c"),
         acCharging = r.optBoolean("ac_charging"), pvCharging = r.optBoolean("pv_charging"), loadOn = r.optBoolean("load_on"), warnings = r.optJSONArray("warnings").strings(),
         pv2V = r.number("pv2_v"), pv2A = r.number("pv2_a"), pv2W = r.number("pv2_w"), totalOutW = r.number("total_out_w"),
+        manufacturer = r.optStr("manufacturer"), manufacturerDeduced = r.optStr("manufacturer_source") == "deduced",
         units = r.optJSONArray("units").objects().map { SolarUnit(it.optInt("unit"), it.optStr("mode", "unknown"), it.optStr("serial"), it.optStr("fault_code"), it.number("out_w"), it.number("load_percent"), it.number("battery_v")) },
     )
 
@@ -188,6 +205,8 @@ object SolarParser {
         model = m.optStr("model"), boardVersion = m.optStr("board_version"), mainSoftVersion = m.optStr("main_soft_version"), softVersion = m.optStr("soft_version"), cellCount = m.whole("cell_count"),
         maxChargeA = m.number("max_charge_a"), maxDischargeA = m.number("max_discharge_a"), consoleBaud = m.whole("console_baud"),
         sohCounts = m.optJSONArray("soh_counts").ints(), sohAbnormal = m.optJSONArray("soh_abnormal").ints(),
+        manufacturer = m.optStr("manufacturer"), manufacturerDeduced = m.optStr("manufacturer_source") == "deduced", cellsUnread = m.optJSONArray("cells_unread").ints(),
+        states = m.optJSONArray("flags").objects().map { BatteryState(it.optStr("column"), it.optStr("word"), it.optInt("cell", -1).takeIf { cell -> cell >= 0 }) }.filter { it.word.isNotBlank() },
         serial = m.optStr("serial"), board = m.optStr("board"), chip = m.optStr("chip"), specification = m.optStr("specification"), bootVersion = m.optStr("boot_version"), commVersion = m.optStr("comm_version"), releaseDate = m.optStr("release_date"),
     )
 
@@ -196,6 +215,7 @@ object SolarParser {
         val said = stack.count { it.fullCapacityAh != null }
         val each = if (said < stack.size) sharedCapacity(stack) else null
         return SolarBatteryReading(
+            manufacturer = r.optStr("manufacturer"), manufacturerDeduced = r.optStr("manufacturer_source") == "deduced",
             modules = r.optInt("modules"), model = r.optStr("model"), state = r.optStr("state"), voltageV = r.number("voltage_v"), currentA = r.number("current_a"),
             temperatureMinC = r.number("temperature_min_c"), temperatureMaxC = r.number("temperature_max_c"), cellMinV = r.number("cell_min_v"), cellMaxV = r.number("cell_max_v"),
             socPercent = r.whole("soc_percent"), alarm = r.optBoolean("alarm"), capacityAh = r.number("capacity_ah"), fullCapacityAh = if (each != null) each * stack.size else r.number("full_capacity_ah"),
