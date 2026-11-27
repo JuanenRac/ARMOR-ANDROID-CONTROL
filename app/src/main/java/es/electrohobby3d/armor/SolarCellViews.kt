@@ -156,7 +156,12 @@ private fun CellTile(module: Int, cell: CellView, stale: Boolean, settings: Sola
 /** What is wrong with a module, in words, one line each. */
 internal fun troubleLines(view: ModuleView): List<String> {
     val t = view.trouble
+    val said = { state: es.electrohobby3d.armor.model.BatteryState -> (state.cell?.let { tr("celda") + " " + (it + 1) + " · " } ?: "") + state.column + " " + state.word }
     return listOfNotNull(
+        if (t.bmsError) tr("Fallo del BMS") + ": SysError" else null,
+        t.unreadCells.takeIf { it.isNotEmpty() }?.let { trf("Fallo del BMS: celdas sin lectura (0 V): %s", it.joinToString(", ")) },
+        t.protections.takeIf { it.isNotEmpty() }?.let { list -> tr("Protección o alarma") + ": " + list.joinToString("; ", transform = said) },
+        t.notices.takeIf { it.isNotEmpty() }?.let { list -> tr("Aviso de la batería") + ": " + list.joinToString("; ", transform = said) },
         t.state.takeIf { it.isNotEmpty() }?.let { trf("El módulo informa el estado %s", it) },
         t.abnormalCells.takeIf { it.isNotEmpty() }?.let { tr("Celda anormal") + ": " + it.joinToString(", ") },
         t.outOfRangeCells.takeIf { it.isNotEmpty() }?.let { trf("Tensión fuera de rango en las celdas %s", it.joinToString(", ")) },

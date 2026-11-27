@@ -195,6 +195,7 @@ private fun InverterCard(device: SolarDevice, r: SolarInverterReading, history: 
                 }
                 Column(horizontalAlignment = Alignment.End) { Marks(device) }
             }
+            if (r.manufacturer.isNotBlank()) Line(tr("Fabricante"), makerText(r.manufacturer, r.manufacturerDeduced))
             Line(tr("Red"), "${SolarText.volts(r.gridV)} · ${SolarText.hertz(r.gridHz)}")
             Line(tr("Consumo"), "${SolarText.watts(r.outW)} · ${SolarText.percent(r.loadPercent)}")
             Line(tr("Paneles"), "${SolarText.watts(r.pvW)} · ${SolarText.volts(r.pvV, 0)}")
@@ -228,7 +229,7 @@ private fun BatteryCard(device: SolarDevice, r: SolarBatteryReading, settings: S
                 Column(Modifier.weight(1f)) {
                     Text(device.name, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(
-                        listOf(SolarText.batteryState(r.state), (SolarText.model(device.model).ifBlank { r.model })).filter { it.isNotBlank() }.joinToString(" · "),
+                        listOf(SolarText.batteryState(r.state), (SolarText.model(device.model).ifBlank { r.model }), makerText(r.manufacturer, r.manufacturerDeduced)).filter { it.isNotBlank() }.joinToString(" · "),
                         style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted,
                     )
                 }
@@ -332,6 +333,7 @@ private fun ModuleSection(device: SolarDevice, view: ModuleView, settings: Solar
         }
         if (details) {
             if (module.model.isNotBlank()) Line(tr("Modelo"), module.model)
+            if (module.manufacturer.isNotBlank()) Line(tr("Fabricante"), makerText(module.manufacturer, module.manufacturerDeduced))
             if (module.serial.isNotBlank()) Line(tr("Número de serie"), module.serial)
             when (module.chip) {
                 "newer" -> Line(tr("Chip"), tr("Chip nuevo"))
@@ -359,6 +361,9 @@ private fun ModuleSection(device: SolarDevice, view: ModuleView, settings: Solar
         }
     }
 }
+
+/** "Pylon" or "Daly (deducido)"; "" when the maker is not known. */
+private fun makerText(maker: String, deduced: Boolean): String = if (maker.isBlank()) "" else if (deduced) "$maker (${tr("deducido")})" else maker
 
 /** One entry of a battery's own event log, as the console prints it: the numbers and the mnemonics are shown unchanged. */
 @Composable

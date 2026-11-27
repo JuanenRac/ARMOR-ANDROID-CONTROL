@@ -164,7 +164,7 @@ object DeviceText {
         "door_open" -> tr("Puerta abierta con el sistema armado"); "window_open" -> tr("Ventana abierta con el sistema armado"); "motion" -> tr("Movimiento con el sistema armado")
         "glass_break" -> tr("Rotura de cristal con el sistema armado"); "vibration" -> tr("Vibración con el sistema armado"); "tamper" -> tr("Un dispositivo ha sido manipulado")
         "low_battery" -> tr("Batería baja"); "device_offline" -> tr("Un dispositivo ha dejado de responder"); "triggered" -> tr("Un dispositivo se ha activado")
-        "solar_fault" -> tr("Avería en un inversor solar"); "solar_battery_low" -> tr("Batería solar baja"); "solar_battery_alarm" -> tr("Una batería solar avisa de un problema")
+        "solar_fault" -> tr("Avería en un inversor solar"); "solar_battery_low" -> tr("Batería solar baja"); "solar_battery_alarm" -> tr("Una batería solar avisa de un problema"); "solar_battery_fault" -> tr("Una batería solar tiene un fallo de su electrónica (BMS)")
         "solar_offline" -> tr("Un equipo solar ha dejado de responder"); "solar_cells_unbalanced" -> tr("Las celdas de una batería están desequilibradas")
         "solar_battery_hot" -> tr("Una batería está demasiado caliente"); "solar_battery_cold" -> tr("Una batería se está cargando con demasiado frío"); "solar_battery_worn" -> tr("Una batería está muy desgastada"); "solar_battery_overvoltage" -> tr("Una batería supera la tensión a la que actúa su propia protección"); "solar_counter_rose" -> tr("Ha subido un contador de protección de un módulo de batería")
         "solar_inverter_hot" -> tr("Un inversor está demasiado caliente")

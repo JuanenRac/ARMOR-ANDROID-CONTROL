@@ -46,7 +46,11 @@ data class CellView(val number: Int, val volts: Double, val level: CellLevel, va
 data class ModuleTrouble(
     val abnormalCells: List<Int> = emptyList(), val outOfRangeCells: List<Int> = emptyList(), val spreadMv: Int? = null,
     val hot: Boolean = false, val cold: Boolean = false, val state: String = "", val missingCells: Int = 0,
-)
+    /** A fault of the battery's electronics (SysError, or the cells from 1 that it does not read), its protections or alarms and its notices, each with the battery's own word. */
+    val bmsError: Boolean = false, val unreadCells: List<Int> = emptyList(), val protections: List<BatteryState> = emptyList(), val notices: List<BatteryState> = emptyList(),
+) {
+    val bmsFault: Boolean get() = bmsError || unreadCells.isNotEmpty()
+}
 
 data class ModuleView(val module: SolarModule, val cells: List<CellView>, val level: CellLevel, val spreadMv: Int?, val trouble: ModuleTrouble)
 
@@ -69,16 +73,17 @@ object SolarCells {
     }
 
     fun module(m: SolarModule, lfp: Boolean, settings: SolarViewSettings): ModuleView {
-        val low = m.cellsV.minOrNull()
-        val high = m.cellsV.maxOrNull()
-        val spread = SolarText.cellSpreadMv(m.cellsV)
+        val read = m.cellsV.filterIndexed { index, _ -> index !in m.cellsUnread }
+        val low = read.minOrNull()
+        val high = read.maxOrNull()
+        val spread = SolarText.cellSpreadMv(read)
         val limits = settings.cell
         val cells = m.cellsV.mapIndexed { index, volts ->
             val abnormal = index in m.sohAbnormal
             val lowest = spread != null && spread > 0 && volts == low
             val highest = spread != null && spread > 0 && volts == high
             val level = when {
-                abnormal || (lfp && (volts < limits.faultLowV || volts > limits.faultHighV)) -> CellLevel.FAULT
+                index in m.cellsUnread || abnormal || (lfp && (volts < limits.faultLowV || volts > limits.faultHighV)) -> CellLevel.FAULT
                 lfp && (volts < limits.lowV || volts > limits.highV) -> CellLevel.WARN
                 else -> CellLevel.OK
             }
@@ -95,11 +100,13 @@ object SolarCells {
             cold = charging && temperatures.any { it < settings.coldChargeC },
             state = m.state.takeIf { state -> faultWords.any { it in state.lowercase() } } ?: "",
             missingCells = if (m.cellsV.isEmpty()) 0 else ((m.cellCount ?: 0) - m.cellsV.size).coerceAtLeast(0),
+            bmsError = m.state == "SysError" || m.states.any { it.level == 3 }, unreadCells = m.cellsUnread.map { it + 1 },
+            protections = m.states.filter { it.level == 2 }, notices = m.states.filter { it.level == 1 },
         )
         val fromCells = cells.maxOfOrNull { it.level } ?: CellLevel.OK
         val level = when {
-            fromCells == CellLevel.FAULT || trouble.abnormalCells.isNotEmpty() || trouble.state.isNotEmpty() -> CellLevel.FAULT
-            fromCells == CellLevel.WARN || trouble.spreadMv != null || trouble.hot || trouble.cold || trouble.missingCells > 0 -> CellLevel.WARN
+            fromCells == CellLevel.FAULT || trouble.abnormalCells.isNotEmpty() || trouble.state.isNotEmpty() || trouble.bmsFault || trouble.protections.isNotEmpty() -> CellLevel.FAULT
+            fromCells == CellLevel.WARN || trouble.notices.isNotEmpty() || trouble.spreadMv != null || trouble.hot || trouble.cold || trouble.missingCells > 0 -> CellLevel.WARN
             else -> CellLevel.OK
         }
         return ModuleView(m, cells, level, spread, trouble)
@@ -109,7 +116,7 @@ object SolarCells {
     fun bank(deviceModel: String, reading: SolarBatteryReading, settings: SolarViewSettings): BankView {
         val modules = reading.stack.map { module(it, isLfp(deviceModel, it.model.ifBlank { reading.model }), settings) }
         val level = if (reading.alarm) CellLevel.FAULT else modules.maxOfOrNull { it.level } ?: CellLevel.OK
-        val all = reading.stack.flatMap { it.cellsV }
+        val all = reading.stack.flatMap { module -> module.cellsV.filterIndexed { index, _ -> index !in module.cellsUnread } }
         val minV = all.minOrNull() ?: reading.cellMinV
         val maxV = all.maxOrNull() ?: reading.cellMaxV
         return BankView(modules, level, minV, maxV, if (minV != null && maxV != null) Math.round((maxV - minV) * 1000.0).toInt() else null)
