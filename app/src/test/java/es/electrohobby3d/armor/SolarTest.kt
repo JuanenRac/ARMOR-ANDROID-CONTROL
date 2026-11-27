@@ -191,6 +191,18 @@ class SolarCountersTest {
                 {"n":1,"seen_at":1,"event":{"index":1}},{"n":0,"seen_at":1,"event":{"index":2,"time":"t"}}]}],
      "waiting":[],"totals":{},"catalog":{}}
     """
+    @Test fun theSerialNumberAndChipOfAModuleAreRead() {
+        // invented serial number
+        val text = """{"devices":[{"node_id":"casa","device":"us3000-1","kind":"battery","received_at":"x","stale":false,"example":false,
+          "reading":{"kind":"battery","node_id":"casa","device":"us3000-1","timestamp_ms":2,"modules":2,"stack":[
+            {"n":1,"present":true,"serial":"TEST00AE20000001","board":"NF4.E2","chip":"newer","specification":"48V/74AH","boot_version":"V2.1","comm_version":"V2.0","release_date":"00-01-01"},
+            {"n":2,"present":true}]}}],"waiting":[],"totals":{},"catalog":{}}"""
+        val stack = (SolarParser.overview(JSONObject(text)).devices.single().reading as SolarBatteryReading).stack
+        assertEquals(listOf("TEST00AE20000001", "NF4.E2", "newer", "48V/74AH", "V2.1", "V2.0", "00-01-01"), stack[0].let { listOf(it.serial, it.board, it.chip, it.specification, it.bootVersion, it.commVersion, it.releaseDate) })
+        assertEquals("", stack[1].serial)
+        assertEquals("", stack[1].chip)
+    }
+
     @Test fun theDetailsOfAModuleAndTheEventLogAreRead() {
         val device = SolarParser.overview(JSONObject(details)).devices.single()
         val first = device.battery!!.stack[0]

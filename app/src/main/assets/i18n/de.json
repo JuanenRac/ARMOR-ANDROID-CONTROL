@@ -1607,5 +1607,15 @@
  "Sol y consumo": "Sonne und Verbrauch",
  "Tensión de la batería": "Batteriespannung",
  "Corriente de la batería": "Batteriestrom",
- "Tensión de la red": "Netzspannung"
+ "Tensión de la red": "Netzspannung",
+ "Número de serie": "Seriennummer",
+ "Chip": "Chip",
+ "Chip nuevo": "neu",
+ "Chip antiguo": "alt",
+ "No se puede saber": "nicht feststellbar",
+ "Placa (Board)": "Platine (Board)",
+ "Especificación": "Spezifikation",
+ "Versión de arranque": "Bootversion",
+ "Versión de comunicación": "Kommunikationsversion",
+ "Fecha del firmware": "Datum der Firmware"
 }
