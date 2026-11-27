@@ -24,13 +24,13 @@ class BatteryTest {
     @After fun stop() { client.forgetSession(origin); server.stop() }
 
     private val armed = """{"id":"a1b2c3d4e5f60718","node":"solar-1","port":2,"op":"output_set","params":{"output":"cfet","state":"off"},"actor":"ana","created_at":"2026-01-01T10:00:00Z","updated_at":"2026-01-01T10:00:05Z",
-        "stage":"armed","summary":"switch cfet off","risk":"medium","atomic":false,"canonical":"output_set cfet off","battery":{"model":"US3000C","serial":"PPTBH02200409223","soft_version":"V3.0","board":""},
+        "stage":"armed","summary":"switch cfet off","risk":"medium","atomic":false,"canonical":"output_set cfet off","battery":{"model":"US3000C","serial":"PPTBH00000000001","soft_version":"V3.0","board":""},
         "armed_until":"2026-01-01T10:02:00Z"}"""
 
     @Test fun anOperationIsReadWithItsBatteryRiskAndProgress() {
         val operation = BatteryParser.operation(JSONObject(armed))
         assertEquals(listOf("a1b2c3d4e5f60718", "solar-1", 2, "output_set", "armed"), listOf(operation.id, operation.node, operation.port, operation.op, operation.stage))
-        assertEquals(listOf("US3000C", "PPTBH02200409223", "V3.0", "medium", false), listOf(operation.model, operation.serial, operation.softVersion, operation.risk, operation.atomic))
+        assertEquals(listOf("US3000C", "PPTBH00000000001", "V3.0", "medium", false), listOf(operation.model, operation.serial, operation.softVersion, operation.risk, operation.atomic))
         assertTrue(operation.active)
         assertEquals(0, operation.percent)
         val running = BatteryParser.operation(JSONObject("""{"id":"x","stage":"running","steps_done":3,"steps_total":9,"atomic":true}"""))
@@ -56,7 +56,7 @@ class BatteryTest {
     }
 
     @Test fun aSerialNumberIsTakenTheWayTheNodeTakesIt() {
-        for (good in listOf("PPTBH02200409223", "H221014C32213244", "NOSERIAL", "ABC-12345_xyz")) assertTrue(good, BatteryParser.serialLooksRight(good))
+        for (good in listOf("PPTBH00000000001", "H000000C30000001", "NOSERIAL", "ABC-12345_xyz")) assertTrue(good, BatteryParser.serialLooksRight(good))
         for (bad in listOf("", "short", "has space 12345", "x".repeat(30), "noserial")) assertFalse(bad, BatteryParser.serialLooksRight(bad))
     }
 
@@ -68,7 +68,7 @@ class BatteryTest {
 
     @Test fun armingSendsTheOrderTheServerTakesAndNothingElse() {
         server.reply(202, armed)
-        val operation = client.batteryArm(origin, "solar-1", 2, "output_set", "cfet", "off", "PPTBH02200409223")
+        val operation = client.batteryArm(origin, "solar-1", 2, "output_set", "cfet", "off", "PPTBH00000000001")
         assertEquals("armed", operation.stage)
         val sent = server.seen.single()
         assertEquals(listOf("POST", "/api/v1/solar/battery-ops"), listOf(sent.method, sent.path))
@@ -84,9 +84,9 @@ class BatteryTest {
 
     @Test fun executingAndCancellingNameTheOperationAndTheSerial() {
         server.reply(202, armed)
-        client.batteryExecute(origin, "a1b2c3d4e5f60718", "PPTBH02200409223")
+        client.batteryExecute(origin, "a1b2c3d4e5f60718", "PPTBH00000000001")
         assertEquals("/api/v1/solar/battery-ops/a1b2c3d4e5f60718/execute", server.seen.last().path)
-        assertEquals("PPTBH02200409223", JSONObject(server.seen.last().body).getString("serial"))
+        assertEquals("PPTBH00000000001", JSONObject(server.seen.last().body).getString("serial"))
         client.batteryCancel(origin, "a1b2c3d4e5f60718")
         assertEquals("/api/v1/solar/battery-ops/a1b2c3d4e5f60718/cancel", server.seen.last().path)
         server.reply(200, armed)
