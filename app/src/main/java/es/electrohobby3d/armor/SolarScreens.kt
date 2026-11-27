@@ -332,6 +332,17 @@ private fun ModuleSection(device: SolarDevice, view: ModuleView, settings: Solar
         }
         if (details) {
             if (module.model.isNotBlank()) Line(tr("Modelo"), module.model)
+            if (module.serial.isNotBlank()) Line(tr("Número de serie"), module.serial)
+            when (module.chip) {
+                "newer" -> Line(tr("Chip"), tr("Chip nuevo"))
+                "older" -> Line(tr("Chip"), tr("Chip antiguo"))
+                "unknown" -> Line(tr("Chip"), tr("No se puede saber"))
+            }
+            if (module.board.isNotBlank()) Line(tr("Placa (Board)"), module.board)
+            if (module.specification.isNotBlank()) Line(tr("Especificación"), module.specification)
+            if (module.bootVersion.isNotBlank()) Line(tr("Versión de arranque"), module.bootVersion)
+            if (module.commVersion.isNotBlank()) Line(tr("Versión de comunicación"), module.commVersion)
+            if (module.releaseDate.isNotBlank()) Line(tr("Fecha del firmware"), module.releaseDate)
             listOf(module.boardVersion, module.mainSoftVersion, module.softVersion).filter { it.isNotBlank() }.takeIf { it.isNotEmpty() }?.let { Line(tr("Firmware"), it.joinToString(" · ")) }
             if (module.cellCount != null) Line(tr("Celdas"), module.cellCount.toString())
             if (module.maxChargeA != null || module.maxDischargeA != null) Line(tr("Corriente admitida (carga / descarga)"), "${module.maxChargeA?.let { Math.round(it).toString() } ?: "–"} / ${module.maxDischargeA?.let { Math.round(it).toString() } ?: "–"} A")

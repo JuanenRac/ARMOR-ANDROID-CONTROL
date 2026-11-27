@@ -1607,5 +1607,15 @@
  "Sol y consumo": "Sol e consumo",
  "Tensión de la batería": "Tensão da bateria",
  "Corriente de la batería": "Corrente da bateria",
- "Tensión de la red": "Tensão da rede"
+ "Tensión de la red": "Tensão da rede",
+ "Número de serie": "Número de série",
+ "Chip": "Chip",
+ "Chip nuevo": "novo",
+ "Chip antiguo": "antigo",
+ "No se puede saber": "não é possível saber",
+ "Placa (Board)": "Placa (Board)",
+ "Especificación": "Especificação",
+ "Versión de arranque": "Versão de arranque",
+ "Versión de comunicación": "Versão de comunicação",
+ "Fecha del firmware": "Data do firmware"
 }

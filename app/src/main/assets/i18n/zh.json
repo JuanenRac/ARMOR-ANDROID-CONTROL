@@ -1607,5 +1607,15 @@
  "Sol y consumo": "光伏与用电",
  "Tensión de la batería": "电池电压",
  "Corriente de la batería": "电池电流",
- "Tensión de la red": "电网电压"
+ "Tensión de la red": "电网电压",
+ "Número de serie": "序列号",
+ "Chip": "芯片",
+ "Chip nuevo": "新款",
+ "Chip antiguo": "旧款",
+ "No se puede saber": "无法判断",
+ "Placa (Board)": "主板（Board）",
+ "Especificación": "规格",
+ "Versión de arranque": "引导版本",
+ "Versión de comunicación": "通信版本",
+ "Fecha del firmware": "固件日期"
 }
