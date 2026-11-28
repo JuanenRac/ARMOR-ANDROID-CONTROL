@@ -202,6 +202,10 @@ private fun InverterCard(device: SolarDevice, r: SolarInverterReading, history: 
             if (r.pv2W != null) Line(tr("Segunda entrada"), "${SolarText.watts(r.pv2W)} · ${SolarText.volts(r.pv2V, 0)}")
             Line(tr("Batería"), "${SolarText.percent(r.batteryPercent)} · ${SolarText.volts(r.batteryV, 2)} · ${SolarText.amps(r.batteryA)}", socColor(r.batteryPercent?.toInt()))
             Line(tr("Temperatura"), SolarText.celsius(r.heatsinkC))
+            r.energy?.let { e ->
+                SolarText.periods(e.pvTodayWh, e.pvMonthWh, e.pvYearWh, e.pvTotalWh)?.let { Line(tr("Energía de los paneles"), it) }
+                SolarText.periods(e.loadTodayWh, e.loadMonthWh, e.loadYearWh, e.loadTotalWh)?.let { Line(tr("Energía consumida"), it) }
+            }
             if (r.units.isNotEmpty()) {
                 Line(tr("Sistema en paralelo"), trf("%s unidades", r.units.size) + "${r.totalOutW?.let { " · ${SolarText.watts(it)}" } ?: ""}")
                 r.units.forEach { unit ->
@@ -258,6 +262,11 @@ private fun BatteryCard(device: SolarDevice, r: SolarBatteryReading, settings: S
                 if (r.capacityAh != null) Line(tr("Capacidad"), (if (r.fullEstimated) "≈ " else "") + (r.fullCapacityAh?.let { trf("%s de %s", SolarText.ah(r.capacityAh), SolarText.ah(it)) } ?: SolarText.ah(r.capacityAh)))
                 if (r.cycles != null) Line(tr("Ciclos"), r.cycles.toString())
                 if (r.healthPercent != null) Line(tr("Salud (capacidad frente a nueva)"), "${r.healthPercent} %")
+                r.stackSays?.let { says ->
+                    SolarText.stackFigures(says)?.let { Line(tr("Según la pila"), it) }
+                    SolarText.stackLimits(says)?.let { Line(tr("Límites recomendados"), it) }
+                    says.modulesAsleep?.takeIf { it > 0 }?.let { Line(tr("Módulos dormidos"), it.toString()) }
+                }
                 val today = device.dayCells?.bankDeltaV
                 if (today != null && today > 0) Line(tr("Mayor diferencia hoy (banco)"), "${Math.round(today * 1000)} mV", if (Math.round(today * 1000) > settings.spreadWarnMv) ArmorColors.Amber else ArmorColors.Text)
                 if (r.modules > 1) Line(tr("Módulos"), r.modules.toString())

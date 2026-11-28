@@ -36,6 +36,20 @@ data class SolarInverterReading(
     val pv2V: Double? = null, val pv2A: Double? = null, val pv2W: Double? = null, val units: List<SolarUnit> = emptyList(), val totalOutW: Double? = null,
     /** Who made it ("" when not known) and whether its protocol or model tells it instead of the equipment. */
     val manufacturer: String = "", val manufacturerDeduced: Boolean = false,
+    /** The energy the inverter counts itself; null when it said none. */
+    val energy: EnergyCounters? = null,
+)
+
+/** The energy an inverter counts, in watt-hours: of its panels and of its load, today, this month, this year and in all. */
+data class EnergyCounters(
+    val pvTodayWh: Double? = null, val pvMonthWh: Double? = null, val pvYearWh: Double? = null, val pvTotalWh: Double? = null,
+    val loadTodayWh: Double? = null, val loadMonthWh: Double? = null, val loadYearWh: Double? = null, val loadTotalWh: Double? = null,
+)
+
+/** What the first battery of a Pylontech stack says of the whole stack, with the limits it recommends. */
+data class StackSays(
+    val socPercent: Int? = null, val healthPercent: Int? = null, val modulesAsleep: Int? = null,
+    val chargeVoltageV: Double? = null, val chargeCurrentA: Double? = null, val dischargeVoltageV: Double? = null, val dischargeCurrentA: Double? = null,
 )
 
 /** A state of a battery module or of one of its cells (from 0) that is not the normal one, with the battery's own word. */
@@ -84,6 +98,7 @@ data class SolarBatteryReading(
     /** [fullCapacityAh] counts a battery that has not said its own as the others. */
     val fullEstimated: Boolean = false,
     val manufacturer: String = "", val manufacturerDeduced: Boolean = false,
+    val stackSays: StackSays? = null,
 ) {
     /** Watts at the battery: positive while charging. */
     val powerW: Double? get() = if (voltageV != null && currentA != null) voltageV * currentA else null
@@ -197,7 +212,24 @@ object SolarParser {
         pv2V = r.number("pv2_v"), pv2A = r.number("pv2_a"), pv2W = r.number("pv2_w"), totalOutW = r.number("total_out_w"),
         manufacturer = r.optStr("manufacturer"), manufacturerDeduced = r.optStr("manufacturer_source") == "deduced",
         units = r.optJSONArray("units").objects().map { SolarUnit(it.optInt("unit"), it.optStr("mode", "unknown"), it.optStr("serial"), it.optStr("fault_code"), it.number("out_w"), it.number("load_percent"), it.number("battery_v")) },
+        energy = energy(r),
     )
+
+    private fun energy(r: JSONObject): EnergyCounters? {
+        val e = r.optJSONObject("energy") ?: JSONObject()
+        return EnergyCounters(
+            pvTodayWh = e.number("pv_today_wh"), pvMonthWh = e.number("pv_month_wh"), pvYearWh = e.number("pv_year_wh"), pvTotalWh = r.number("pv_energy_total_wh"),
+            loadTodayWh = e.number("load_today_wh"), loadMonthWh = e.number("load_month_wh"), loadYearWh = e.number("load_year_wh"), loadTotalWh = e.number("load_total_wh"),
+        ).takeIf { it != EnergyCounters() }
+    }
+
+    private fun stackSays(s: JSONObject?): StackSays? = s?.let {
+        StackSays(
+            socPercent = it.whole("soc_percent"), healthPercent = it.whole("health_percent"), modulesAsleep = it.whole("modules_sleep"),
+            chargeVoltageV = it.number("charge_voltage_v"), chargeCurrentA = it.number("charge_current_a"),
+            dischargeVoltageV = it.number("discharge_voltage_v"), dischargeCurrentA = it.number("discharge_current_a"),
+        ).takeIf { said -> said != StackSays() }
+    }
 
     private fun module(m: JSONObject) = SolarModule(
         number = m.optInt("n"), present = m.optBoolean("present"), voltageV = m.number("voltage_v"), currentA = m.number("current_a"), temperatureC = m.number("temperature_c"),
@@ -223,6 +255,7 @@ object SolarParser {
             temperatureMinC = r.number("temperature_min_c"), temperatureMaxC = r.number("temperature_max_c"), cellMinV = r.number("cell_min_v"), cellMaxV = r.number("cell_max_v"),
             socPercent = r.whole("soc_percent"), alarm = r.optBoolean("alarm"), capacityAh = r.number("capacity_ah"), fullCapacityAh = if (each != null) each * stack.size else r.number("full_capacity_ah"),
             energyKwh = r.number("energy_kwh"), cycles = r.whole("cycles"), stack = stack, healthPercent = r.whole("health_percent"), fullEstimated = each != null,
+            stackSays = stackSays(r.optJSONObject("bms_system")),
         )
     }
 }
@@ -323,6 +356,22 @@ object SolarText {
     fun volts(value: Double?, digits: Int = 1): String = if (value == null) "—" else String.format(Locale.US, "%.${digits}f V", value)
     fun amps(value: Double?, digits: Int = 1): String = if (value == null) "—" else String.format(Locale.US, "%.${digits}f A", value)
     fun percent(value: Number?): String = if (value == null) "—" else "${Math.round(value.toDouble())} %"
+    fun kwh(wattHours: Double): String = String.format(Locale.US, "%.1f kWh", wattHours / 1000.0)
+
+    /** "hoy 1.2 kWh · este mes 30.0 kWh": only the periods that were said; null when none was. */
+    fun periods(todayWh: Double?, monthWh: Double?, yearWh: Double?, totalWh: Double?): String? = listOfNotNull(
+        todayWh?.let { trf("hoy %s", kwh(it)) }, monthWh?.let { trf("este mes %s", kwh(it)) }, yearWh?.let { trf("este año %s", kwh(it)) }, totalWh?.let { trf("en total %s", kwh(it)) },
+    ).joinToString(" · ").ifEmpty { null }
+
+    fun stackFigures(says: StackSays): String? = listOfNotNull(
+        says.socPercent?.let { trf("estado de carga %s", percent(it)) }, says.healthPercent?.let { trf("salud %s", percent(it)) },
+    ).joinToString(" · ").ifEmpty { null }
+
+    private fun limit(v: Double?, a: Double?): String? = listOfNotNull(v?.let { volts(it) }, a?.let { amps(it) }).joinToString(", ").ifEmpty { null }
+
+    fun stackLimits(says: StackSays): String? = listOfNotNull(
+        limit(says.chargeVoltageV, says.chargeCurrentA)?.let { trf("al cargar %s", it) }, limit(says.dischargeVoltageV, says.dischargeCurrentA)?.let { trf("al descargar %s", it) },
+    ).joinToString(" · ").ifEmpty { null }
     fun hertz(value: Double?): String = if (value == null) "—" else String.format(Locale.US, "%.1f Hz", value)
     fun celsius(value: Double?): String = if (value == null) "—" else String.format(Locale.US, "%.0f °C", value)
     fun ah(value: Double?): String = if (value == null) "—" else String.format(Locale.US, "%.1f Ah", value)
