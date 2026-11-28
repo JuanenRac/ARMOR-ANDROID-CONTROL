@@ -49,6 +49,8 @@ data class ModuleTrouble(
     /** A fault of the battery's electronics (SysError, or the cells from 1 that it does not read), its protections or alarms and its notices, each with the battery's own word. */
     val bmsError: Boolean = false, val unreadCells: List<Int> = emptyList(), val protections: List<BatteryState> = emptyList(), val notices: List<BatteryState> = emptyList(),
     val leftOut: List<String> = emptyList(),
+    /** The module's cells are read but it does not answer its data sheet, in a stack where another does. */
+    val noSheet: Boolean = false,
 ) {
     val bmsFault: Boolean get() = bmsError || unreadCells.isNotEmpty()
 }
@@ -113,9 +115,18 @@ object SolarCells {
         return ModuleView(m, cells, level, spread, trouble)
     }
 
+    /** A module whose cells are read but that says nothing of its data sheet (model, rated capacity, history), in a stack where another module does: the same rule as Studio. */
+    fun sheetUnanswered(module: SolarModule, stack: List<SolarModule>): Boolean {
+        val silent = module.model.isEmpty() && module.fullCapacityAh == null && module.cycles == null && module.counters.isEmpty() && module.softVersion.isEmpty()
+        return module.present && module.cellsV.isNotEmpty() && silent && stack.any { it.present && (it.boardVersion.isNotEmpty() || it.softVersion.isNotEmpty() || it.consoleBaud != null) }
+    }
+
     /** The whole bank: its worst module, a fault when the battery itself says a protection is acting, and the extremes of all its cells. */
     fun bank(deviceModel: String, reading: SolarBatteryReading, settings: SolarViewSettings): BankView {
-        val modules = reading.stack.map { module(it, isLfp(deviceModel, it.model.ifBlank { reading.model }), settings) }
+        val modules = reading.stack.map { item ->
+            val view = module(item, isLfp(deviceModel, item.model.ifBlank { reading.model }), settings)
+            if (sheetUnanswered(item, reading.stack)) view.copy(trouble = view.trouble.copy(noSheet = true)) else view
+        }
         val level = if (reading.alarm) CellLevel.FAULT else modules.maxOfOrNull { it.level } ?: CellLevel.OK
         val all = reading.stack.flatMap { module -> module.cellsV.filterIndexed { index, _ -> index !in module.cellsUnread } }
         val minV = all.minOrNull() ?: reading.cellMinV

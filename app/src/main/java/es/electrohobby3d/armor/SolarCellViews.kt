@@ -170,5 +170,6 @@ internal fun troubleLines(view: ModuleView): List<String> {
         if (t.hot) tr("Temperatura alta") else null,
         if (t.cold) tr("Demasiado frío para cargar") else null,
         t.missingCells.takeIf { it > 0 }?.let { trf("Leídas %s de %s celdas", view.cells.size, view.cells.size + it) },
+        if (t.noSheet) tr("Esta batería no responde a su ficha (modelo, capacidad nominal, historial). Sus celdas y su carga sí se leen; el nodo vuelve a pedirla cada pocos minutos.") else null,
     )
 }
