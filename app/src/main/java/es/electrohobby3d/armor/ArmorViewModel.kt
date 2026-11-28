@@ -69,6 +69,8 @@ data class MonitorUiState(
     val devices: List<SiteDevice> = emptyList(),
     /** Solar inverters and batteries; null until the server has answered (an older server never does). */
     val solar: es.electrohobby3d.armor.model.SolarOverview? = null,
+    /** The battery stacks the server is refusing to read. */
+    val refusedBatteries: List<es.electrohobby3d.armor.model.RefusedBattery> = emptyList(),
     /** The alarm panels (ARMOR-NODE-ALARM nodes); null until the server has answered (an older server never does). */
     val alarmPanels: es.electrohobby3d.armor.model.AlarmPanelsOverview? = null,
     /** The arming modes of the server (Away, Home, Night); null until it has answered, and while it is off (or an older server) the app arms and disarms as it always did. */
@@ -215,6 +217,7 @@ class ArmorViewModel(private val client: ArmorApi = SharedFeed.api, private val 
     /** The solar equipment, quickly, while the Solar screen is open. A failure is ignored; the next pass tries again. */
     suspend fun pollSolar(origin: String) = withContext(Dispatchers.IO) {
         runCatching { client.solar(origin) }.onSuccess { value -> _state.update { it.copy(solar = value) } }
+        runCatching { client.refusedBatteries(origin) }.onSuccess { value -> _state.update { it.copy(refusedBatteries = value) } }
     }
 
     fun reloadSolar(origin: String) { viewModelScope.launch { pollSolar(origin) } }

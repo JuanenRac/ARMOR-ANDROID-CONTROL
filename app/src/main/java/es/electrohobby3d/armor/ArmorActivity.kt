@@ -544,7 +544,7 @@ private fun ArmorScreen(viewModel: ArmorViewModel = viewModel(), updateViewModel
                                 }
                                 MoreTab.Solar -> SubScreen(Icons.Filled.WbSunny, tr("Solar"), onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.reloadSolar(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
-                                }) { SolarScreen(state.solar, state.network, onScanNetwork = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading, history = { viewModel.solarHistory(currentOrigin, it) }) }
+                                }) { SolarScreen(state.solar, state.network, onScanNetwork = { viewModel.scanNetworkNow(currentOrigin) }, scanning = state.loading, history = { viewModel.solarHistory(currentOrigin, it) }, refused = state.refusedBatteries) }
                                 MoreTab.Batteries -> SubScreen(Icons.Filled.BatteryChargingFull, tr("Mantenimiento de baterías"), onBack = { moreTab = null }, actions = {
                                     IconButton(onClick = { viewModel.loadBattery(currentOrigin) }) { Icon(Icons.Filled.Refresh, contentDescription = tr("Actualizar"), tint = ArmorColors.Cyan) }
                                 }) {
