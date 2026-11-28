@@ -1626,5 +1626,6 @@
  "Fallo del BMS: celdas sin lectura (0 V): %s": "BMS-Fehler: Zellen nicht gelesen (0 V): %s",
  "Protección o alarma": "Schutz oder Alarm",
  "Aviso de la batería": "Hinweis der Batterie",
- "Una batería solar tiene un fallo de su electrónica (BMS)": "Eine Solarbatterie meldet einen Fehler ihrer Elektronik (BMS)"
+ "Una batería solar tiene un fallo de su electrónica (BMS)": "Eine Solarbatterie meldet einen Fehler ihrer Elektronik (BMS)",
+ "Esta batería no responde a su ficha (modelo, capacidad nominal, historial). Sus celdas y su carga sí se leen; el nodo vuelve a pedirla cada pocos minutos.": "Diese Batterie beantwortet ihr Datenblatt nicht (Modell, Nennkapazität, Verlauf). Zellen und Ladung werden gelesen; der Knoten fragt alle paar Minuten erneut."
 }

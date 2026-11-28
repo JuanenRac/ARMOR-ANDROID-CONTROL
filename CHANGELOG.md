@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **A battery that does not answer its data sheet is said so:** as in Studio and on the node's panel, a module whose cells are read but that says no model, capacity or history, in a stack where another does, carries a line about it.
+
 ## [0.8.1.3] - Battery states and makers, one notice per battery problem
 
 - **A refused pause of an armed panel says why:** a node that guards answers `busy_guarding`, shown in words.

@@ -1626,5 +1626,6 @@
  "Fallo del BMS: celdas sin lectura (0 V): %s": "BMS故障：読み取れないセル（0 V）：%s",
  "Protección o alarma": "保護または警報",
  "Aviso de la batería": "バッテリーの注意",
- "Una batería solar tiene un fallo de su electrónica (BMS)": "ソーラーバッテリーが内部回路（BMS）の故障を報告しています"
+ "Una batería solar tiene un fallo de su electrónica (BMS)": "ソーラーバッテリーが内部回路（BMS）の故障を報告しています",
+ "Esta batería no responde a su ficha (modelo, capacidad nominal, historial). Sus celdas y su carga sí se leen; el nodo vuelve a pedirla cada pocos minutos.": "このバッテリーは仕様情報（型式、定格容量、履歴）の問い合わせに応答しません。セルと残量は読み取れます。ノードは数分ごとに再度問い合わせます。"
 }
