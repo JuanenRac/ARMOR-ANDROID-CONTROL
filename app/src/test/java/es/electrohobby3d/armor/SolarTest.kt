@@ -249,4 +249,16 @@ class SolarCountersTest {
         } finally { es.electrohobby3d.armor.AlarmFacts.use(emptyMap()) }
         for (code in listOf("solar_cell_soh_abnormal", "solar_module_overcurrent")) assertTrue(es.electrohobby3d.armor.model.DeviceText.alarmText(code) != code)
     }
+
+    @Test fun theCountersOfTheEquipmentAreReadAndWordedOnlyWhenSaid() {
+        val inverter = SolarParser.device(JSONObject("""{"node_id":"a","device":"b","kind":"inverter","reading":{"mode":"line","pv_energy_total_wh":1234567,"energy":{"pv_today_wh":1200,"load_total_wh":1000000}}}"""))!!.inverter!!
+        assertEquals(1200.0, inverter.energy!!.pvTodayWh!!, 0.0)
+        assertEquals("hoy 1.2 kWh · en total 1234.6 kWh", SolarText.periods(inverter.energy!!.pvTodayWh, null, null, inverter.energy!!.pvTotalWh))
+        assertNull(SolarText.periods(null, null, null, null))
+        assertNull(SolarParser.device(JSONObject("""{"node_id":"a","device":"b","kind":"inverter","reading":{"mode":"line"}}"""))!!.inverter!!.energy)
+        val stack = SolarParser.device(JSONObject("""{"node_id":"a","device":"c","kind":"battery","reading":{"modules":1,"stack":[],"bms_system":{"soc_percent":80,"health_percent":97,"modules_sleep":1,"charge_voltage_v":53.2,"charge_current_a":50}}}"""))!!.battery!!.stackSays!!
+        assertEquals("estado de carga 80 % · salud 97 %", SolarText.stackFigures(stack))
+        assertEquals("al cargar 53.2 V, 50.0 A", SolarText.stackLimits(stack))
+        assertEquals(1, stack.modulesAsleep)
+    }
 }

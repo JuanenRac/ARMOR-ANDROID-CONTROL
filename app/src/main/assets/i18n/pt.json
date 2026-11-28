@@ -1627,5 +1627,18 @@
  "Protección o alarma": "Proteção ou alarme",
  "Aviso de la batería": "Aviso da bateria",
  "Una batería solar tiene un fallo de su electrónica (BMS)": "Uma bateria solar comunica uma falha da sua eletrónica (BMS)",
- "Esta batería no responde a su ficha (modelo, capacidad nominal, historial). Sus celdas y su carga sí se leen; el nodo vuelve a pedirla cada pocos minutos.": "Esta bateria não responde à sua ficha (modelo, capacidade nominal, histórico). As células e a carga são lidas; o nó volta a pedi-la de poucos em poucos minutos."
+ "Esta batería no responde a su ficha (modelo, capacidad nominal, historial). Sus celdas y su carga sí se leen; el nodo vuelve a pedirla cada pocos minutos.": "Esta bateria não responde à sua ficha (modelo, capacidade nominal, histórico). As células e a carga são lidas; o nó volta a pedi-la de poucos em poucos minutos.",
+ "Energía de los paneles": "Energia dos painéis",
+ "Energía consumida": "Energia consumida",
+ "hoy %s": "hoje %s",
+ "este mes %s": "este mês %s",
+ "este año %s": "este ano %s",
+ "en total %s": "no total %s",
+ "Según la pila": "Segundo o conjunto",
+ "estado de carga %s": "estado de carga %s",
+ "salud %s": "saúde %s",
+ "Límites recomendados": "Limites recomendados",
+ "al cargar %s": "a carregar %s",
+ "al descargar %s": "a descarregar %s",
+ "Módulos dormidos": "Módulos em repouso"
 }

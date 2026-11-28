@@ -1627,5 +1627,18 @@
  "Protección o alarma": "Protection or alarm",
  "Aviso de la batería": "Battery notice",
  "Una batería solar tiene un fallo de su electrónica (BMS)": "A solar battery reports a fault of its electronics (BMS)",
- "Esta batería no responde a su ficha (modelo, capacidad nominal, historial). Sus celdas y su carga sí se leen; el nodo vuelve a pedirla cada pocos minutos.": "This battery does not answer its data sheet (model, rated capacity, history). Its cells and charge are read; the node asks again every few minutes."
+ "Esta batería no responde a su ficha (modelo, capacidad nominal, historial). Sus celdas y su carga sí se leen; el nodo vuelve a pedirla cada pocos minutos.": "This battery does not answer its data sheet (model, rated capacity, history). Its cells and charge are read; the node asks again every few minutes.",
+ "Energía de los paneles": "Energy of the panels",
+ "Energía consumida": "Energy used",
+ "hoy %s": "today %s",
+ "este mes %s": "this month %s",
+ "este año %s": "this year %s",
+ "en total %s": "in all %s",
+ "Según la pila": "As the stack says",
+ "estado de carga %s": "state of charge %s",
+ "salud %s": "health %s",
+ "Límites recomendados": "Recommended limits",
+ "al cargar %s": "charging %s",
+ "al descargar %s": "discharging %s",
+ "Módulos dormidos": "Modules asleep"
 }
