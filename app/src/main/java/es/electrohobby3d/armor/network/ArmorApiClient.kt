@@ -136,6 +136,8 @@ class ArmorApiClient : ArmorApi {
 
     /** Every inverter and battery that has reported, the declared ones still waiting, and the sums; an operator session is needed. */
     override fun solar(origin: String): SolarOverview = SolarParser.overview(getJson(origin, "/api/v1/solar"))
+    override fun refusedBatteries(origin: String): List<es.electrohobby3d.armor.model.RefusedBattery> =
+        es.electrohobby3d.armor.model.RefusedBattery.fromIngest(getJson(origin, "/api/v1/system/ingest"))
     override fun solarHistory(origin: String, request: es.electrohobby3d.armor.model.HistoryRequest): es.electrohobby3d.armor.model.SolarHistory =
         es.electrohobby3d.armor.model.SolarHistoryMath.parse(getJson(origin, "/api/v1/solar/history?node=" + java.net.URLEncoder.encode(request.node, "UTF-8") +
             "&device=" + java.net.URLEncoder.encode(request.device, "UTF-8") + "&minutes=" + request.minutes + (request.module?.let { "&module=$it" } ?: "")))

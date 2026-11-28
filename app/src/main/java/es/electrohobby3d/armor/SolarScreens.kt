@@ -43,7 +43,7 @@ fun solarSummary(totals: SolarTotals): String =
     else trf("%s de sol · %s de consumo", SolarText.watts(totals.pvW), SolarText.watts(totals.loadW))
 
 @Composable
-fun SolarScreen(overview: SolarOverview?, network: NetworkOverview? = null, onScanNetwork: () -> Unit = {}, scanning: Boolean = false, history: HistoryLoader? = null) {
+fun SolarScreen(overview: SolarOverview?, network: NetworkOverview? = null, onScanNetwork: () -> Unit = {}, scanning: Boolean = false, history: HistoryLoader? = null, refused: List<es.electrohobby3d.armor.model.RefusedBattery> = emptyList()) {
     val data = overview ?: SolarOverview()
     val settings = rememberSolarViewSettings()
     LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 16.dp)) {
@@ -58,6 +58,14 @@ fun SolarScreen(overview: SolarOverview?, network: NetworkOverview? = null, onSc
                 },
                 style = MaterialTheme.typography.bodySmall, color = ArmorColors.Muted,
             )
+        }
+        refused.forEach { stack ->
+            item {
+                Text(
+                    trf("El servidor rechaza las lecturas que envía %s, así que lo que se ve de él está atrasado o falta. Motivo: %s. Comprueba que el servidor está al día.", stack.name, stack.reason),
+                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error,
+                )
+            }
         }
         if (data.isEmpty) item { EmptySolar() }
         if (data.devices.isNotEmpty()) item { TotalsPanel(data.totals) }

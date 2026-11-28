@@ -136,14 +136,14 @@
       "name": "app/src/test/",
       "span": 1,
       "tree": {
-        "en": "{{fact:kotlin_tests:ARMOR-ANDROID-CONTROL|626}} tests and a fake server",
-        "es": "{{fact:kotlin_tests:ARMOR-ANDROID-CONTROL|626}} pruebas y un servidor falso",
-        "de": "{{fact:kotlin_tests:ARMOR-ANDROID-CONTROL|626}} Tests und ein Fake-Server",
-        "fr": "{{fact:kotlin_tests:ARMOR-ANDROID-CONTROL|626}} tests et un faux serveur",
-        "it": "{{fact:kotlin_tests:ARMOR-ANDROID-CONTROL|626}} test e un server finto",
-        "ja": "{{fact:kotlin_tests:ARMOR-ANDROID-CONTROL|626}} 件のテストと擬似サーバー",
-        "zh": "{{fact:kotlin_tests:ARMOR-ANDROID-CONTROL|626}} 个测试和一个模拟服务器",
-        "pt": "{{fact:kotlin_tests:ARMOR-ANDROID-CONTROL|626}} testes e um servidor falso"
+        "en": "{{fact:kotlin_tests:ARMOR-ANDROID-CONTROL|627}} tests and a fake server",
+        "es": "{{fact:kotlin_tests:ARMOR-ANDROID-CONTROL|627}} pruebas y un servidor falso",
+        "de": "{{fact:kotlin_tests:ARMOR-ANDROID-CONTROL|627}} Tests und ein Fake-Server",
+        "fr": "{{fact:kotlin_tests:ARMOR-ANDROID-CONTROL|627}} tests et un faux serveur",
+        "it": "{{fact:kotlin_tests:ARMOR-ANDROID-CONTROL|627}} test e un server finto",
+        "ja": "{{fact:kotlin_tests:ARMOR-ANDROID-CONTROL|627}} 件のテストと擬似サーバー",
+        "zh": "{{fact:kotlin_tests:ARMOR-ANDROID-CONTROL|627}} 个测试和一个模拟服务器",
+        "pt": "{{fact:kotlin_tests:ARMOR-ANDROID-CONTROL|627}} testes e um servidor falso"
       },
       "rows": [
         {
